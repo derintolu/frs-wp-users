@@ -90,16 +90,24 @@ class FRSAdmin {
 		// Production mode - load built assets
 		$manifest_path = $assets_dir . '/manifest.json';
 
+		error_log( 'FRSAdmin: Manifest path = ' . $manifest_path );
+		error_log( 'FRSAdmin: Manifest exists = ' . ( file_exists( $manifest_path ) ? 'yes' : 'no' ) );
+
 		if ( file_exists( $manifest_path ) ) {
 			$manifest = json_decode( file_get_contents( $manifest_path ), true );
+
+			error_log( 'FRSAdmin: Manifest = ' . print_r( $manifest, true ) );
 
 			// Enqueue main JS
 			if ( isset( $manifest['src/admin/main.jsx'] ) ) {
 				$main_js = $manifest['src/admin/main.jsx'];
 
+				$js_url = $assets_url . '/' . $main_js['file'];
+				error_log( 'FRSAdmin: Enqueuing JS = ' . $js_url );
+
 				wp_enqueue_script(
 					self::HANDLE,
-					$assets_url . '/' . $main_js['file'],
+					$js_url,
 					array(),
 					FRS_USERS_VERSION,
 					true
@@ -109,15 +117,22 @@ class FRSAdmin {
 				// Enqueue CSS if exists
 				if ( isset( $main_js['css'] ) && is_array( $main_js['css'] ) ) {
 					foreach ( $main_js['css'] as $index => $css_file ) {
+						$css_url = $assets_url . '/' . $css_file;
+						error_log( 'FRSAdmin: Enqueuing CSS = ' . $css_url );
+
 						wp_enqueue_style(
 							self::HANDLE . '-css-' . $index,
-							$assets_url . '/' . $css_file,
+							$css_url,
 							array(),
 							FRS_USERS_VERSION
 						);
 					}
 				}
+			} else {
+				error_log( 'FRSAdmin: ERROR - src/admin/main.jsx not found in manifest' );
 			}
+		} else {
+			error_log( 'FRSAdmin: ERROR - Manifest file does not exist' );
 		}
 	}
 

@@ -12,7 +12,7 @@ use FRSUsers\Core\CLI;
 use FRSUsers\Routes\Api;
 use FRSUsers\Admin\ProfilesPage;
 use FRSUsers\Admin\ProfileEdit;
-use WordPressPluginBoilerplate\Assets\Admin;
+use FRSUsers\Assets\FRSAdmin;
 use FRSUsers\Integrations\FRSSync;
 use FRSUsers\Traits\Base;
 
@@ -67,7 +67,7 @@ final class FRSUsers {
 		if ( is_admin() ) {
 			ProfilesPage::init();
 			ProfileEdit::init();
-			Admin::get_instance()->bootstrap();
+			FRSAdmin::get_instance()->init();
 		}
 
 		// Initialize internationalization

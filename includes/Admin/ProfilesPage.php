@@ -76,6 +76,15 @@ class ProfilesPage {
 			'frs-users-add-profile',
 			array( __CLASS__, 'render_add_page' )
 		);
+
+		add_submenu_page(
+			'frs-users-profiles',
+			__( 'Settings', 'frs-users' ),
+			__( 'Settings', 'frs-users' ),
+			'manage_options',
+			'frs-users-settings',
+			array( __CLASS__, 'render_settings_page' )
+		);
 	}
 
 	// Assets now loaded by FRSAdmin class - see includes/Assets/FRSAdmin.php
@@ -134,6 +143,21 @@ class ProfilesPage {
 		?>
 		<div class="wrap">
 			<div id="frs-users-admin-root" data-route="/profiles/new"></div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render settings page
+	 *
+	 * React SPA renders here.
+	 *
+	 * @return void
+	 */
+	public static function render_settings_page() {
+		?>
+		<div class="wrap">
+			<div id="frs-users-admin-root" data-route="/settings"></div>
 		</div>
 		<?php
 	}

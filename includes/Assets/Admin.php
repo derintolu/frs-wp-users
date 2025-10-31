@@ -40,7 +40,10 @@ class Admin {
 	 * @var array
 	 */
 	private $allowed_screens = array(
-		'toplevel_page_wordpress-plugin-boilerplate',
+		'toplevel_page_frs-users-profiles',
+		'frs-profiles_page_frs-users-guests',
+		'frs-profiles_page_frs-users-add-profile',
+		'frs-profiles_page_frs-users-settings',
 	);
 
 	/**
@@ -74,7 +77,7 @@ class Admin {
 
 		if ( in_array( $current_screen, $this->allowed_screens, true ) ) {
 			Assets\enqueue_asset(
-				WORDPRESS_PLUGIN_BOILERPLATE_DIR . '/assets/admin/dist',
+				FRS_USERS_DIR . 'assets/admin/dist',
 				self::DEV_SCRIPT,
 				$this->get_config()
 			);
@@ -106,6 +109,7 @@ class Admin {
 			'developer' => 'prappo',
 			'isAdmin'   => is_admin(),
 			'apiUrl'    => rest_url(),
+			'nonce'     => wp_create_nonce( 'wp_rest' ),
 			'userInfo'  => $this->get_user_data(),
 		);
 	}

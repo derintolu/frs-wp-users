@@ -245,7 +245,6 @@ export default function ProfileList() {
                 <SelectValue placeholder="All Profile Types" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Profile Types</SelectItem>
                 <SelectItem value="loan_officer">Loan Officers</SelectItem>
                 <SelectItem value="realtor_partner">Real Estate Partners</SelectItem>
                 <SelectItem value="staff">Staff</SelectItem>

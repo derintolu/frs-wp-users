@@ -103,8 +103,10 @@ class ProfilesList extends \WP_List_Table {
 	 */
 	protected function column_headshot( $item ) {
 		if ( $item->headshot_id ) {
-			$image = wp_get_attachment_image( $item->headshot_id, array( 50, 50 ), false, array( 'style' => 'border-radius: 50%; display: block;' ) );
-			return $image ?: '—';
+			$image_url = wp_get_attachment_image_url( $item->headshot_id, 'thumbnail' );
+			if ( $image_url ) {
+				return '<div style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden;"><img src="' . esc_url( $image_url ) . '" style="width: 100%; height: 100%; object-fit: cover; display: block;" alt="' . esc_attr( $item->first_name . ' ' . $item->last_name ) . '"></div>';
+			}
 		}
 		return '<div style="width: 50px; height: 50px; background: #ddd; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #666;">' . strtoupper( substr( $item->first_name, 0, 1 ) ) . '</div>';
 	}

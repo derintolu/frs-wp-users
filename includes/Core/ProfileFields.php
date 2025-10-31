@@ -37,12 +37,28 @@ class ProfileFields {
 	 * @return void
 	 */
 	public static function register_fields() {
+		// User meta container (for WordPress users)
 		Container::make( 'user_meta', __( 'Profile Information', 'frs-users' ) )
 			->add_tab( __( 'Contact', 'frs-users' ), self::get_contact_fields() )
 			->add_tab( __( 'Professional', 'frs-users' ), self::get_professional_fields() )
 			->add_tab( __( 'Location', 'frs-users' ), self::get_location_fields() )
 			->add_tab( __( 'Social Media', 'frs-users' ), self::get_social_fields() )
 			->add_tab( __( 'Tools & Platforms', 'frs-users' ), self::get_tools_fields() );
+	}
+
+	/**
+	 * Get all fields for custom admin page rendering
+	 *
+	 * @return array
+	 */
+	public static function get_all_fields() {
+		return array_merge(
+			self::get_contact_fields(),
+			self::get_professional_fields(),
+			self::get_location_fields(),
+			self::get_social_fields(),
+			self::get_tools_fields()
+		);
 	}
 
 	/**
@@ -90,92 +106,125 @@ class ProfileFields {
 			Field::make( 'text', 'job_title', __( 'Job Title', 'frs-users' ) )
 				->set_help_text( __( 'Professional title or position', 'frs-users' ) ),
 
-			Field::make( 'textarea', 'biography', __( 'Biography', 'frs-users' ) )
-				->set_rows( 5 )
+			Field::make( 'rich_text', 'biography', __( 'Biography', 'frs-users' ) )
 				->set_help_text( __( 'Professional biography', 'frs-users' ) ),
 
 			Field::make( 'date', 'date_of_birth', __( 'Date of Birth', 'frs-users' ) )
-				->set_storage_format( 'Y-m-d' ),
+				->set_storage_format( 'F j' ),
 
-			Field::make( 'select', 'select_person_type', __( 'Person Type', 'frs-users' ) )
-				->add_options( array(
-					'loan_officer' => __( 'Loan Officer', 'frs-users' ),
-					'agent'        => __( 'Real Estate Agent', 'frs-users' ),
-				) ),
-
-			Field::make( 'text', 'nmls', __( 'NMLS Number', 'frs-users' ) )
-				->set_help_text( __( 'NMLS license number', 'frs-users' ) ),
-
-			Field::make( 'text', 'nmls_number', __( 'NMLS Number (Alt)', 'frs-users' ) )
-				->set_help_text( __( 'Alternative NMLS field', 'frs-users' ) ),
-
-			Field::make( 'text', 'license_number', __( 'License Number', 'frs-users' ) )
-				->set_help_text( __( 'Professional license number', 'frs-users' ) ),
-
-			Field::make( 'text', 'dre_license', __( 'DRE License', 'frs-users' ) )
+			Field::make( 'text', 'license_number', __( 'DRE License Number', 'frs-users' ) )
 				->set_help_text( __( 'California DRE license number', 'frs-users' ) ),
 
-			Field::make( 'multiselect', 'specialties_lo', __( 'Loan Officer Specialties', 'frs-users' ) )
+			Field::make( 'text', 'nmls', __( 'NMLS #', 'frs-users' ) )
+				->set_help_text( __( 'NMLS license number', 'frs-users' ) ),
+
+			Field::make( 'multiselect', 'specialties', __( 'Specialties - Real Estate Agent', 'frs-users' ) )
 				->add_options( array(
-					'conventional' => __( 'Conventional', 'frs-users' ),
-					'fha'          => __( 'FHA', 'frs-users' ),
-					'va'           => __( 'VA', 'frs-users' ),
-					'usda'         => __( 'USDA', 'frs-users' ),
-					'jumbo'        => __( 'Jumbo', 'frs-users' ),
-					'renovation'   => __( 'Renovation Loans', 'frs-users' ),
-					'first_time'   => __( 'First Time Home Buyers', 'frs-users' ),
+					'Residential'           => __( 'Residential', 'frs-users' ),
+					'Commercial'            => __( 'Commercial', 'frs-users' ),
+					'Luxury'                => __( 'Luxury', 'frs-users' ),
+					'Investment'            => __( 'Investment', 'frs-users' ),
+					'New Construction'      => __( 'New Construction', 'frs-users' ),
+					'Condos/Townhouses'     => __( 'Condos/Townhouses', 'frs-users' ),
+					'Multi-Family'          => __( 'Multi-Family', 'frs-users' ),
+					'Land Sales'            => __( 'Land Sales', 'frs-users' ),
+					'Vacation Homes'        => __( 'Vacation Homes', 'frs-users' ),
+					'First-Time Buyers'     => __( 'First-Time Buyers', 'frs-users' ),
+					'Military/Veterans'     => __( 'Military/Veterans', 'frs-users' ),
+					'Seniors'               => __( 'Seniors', 'frs-users' ),
+					'International'         => __( 'International', 'frs-users' ),
+					'Relocation'            => __( 'Relocation', 'frs-users' ),
+					'Foreclosures'          => __( 'Foreclosures', 'frs-users' ),
+					'Green/Eco'             => __( 'Green/Eco', 'frs-users' ),
+					'Historic Properties'   => __( 'Historic Properties', 'frs-users' ),
+					'Waterfront'            => __( 'Waterfront', 'frs-users' ),
+					'Rural'                 => __( 'Rural', 'frs-users' ),
+					'Urban'                 => __( 'Urban', 'frs-users' ),
+					'Distressed Sales'      => __( 'Distressed Sales', 'frs-users' ),
+					'Fix-and-Flip'          => __( 'Fix-and-Flip', 'frs-users' ),
 				) )
 				->set_help_text( __( 'Select all that apply', 'frs-users' ) ),
 
-			Field::make( 'multiselect', 'specialties', __( 'Real Estate Specialties', 'frs-users' ) )
+			Field::make( 'multiselect', 'specialties_lo', __( 'Specialties - Loan Officer', 'frs-users' ) )
 				->add_options( array(
-					'buyers_agent'  => __( 'Buyer\'s Agent', 'frs-users' ),
-					'listing_agent' => __( 'Listing Agent', 'frs-users' ),
-					'relocation'    => __( 'Relocation', 'frs-users' ),
-					'luxury'        => __( 'Luxury Homes', 'frs-users' ),
-					'investment'    => __( 'Investment Properties', 'frs-users' ),
-					'commercial'    => __( 'Commercial', 'frs-users' ),
+					'Residential Mortgages' => __( 'Residential Mortgages', 'frs-users' ),
+					'Consumer Loans'        => __( 'Consumer Loans', 'frs-users' ),
+					'VA Loans'              => __( 'VA Loans', 'frs-users' ),
+					'FHA Loans'             => __( 'FHA Loans', 'frs-users' ),
+					'Jumbo Loans'           => __( 'Jumbo Loans', 'frs-users' ),
+					'Construction Loans'    => __( 'Construction Loans', 'frs-users' ),
+					'Investment Property'   => __( 'Investment Property', 'frs-users' ),
+					'Reverse Mortgages'     => __( 'Reverse Mortgages', 'frs-users' ),
+					'USDA Rural Loans'      => __( 'USDA Rural Loans', 'frs-users' ),
+					'Bridge Loans'          => __( 'Bridge Loans', 'frs-users' ),
 				) )
 				->set_help_text( __( 'Select all that apply', 'frs-users' ) ),
-
-			Field::make( 'multiselect', 'languages', __( 'Languages', 'frs-users' ) )
-				->add_options( array(
-					'english'  => __( 'English', 'frs-users' ),
-					'spanish'  => __( 'Spanish', 'frs-users' ),
-					'chinese'  => __( 'Chinese', 'frs-users' ),
-					'tagalog'  => __( 'Tagalog', 'frs-users' ),
-					'vietnamese' => __( 'Vietnamese', 'frs-users' ),
-					'korean'   => __( 'Korean', 'frs-users' ),
-					'french'   => __( 'French', 'frs-users' ),
-				) )
-				->set_help_text( __( 'Languages spoken', 'frs-users' ) ),
-
-			Field::make( 'complex', 'awards', __( 'Awards & Recognition', 'frs-users' ) )
-				->add_fields( array(
-					Field::make( 'text', 'title', __( 'Award Title', 'frs-users' ) ),
-					Field::make( 'text', 'year', __( 'Year', 'frs-users' ) ),
-					Field::make( 'text', 'issuer', __( 'Issued By', 'frs-users' ) ),
-				) )
-				->set_help_text( __( 'Professional awards and recognition', 'frs-users' ) ),
 
 			Field::make( 'multiselect', 'nar_designations', __( 'NAR Designations', 'frs-users' ) )
 				->add_options( array(
-					'abr'  => __( 'ABR - Accredited Buyer\'s Representative', 'frs-users' ),
-					'gri'  => __( 'GRI - Graduate, REALTOR® Institute', 'frs-users' ),
-					'crs'  => __( 'CRS - Certified Residential Specialist', 'frs-users' ),
-					'sres' => __( 'SRES - Seniors Real Estate Specialist', 'frs-users' ),
+					"ABR - Accredited Buyer's Representative"     => __( "ABR - Accredited Buyer's Representative", 'frs-users' ),
+					'CRS - Certified Residential Specialist'      => __( 'CRS - Certified Residential Specialist', 'frs-users' ),
+					'SRES - Seniors Real Estate Specialist'       => __( 'SRES - Seniors Real Estate Specialist', 'frs-users' ),
+					'SRS - Seller Representative Specialist'      => __( 'SRS - Seller Representative Specialist', 'frs-users' ),
+					'GRI - Graduate REALTOR® Institute'           => __( 'GRI - Graduate REALTOR® Institute', 'frs-users' ),
+					'CRB - Certified Real Estate Brokerage Manager' => __( 'CRB - Certified Real Estate Brokerage Manager', 'frs-users' ),
+					'CCIM - Certified Commercial Investment Member' => __( 'CCIM - Certified Commercial Investment Member', 'frs-users' ),
+					'CIPS - Certified International Property Specialist' => __( 'CIPS - Certified International Property Specialist', 'frs-users' ),
+					'CPM - Certified Property Manager'            => __( 'CPM - Certified Property Manager', 'frs-users' ),
+					'CRE - Counselor of Real Estate'              => __( 'CRE - Counselor of Real Estate', 'frs-users' ),
+					'ALC - Accredited Land Consultant'            => __( 'ALC - Accredited Land Consultant', 'frs-users' ),
+					'MRP - Military Relocation Professional'      => __( 'MRP - Military Relocation Professional', 'frs-users' ),
+					'RSPS - Resort & Second-Home Property Specialist' => __( 'RSPS - Resort & Second-Home Property Specialist', 'frs-users' ),
 				) )
 				->set_help_text( __( 'National Association of Realtors designations', 'frs-users' ) ),
 
 			Field::make( 'multiselect', 'namb_certifications', __( 'NAMB Certifications', 'frs-users' ) )
 				->add_options( array(
-					'cmps' => __( 'CMPS - Certified Mortgage Planning Specialist', 'frs-users' ),
-					'crms' => __( 'CRMS - Certified Residential Mortgage Specialist', 'frs-users' ),
+					'CMC - Certified Mortgage Consultant'           => __( 'CMC - Certified Mortgage Consultant', 'frs-users' ),
+					'CRMS - Certified Residential Mortgage Specialist' => __( 'CRMS - Certified Residential Mortgage Specialist', 'frs-users' ),
+					'GMA - General Mortgage Associate'              => __( 'GMA - General Mortgage Associate', 'frs-users' ),
+					'CVLS - Certified Veterans Lending Specialist'  => __( 'CVLS - Certified Veterans Lending Specialist', 'frs-users' ),
 				) )
 				->set_help_text( __( 'National Association of Mortgage Brokers certifications', 'frs-users' ) ),
 
-			Field::make( 'text', 'brand', __( 'Brand', 'frs-users' ) )
-				->set_help_text( __( 'Company or personal brand', 'frs-users' ) ),
+			Field::make( 'complex', 'awards', __( 'Awards & Recognition', 'frs-users' ) )
+				->add_fields( array(
+					Field::make( 'text', 'year', __( 'Year', 'frs-users' ) )
+						->set_attribute( 'maxLength', 4 ),
+					Field::make( 'select', 'award', __( 'Award', 'frs-users' ) )
+						->add_options( array(
+							'GRAND CENTURION®'                  => 'GRAND CENTURION®',
+							'Double CENTURION®'                 => 'Double CENTURION®',
+							'CENTURION®'                        => 'CENTURION®',
+							'CENTURION® Team'                   => 'CENTURION® Team',
+							'CENTURION® Honor Society'          => 'CENTURION® Honor Society',
+							'Masters Diamond'                   => 'Masters Diamond',
+							'Masters Emerald'                   => 'Masters Emerald',
+							'Masters Ruby'                      => 'Masters Ruby',
+							'Masters Team'                      => 'Masters Team',
+							'Quality Service Pinnacle Producer' => 'Quality Service Pinnacle Producer',
+							'Quality Service Producer'          => 'Quality Service Producer',
+							"President's Producer"              => "President's Producer",
+							'Agent of the Year'                 => 'Agent of the Year',
+						) ),
+					Field::make( 'image', 'award_logo', __( 'Award Logo', 'frs-users' ) )
+						->set_value_type( 'url' ),
+				) )
+				->set_help_text( __( 'Professional awards and recognition', 'frs-users' ) ),
+
+			Field::make( 'multiselect', 'languages', __( 'Languages', 'frs-users' ) )
+				->add_options( array(
+					'English'   => __( 'English', 'frs-users' ),
+					'Spanish'   => __( 'Spanish', 'frs-users' ),
+					'Mandarin'  => __( 'Mandarin', 'frs-users' ),
+					'Cantonese' => __( 'Cantonese', 'frs-users' ),
+					'Turkish'   => __( 'Turkish', 'frs-users' ),
+					'French'    => __( 'French', 'frs-users' ),
+					'German'    => __( 'German', 'frs-users' ),
+					'Russian'   => __( 'Russian', 'frs-users' ),
+					'Arabic'    => __( 'Arabic', 'frs-users' ),
+				) )
+				->set_help_text( __( 'Languages spoken', 'frs-users' ) ),
 
 			Field::make( 'select', 'status', __( 'Status', 'frs-users' ) )
 				->add_options( array(
@@ -241,20 +290,24 @@ class ProfileFields {
 	 */
 	private static function get_tools_fields() {
 		return array(
-			Field::make( 'text', 'arrive', __( 'ARRIVE URL', 'frs-users' ) )
+			Field::make( 'text', 'arrive', __( 'Arrive', 'frs-users' ) )
 				->set_attribute( 'type', 'url' )
 				->set_help_text( __( 'ARRIVE platform registration URL', 'frs-users' ) ),
 
-			Field::make( 'text', 'canva_folder_link', __( 'Canva Folder', 'frs-users' ) )
+			Field::make( 'text', 'canva_folder_link', __( 'Canva Folder Link', 'frs-users' ) )
 				->set_attribute( 'type', 'url' )
 				->set_help_text( __( 'Link to Canva marketing materials', 'frs-users' ) ),
 
-			Field::make( 'rich_text', 'niche_bio_content', __( 'Niche Bio Content', 'frs-users' ) )
-				->set_help_text( __( 'Specialized bio content for niche marketing', 'frs-users' ) ),
+			Field::make( 'complex', 'niche_bio_content', __( 'Add Niche Bio Content', 'frs-users' ) )
+				->add_fields( array(
+					Field::make( 'text', 'title', __( 'Title', 'frs-users' ) ),
+					Field::make( 'rich_text', 'bio_content', __( 'Bio Content', 'frs-users' ) ),
+				) )
+				->set_help_text( __( 'If you operate in more than one specialty or niche, add different bios here', 'frs-users' ) ),
 
 			Field::make( 'media_gallery', 'personal_branding_images', __( 'Personal Branding Images', 'frs-users' ) )
 				->set_type( 'image' )
-				->set_help_text( __( 'Collection of professional photos and branding images', 'frs-users' ) ),
+				->set_help_text( __( 'Add any personal branding that you would like to be used', 'frs-users' ) ),
 		);
 	}
 }

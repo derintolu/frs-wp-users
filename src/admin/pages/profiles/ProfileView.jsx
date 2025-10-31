@@ -25,7 +25,11 @@ export default function ProfileView() {
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch(`/wp-json/frs-users/v1/profiles/${id}`);
+      const response = await fetch(`${wordpressPluginBoilerplate.apiUrl}frs-users/v1/profiles/${id}`, {
+        headers: {
+          'X-WP-Nonce': wordpressPluginBoilerplate.nonce
+        }
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch profile');
       }

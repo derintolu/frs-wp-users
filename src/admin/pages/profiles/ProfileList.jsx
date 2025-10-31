@@ -30,7 +30,7 @@ export default function ProfileList() {
 
   const fetchProfiles = async () => {
     try {
-      const response = await fetch('/wp-json/frs-users/v1/profiles', {
+      const response = await fetch(`${wordpressPluginBoilerplate.apiUrl}frs-users/v1/profiles`, {
         headers: {
           'X-WP-Nonce': wordpressPluginBoilerplate.nonce
         }

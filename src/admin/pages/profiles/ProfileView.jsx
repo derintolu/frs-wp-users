@@ -133,6 +133,22 @@ export default function ProfileView() {
           <Link to={`/profiles/${id}/edit`}>
             <Button>Edit Profile</Button>
           </Link>
+          {profile.user_id ? null : (
+            <Button variant="outline" onClick={() => {
+              fetch(`${wordpressPluginBoilerplate.apiUrl}frs-users/v1/profiles/${id}/create-user`, {
+                method: 'POST',
+                headers: {
+                  'X-WP-Nonce': wordpressPluginBoilerplate.nonce,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ send_email: true })
+              }).then(res => res.json()).then(() => {
+                window.location.reload();
+              });
+            }}>
+              Create User Account
+            </Button>
+          )}
         </div>
       </div>
 

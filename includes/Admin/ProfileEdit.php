@@ -12,8 +12,6 @@
 namespace FRSUsers\Admin;
 
 use FRSUsers\Models\Profile;
-use Carbon_Fields\Container;
-use Carbon_Fields\Field;
 
 /**
  * Class ProfileEdit
@@ -30,66 +28,12 @@ class ProfileEdit {
 	 * @return void
 	 */
 	public static function init() {
-		add_action( 'carbon_fields_register_fields', array( __CLASS__, 'register_fields' ) );
+		// Hook into SCF form save
+		add_action( 'acf/save_post', array( __CLASS__, 'save_to_profile_table' ), 20 );
 	}
 
 	/**
-	 * Register Carbon Fields for profile editing
-	 *
-	 * @return void
-	 */
-	public static function register_fields() {
-		Container::make( 'user_meta', __( 'FRS Profile Information', 'frs-users' ) )
-			->add_tab( __( 'Basic Information', 'frs-users' ), array(
-				Field::make( 'text', 'frs_first_name', __( 'First Name', 'frs-users' ) )
-					->set_width( 50 ),
-				Field::make( 'text', 'frs_last_name', __( 'Last Name', 'frs-users' ) )
-					->set_width( 50 ),
-				Field::make( 'text', 'frs_email', __( 'Email', 'frs-users' ) )
-					->set_attribute( 'type', 'email' )
-					->set_width( 50 ),
-				Field::make( 'text', 'frs_phone_number', __( 'Phone Number', 'frs-users' ) )
-					->set_width( 50 ),
-				Field::make( 'text', 'frs_mobile_number', __( 'Mobile Number', 'frs-users' ) )
-					->set_width( 50 ),
-				Field::make( 'text', 'frs_job_title', __( 'Job Title', 'frs-users' ) )
-					->set_width( 50 ),
-				Field::make( 'textarea', 'frs_biography', __( 'Biography', 'frs-users' ) )
-					->set_rows( 4 ),
-			) )
-			->add_tab( __( 'Professional Info', 'frs-users' ), array(
-				Field::make( 'text', 'frs_nmls', __( 'NMLS Number', 'frs-users' ) )
-					->set_width( 33 ),
-				Field::make( 'text', 'frs_license_number', __( 'License Number', 'frs-users' ) )
-					->set_width( 33 ),
-				Field::make( 'text', 'frs_arrive', __( 'Arrive URL', 'frs-users' ) )
-					->set_width( 33 ),
-				Field::make( 'multiselect', 'frs_specialties_lo', __( 'Loan Officer Specialties', 'frs-users' ) )
-					->add_options( array(
-						'fha'         => 'FHA Loans',
-						'va'          => 'VA Loans',
-						'conventional' => 'Conventional',
-						'jumbo'       => 'Jumbo Loans',
-						'renovation'  => 'Renovation Loans',
-						'first_time'  => 'First-Time Buyers',
-					) ),
-				Field::make( 'multiselect', 'frs_languages', __( 'Languages', 'frs-users' ) )
-					->add_options( array(
-						'en' => 'English',
-						'es' => 'Spanish',
-						'fr' => 'French',
-						'de' => 'German',
-						'zh' => 'Chinese',
-					) ),
-			) )
-			->add_tab( __( 'Media', 'frs-users' ), array(
-				Field::make( 'image', 'frs_headshot_id', __( 'Headshot', 'frs-users' ) )
-					->set_value_type( 'id' ),
-			) );
-	}
-
-	/**
-	 * Render the edit page
+	 * Render the edit page with SCF fields
 	 *
 	 * @param int $profile_id Profile ID to edit (0 for new).
 	 * @return void
@@ -103,27 +47,34 @@ class ProfileEdit {
 			}
 		}
 
-		// Handle form submission
-		if ( isset( $_POST['frs_save_profile'] ) && check_admin_referer( 'frs_save_profile' ) ) {
-			self::save_profile( $profile_id );
-		}
+		// Create temporary post object for SCF (SCF expects a post context)
+		$post_id = 'frs_profile_' . ( $profile_id ?: 'new' );
 
-		// Helper to decode JSON fields
-		$decode_json = function( $value ) {
-			if ( is_string( $value ) ) {
-				$decoded = json_decode( $value, true );
-				return is_array( $decoded ) ? $decoded : array();
-			}
-			return is_array( $value ) ? $value : array();
-		};
+		// Load existing profile data into SCF fields
+		if ( $profile ) {
+			self::load_profile_into_scf( $profile );
+		}
 
 		?>
 		<div class="wrap">
 			<h1><?php echo $profile_id ? __( 'Edit Profile', 'frs-users' ) : __( 'Add New Profile', 'frs-users' ); ?></h1>
 
-			<form method="post" action="" enctype="multipart/form-data">
-				<?php wp_nonce_field( 'frs_save_profile' ); ?>
+			<?php
+			// Render SCF form with profile data
+			acf_form( array(
+				'id'            => 'frs-profile-form',
+				'post_id'       => $post_id,
+				'field_groups'  => array( 'group_people' ), // ID of the "People" field group from SCF export
+				'form'          => true,
+				'return'        => add_query_arg( 'updated', 'true', $_SERVER['REQUEST_URI'] ),
+				'html_before_fields' => '<input type="hidden" name="frs_profile_id" value="' . esc_attr( $profile_id ) . '">',
+				'submit_value'  => $profile_id ? __( 'Update Profile', 'frs-users' ) : __( 'Create Profile', 'frs-users' ),
+				'updated_message' => __( 'Profile updated successfully', 'frs-users' ),
+			) );
+			?>
 
+			<div style="display:none;">
+				<!-- Original form structure for reference if needed -->
 				<h2 class="nav-tab-wrapper">
 					<a href="#tab-contact" class="nav-tab nav-tab-active"><?php _e( 'Contact Info', 'frs-users' ); ?></a>
 					<a href="#tab-professional" class="nav-tab"><?php _e( 'Professional', 'frs-users' ); ?></a>
@@ -375,148 +326,162 @@ class ProfileEdit {
 					<input type="submit" name="frs_save_profile" class="button button-primary" value="<?php echo $profile_id ? __( 'Update Profile', 'frs-users' ) : __( 'Create Profile', 'frs-users' ); ?>">
 					<a href="<?php echo admin_url( 'admin.php?page=frs-users-profiles' ); ?>" class="button"><?php _e( 'Cancel', 'frs-users' ); ?></a>
 				</p>
-			</form>
-		</div>
+			</div><!-- End hidden original form -->
 
-		<style>
-			.tab-content { display: none; }
-			.nav-tab-wrapper { margin-bottom: 20px; }
-		</style>
-
-		<script>
-		jQuery(document).ready(function($) {
-			// Tab switching
-			$('.nav-tab').on('click', function(e) {
-				e.preventDefault();
-				$('.nav-tab').removeClass('nav-tab-active');
-				$(this).addClass('nav-tab-active');
-				$('.tab-content').hide();
-				$($(this).attr('href')).show();
-			});
-
-			// Media uploader for headshot
-			$('.upload-image-btn').on('click', function(e) {
-				e.preventDefault();
-				var target = $(this).data('target');
-				var frame = wp.media({
-					title: '<?php esc_js( _e( 'Select or Upload Image', 'frs-users' ) ); ?>',
-					button: { text: '<?php esc_js( _e( 'Use this image', 'frs-users' ) ); ?>' },
-					multiple: false
-				});
-
-				frame.on('select', function() {
-					var attachment = frame.state().get('selection').first().toJSON();
-					$('#' + target).val(attachment.id);
-					location.reload(); // Reload to show the image
-				});
-
-				frame.open();
-			});
-
-			// Remove image
-			$('.remove-image-btn').on('click', function(e) {
-				e.preventDefault();
-				var target = $(this).data('target');
-				$('#' + target).val('');
-				location.reload();
-			});
-		});
-		</script>
+		</div><!-- .wrap -->
 		<?php
 	}
 
 	/**
-	 * Save profile data
+	 * Load profile data from wp_frs_profiles table into SCF fields
 	 *
-	 * @param int $profile_id Profile ID (0 for new).
+	 * @param Profile $profile Profile object
 	 * @return void
 	 */
-	private static function save_profile( $profile_id = 0 ) {
-		// Contact fields
-		$data = array(
-			'first_name'    => sanitize_text_field( $_POST['first_name'] ?? '' ),
-			'last_name'     => sanitize_text_field( $_POST['last_name'] ?? '' ),
-			'email'         => sanitize_email( $_POST['email'] ?? '' ),
-			'phone_number'  => sanitize_text_field( $_POST['phone_number'] ?? '' ),
-			'mobile_number' => sanitize_text_field( $_POST['mobile_number'] ?? '' ),
-			'office'        => sanitize_text_field( $_POST['office'] ?? '' ),
-		);
-
-		// Professional fields
-		$data['headshot_id']          = absint( $_POST['headshot_id'] ?? 0 );
-		$data['job_title']            = sanitize_text_field( $_POST['job_title'] ?? '' );
-		$data['biography']            = sanitize_textarea_field( $_POST['biography'] ?? '' );
-		$data['date_of_birth']        = sanitize_text_field( $_POST['date_of_birth'] ?? '' );
-		$data['nmls']                 = sanitize_text_field( $_POST['nmls'] ?? '' );
-		$data['nmls_number']          = sanitize_text_field( $_POST['nmls_number'] ?? '' );
-		$data['license_number']       = sanitize_text_field( $_POST['license_number'] ?? '' );
-		$data['dre_license']          = sanitize_text_field( $_POST['dre_license'] ?? '' );
-		$data['specialties']          = sanitize_textarea_field( $_POST['specialties'] ?? '' );
-		$data['awards']               = sanitize_textarea_field( $_POST['awards'] ?? '' );
-		$data['nar_designations']     = sanitize_text_field( $_POST['nar_designations'] ?? '' );
-		$data['namb_certifications']  = sanitize_text_field( $_POST['namb_certifications'] ?? '' );
-		$data['brand']                = sanitize_text_field( $_POST['brand'] ?? '' );
-		$data['status']               = sanitize_text_field( $_POST['status'] ?? 'active' );
-
-		// JSON array fields
-		$data['specialties_lo'] = isset( $_POST['specialties_lo'] ) && is_array( $_POST['specialties_lo'] )
-			? wp_json_encode( array_map( 'sanitize_text_field', $_POST['specialties_lo'] ) )
-			: wp_json_encode( array() );
-
-		$data['languages'] = isset( $_POST['languages'] ) && is_array( $_POST['languages'] )
-			? wp_json_encode( array_map( 'sanitize_text_field', $_POST['languages'] ) )
-			: wp_json_encode( array() );
-
-		// Location fields
-		$data['city_state'] = sanitize_text_field( $_POST['city_state'] ?? '' );
-		$data['region']     = sanitize_text_field( $_POST['region'] ?? '' );
-
-		// Social media fields
-		$data['facebook_url']  = esc_url_raw( $_POST['facebook_url'] ?? '' );
-		$data['instagram_url'] = esc_url_raw( $_POST['instagram_url'] ?? '' );
-		$data['linkedin_url']  = esc_url_raw( $_POST['linkedin_url'] ?? '' );
-		$data['twitter_url']   = esc_url_raw( $_POST['twitter_url'] ?? '' );
-		$data['youtube_url']   = esc_url_raw( $_POST['youtube_url'] ?? '' );
-		$data['tiktok_url']    = esc_url_raw( $_POST['tiktok_url'] ?? '' );
-
-		// Tools & platforms fields
-		$data['arrive']                     = esc_url_raw( $_POST['arrive'] ?? '' );
-		$data['canva_folder_link']          = esc_url_raw( $_POST['canva_folder_link'] ?? '' );
-		$data['niche_bio_content']          = sanitize_textarea_field( $_POST['niche_bio_content'] ?? '' );
-		$data['personal_branding_images']   = sanitize_textarea_field( $_POST['personal_branding_images'] ?? '' );
-
-		if ( empty( $data['email'] ) ) {
-			add_settings_error( 'frs-users', 'missing-email', __( 'Email is required', 'frs-users' ), 'error' );
+	private static function load_profile_into_scf( $profile ) {
+		if ( ! $profile || ! function_exists( 'update_field' ) ) {
 			return;
 		}
 
-		$profile_types = isset( $_POST['profile_types'] ) && is_array( $_POST['profile_types'] )
-			? array_map( 'sanitize_text_field', $_POST['profile_types'] )
-			: array();
+		$post_id = 'frs_profile_' . $profile->id;
 
+		// Map all 45 fields from profile table to SCF fields
+		$field_mapping = array(
+			// Contact
+			'first_name', 'last_name', 'email', 'phone_number', 'mobile_number', 'office',
+			// Professional
+			'headshot_id', 'job_title', 'biography', 'date_of_birth', 'select_person_type',
+			'nmls', 'nmls_number', 'license_number', 'dre_license',
+			'specialties_lo', 'specialties', 'languages', 'awards',
+			'nar_designations', 'namb_certifications', 'brand', 'status',
+			// Location
+			'city_state', 'region',
+			// Social
+			'facebook_url', 'instagram_url', 'linkedin_url',
+			'twitter_url', 'youtube_url', 'tiktok_url',
+			// Tools
+			'arrive', 'canva_folder_link', 'niche_bio_content', 'personal_branding_images',
+		);
+
+		foreach ( $field_mapping as $field_name ) {
+			if ( isset( $profile->{$field_name} ) ) {
+				$value = $profile->{$field_name};
+
+				// Decode JSON fields
+				if ( in_array( $field_name, array( 'specialties_lo', 'languages', 'awards', 'niche_bio_content', 'personal_branding_images' ), true ) ) {
+					if ( is_string( $value ) ) {
+						$decoded = json_decode( $value, true );
+						$value = is_array( $decoded ) ? $decoded : $value;
+					}
+				}
+
+				update_field( $field_name, $value, $post_id );
+			}
+		}
+
+		// Load profile types
+		$profile_types = $profile->get_types();
+		update_field( 'select_person_type', $profile_types, $post_id );
+	}
+
+	/**
+	 * Save SCF form data to wp_frs_profiles table
+	 *
+	 * @param string|int $post_id Post ID (our custom ID: frs_profile_123).
+	 * @return void
+	 */
+	public static function save_to_profile_table( $post_id ) {
+		// Only handle our custom profile post IDs
+		if ( ! is_string( $post_id ) || strpos( $post_id, 'frs_profile_' ) !== 0 ) {
+			return;
+		}
+
+		// Get profile ID from custom post ID
+		$profile_id = str_replace( 'frs_profile_', '', $post_id );
+		$profile_id = ( $profile_id === 'new' ) ? 0 : absint( $profile_id );
+
+		if ( ! function_exists( 'get_field' ) ) {
+			return;
+		}
+
+		// Collect all SCF field values
+		$data = array();
+
+		// Contact fields
+		$data['first_name']    = get_field( 'first_name', $post_id );
+		$data['last_name']     = get_field( 'last_name', $post_id );
+		$data['email']         = get_field( 'email', $post_id );
+		$data['phone_number']  = get_field( 'phone_number', $post_id );
+		$data['mobile_number'] = get_field( 'mobile_number', $post_id );
+		$data['office']        = get_field( 'office', $post_id );
+
+		// Professional fields
+		$data['headshot_id']         = get_field( 'headshot', $post_id ); // Note: SCF might use 'headshot' not 'headshot_id'
+		$data['job_title']           = get_field( 'job_title', $post_id );
+		$data['biography']           = get_field( 'biography', $post_id );
+		$data['date_of_birth']       = get_field( 'date_of_birth', $post_id );
+		$data['nmls']                = get_field( 'nmls', $post_id );
+		$data['nmls_number']         = get_field( 'nmls_number', $post_id );
+		$data['license_number']      = get_field( 'license_number', $post_id );
+		$data['dre_license']         = get_field( 'dre_license', $post_id );
+		$data['brand']               = get_field( 'brand', $post_id );
+		$data['status']              = get_field( 'status', $post_id );
+
+		// JSON fields - encode arrays
+		$data['specialties_lo']      = wp_json_encode( get_field( 'specialties_lo', $post_id ) ?: array() );
+		$data['specialties']         = get_field( 'specialties', $post_id );
+		$data['languages']           = wp_json_encode( get_field( 'languages', $post_id ) ?: array() );
+		$data['awards']              = wp_json_encode( get_field( 'awards', $post_id ) ?: array() );
+		$data['nar_designations']    = wp_json_encode( get_field( 'nar_designations', $post_id ) ?: array() );
+		$data['namb_certifications'] = wp_json_encode( get_field( 'namb_certifications', $post_id ) ?: array() );
+
+		// Location fields
+		$data['city_state'] = get_field( 'city_state', $post_id );
+		$data['region']     = get_field( 'region', $post_id );
+
+		// Social fields
+		$data['facebook_url']  = get_field( 'facebook_url', $post_id );
+		$data['instagram_url'] = get_field( 'instagram_url', $post_id );
+		$data['linkedin_url']  = get_field( 'linkedin_url', $post_id );
+		$data['twitter_url']   = get_field( 'twitter_url', $post_id );
+		$data['youtube_url']   = get_field( 'youtube_url', $post_id );
+		$data['tiktok_url']    = get_field( 'tiktok_url', $post_id );
+
+		// Tools fields
+		$data['arrive']                    = get_field( 'arrive', $post_id );
+		$data['canva_folder_link']         = get_field( 'canva_folder_link', $post_id );
+		$data['niche_bio_content']         = wp_json_encode( get_field( 'niche_bio_content', $post_id ) ?: array() );
+		$data['personal_branding_images']  = wp_json_encode( get_field( 'personal_branding_images', $post_id ) ?: array() );
+
+		// Remove null values
+		$data = array_filter( $data, function( $value ) {
+			return $value !== null && $value !== '';
+		} );
+
+		// Save to profiles table
 		if ( $profile_id ) {
+			// Update existing profile
 			$profile = Profile::find( $profile_id );
 			if ( $profile ) {
 				$profile->save( $data );
-				if ( ! empty( $profile_types ) ) {
-					$profile->set_types( $profile_types );
-				}
-				add_settings_error( 'frs-users', 'profile-updated', __( 'Profile updated successfully', 'frs-users' ), 'updated' );
 			}
 		} else {
+			// Create new profile
 			$profile = new Profile();
 			$new_id = $profile->save( $data );
+
 			if ( $new_id ) {
-				if ( ! empty( $profile_types ) ) {
-					$profile_obj = Profile::find( $new_id );
-					if ( $profile_obj ) {
-						$profile_obj->set_types( $profile_types );
-					}
-				}
-				add_settings_error( 'frs-users', 'profile-created', __( 'Profile created successfully', 'frs-users' ), 'updated' );
+				// Redirect to edit page for new profile
 				wp_redirect( admin_url( 'admin.php?page=frs-users-profiles&action=edit&profile_id=' . $new_id ) );
 				exit;
 			}
 		}
+
+		// Handle profile types
+		$profile_types = get_field( 'select_person_type', $post_id );
+		if ( $profile && ! empty( $profile_types ) ) {
+			$profile->set_types( is_array( $profile_types ) ? $profile_types : array( $profile_types ) );
+		}
 	}
+
 }

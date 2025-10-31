@@ -64,7 +64,7 @@ class ProfileEdit {
 			acf_form( array(
 				'id'            => 'frs-profile-form',
 				'post_id'       => $post_id,
-				'field_groups'  => array( 'group_people' ), // ID of the "People" field group from SCF export
+				'field_groups'  => array( 'post_type_6833dca107b7f' ), // "People" field group key from SCF export
 				'form'          => true,
 				'return'        => add_query_arg( 'updated', 'true', $_SERVER['REQUEST_URI'] ),
 				'html_before_fields' => '<input type="hidden" name="frs_profile_id" value="' . esc_attr( $profile_id ) . '">',

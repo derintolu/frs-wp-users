@@ -240,6 +240,50 @@ class Api {
 			)
 		);
 
+		// Get sync settings
+		register_rest_route(
+			self::$namespace,
+			'/sync-settings',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( self::$actions, 'get_sync_settings' ),
+				'permission_callback' => array( self::$actions, 'check_write_permissions' ),
+			)
+		);
+
+		// Save sync settings
+		register_rest_route(
+			self::$namespace,
+			'/sync-settings',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( self::$actions, 'save_sync_settings' ),
+				'permission_callback' => array( self::$actions, 'check_write_permissions' ),
+			)
+		);
+
+		// Get sync statistics
+		register_rest_route(
+			self::$namespace,
+			'/sync-stats',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( self::$actions, 'get_sync_stats' ),
+				'permission_callback' => array( self::$actions, 'check_read_permissions' ),
+			)
+		);
+
+		// Trigger manual sync
+		register_rest_route(
+			self::$namespace,
+			'/trigger-sync',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( self::$actions, 'trigger_sync' ),
+				'permission_callback' => array( self::$actions, 'check_write_permissions' ),
+			)
+		);
+
 		// Allow hooks to add more custom API routes
 		do_action( 'frs_users_api_routes', self::$namespace );
 	}

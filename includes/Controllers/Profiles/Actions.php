@@ -453,6 +453,101 @@ class Actions {
 	}
 
 	/**
+	 * Get sync settings
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function get_sync_settings() {
+		$settings = array(
+			'sync_loan_officers' => (bool) get_option( 'frs_sync_loan_officers', true ),
+			'sync_realtors'      => (bool) get_option( 'frs_sync_realtors', false ),
+			'sync_staff'         => (bool) get_option( 'frs_sync_staff', false ),
+			'sync_leadership'    => (bool) get_option( 'frs_sync_leadership', false ),
+			'sync_assistants'    => (bool) get_option( 'frs_sync_assistants', false ),
+		);
+
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'data'    => $settings,
+			),
+			200
+		);
+	}
+
+	/**
+	 * Save sync settings
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response
+	 */
+	public function save_sync_settings( WP_REST_Request $request ) {
+		$data = $request->get_json_params();
+
+		if ( isset( $data['sync_loan_officers'] ) ) {
+			update_option( 'frs_sync_loan_officers', (bool) $data['sync_loan_officers'] );
+		}
+		if ( isset( $data['sync_realtors'] ) ) {
+			update_option( 'frs_sync_realtors', (bool) $data['sync_realtors'] );
+		}
+		if ( isset( $data['sync_staff'] ) ) {
+			update_option( 'frs_sync_staff', (bool) $data['sync_staff'] );
+		}
+		if ( isset( $data['sync_leadership'] ) ) {
+			update_option( 'frs_sync_leadership', (bool) $data['sync_leadership'] );
+		}
+		if ( isset( $data['sync_assistants'] ) ) {
+			update_option( 'frs_sync_assistants', (bool) $data['sync_assistants'] );
+		}
+
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'message' => __( 'Sync settings saved successfully', 'frs-users' ),
+			),
+			200
+		);
+	}
+
+	/**
+	 * Get sync statistics
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function get_sync_stats() {
+		$stats = \FRSUsers\Integrations\FRSSync::get_sync_stats();
+
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'data'    => $stats,
+			),
+			200
+		);
+	}
+
+	/**
+	 * Trigger manual sync
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function trigger_sync() {
+		// Trigger the sync action
+		do_action( 'frs_users_trigger_manual_sync' );
+
+		// Update last sync time
+		update_option( 'frs_last_sync_time', time() );
+
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'message' => __( 'Sync triggered successfully. Check the logs for details.', 'frs-users' ),
+			),
+			200
+		);
+	}
+
+	/**
 	 * Permission callback for write operations
 	 *
 	 * @return bool

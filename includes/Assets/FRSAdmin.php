@@ -31,8 +31,9 @@ class FRSAdmin {
 
 	/**
 	 * JS Object name for FRS admin.
+	 * Using wordpressPluginBoilerplate for compatibility with existing React components.
 	 */
-	const OBJ_NAME = 'frsUsersAdmin';
+	const OBJ_NAME = 'wordpressPluginBoilerplate';
 
 	/**
 	 * List of allowed screens for script enqueue.
@@ -129,11 +130,11 @@ class FRSAdmin {
 			self::HANDLE,
 			self::OBJ_NAME,
 			array(
-				'apiUrl'       => rest_url( 'frs-users/v1' ),
+				'apiUrl'       => rest_url(),
 				'baseUrl'      => admin_url( 'admin.php?page=frs-users-profiles' ),
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
 				'isAdmin'      => is_admin(),
-				'currentUser'  => $this->get_current_user_data(),
+				'userInfo'     => $this->get_current_user_data(),
 				'strings'      => array(
 					'confirmDelete' => __( 'Are you sure you want to delete this profile?', 'frs-users' ),
 					'deleteSuccess' => __( 'Profile deleted successfully', 'frs-users' ),

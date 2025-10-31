@@ -30,7 +30,7 @@ class ProfilesPage {
 	 */
 	public static function init() {
 		add_action( 'admin_menu', array( __CLASS__, 'add_menu_page' ) );
-		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_scripts' ) );
+		// Assets now loaded by FRSAdmin class
 		add_action( 'wp_ajax_frs_create_user_account', array( __CLASS__, 'ajax_create_user_account' ) );
 	}
 
@@ -78,35 +78,7 @@ class ProfilesPage {
 		);
 	}
 
-	/**
-	 * Enqueue admin scripts
-	 *
-	 * @param string $hook Current admin page hook.
-	 * @return void
-	 */
-	public static function enqueue_scripts( $hook ) {
-		if ( strpos( $hook, 'frs-users' ) === false ) {
-			return;
-		}
-
-		wp_enqueue_style( 'frs-users-admin', plugins_url( 'assets/admin.css', FRS_USERS_PLUGIN_FILE ), array(), FRS_USERS_VERSION );
-		wp_enqueue_script( 'frs-users-admin', plugins_url( 'assets/admin.js', FRS_USERS_PLUGIN_FILE ), array( 'jquery' ), FRS_USERS_VERSION, true );
-
-		wp_localize_script(
-			'frs-users-admin',
-			'frsUsersAdmin',
-			array(
-				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-				'strings' => array(
-					'confirmCreate'  => __( 'Are you sure you want to create a user account for this profile?', 'frs-users' ),
-					'creating'       => __( 'Creating user account...', 'frs-users' ),
-					'success'        => __( 'User account created successfully!', 'frs-users' ),
-					'error'          => __( 'Failed to create user account.', 'frs-users' ),
-					'confirmDelete'  => __( 'Are you sure you want to delete this profile?', 'frs-users' ),
-				),
-			)
-		);
-	}
+	// Assets now loaded by FRSAdmin class - see includes/Assets/FRSAdmin.php
 
 	/**
 	 * Render the main profiles page

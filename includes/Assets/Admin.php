@@ -62,7 +62,7 @@ class Admin {
 	public function enqueue_script( $screen ) {
 		if ( in_array( $screen, $this->allowed_screens, true ) ) {
 			Assets\enqueue_asset(
-				FRS_USERS_DIR . 'assets/admin/dist',
+				FRS_USERS_DIR . '/assets/admin/dist',
 				self::DEV_SCRIPT,
 				$this->get_config()
 			);

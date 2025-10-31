@@ -30,7 +30,11 @@ export default function ProfileList() {
 
   const fetchProfiles = async () => {
     try {
-      const response = await fetch('/wp-json/frs-users/v1/profiles');
+      const response = await fetch('/wp-json/frs-users/v1/profiles', {
+        headers: {
+          'X-WP-Nonce': wordpressPluginBoilerplate.nonce
+        }
+      });
       if (!response.ok) {
         throw new Error('Failed to fetch profiles');
       }

@@ -51,6 +51,7 @@ class FRSAdmin {
 	 * @return void
 	 */
 	public function init() {
+		error_log( 'FRSAdmin: init() called' );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 	}
 
@@ -61,11 +62,16 @@ class FRSAdmin {
 	 * @return void
 	 */
 	public function enqueue_assets( $hook ) {
+		// Debug: Log the hook
+		error_log( 'FRSAdmin: Hook = ' . $hook );
+
 		// Only load on FRS profile pages
 		if ( strpos( $hook, 'frs-users' ) === false ) {
+			error_log( 'FRSAdmin: Hook does not contain frs-users, skipping' );
 			return;
 		}
 
+		error_log( 'FRSAdmin: Loading assets' );
 		$this->enqueue_vite_assets();
 		$this->localize_script();
 	}

@@ -12,6 +12,7 @@
 namespace FRSUsers\Admin;
 
 use FRSUsers\Models\Profile;
+use FRSUsers\Admin\ProfileView;
 
 /**
  * Class ProfilesPage

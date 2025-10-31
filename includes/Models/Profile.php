@@ -269,6 +269,60 @@ class Profile {
 	}
 
 	/**
+	 * Get all profiles
+	 *
+	 * @param array $args Query arguments.
+	 * @return array Array of Profile objects.
+	 */
+	public static function get_all( $args = array() ) {
+		global $wpdb;
+
+		$table = $wpdb->prefix . self::$table;
+
+		$defaults = array(
+			'limit'   => 50,
+			'offset'  => 0,
+			'orderby' => 'last_name',
+			'order'   => 'ASC',
+		);
+
+		$args = wp_parse_args( $args, $defaults );
+
+		$query = $wpdb->prepare(
+			"SELECT * FROM {$table}
+			WHERE is_active = 1
+			ORDER BY {$args['orderby']} {$args['order']}
+			LIMIT %d OFFSET %d",
+			$args['limit'],
+			$args['offset']
+		);
+
+		$results = $wpdb->get_results( $query );
+
+		$profiles = array();
+		foreach ( $results as $row ) {
+			$profile = new self( $row );
+			$profile->load_types();
+			$profiles[] = $profile;
+		}
+
+		return $profiles;
+	}
+
+	/**
+	 * Get total count of profiles
+	 *
+	 * @return int Total number of active profiles.
+	 */
+	public static function count() {
+		global $wpdb;
+
+		$table = $wpdb->prefix . self::$table;
+
+		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table} WHERE is_active = 1" );
+	}
+
+	/**
 	 * Save profile
 	 *
 	 * @param array $data Profile data to save.

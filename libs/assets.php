@@ -7,7 +7,7 @@
 
 declare(strict_types=1);
 
-namespace WordPressPluginBoilerplate\Libs\Assets;
+namespace FRSUsers\Libs\Assets;
 
 use Exception;
 use WP_HTML_Tag_Processor;

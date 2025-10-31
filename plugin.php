@@ -12,7 +12,7 @@ use FRSUsers\Core\CLI;
 use FRSUsers\Routes\Api;
 use FRSUsers\Admin\ProfilesPage;
 use FRSUsers\Admin\ProfileEdit;
-use FRSUsers\Assets\FRSAdmin;
+use FRSUsers\Assets\Admin;
 use FRSUsers\Integrations\FRSSync;
 use FRSUsers\Traits\Base;
 
@@ -67,7 +67,7 @@ final class FRSUsers {
 		if ( is_admin() ) {
 			ProfilesPage::init();
 			ProfileEdit::init();
-			FRSAdmin::get_instance()->init();
+			Admin::get_instance()->bootstrap();
 		}
 
 		// Initialize internationalization

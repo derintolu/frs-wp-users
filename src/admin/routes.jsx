@@ -6,6 +6,8 @@ import Inbox from "./pages/inbox";
 import Dashboard from "./pages/dashboard";
 import LoginPage from "./pages/login";
 import Charts from "./pages/charts";
+import ProfileList from "./pages/profiles/ProfileList";
+import ProfileView from "./pages/profiles/ProfileView";
 
 export const router = createHashRouter([
   {
@@ -37,6 +39,14 @@ export const router = createHashRouter([
       {
         path: "charts",
         element: <Charts />,
+      },
+      {
+        path: "profiles",
+        element: <ProfileList />,
+      },
+      {
+        path: "profiles/:id",
+        element: <ProfileView />,
       }
     ],
   },

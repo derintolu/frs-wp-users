@@ -32,34 +32,39 @@ class Actions {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_profiles( WP_REST_Request $request ) {
-		$type   = $request->get_param( 'type' );
-		$limit  = $request->get_param( 'per_page' ) ?: 50;
-		$page   = $request->get_param( 'page' ) ?: 1;
-		$offset = ( $page - 1 ) * $limit;
+		$type        = $request->get_param( 'type' );
+		$limit       = $request->get_param( 'per_page' ) ?: 50;
+		$page        = $request->get_param( 'page' ) ?: 1;
 		$guests_only = $request->get_param( 'guests_only' );
 
-		$args = array(
-			'limit'  => $limit,
-			'offset' => $offset,
-		);
+		// Build query using Eloquent
+		$query = Profile::active();
 
 		if ( $guests_only ) {
-			$profiles = Profile::get_guests( $args );
-		} elseif ( $type ) {
-			$profiles = Profile::get_by_type( $type, $args );
-		} else {
-			// Get all profiles (implement if needed)
-			$profiles = array();
+			$query->guests();
 		}
 
-		$data = array_map( function( $profile ) {
-			return $profile->to_array();
-		}, $profiles );
+		if ( $type ) {
+			$query->ofType( $type );
+		}
+
+		// Get total count for pagination
+		$total = $query->count();
+
+		// Apply pagination
+		$profiles = $query->orderBy( 'last_name', 'asc' )
+			->skip( ( $page - 1 ) * $limit )
+			->take( $limit )
+			->get();
 
 		return new WP_REST_Response(
 			array(
 				'success' => true,
-				'data'    => $data,
+				'data'    => $profiles->toArray(),
+				'total'   => $total,
+				'page'    => $page,
+				'per_page' => $limit,
+				'pages'   => ceil( $total / $limit ),
 			),
 			200
 		);
@@ -87,7 +92,7 @@ class Actions {
 		return new WP_REST_Response(
 			array(
 				'success' => true,
-				'data'    => $profile->to_array(),
+				'data'    => $profile->toArray(),
 			),
 			200
 		);
@@ -119,7 +124,7 @@ class Actions {
 		return new WP_REST_Response(
 			array(
 				'success' => true,
-				'data'    => $profile->to_array(),
+				'data'    => $profile->toArray(),
 			),
 			200
 		);
@@ -153,10 +158,13 @@ class Actions {
 			);
 		}
 
-		$profile = new Profile();
-		$profile_id = $profile->save( $data );
+		// Sanitize email
+		$data['email'] = sanitize_email( $data['email'] );
 
-		if ( ! $profile_id ) {
+		// Create profile using Eloquent
+		$profile = Profile::create( $data );
+
+		if ( ! $profile ) {
 			return new WP_Error(
 				'create_failed',
 				__( 'Failed to create profile', 'frs-users' ),
@@ -164,18 +172,10 @@ class Actions {
 			);
 		}
 
-		// Set profile types if provided
-		if ( ! empty( $data['profile_types'] ) && is_array( $data['profile_types'] ) ) {
-			$profile = Profile::find( $profile_id );
-			$profile->set_types( $data['profile_types'] );
-		}
-
-		$profile = Profile::find( $profile_id );
-
 		return new WP_REST_Response(
 			array(
 				'success' => true,
-				'data'    => $profile->to_array(),
+				'data'    => $profile->toArray(),
 				'message' => __( 'Profile created successfully', 'frs-users' ),
 			),
 			201
@@ -202,27 +202,18 @@ class Actions {
 			);
 		}
 
-		$result = $profile->save( $data );
-
-		if ( ! $result ) {
-			return new WP_Error(
-				'update_failed',
-				__( 'Failed to update profile', 'frs-users' ),
-				array( 'status' => 500 )
-			);
+		// Sanitize email if present
+		if ( isset( $data['email'] ) ) {
+			$data['email'] = sanitize_email( $data['email'] );
 		}
 
-		// Update profile types if provided
-		if ( isset( $data['profile_types'] ) && is_array( $data['profile_types'] ) ) {
-			$profile->set_types( $data['profile_types'] );
-		}
-
-		$profile = Profile::find( $id );
+		// Update using Eloquent
+		$profile->update( $data );
 
 		return new WP_REST_Response(
 			array(
 				'success' => true,
-				'data'    => $profile->to_array(),
+				'data'    => $profile->fresh()->toArray(),
 				'message' => __( 'Profile updated successfully', 'frs-users' ),
 			),
 			200

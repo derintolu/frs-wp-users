@@ -111,60 +111,27 @@ class ProfilesPage {
 	/**
 	 * Render the main profiles page
 	 *
+	 * React SPA renders here.
+	 *
 	 * @return void
 	 */
 	public static function render_page() {
-		$action = isset( $_GET['action'] ) ? sanitize_text_field( $_GET['action'] ) : '';
+		// Determine initial route based on URL parameters
+		$action     = isset( $_GET['action'] ) ? sanitize_text_field( $_GET['action'] ) : '';
 		$profile_id = isset( $_GET['profile_id'] ) ? absint( $_GET['profile_id'] ) : 0;
 
-		// Handle view action
+		$initial_route = '/profiles';
+
 		if ( $action === 'view' && $profile_id ) {
-			ProfileView::render( $profile_id );
-			return;
+			$initial_route = '/profiles/' . $profile_id;
+		} elseif ( $action === 'edit' && $profile_id ) {
+			$initial_route = '/profiles/' . $profile_id . '/edit';
 		}
 
-		// Handle edit action
-		if ( $action === 'edit' && $profile_id ) {
-			ProfileEdit::render_edit_page( $profile_id );
-			return;
-		}
-
-		// Handle delete action
-		if ( $action === 'delete' && $profile_id ) {
-			if ( ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( $_GET['_wpnonce'], 'delete_profile_' . $profile_id ) ) {
-				wp_die( __( 'Security check failed', 'frs-users' ) );
-			}
-
-			$profile = Profile::find( $profile_id );
-			if ( $profile ) {
-				$profile->delete();
-				wp_redirect( add_query_arg( 'deleted', '1', admin_url( 'admin.php?page=frs-users-profiles' ) ) );
-				exit;
-			}
-		}
-
-		$list_table = new ProfilesList();
-		$list_table->prepare_items();
+		// Render React app container
 		?>
 		<div class="wrap">
-			<h1 class="wp-heading-inline"><?php _e( 'Profiles', 'frs-users' ); ?></h1>
-			<a href="<?php echo admin_url( 'admin.php?page=frs-users-add-profile' ); ?>" class="page-title-action">
-				<?php _e( 'Add New', 'frs-users' ); ?>
-			</a>
-			<hr class="wp-header-end">
-
-			<?php if ( isset( $_GET['deleted'] ) ) : ?>
-				<div class="notice notice-success is-dismissible">
-					<p><?php _e( 'Profile deleted successfully.', 'frs-users' ); ?></p>
-				</div>
-			<?php endif; ?>
-
-			<?php settings_errors( 'frs-users' ); ?>
-
-			<form method="get">
-				<input type="hidden" name="page" value="frs-users-profiles" />
-				<?php $list_table->display(); ?>
-			</form>
+			<div id="frs-users-admin-root" data-route="<?php echo esc_attr( $initial_route ); ?>"></div>
 		</div>
 		<?php
 	}
@@ -172,33 +139,14 @@ class ProfilesPage {
 	/**
 	 * Render guest profiles page
 	 *
+	 * React SPA renders here.
+	 *
 	 * @return void
 	 */
 	public static function render_guests_page() {
-		// Automatically filter to guests only
-		$_GET['guests_only'] = true;
-
-		$list_table = new ProfilesList();
-		$list_table->prepare_items();
 		?>
 		<div class="wrap">
-			<h1 class="wp-heading-inline"><?php _e( 'Profile Only', 'frs-users' ); ?></h1>
-			<a href="<?php echo admin_url( 'admin.php?page=frs-users-add-profile' ); ?>" class="page-title-action">
-				<?php _e( 'Add New', 'frs-users' ); ?>
-			</a>
-			<hr class="wp-header-end">
-
-			<div class="notice notice-info inline">
-				<p>
-					<?php _e( 'Profile Only are profiles without WordPress user accounts. Use the "Create User Account" button to upgrade them to Profile+.', 'frs-users' ); ?>
-				</p>
-			</div>
-
-			<form method="get">
-				<input type="hidden" name="page" value="frs-users-guests" />
-				<input type="hidden" name="guests_only" value="1" />
-				<?php $list_table->display(); ?>
-			</form>
+			<div id="frs-users-admin-root" data-route="/profiles?guests_only=true"></div>
 		</div>
 		<?php
 	}
@@ -206,10 +154,16 @@ class ProfilesPage {
 	/**
 	 * Render add profile page
 	 *
+	 * React SPA renders here.
+	 *
 	 * @return void
 	 */
 	public static function render_add_page() {
-		ProfileEdit::render_edit_page( 0 );
+		?>
+		<div class="wrap">
+			<div id="frs-users-admin-root" data-route="/profiles/new"></div>
+		</div>
+		<?php
 	}
 
 	/**

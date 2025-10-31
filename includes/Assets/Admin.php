@@ -41,9 +41,9 @@ class Admin {
 	 */
 	private $allowed_screens = array(
 		'toplevel_page_frs-users-profiles',
-		'frs-profiles_page_frs-users-guests',
-		'frs-profiles_page_frs-users-add-profile',
-		'frs-profiles_page_frs-users-settings',
+		'frs-users-profiles_page_frs-users-guests',
+		'frs-users-profiles_page_frs-users-add-profile',
+		'frs-users-profiles_page_frs-users-settings',
 	);
 
 	/**

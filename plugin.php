@@ -1,37 +1,41 @@
 <?php
-use WordPressPluginBoilerplate\Core\Api;
-use WordPressPluginBoilerplate\Admin\Menu;
-use WordPressPluginBoilerplate\Core\Template;
-use WordPressPluginBoilerplate\Assets\Frontend;
-use WordPressPluginBoilerplate\Assets\Admin;
-use WordPressPluginBoilerplate\Traits\Base;
+/**
+ * Main Plugin Class
+ *
+ * @package FRSUsers
+ * @since 1.0.0
+ */
+
+use FRSUsers\Core\ProfileFields;
+use FRSUsers\Core\ProfileStorage;
+use FRSUsers\Core\CLI;
+use FRSUsers\Routes\Api;
+use FRSUsers\Admin\ProfilesPage;
+use FRSUsers\Admin\ProfileEdit;
+use FRSUsers\Integrations\FRSSync;
+use FRSUsers\Traits\Base;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Class WordPressPluginBoilerplate
+ * Class FRSUsers
  *
- * The main class for the Coldmailar plugin, responsible for initialization and setup.
+ * The main class for the FRS Users plugin, responsible for initialization and setup.
  *
  * @since 1.0.0
  */
-final class WordPressPluginBoilerplate {
+final class FRSUsers {
 
 	use Base;
 
 	/**
-	 * Class constructor to set up constants for the plugin.
+	 * Class constructor.
 	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
 	public function __construct() {
-		define( 'WORDPRESS_PLUGIN_BOILERPLATE_VERSION', '1.0.0' );
-		define( 'WORDPRESS_PLUGIN_BOILERPLATE_PLUGIN_FILE', __FILE__ );
-		define( 'WORDPRESS_PLUGIN_BOILERPLATE_DIR', plugin_dir_path( __FILE__ ) );
-		define( 'WORDPRESS_PLUGIN_BOILERPLATE_URL', plugin_dir_url( __FILE__ ) );
-		define( 'WORDPRESS_PLUGIN_BOILERPLATE_ASSETS_URL', WORDPRESS_PLUGIN_BOILERPLATE_URL . '/assets' );
-		define( 'WORDPRESS_PLUGIN_BOILERPLATE_ROUTE_PREFIX', 'wordpress-plugin-boilerplate/v1' );
+		// Constants are defined in main plugin file
 	}
 
 	/**
@@ -43,24 +47,33 @@ final class WordPressPluginBoilerplate {
 	 * @return void
 	 */
 	public function init() {
+		// Initialize Carbon Fields profile fields
+		ProfileFields::init();
+
+		// Initialize profile storage override
+		ProfileStorage::init();
+
+		// Initialize REST API routes
+		Api::init();
+
+		// Initialize WP-CLI commands
+		CLI::init();
+
+		// Initialize FRS Sync integration
+		FRSSync::init();
+
+		// Initialize admin interface
 		if ( is_admin() ) {
-			Menu::get_instance()->init();
-			Admin::get_instance()->bootstrap();
+			ProfilesPage::init();
+			ProfileEdit::init();
 		}
 
-		// Initialze core functionalities.
-		Frontend::get_instance()->bootstrap();
-		API::get_instance()->init();
-		Template::get_instance()->init();
-
+		// Initialize internationalization
 		add_action( 'init', array( $this, 'i18n' ) );
-		add_action( 'init', array( $this, 'register_blocks' ) );
-	}
 
-	public function register_blocks() {
-		register_block_type( __DIR__ . '/assets/blocks/block-1' );
+		// Allow other plugins to hook into FRS Users
+		do_action( 'frs_users_loaded' );
 	}
-
 
 	/**
 	 * Internationalization setup for language translations.
@@ -71,6 +84,6 @@ final class WordPressPluginBoilerplate {
 	 * @return void
 	 */
 	public function i18n() {
-		load_plugin_textdomain( 'wordpress-plugin-boilerplate', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+		load_plugin_textdomain( 'frs-users', false, dirname( plugin_basename( FRS_USERS_PLUGIN_FILE ) ) . '/languages/' );
 	}
 }

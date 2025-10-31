@@ -1,61 +1,85 @@
 <?php
+/**
+ * Plugin Installation
+ *
+ * Handles plugin activation tasks like creating database tables.
+ *
+ * @package FRSUsers
+ * @subpackage Core
+ * @since 1.0.0
+ */
 
-namespace WordPressPluginBoilerplate\Core;
+namespace FRSUsers\Core;
 
-use WordPressPluginBoilerplate\Database\Migrations\Accounts;
-use WordPressPluginBoilerplate\Database\Seeders\Accounts as SeedersAccounts;
-use WordPressPluginBoilerplate\Traits\Base;
+use FRSUsers\Database\Migrations\Profiles;
+use FRSUsers\Database\Migrations\ProfileTypes;
+use FRSUsers\Traits\Base;
 
 /**
+ * Class Install
+ *
  * This class is responsible for the functionality
- * which is required to set up after activating the plugin
+ * which is required to set up after activating the plugin.
+ *
+ * @package FRSUsers\Core
  */
 class Install {
-
 
 	use Base;
 
 	/**
 	 * Initialize the class
 	 *
-	 * @return void
-	 */
-	public function init() {
-
-		$this->install_pages();
-		$this->install_tables();
-		$this->insert_data();
-	}
-
-	/**
-	 * Install the pages
+	 * Runs on plugin activation.
 	 *
 	 * @return void
 	 */
-	private function install_pages() {
-		wordpress_plugin_boilerplate_install_page(
-			Template::FRONTEND_TEMPLATE_NAME,
-			Template::FRONTEND_TEMPLATE_SLUG,
-			Template::FRONTEND_TEMPLATE
-		);
+	public function init() {
+		$this->install_tables();
+		$this->setup_capabilities();
+		$this->flush_rewrite_rules();
 	}
 
 	/**
-	 * Install the tables
+	 * Install the database tables
 	 *
 	 * @return void
 	 */
 	private function install_tables() {
-		Accounts::up();
+		// Create profiles table
+		Profiles::up();
+
+		// Create profile types junction table
+		ProfileTypes::up();
+
+		// Set installed version
+		update_option( 'frs_users_version', \FRS_USERS_VERSION );
+		update_option( 'frs_users_installed', time() );
 	}
 
 	/**
-	 * Insert data to the tables
+	 * Setup custom capabilities
 	 *
 	 * @return void
 	 */
-	private function insert_data() {
-		// Insert data to the tables.
-		SeedersAccounts::run();
+	private function setup_capabilities() {
+		// Get administrator role
+		$admin_role = get_role( 'administrator' );
+
+		if ( $admin_role ) {
+			// Add custom capabilities for profile management
+			$admin_role->add_cap( 'manage_frs_profiles' );
+			$admin_role->add_cap( 'edit_frs_profiles' );
+			$admin_role->add_cap( 'delete_frs_profiles' );
+		}
+	}
+
+	/**
+	 * Flush rewrite rules
+	 *
+	 * @return void
+	 */
+	private function flush_rewrite_rules() {
+		flush_rewrite_rules();
 	}
 }

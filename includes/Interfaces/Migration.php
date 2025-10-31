@@ -1,13 +1,22 @@
 <?php
+/**
+ * Migration Interface
+ *
+ * Defines the contract for database migration operations.
+ *
+ * @package FRSUsers
+ * @subpackage Interfaces
+ * @since 1.0.0
+ */
 
-namespace WordPressPluginBoilerplate\Interfaces;
+namespace FRSUsers\Interfaces;
 
 /**
  * Interface Migration
  *
  * Defines the contract for database migration operations.
  *
- * @package WordPressPluginBoilerplate\Interfaces
+ * @package FRSUsers\Interfaces
  */
 interface Migration {
 

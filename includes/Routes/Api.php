@@ -1,31 +1,246 @@
 <?php
 /**
- * WordPressPluginBoilerplate Routes
+ * FRS Users REST API Routes
  *
- * Defines and registers custom API routes for the WordPressPluginBoilerplate using the Haruncpi\WpApi library.
+ * Registers REST API routes for profile management.
  *
- * @package WordPressPluginBoilerplate\Routes
+ * @package FRSUsers
+ * @subpackage Routes
+ * @since 1.0.0
  */
 
-namespace WordPressPluginBoilerplate\Routes;
+namespace FRSUsers\Routes;
 
-use WordPressPluginBoilerplate\Libs\API\Route;
+use FRSUsers\Controllers\Profiles\Actions;
 
-Route::prefix(
-	WORDPRESS_PLUGIN_BOILERPLATE_ROUTE_PREFIX,
-	function ( Route $route ) {
+/**
+ * Class Api
+ *
+ * Handles REST API route registration for profiles.
+ *
+ * @package FRSUsers\Routes
+ */
+class Api {
 
-		// Define accounts API routes.
+	/**
+	 * API namespace
+	 *
+	 * @var string
+	 */
+	private static $namespace = 'frs-users/v1';
 
-		$route->post( '/accounts/create', '\WordPressPluginBoilerplate\Controllers\Accounts\Actions@create' );
-		$route->get( '/accounts/get', '\WordPressPluginBoilerplate\Controllers\Accounts\Actions@get' );
-		$route->post( '/accounts/delete', '\WordPressPluginBoilerplate\Controllers\Accounts\Actions@delete' );
-		$route->post( '/accounts/update', '\WordPressPluginBoilerplate\Controllers\Accounts\Actions@update' );
+	/**
+	 * Actions controller instance
+	 *
+	 * @var Actions
+	 */
+	private static $actions;
 
-		// Posts routes.
-		$route->get( '/posts/get', '\WordPressPluginBoilerplate\Controllers\Posts\Actions@get_all_posts' );
-		$route->get( '/posts/get/{id}', '\WordPressPluginBoilerplate\Controllers\Posts\Actions@get_post' );
-		// Allow hooks to add more custom API routes.
-		do_action( 'wordpress_plugin_boilerplate_api', $route );
+	/**
+	 * Initialize API routes
+	 *
+	 * @return void
+	 */
+	public static function init() {
+		add_action( 'rest_api_init', array( __CLASS__, 'register_routes' ) );
+		self::$actions = new Actions();
 	}
-);
+
+	/**
+	 * Register all REST API routes
+	 *
+	 * @return void
+	 */
+	public static function register_routes() {
+		// Get all profiles
+		register_rest_route(
+			self::$namespace,
+			'/profiles',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( self::$actions, 'get_profiles' ),
+				'permission_callback' => array( self::$actions, 'check_read_permissions' ),
+				'args'                => array(
+					'type'        => array(
+						'description' => 'Filter by profile type',
+						'type'        => 'string',
+						'required'    => false,
+					),
+					'guests_only' => array(
+						'description' => 'Get only guest profiles',
+						'type'        => 'boolean',
+						'required'    => false,
+					),
+					'per_page'    => array(
+						'description'       => 'Number of profiles per page',
+						'type'              => 'integer',
+						'default'           => 50,
+						'minimum'           => 1,
+						'maximum'           => 100,
+						'sanitize_callback' => 'absint',
+					),
+					'page'        => array(
+						'description'       => 'Page number',
+						'type'              => 'integer',
+						'default'           => 1,
+						'minimum'           => 1,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		// Create profile
+		register_rest_route(
+			self::$namespace,
+			'/profiles',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( self::$actions, 'create_profile' ),
+				'permission_callback' => array( self::$actions, 'check_write_permissions' ),
+			)
+		);
+
+		// Get single profile
+		register_rest_route(
+			self::$namespace,
+			'/profiles/(?P<id>\d+)',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( self::$actions, 'get_profile' ),
+				'permission_callback' => array( self::$actions, 'check_read_permissions' ),
+				'args'                => array(
+					'id' => array(
+						'description'       => 'Profile ID',
+						'type'              => 'integer',
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		// Update profile
+		register_rest_route(
+			self::$namespace,
+			'/profiles/(?P<id>\d+)',
+			array(
+				'methods'             => 'PUT',
+				'callback'            => array( self::$actions, 'update_profile' ),
+				'permission_callback' => array( self::$actions, 'check_write_permissions' ),
+				'args'                => array(
+					'id' => array(
+						'description'       => 'Profile ID',
+						'type'              => 'integer',
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		// Delete profile
+		register_rest_route(
+			self::$namespace,
+			'/profiles/(?P<id>\d+)',
+			array(
+				'methods'             => 'DELETE',
+				'callback'            => array( self::$actions, 'delete_profile' ),
+				'permission_callback' => array( self::$actions, 'check_write_permissions' ),
+				'args'                => array(
+					'id' => array(
+						'description'       => 'Profile ID',
+						'type'              => 'integer',
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		// Get profile by user ID
+		register_rest_route(
+			self::$namespace,
+			'/profiles/user/(?P<user_id>[\w-]+)',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( self::$actions, 'get_profile_by_user' ),
+				'permission_callback' => array( self::$actions, 'check_read_permissions' ),
+				'args'                => array(
+					'user_id' => array(
+						'description' => 'WordPress user ID or "me" for current user',
+						'type'        => 'string',
+						'required'    => true,
+					),
+				),
+			)
+		);
+
+		// Create user account for guest profile
+		register_rest_route(
+			self::$namespace,
+			'/profiles/(?P<id>\d+)/create-user',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( self::$actions, 'create_user_account' ),
+				'permission_callback' => array( self::$actions, 'check_write_permissions' ),
+				'args'                => array(
+					'id'         => array(
+						'description'       => 'Profile ID',
+						'type'              => 'integer',
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+					'username'   => array(
+						'description'       => 'Username for new user (auto-generated if not provided)',
+						'type'              => 'string',
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_user',
+					),
+					'send_email' => array(
+						'description' => 'Send password reset email to new user',
+						'type'        => 'boolean',
+						'default'     => true,
+					),
+					'roles'      => array(
+						'description' => 'Additional WordPress roles to assign',
+						'type'        => 'array',
+						'default'     => array(),
+						'items'       => array(
+							'type' => 'string',
+						),
+					),
+				),
+			)
+		);
+
+		// Bulk create user accounts
+		register_rest_route(
+			self::$namespace,
+			'/profiles/bulk-create-users',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( self::$actions, 'bulk_create_users' ),
+				'permission_callback' => array( self::$actions, 'check_write_permissions' ),
+				'args'                => array(
+					'profile_ids' => array(
+						'description' => 'Array of profile IDs to create users for',
+						'type'        => 'array',
+						'required'    => true,
+						'items'       => array(
+							'type' => 'integer',
+						),
+					),
+					'send_email'  => array(
+						'description' => 'Send password reset emails to new users',
+						'type'        => 'boolean',
+						'default'     => true,
+					),
+				),
+			)
+		);
+
+		// Allow hooks to add more custom API routes
+		do_action( 'frs_users_api_routes', self::$namespace );
+	}
+}

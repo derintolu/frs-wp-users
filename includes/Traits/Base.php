@@ -1,13 +1,22 @@
 <?php
+/**
+ * Base Trait
+ *
+ * Provides a trait with a singleton pattern for obtaining an instance.
+ *
+ * @package FRSUsers
+ * @subpackage Traits
+ * @since 1.0.0
+ */
 
-namespace WordPressPluginBoilerplate\Traits;
+namespace FRSUsers\Traits;
 
 /**
  * Trait Base
  *
  * Provides a trait with a singleton pattern for obtaining an instance.
  *
- * @package WordPressPluginBoilerplate\Trait
+ * @package FRSUsers\Traits
  */
 trait Base {
 

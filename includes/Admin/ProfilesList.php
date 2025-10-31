@@ -46,13 +46,14 @@ class ProfilesList extends \WP_List_Table {
 	 */
 	public function get_columns() {
 		return array(
-			'cb'           => '<input type="checkbox" />',
-			'name'         => __( 'Name', 'frs-users' ),
-			'email'        => __( 'Email', 'frs-users' ),
-			'profile_types' => __( 'Profile Types', 'frs-users' ),
-			'status'       => __( 'Status', 'frs-users' ),
-			'created_at'   => __( 'Created', 'frs-users' ),
-			'actions'      => __( 'Actions', 'frs-users' ),
+			'cb'            => '<input type="checkbox" />',
+			'headshot'      => __( 'Photo', 'frs-users' ),
+			'name'          => __( 'Name', 'frs-users' ),
+			'email'         => __( 'Email', 'frs-users' ),
+			'phone_number'  => __( 'Phone', 'frs-users' ),
+			'nmls'          => __( 'NMLS', 'frs-users' ),
+			'profile_types' => __( 'Type', 'frs-users' ),
+			'status'        => __( 'Status', 'frs-users' ),
 		);
 	}
 
@@ -95,6 +96,20 @@ class ProfilesList extends \WP_List_Table {
 	}
 
 	/**
+	 * Render headshot column
+	 *
+	 * @param object $item Profile item.
+	 * @return string
+	 */
+	protected function column_headshot( $item ) {
+		if ( $item->headshot_id ) {
+			$image = wp_get_attachment_image( $item->headshot_id, array( 50, 50 ), false, array( 'style' => 'border-radius: 50%; display: block;' ) );
+			return $image ?: '—';
+		}
+		return '<div style="width: 50px; height: 50px; background: #ddd; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #666;">' . strtoupper( substr( $item->first_name, 0, 1 ) ) . '</div>';
+	}
+
+	/**
 	 * Render name column
 	 *
 	 * @param object $item Profile item.
@@ -102,6 +117,15 @@ class ProfilesList extends \WP_List_Table {
 	 */
 	protected function column_name( $item ) {
 		$name = $item->first_name . ' ' . $item->last_name;
+
+		$view_url = add_query_arg(
+			array(
+				'page'       => 'frs-users-profiles',
+				'action'     => 'view',
+				'profile_id' => $item->id,
+			),
+			admin_url( 'admin.php' )
+		);
 
 		$edit_url = add_query_arg(
 			array(
@@ -123,11 +147,41 @@ class ProfilesList extends \WP_List_Table {
 		);
 
 		$actions = array(
+			'view'   => sprintf( '<a href="%s">%s</a>', $view_url, __( 'View', 'frs-users' ) ),
 			'edit'   => sprintf( '<a href="%s">%s</a>', $edit_url, __( 'Edit', 'frs-users' ) ),
 			'delete' => sprintf( '<a href="%s" class="delete-profile">%s</a>', $delete_url, __( 'Delete', 'frs-users' ) ),
 		);
 
-		return sprintf( '<strong>%s</strong>%s', $name, $this->row_actions( $actions ) );
+		return sprintf( '<strong><a href="%s">%s</a></strong>%s', $view_url, esc_html( $name ), $this->row_actions( $actions ) );
+	}
+
+	/**
+	 * Render phone number column
+	 *
+	 * @param object $item Profile item.
+	 * @return string
+	 */
+	protected function column_phone_number( $item ) {
+		if ( ! empty( $item->phone_number ) ) {
+			return sprintf( '<a href="tel:%s">%s</a>', esc_attr( $item->phone_number ), esc_html( $item->phone_number ) );
+		}
+		return '—';
+	}
+
+	/**
+	 * Render NMLS column
+	 *
+	 * @param object $item Profile item.
+	 * @return string
+	 */
+	protected function column_nmls( $item ) {
+		if ( ! empty( $item->nmls ) ) {
+			return '<code>' . esc_html( $item->nmls ) . '</code>';
+		}
+		if ( ! empty( $item->nmls_number ) ) {
+			return '<code>' . esc_html( $item->nmls_number ) . '</code>';
+		}
+		return '—';
 	}
 
 	/**
@@ -247,9 +301,9 @@ class ProfilesList extends \WP_List_Table {
 			$items = Profile::get_by_type( $filter_type, $args );
 			$total_items = count( Profile::get_by_type( $filter_type, array( 'limit' => 99999 ) ) );
 		} else {
-			// Get all profiles - need to implement this method
-			$items = Profile::get_guests( $args ); // For now, default to guests
-			$total_items = count( Profile::get_guests( array( 'limit' => 99999 ) ) );
+			// Get all profiles
+			$items = Profile::get_all( $args );
+			$total_items = Profile::count();
 		}
 
 		$this->items = $items;

@@ -113,10 +113,33 @@ class ProfilesPage {
 	 * @return void
 	 */
 	public static function render_page() {
-		// Check if we're editing
-		if ( isset( $_GET['action'] ) && $_GET['action'] === 'edit' && isset( $_GET['id'] ) ) {
-			ProfileEdit::render_edit_page( absint( $_GET['id'] ) );
+		$action = isset( $_GET['action'] ) ? sanitize_text_field( $_GET['action'] ) : '';
+		$profile_id = isset( $_GET['profile_id'] ) ? absint( $_GET['profile_id'] ) : 0;
+
+		// Handle view action
+		if ( $action === 'view' && $profile_id ) {
+			ProfileView::render( $profile_id );
 			return;
+		}
+
+		// Handle edit action
+		if ( $action === 'edit' && $profile_id ) {
+			ProfileEdit::render_edit_page( $profile_id );
+			return;
+		}
+
+		// Handle delete action
+		if ( $action === 'delete' && $profile_id ) {
+			if ( ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( $_GET['_wpnonce'], 'delete_profile_' . $profile_id ) ) {
+				wp_die( __( 'Security check failed', 'frs-users' ) );
+			}
+
+			$profile = Profile::find( $profile_id );
+			if ( $profile ) {
+				$profile->delete();
+				wp_redirect( add_query_arg( 'deleted', '1', admin_url( 'admin.php?page=frs-users-profiles' ) ) );
+				exit;
+			}
 		}
 
 		$list_table = new ProfilesList();
@@ -128,6 +151,12 @@ class ProfilesPage {
 				<?php _e( 'Add New', 'frs-users' ); ?>
 			</a>
 			<hr class="wp-header-end">
+
+			<?php if ( isset( $_GET['deleted'] ) ) : ?>
+				<div class="notice notice-success is-dismissible">
+					<p><?php _e( 'Profile deleted successfully.', 'frs-users' ); ?></p>
+				</div>
+			<?php endif; ?>
 
 			<?php settings_errors( 'frs-users' ); ?>
 

@@ -43,7 +43,7 @@ const navigation = [
 
 const ApplicationLayout = () => {
   // const showApplicationLayout = true;
-  const showApplicationLayout = !myplugin.isAdmin;
+  const showApplicationLayout = !wordpressPluginBoilerplate.isAdmin;
   const navigate = useNavigate();
   let location = useLocation();
   const pageTitle = location.pathname.split("/")[1];

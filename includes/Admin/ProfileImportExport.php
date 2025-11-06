@@ -25,6 +25,20 @@ defined( 'ABSPATH' ) || exit;
 class ProfileImportExport {
 
 	/**
+	 * Generate arrive link from NMLS number
+	 *
+	 * @param string|int $nmls NMLS number.
+	 * @return string Arrive registration URL.
+	 */
+	private static function generate_arrive_link( $nmls ) {
+		if ( empty( $nmls ) ) {
+			return '';
+		}
+
+		return 'https://21stcenturylending.my1003app.com/' . sanitize_text_field( $nmls ) . '/register';
+	}
+
+	/**
 	 * All available profile fields for export
 	 *
 	 * @return array
@@ -238,6 +252,18 @@ class ProfileImportExport {
 							<p class="description"><?php esc_html_e( 'Users will be created with role "subscriber" if not specified.', 'frs-users' ); ?></p>
 						</td>
 					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Auto-Generate', 'frs-users' ); ?></th>
+						<td>
+							<p>
+								<strong><?php esc_html_e( 'Arrive links will be automatically generated', 'frs-users' ); ?></strong>
+								<?php esc_html_e( 'if arrive field is empty and NMLS is present.', 'frs-users' ); ?>
+							</p>
+							<p class="description">
+								<?php esc_html_e( 'Pattern: https://21stcenturylending.my1003app.com/{NMLS}/register', 'frs-users' ); ?>
+							</p>
+						</td>
+					</tr>
 				</table>
 
 				<hr>
@@ -391,6 +417,14 @@ class ProfileImportExport {
 							$existing->$key = $value;
 						}
 					}
+
+					// Auto-generate arrive link if missing but NMLS present
+					if ( empty( $existing->arrive ) && ! empty( $existing->nmls ) ) {
+						$existing->arrive = self::generate_arrive_link( $existing->nmls );
+					} elseif ( empty( $existing->arrive ) && ! empty( $existing->nmls_number ) ) {
+						$existing->arrive = self::generate_arrive_link( $existing->nmls_number );
+					}
+
 					$existing->save();
 					++$updated;
 				} else {
@@ -405,6 +439,14 @@ class ProfileImportExport {
 							$profile->$key = $value;
 						}
 					}
+
+					// Auto-generate arrive link if missing but NMLS present
+					if ( empty( $profile->arrive ) && ! empty( $profile->nmls ) ) {
+						$profile->arrive = self::generate_arrive_link( $profile->nmls );
+					} elseif ( empty( $profile->arrive ) && ! empty( $profile->nmls_number ) ) {
+						$profile->arrive = self::generate_arrive_link( $profile->nmls_number );
+					}
+
 					$profile->save();
 					++$imported;
 

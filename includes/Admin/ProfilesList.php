@@ -64,9 +64,9 @@ class ProfilesList extends \WP_List_Table {
 	 */
 	protected function get_sortable_columns() {
 		return array(
-			'name'       => array( 'last_name', false ),
+			'name'       => array( 'first_name', true ),
 			'email'      => array( 'email', false ),
-			'created_at' => array( 'created_at', true ),
+			'created_at' => array( 'created_at', false ),
 		);
 	}
 
@@ -78,6 +78,9 @@ class ProfilesList extends \WP_List_Table {
 	protected function get_bulk_actions() {
 		return array(
 			'bulk_create_users' => __( 'Create User Accounts', 'frs-users' ),
+			'bulk_archive'      => __( 'Archive', 'frs-users' ),
+			'bulk_unarchive'    => __( 'Unarchive', 'frs-users' ),
+			'bulk_merge'        => __( 'Merge Profiles', 'frs-users' ),
 		);
 	}
 
@@ -88,11 +91,9 @@ class ProfilesList extends \WP_List_Table {
 	 * @return string
 	 */
 	protected function column_cb( $item ) {
-		// Only show checkbox for guest profiles
-		if ( $item->is_guest() ) {
-			return sprintf( '<input type="checkbox" name="profile_ids[]" value="%d" />', $item->id );
-		}
-		return '';
+		// Show checkbox for all profiles (needed for merge and archive)
+		// WordPress WP_List_Table expects singular form: 'profile[]'
+		return sprintf( '<input type="checkbox" name="profile[]" value="%d" />', $item->id );
 	}
 
 	/**
@@ -122,37 +123,88 @@ class ProfilesList extends \WP_List_Table {
 
 		$view_url = add_query_arg(
 			array(
-				'page'       => 'frs-users-profiles',
-				'action'     => 'view',
-				'profile_id' => $item->id,
+				'page' => 'frs-profile-view',
+				'id'   => $item->id,
 			),
 			admin_url( 'admin.php' )
 		);
 
 		$edit_url = add_query_arg(
 			array(
-				'page'       => 'frs-users-profiles',
-				'action'     => 'edit',
-				'profile_id' => $item->id,
+				'page' => 'frs-profile-edit',
+				'id'   => $item->id,
 			),
 			admin_url( 'admin.php' )
 		);
 
 		$delete_url = add_query_arg(
 			array(
-				'page'       => 'frs-users-profiles',
-				'action'     => 'delete',
+				'action'     => 'frs_delete_profile',
 				'profile_id' => $item->id,
 				'_wpnonce'   => wp_create_nonce( 'delete_profile_' . $item->id ),
 			),
-			admin_url( 'admin.php' )
+			admin_url( 'admin-post.php' )
 		);
 
 		$actions = array(
 			'view'   => sprintf( '<a href="%s">%s</a>', $view_url, __( 'View', 'frs-users' ) ),
 			'edit'   => sprintf( '<a href="%s">%s</a>', $edit_url, __( 'Edit', 'frs-users' ) ),
-			'delete' => sprintf( '<a href="%s" class="delete-profile">%s</a>', $delete_url, __( 'Delete', 'frs-users' ) ),
 		);
+
+		// Add FluentCRM link if available
+		if ( function_exists( 'FluentCrm' ) && ! empty( $item->email ) ) {
+			global $wpdb;
+			$contact = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT id FROM {$wpdb->prefix}fc_subscribers WHERE email = %s LIMIT 1",
+					$item->email
+				)
+			);
+
+			if ( $contact ) {
+				$fluentcrm_url = admin_url( 'admin.php?page=fluentcrm-admin#/subscribers/' . $contact->id );
+				$actions['fluentcrm'] = sprintf(
+					'<a href="%s" target="_blank" style="color: #2271b1;">%s</a>',
+					$fluentcrm_url,
+					__( 'FluentCRM', 'frs-users' )
+				);
+			}
+		}
+
+		// Add archive/unarchive action
+		if ( $item->is_active ) {
+			$archive_url = add_query_arg(
+				array(
+					'action'     => 'frs_archive_profile',
+					'profile_id' => $item->id,
+					'_wpnonce'   => wp_create_nonce( 'archive_profile_' . $item->id ),
+				),
+				admin_url( 'admin-post.php' )
+			);
+			$actions['archive'] = sprintf( '<a href="%s">%s</a>', $archive_url, __( 'Archive', 'frs-users' ) );
+		} else {
+			$unarchive_url = add_query_arg(
+				array(
+					'action'     => 'frs_unarchive_profile',
+					'profile_id' => $item->id,
+					'_wpnonce'   => wp_create_nonce( 'unarchive_profile_' . $item->id ),
+				),
+				admin_url( 'admin-post.php' )
+			);
+			$actions['unarchive'] = sprintf( '<a href="%s">%s</a>', $unarchive_url, __( 'Unarchive', 'frs-users' ) );
+		}
+
+		// Add "Merge with..." action
+		$merge_with_url = add_query_arg(
+			array(
+				'page'       => 'frs-profile-merge-select',
+				'profile_id' => $item->id,
+			),
+			admin_url( 'admin.php' )
+		);
+		$actions['merge'] = sprintf( '<a href="%s">%s</a>', $merge_with_url, __( 'Merge with...', 'frs-users' ) );
+
+		$actions['delete'] = sprintf( '<a href="%s" class="delete-profile">%s</a>', $delete_url, __( 'Delete', 'frs-users' ) );
 
 		return sprintf( '<strong><a href="%s">%s</a></strong>%s', $view_url, esc_html( $name ), $this->row_actions( $actions ) );
 	}
@@ -203,17 +255,11 @@ class ProfilesList extends \WP_List_Table {
 	 * @return string
 	 */
 	protected function column_profile_types( $item ) {
-		$types = $item->get_types();
-
-		if ( empty( $types ) ) {
-			return '—';
+		if ( empty( $item->select_person_type ) ) {
+			return '<span style="color: #999; font-style: italic;">' . __( 'Not Set', 'frs-users' ) . '</span>';
 		}
 
-		$type_labels = array_map( function( $type ) {
-			return '<span class="profile-type-badge">' . esc_html( ucwords( str_replace( '_', ' ', $type ) ) ) . '</span>';
-		}, $types );
-
-		return implode( ' ', $type_labels );
+		return '<span class="profile-type-badge">' . esc_html( ucwords( str_replace( '_', ' ', $item->select_person_type ) ) ) . '</span>';
 	}
 
 	/**
@@ -223,6 +269,11 @@ class ProfilesList extends \WP_List_Table {
 	 * @return string
 	 */
 	protected function column_status( $item ) {
+		// Check if archived
+		if ( ! $item->is_active ) {
+			return '<span class="archived-badge" style="background: #999; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">' . __( 'Archived', 'frs-users' ) . '</span>';
+		}
+
 		if ( $item->is_guest() ) {
 			return '<span class="profile-only-badge" style="background: #f0ad4e; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">' . __( 'Profile Only', 'frs-users' ) . '</span>';
 		}
@@ -282,31 +333,43 @@ class ProfilesList extends \WP_List_Table {
 		$this->process_bulk_action();
 
 		// Get filter parameters
-		$filter_type = isset( $_GET['filter_type'] ) ? sanitize_text_field( $_GET['filter_type'] ) : '';
-		$guests_only = isset( $_GET['guests_only'] ) ? (bool) $_GET['guests_only'] : false;
+		$filter_type     = isset( $_GET['filter_type'] ) ? sanitize_text_field( $_GET['filter_type'] ) : '';
+		$guests_only     = isset( $_GET['guests_only'] ) ? (bool) $_GET['guests_only'] : false;
+		$show_archived   = isset( $_GET['show_archived'] ) ? (bool) $_GET['show_archived'] : false;
 
 		// Pagination
 		$per_page     = 20;
 		$current_page = $this->get_pagenum();
 		$offset       = ( $current_page - 1 ) * $per_page;
 
-		$args = array(
-			'limit'  => $per_page,
-			'offset' => $offset,
-		);
+		// Build query
+		$query = Profile::query();
 
-		// Get profiles based on filters
-		if ( $guests_only ) {
-			$items = Profile::get_guests( $args );
-			$total_items = count( Profile::get_guests( array( 'limit' => 99999 ) ) );
-		} elseif ( $filter_type ) {
-			$items = Profile::get_by_type( $filter_type, $args );
-			$total_items = count( Profile::get_by_type( $filter_type, array( 'limit' => 99999 ) ) );
+		// Filter by active/archived status
+		if ( $show_archived ) {
+			$query->where( 'is_active', 0 );
 		} else {
-			// Get all profiles
-			$items = Profile::get_all( $args );
-			$total_items = Profile::count();
+			$query->where( 'is_active', 1 );
 		}
+
+		// Filter by guest profiles
+		if ( $guests_only ) {
+			$query->whereNull( 'user_id' );
+		}
+
+		// Filter by type
+		if ( $filter_type ) {
+			$query->where( 'select_person_type', $filter_type );
+		}
+
+		// Get total count
+		$total_items = $query->count();
+
+		// Get paginated items
+		$items = $query->orderBy( 'first_name', 'asc' )
+			->skip( $offset )
+			->take( $per_page )
+			->get();
 
 		$this->items = $items;
 
@@ -327,16 +390,128 @@ class ProfilesList extends \WP_List_Table {
 	public function process_bulk_action() {
 		$action = $this->current_action();
 
-		if ( 'bulk_create_users' === $action ) {
-			if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( $_POST['_wpnonce'], 'bulk-' . $this->_args['plural'] ) ) {
-				wp_die( __( 'Security check failed', 'frs-users' ) );
-			}
+		// Debug: Log all POST and GET data
+		error_log( 'ProfilesList::process_bulk_action() - Action: ' . $action );
+		error_log( 'POST data: ' . print_r( $_POST, true ) );
+		error_log( 'GET data: ' . print_r( $_GET, true ) );
 
-			if ( ! isset( $_POST['profile_ids'] ) || ! is_array( $_POST['profile_ids'] ) ) {
+		if ( 'bulk_archive' === $action ) {
+			// Check nonce
+			check_admin_referer( 'bulk-' . $this->_args['plural'] );
+
+			if ( ! isset( $_POST['profile'] ) || ! is_array( $_POST['profile'] ) ) {
 				return;
 			}
 
-			$profile_ids = array_map( 'absint', $_POST['profile_ids'] );
+			$profile_ids = array_map( 'absint', $_POST['profile'] );
+			$archived_count = 0;
+
+			foreach ( $profile_ids as $profile_id ) {
+				$profile = Profile::find( $profile_id );
+				if ( $profile ) {
+					$profile->is_active = 0;
+					$profile->save();
+					$archived_count++;
+				}
+			}
+
+			add_action( 'admin_notices', function() use ( $archived_count ) {
+				?>
+				<div class="notice notice-success is-dismissible">
+					<p>
+						<?php
+						printf(
+							__( 'Successfully archived %d profiles.', 'frs-users' ),
+							$archived_count
+						);
+						?>
+					</p>
+				</div>
+				<?php
+			} );
+		} elseif ( 'bulk_unarchive' === $action ) {
+			// Check nonce
+			check_admin_referer( 'bulk-' . $this->_args['plural'] );
+
+			if ( ! isset( $_POST['profile'] ) || ! is_array( $_POST['profile'] ) ) {
+				return;
+			}
+
+			$profile_ids = array_map( 'absint', $_POST['profile'] );
+			$unarchived_count = 0;
+
+			foreach ( $profile_ids as $profile_id ) {
+				$profile = Profile::find( $profile_id );
+				if ( $profile ) {
+					$profile->is_active = 1;
+					$profile->save();
+					$unarchived_count++;
+				}
+			}
+
+			add_action( 'admin_notices', function() use ( $unarchived_count ) {
+				?>
+				<div class="notice notice-success is-dismissible">
+					<p>
+						<?php
+						printf(
+							__( 'Successfully unarchived %d profiles.', 'frs-users' ),
+							$unarchived_count
+						);
+						?>
+					</p>
+				</div>
+				<?php
+			} );
+		} elseif ( 'bulk_merge' === $action ) {
+			// Debug log
+			error_log( 'ProfilesList: bulk_merge action triggered' );
+
+			// Check nonce
+			check_admin_referer( 'bulk-' . $this->_args['plural'] );
+
+			if ( ! isset( $_POST['profile'] ) || ! is_array( $_POST['profile'] ) ) {
+				error_log( 'ProfilesList: No profile[] in POST. POST keys: ' . implode( ', ', array_keys( $_POST ) ) );
+				return;
+			}
+
+			$profile_ids = array_map( 'absint', $_POST['profile'] );
+			error_log( 'ProfilesList: Profile IDs to merge: ' . implode( ',', $profile_ids ) );
+
+			if ( count( $profile_ids ) < 2 ) {
+				error_log( 'ProfilesList: Less than 2 profiles selected' );
+				add_action( 'admin_notices', function() {
+					?>
+					<div class="notice notice-error is-dismissible">
+						<p><?php _e( 'Please select at least 2 profiles to merge.', 'frs-users' ); ?></p>
+					</div>
+					<?php
+				} );
+				return;
+			}
+
+			// Redirect to merge screen
+			$redirect_url = add_query_arg(
+				array(
+					'page'        => 'frs-profile-merge',
+					'profile_ids' => implode( ',', $profile_ids ),
+				),
+				admin_url( 'admin.php' )
+			);
+
+			error_log( 'ProfilesList: Redirecting to merge page: ' . $redirect_url );
+
+			wp_safe_redirect( $redirect_url );
+			exit;
+		} elseif ( 'bulk_create_users' === $action ) {
+			// Check nonce
+			check_admin_referer( 'bulk-' . $this->_args['plural'] );
+
+			if ( ! isset( $_POST['profile'] ) || ! is_array( $_POST['profile'] ) ) {
+				return;
+			}
+
+			$profile_ids = array_map( 'absint', $_POST['profile'] );
 			$success_count = 0;
 			$failed_count = 0;
 
@@ -344,6 +519,12 @@ class ProfilesList extends \WP_List_Table {
 				$profile = Profile::find( $profile_id );
 
 				if ( ! $profile || ! $profile->is_guest() ) {
+					$failed_count++;
+					continue;
+				}
+
+				// Validate required fields
+				if ( empty( $profile->first_name ) || empty( $profile->last_name ) || empty( $profile->email ) ) {
 					$failed_count++;
 					continue;
 				}
@@ -372,11 +553,10 @@ class ProfilesList extends \WP_List_Table {
 					continue;
 				}
 
-				// Add profile types as roles
-				$profile_types = $profile->get_types();
-				$user = new \WP_User( $user_id );
-				foreach ( $profile_types as $type ) {
-					$user->add_role( $type );
+				// Add profile type as role
+				if ( ! empty( $profile->select_person_type ) ) {
+					$user = new \WP_User( $user_id );
+					$user->add_role( $profile->select_person_type );
 				}
 
 				// Link profile
@@ -438,9 +618,14 @@ class ProfilesList extends \WP_List_Table {
 				</option>
 			</select>
 
-			<label>
+			<label style="margin-left: 10px;">
 				<input type="checkbox" name="guests_only" value="1" <?php checked( isset( $_GET['guests_only'] ) && $_GET['guests_only'] ); ?> />
 				<?php _e( 'Guest Profiles Only', 'frs-users' ); ?>
+			</label>
+
+			<label style="margin-left: 10px;">
+				<input type="checkbox" name="show_archived" value="1" <?php checked( isset( $_GET['show_archived'] ) && $_GET['show_archived'] ); ?> />
+				<?php _e( 'Show Archived', 'frs-users' ); ?>
 			</label>
 
 			<?php submit_button( __( 'Filter', 'frs-users' ), 'button', 'filter_action', false ); ?>

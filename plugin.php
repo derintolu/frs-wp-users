@@ -65,8 +65,9 @@ final class FRSUsers {
 
 		// Initialize admin interface
 		if ( is_admin() ) {
-			ProfilesPage::init();
-			ProfileEdit::init();
+			ProfilesPage::get_instance()->init();
+			ProfileEdit::get_instance()->init();
+			\FRSUsers\Admin\ProfileMerge::get_instance()->init();
 			Admin::get_instance()->bootstrap();
 		}
 

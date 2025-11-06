@@ -6,7 +6,20 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
+
+const getInitials = (firstName, lastName) => {
+  return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase();
+};
 
 export default function ProfileEdit() {
   const { id } = useParams();
@@ -55,7 +68,20 @@ export default function ProfileEdit() {
       });
       if (!response.ok) throw new Error('Failed to fetch profile');
       const data = await response.json();
-      setProfile(data.data);
+
+      // Remove computed fields that shouldn't be in state
+      const {
+        full_name,
+        headshot_url,
+        is_guest,
+        roles,
+        created_at,
+        updated_at,
+        synced_to_fluentcrm_at,
+        ...editableProfile
+      } = data.data;
+
+      setProfile(editableProfile);
     } catch (err) {
       toast.error(err.message);
     }
@@ -64,6 +90,41 @@ export default function ProfileEdit() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+    // Only send database fields, exclude computed fields like headshot_url, roles, etc.
+    const saveableFields = [
+      'user_id', 'frs_agent_id', 'email', 'first_name', 'last_name',
+      'phone_number', 'mobile_number', 'office', 'headshot_id', 'job_title',
+      'biography', 'date_of_birth', 'select_person_type', 'nmls', 'nmls_number',
+      'license_number', 'dre_license', 'specialties_lo', 'specialties',
+      'languages', 'awards', 'nar_designations', 'namb_certifications',
+      'brand', 'status', 'city_state', 'region', 'facebook_url',
+      'instagram_url', 'linkedin_url', 'twitter_url', 'youtube_url',
+      'tiktok_url', 'arrive', 'canva_folder_link', 'niche_bio_content',
+      'personal_branding_images', 'loan_officer_profile', 'loan_officer_user'
+    ];
+
+    const dataToSave = {};
+    saveableFields.forEach(field => {
+      if (profile[field] !== undefined) {
+        dataToSave[field] = profile[field];
+      }
+    });
+
+    const jsonString = JSON.stringify(dataToSave);
+    const sizeInBytes = new Blob([jsonString]).size;
+    const sizeInKB = (sizeInBytes / 1024).toFixed(2);
+
+    console.log('Data to save:', dataToSave);
+    console.log(`Payload size: ${sizeInKB} KB (${sizeInBytes} bytes)`);
+
+    // Check each field size
+    Object.keys(dataToSave).forEach(key => {
+      const fieldSize = new Blob([JSON.stringify(dataToSave[key] || '')]).size;
+      if (fieldSize > 10000) { // Show fields over 10KB
+        console.log(`Large field: ${key} = ${(fieldSize / 1024).toFixed(2)} KB`);
+      }
+    });
 
     try {
       const url = id === 'new'
@@ -78,7 +139,7 @@ export default function ProfileEdit() {
           'X-WP-Nonce': wordpressPluginBoilerplate.nonce,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(profile)
+        body: JSON.stringify(dataToSave)
       });
 
       if (!response.ok) throw new Error('Failed to save profile');
@@ -98,17 +159,81 @@ export default function ProfileEdit() {
   };
 
   return (
-    <div className="space-y-6 p-8 pt-6">
+    <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight">
             {id === 'new' ? 'Add New Profile' : 'Edit Profile'}
-          </h2>
+          </h1>
         </div>
-        <Button variant="outline" onClick={() => navigate('/profiles')}>
+        <Button variant="outline" onClick={() => navigate(id === 'new' ? '/profiles' : `/profiles/${id}`)}>
           Cancel
         </Button>
       </div>
+
+      {/* Profile Header Card - Always Visible */}
+      {id !== 'new' && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-start space-x-6">
+              <div className="flex-shrink-0">
+                {profile.headshot_url ? (
+                  <img
+                    src={profile.headshot_url}
+                    alt={`${profile.first_name} ${profile.last_name}`}
+                    className="rounded-lg max-w-md object-cover"
+                    style={{ aspectRatio: '1/1', maxHeight: '300px' }}
+                  />
+                ) : (
+                  <Avatar className="h-32 w-32">
+                    <AvatarFallback className="text-3xl">
+                      {getInitials(profile.first_name, profile.last_name)}
+                    </AvatarFallback>
+                  </Avatar>
+                )}
+              </div>
+              <div className="flex-1 space-y-4">
+                <div>
+                  <h3 className="text-xl font-bold">
+                    {profile.first_name} {profile.last_name}
+                  </h3>
+                  {profile.job_title && (
+                    <p className="text-sm text-muted-foreground">
+                      {profile.job_title}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  {profile.email && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-muted-foreground">Email:</span>
+                      <span className="text-sm">{profile.email}</span>
+                    </div>
+                  )}
+                  {profile.phone_number && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-muted-foreground">Phone:</span>
+                      <span className="text-sm">{profile.phone_number}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {profile.select_person_type && (
+                    <Badge variant="default">
+                      {profile.select_person_type.replace('_', ' ')}
+                    </Badge>
+                  )}
+                  {profile.status && (
+                    <Badge variant={profile.status === 'active' ? 'success' : 'secondary'}>
+                      {profile.status}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <form onSubmit={handleSubmit}>
         <Tabs defaultValue="contact" className="space-y-4">
@@ -123,7 +248,7 @@ export default function ProfileEdit() {
           <TabsContent value="contact">
             <Card>
               <CardHeader>
-                <CardTitle>Contact Information</CardTitle>
+                <CardTitle className="text-lg">Contact Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -161,7 +286,7 @@ export default function ProfileEdit() {
           <TabsContent value="professional">
             <Card>
               <CardHeader>
-                <CardTitle>Professional Information</CardTitle>
+                <CardTitle className="text-lg">Professional Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -178,14 +303,18 @@ export default function ProfileEdit() {
                 </div>
                 <div>
                   <Label>Person Type</Label>
-                  <select className="w-full border rounded px-3 py-2" value={profile.select_person_type} onChange={(e) => handleChange('select_person_type', e.target.value)}>
-                    <option value="">Select Type</option>
-                    <option value="loan_officer">Loan Officer</option>
-                    <option value="realtor_partner">Realtor Partner</option>
-                    <option value="staff">Staff</option>
-                    <option value="leadership">Leadership</option>
-                    <option value="assistant">Assistant</option>
-                  </select>
+                  <Select value={profile.select_person_type} onValueChange={(value) => handleChange('select_person_type', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="loan_officer">Loan Officer</SelectItem>
+                      <SelectItem value="realtor_partner">Realtor Partner</SelectItem>
+                      <SelectItem value="staff">Staff</SelectItem>
+                      <SelectItem value="leadership">Leadership</SelectItem>
+                      <SelectItem value="assistant">Assistant</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -213,10 +342,15 @@ export default function ProfileEdit() {
                 </div>
                 <div>
                   <Label>Status</Label>
-                  <select className="w-full border rounded px-3 py-2" value={profile.status} onChange={(e) => handleChange('status', e.target.value)}>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
+                  <Select value={profile.status} onValueChange={(value) => handleChange('status', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>
@@ -225,7 +359,7 @@ export default function ProfileEdit() {
           <TabsContent value="location">
             <Card>
               <CardHeader>
-                <CardTitle>Location</CardTitle>
+                <CardTitle className="text-lg">Location</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -243,7 +377,7 @@ export default function ProfileEdit() {
           <TabsContent value="social">
             <Card>
               <CardHeader>
-                <CardTitle>Social Media</CardTitle>
+                <CardTitle className="text-lg">Social Media</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -277,7 +411,7 @@ export default function ProfileEdit() {
           <TabsContent value="tools">
             <Card>
               <CardHeader>
-                <CardTitle>Tools & Platforms</CardTitle>
+                <CardTitle className="text-lg">Tools & Platforms</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -301,7 +435,7 @@ export default function ProfileEdit() {
           <Button type="submit" disabled={loading}>
             {loading ? 'Saving...' : (id === 'new' ? 'Create Profile' : 'Update Profile')}
           </Button>
-          <Button type="button" variant="outline" onClick={() => navigate('/profiles')}>
+          <Button type="button" variant="outline" onClick={() => navigate(id === 'new' ? '/profiles' : `/profiles/${id}`)}>
             Cancel
           </Button>
         </div>

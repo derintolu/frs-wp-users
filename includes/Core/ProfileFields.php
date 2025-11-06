@@ -99,6 +99,19 @@ class ProfileFields {
 	 */
 	private static function get_professional_fields() {
 		return array(
+			Field::make( 'text', 'frs_agent_id', __( 'FRS Agent ID', 'frs-users' ) )
+				->set_help_text( __( 'External FRS system agent ID', 'frs-users' ) ),
+
+			Field::make( 'select', 'select_person_type', __( 'Person Type', 'frs-users' ) )
+				->add_options( array(
+					'loan_officer'     => __( 'Loan Officer', 'frs-users' ),
+					'realtor_partner'  => __( 'Real Estate Partner', 'frs-users' ),
+					'staff'            => __( 'Staff', 'frs-users' ),
+					'leadership'       => __( 'Leadership', 'frs-users' ),
+					'assistant'        => __( 'Assistant', 'frs-users' ),
+				) )
+				->set_help_text( __( 'Select the person type', 'frs-users' ) ),
+
 			Field::make( 'image', 'headshot_id', __( 'Headshot', 'frs-users' ) )
 				->set_value_type( 'id' )
 				->set_help_text( __( 'Profile photo/headshot', 'frs-users' ) ),
@@ -112,11 +125,20 @@ class ProfileFields {
 			Field::make( 'date', 'date_of_birth', __( 'Date of Birth', 'frs-users' ) )
 				->set_storage_format( 'F j' ),
 
-			Field::make( 'text', 'license_number', __( 'DRE License Number', 'frs-users' ) )
-				->set_help_text( __( 'California DRE license number', 'frs-users' ) ),
+			Field::make( 'text', 'license_number', __( 'License Number', 'frs-users' ) )
+				->set_help_text( __( 'Real estate license number', 'frs-users' ) ),
 
-			Field::make( 'text', 'nmls', __( 'NMLS #', 'frs-users' ) )
+			Field::make( 'text', 'dre_license', __( 'DRE License', 'frs-users' ) )
+				->set_help_text( __( 'California DRE license', 'frs-users' ) ),
+
+			Field::make( 'text', 'nmls', __( 'NMLS', 'frs-users' ) )
+				->set_help_text( __( 'NMLS ID', 'frs-users' ) ),
+
+			Field::make( 'text', 'nmls_number', __( 'NMLS Number', 'frs-users' ) )
 				->set_help_text( __( 'NMLS license number', 'frs-users' ) ),
+
+			Field::make( 'text', 'brand', __( 'Brand', 'frs-users' ) )
+				->set_help_text( __( 'Professional brand name', 'frs-users' ) ),
 
 			Field::make( 'multiselect', 'specialties', __( 'Specialties - Real Estate Agent', 'frs-users' ) )
 				->add_options( array(
@@ -308,6 +330,14 @@ class ProfileFields {
 			Field::make( 'media_gallery', 'personal_branding_images', __( 'Personal Branding Images', 'frs-users' ) )
 				->set_type( 'image' )
 				->set_help_text( __( 'Add any personal branding that you would like to be used', 'frs-users' ) ),
+
+			Field::make( 'text', 'loan_officer_profile', __( 'Loan Officer Profile ID', 'frs-users' ) )
+				->set_attribute( 'type', 'number' )
+				->set_help_text( __( 'Related loan officer profile ID', 'frs-users' ) ),
+
+			Field::make( 'text', 'loan_officer_user', __( 'Loan Officer User ID', 'frs-users' ) )
+				->set_attribute( 'type', 'number' )
+				->set_help_text( __( 'Related loan officer WordPress user ID', 'frs-users' ) ),
 		);
 	}
 }

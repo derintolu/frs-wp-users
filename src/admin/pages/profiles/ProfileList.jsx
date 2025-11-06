@@ -19,6 +19,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -26,11 +27,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 export default function ProfileList() {
   const [profiles, setProfiles] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedProfiles, setSelectedProfiles] = useState([]);
   const [filterType, setFilterType] = useState("");
@@ -176,40 +178,25 @@ export default function ProfileList() {
     }
   };
 
-  const filteredProfiles = profiles.filter(profile => {
-    if (!searchTerm) return true;
-    const search = searchTerm.toLowerCase();
-    return (
-      profile.first_name?.toLowerCase().includes(search) ||
-      profile.last_name?.toLowerCase().includes(search) ||
-      profile.email?.toLowerCase().includes(search) ||
-      profile.nmls?.toLowerCase().includes(search) ||
-      profile.nmls_number?.toLowerCase().includes(search)
-    );
-  });
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-lg">Loading profiles...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-lg text-red-500">Error: {error}</p>
-      </div>
-    );
-  }
+  const filteredProfiles = profiles
+    .filter(profile => {
+      if (!searchTerm) return true;
+      const search = searchTerm.toLowerCase();
+      return (
+        profile.first_name?.toLowerCase().includes(search) ||
+        profile.last_name?.toLowerCase().includes(search) ||
+        profile.email?.toLowerCase().includes(search) ||
+        profile.nmls?.toLowerCase().includes(search) ||
+        profile.nmls_number?.toLowerCase().includes(search)
+      );
+    });
 
   return (
-    <div className="space-y-4 p-8 pt-6">
+    <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Profiles</h2>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-bold tracking-tight">Profiles</h1>
+          <p className="text-sm text-muted-foreground">
             Manage user profiles and information
           </p>
         </div>
@@ -222,22 +209,20 @@ export default function ProfileList() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>All Profiles</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-lg">All Profiles</CardTitle>
+              <CardDescription className="text-sm">
                 A list of all profiles in the system
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
-              <Input
-                placeholder="Search profiles..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-64"
-              />
-            </div>
+            <Input
+              placeholder="Search profiles..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-sm"
+            />
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           {/* Filters and Bulk Actions */}
           <div className="flex items-center gap-4 flex-wrap">
             <Select value={filterType} onValueChange={setFilterType}>
@@ -254,11 +239,9 @@ export default function ProfileList() {
             </Select>
 
             <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={guestsOnly}
-                onChange={(e) => setGuestsOnly(e.target.checked)}
-                className="rounded"
+                onCheckedChange={setGuestsOnly}
               />
               <span className="text-sm">Guest Profiles Only</span>
             </label>
@@ -270,18 +253,43 @@ export default function ProfileList() {
             )}
           </div>
 
+          {/* Pagination - Top */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">
+                Page {page} of {totalPages}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={
                       profiles.filter(p => !p.user_id).length > 0 &&
                       selectedProfiles.length === profiles.filter(p => !p.user_id).length
                     }
-                    onChange={toggleSelectAll}
-                    className="rounded"
+                    onCheckedChange={toggleSelectAll}
                   />
                 </TableHead>
                 <TableHead>Photo</TableHead>
@@ -291,13 +299,12 @@ export default function ProfileList() {
                 <TableHead>NMLS</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredProfiles.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center">
+                  <TableCell colSpan={8} className="text-center">
                     No profiles found
                   </TableCell>
                 </TableRow>
@@ -306,11 +313,9 @@ export default function ProfileList() {
                   <TableRow key={profile.id}>
                     <TableCell>
                       {!profile.user_id && (
-                        <input
-                          type="checkbox"
+                        <Checkbox
                           checked={selectedProfiles.includes(profile.id)}
-                          onChange={() => toggleSelectProfile(profile.id)}
-                          className="rounded"
+                          onCheckedChange={() => toggleSelectProfile(profile.id)}
                         />
                       )}
                     </TableCell>
@@ -330,7 +335,7 @@ export default function ProfileList() {
                       </div>
                     </TableCell>
                     <TableCell className="font-medium">
-                      <Link to={`/profiles/${profile.id}`} className="hover:underline">
+                      <Link to={`/profiles/${profile.id}`} className="hover:underline text-primary">
                         {profile.first_name} {profile.last_name}
                       </Link>
                     </TableCell>
@@ -368,33 +373,25 @@ export default function ProfileList() {
                       )}
                     </TableCell>
                     <TableCell>
-                      {profile.user_id ? (
-                        <Badge className="bg-green-500">Profile+</Badge>
-                      ) : (
-                        <Badge className="bg-yellow-500">Profile Only</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right space-x-2">
-                      {!profile.user_id && (
-                        <Button
-                          size="sm"
-                          onClick={() => createUserAccount(profile.id)}
-                          disabled={creatingUser === profile.id}
-                          variant="default"
-                        >
-                          {creatingUser === profile.id ? 'Creating...' : 'Create User'}
-                        </Button>
-                      )}
-                      <Link to={`/profiles/${profile.id}`}>
-                        <Button variant="ghost" size="sm">
-                          View
-                        </Button>
-                      </Link>
-                      <Link to={`/profiles/${profile.id}/edit`}>
-                        <Button variant="ghost" size="sm">
-                          Edit
-                        </Button>
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        {profile.user_id ? (
+                          <Badge variant="default">Profile+</Badge>
+                        ) : (
+                          <>
+                            <Badge variant="secondary">Profile Only</Badge>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => createUserAccount(profile.id)}
+                              disabled={creatingUser === profile.id}
+                              title="Create User Account"
+                            >
+                              <UserPlus className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))

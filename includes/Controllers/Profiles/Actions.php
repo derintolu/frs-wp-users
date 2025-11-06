@@ -51,8 +51,8 @@ class Actions {
 		// Get total count for pagination
 		$total = $query->count();
 
-		// Apply pagination
-		$profiles = $query->orderBy( 'last_name', 'asc' )
+		// Apply pagination - sort by first name alphabetically
+		$profiles = $query->orderBy( 'first_name', 'asc' )
 			->skip( ( $page - 1 ) * $limit )
 			->take( $limit )
 			->get();
@@ -148,6 +148,22 @@ class Actions {
 			);
 		}
 
+		if ( empty( $data['first_name'] ) ) {
+			return new WP_Error(
+				'missing_first_name',
+				__( 'First name is required', 'frs-users' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		if ( empty( $data['last_name'] ) ) {
+			return new WP_Error(
+				'missing_last_name',
+				__( 'Last name is required', 'frs-users' ),
+				array( 'status' => 400 )
+			);
+		}
+
 		// Check if profile with this email already exists
 		$existing = Profile::get_by_email( $data['email'] );
 		if ( $existing ) {
@@ -192,9 +208,13 @@ class Actions {
 		$id   = $request->get_param( 'id' );
 		$data = $request->get_json_params();
 
+		error_log( 'UPDATE PROFILE - ID: ' . $id );
+		error_log( 'UPDATE PROFILE - Data received: ' . print_r( $data, true ) );
+
 		$profile = Profile::find( $id );
 
 		if ( ! $profile ) {
+			error_log( 'UPDATE PROFILE - Profile not found' );
 			return new WP_Error(
 				'profile_not_found',
 				__( 'Profile not found', 'frs-users' ),
@@ -202,13 +222,18 @@ class Actions {
 			);
 		}
 
+		error_log( 'UPDATE PROFILE - Profile found: ' . print_r( $profile->toArray(), true ) );
+
 		// Sanitize email if present
 		if ( isset( $data['email'] ) ) {
 			$data['email'] = sanitize_email( $data['email'] );
 		}
 
 		// Update using Eloquent
-		$profile->update( $data );
+		$result = $profile->update( $data );
+
+		error_log( 'UPDATE PROFILE - Update result: ' . ( $result ? 'SUCCESS' : 'FAILED' ) );
+		error_log( 'UPDATE PROFILE - After update: ' . print_r( $profile->fresh()->toArray(), true ) );
 
 		return new WP_REST_Response(
 			array(
@@ -284,6 +309,31 @@ class Actions {
 			return new WP_Error(
 				'already_linked',
 				__( 'Profile is already linked to a user account', 'frs-users' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		// Validate required fields
+		if ( empty( $profile->first_name ) ) {
+			return new WP_Error(
+				'missing_first_name',
+				__( 'Profile is missing first name', 'frs-users' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		if ( empty( $profile->last_name ) ) {
+			return new WP_Error(
+				'missing_last_name',
+				__( 'Profile is missing last name', 'frs-users' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		if ( empty( $profile->email ) ) {
+			return new WP_Error(
+				'missing_email',
+				__( 'Profile is missing email', 'frs-users' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -380,6 +430,15 @@ class Actions {
 				continue;
 			}
 
+			// Validate required fields
+			if ( empty( $profile->first_name ) || empty( $profile->last_name ) || empty( $profile->email ) ) {
+				$results['failed'][] = array(
+					'id'     => $profile_id,
+					'reason' => __( 'Profile is missing required fields (first name, last name, or email)', 'frs-users' ),
+				);
+				continue;
+			}
+
 			// Generate username
 			$username = sanitize_user( strtolower( $profile->first_name . '.' . $profile->last_name ) );
 			$username = str_replace( ' ', '', $username );
@@ -407,11 +466,10 @@ class Actions {
 				continue;
 			}
 
-			// Add profile types as roles
-			$profile_types = $profile->get_types();
-			$user = new \WP_User( $user_id );
-			foreach ( $profile_types as $type ) {
-				$user->add_role( $type );
+			// Add profile type as role
+			if ( ! empty( $profile->select_person_type ) ) {
+				$user = new \WP_User( $user_id );
+				$user->add_role( $profile->select_person_type );
 			}
 
 			// Link profile

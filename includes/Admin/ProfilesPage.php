@@ -12,154 +12,388 @@
 namespace FRSUsers\Admin;
 
 use FRSUsers\Models\Profile;
-use FRSUsers\Admin\ProfileView;
+use FRSUsers\Traits\Base;
+use FRSUsers\Admin\ProfileImportExport;
 
 /**
  * Class ProfilesPage
  *
- * Manages the profiles admin page and AJAX handlers.
+ * Manages the profiles admin page routing.
  *
  * @package FRSUsers\Admin
  */
 class ProfilesPage {
+	use Base;
 
 	/**
-	 * Initialize the profiles page
+	 * Initialize
 	 *
 	 * @return void
 	 */
-	public static function init() {
-		add_action( 'admin_menu', array( __CLASS__, 'add_menu_page' ) );
-		// Assets now loaded by FRSAdmin class
-		add_action( 'wp_ajax_frs_create_user_account', array( __CLASS__, 'ajax_create_user_account' ) );
+	public function init() {
+		add_action( 'admin_menu', array( $this, 'add_menu_pages' ) );
+		add_action( 'admin_post_frs_delete_profile', array( $this, 'handle_delete' ) );
+		add_action( 'admin_post_frs_archive_profile', array( $this, 'handle_archive' ) );
+		add_action( 'admin_post_frs_unarchive_profile', array( $this, 'handle_unarchive' ) );
+		add_action( 'wp_ajax_frs_create_user_account', array( $this, 'ajax_create_user_account' ) );
+
+		// Process bulk actions early, before any output
+		add_action( 'admin_init', array( $this, 'handle_bulk_actions' ) );
 	}
 
 	/**
-	 * Add admin menu page
+	 * Add admin menu pages
 	 *
 	 * @return void
 	 */
-	public static function add_menu_page() {
+	public function add_menu_pages() {
+		// Main menu
 		add_menu_page(
 			__( 'FRS Profiles', 'frs-users' ),
 			__( 'FRS Profiles', 'frs-users' ),
 			'edit_users',
-			'frs-users-profiles',
-			array( __CLASS__, 'render_page' ),
+			'frs-profiles',
+			array( $this, 'render_list_page' ),
 			'dashicons-groups',
 			30
 		);
 
+		// List page (duplicate of main for submenu)
 		add_submenu_page(
-			'frs-users-profiles',
+			'frs-profiles',
 			__( 'All Profiles', 'frs-users' ),
 			__( 'All Profiles', 'frs-users' ),
 			'edit_users',
-			'frs-users-profiles',
-			array( __CLASS__, 'render_page' )
+			'frs-profiles',
+			array( $this, 'render_list_page' )
 		);
 
+		// Add New (uses edit page with no ID)
 		add_submenu_page(
-			'frs-users-profiles',
-			__( 'Profile Only', 'frs-users' ),
-			__( 'Profile Only', 'frs-users' ),
-			'edit_users',
-			'frs-users-guests',
-			array( __CLASS__, 'render_guests_page' )
-		);
-
-		add_submenu_page(
-			'frs-users-profiles',
+			'frs-profiles',
 			__( 'Add New Profile', 'frs-users' ),
 			__( 'Add New', 'frs-users' ),
 			'edit_users',
-			'frs-users-add-profile',
-			array( __CLASS__, 'render_add_page' )
+			'frs-profile-edit',
+			array( $this, 'render_edit_page' )
 		);
 
+		// View page (hidden from menu)
 		add_submenu_page(
-			'frs-users-profiles',
-			__( 'Settings', 'frs-users' ),
-			__( 'Settings', 'frs-users' ),
-			'manage_options',
-			'frs-users-settings',
-			array( __CLASS__, 'render_settings_page' )
+			null,
+			__( 'View Profile', 'frs-users' ),
+			__( 'View Profile', 'frs-users' ),
+			'edit_users',
+			'frs-profile-view',
+			array( $this, 'render_view_page' )
+		);
+
+		// Merge page (hidden from menu)
+		add_submenu_page(
+			null,
+			__( 'Merge Profiles', 'frs-users' ),
+			__( 'Merge Profiles', 'frs-users' ),
+			'edit_users',
+			'frs-profile-merge',
+			array( $this, 'render_merge_page' )
+		);
+
+		// Merge selection page (hidden from menu)
+		add_submenu_page(
+			null,
+			__( 'Select Profile to Merge', 'frs-users' ),
+			__( 'Select Profile to Merge', 'frs-users' ),
+			'edit_users',
+			'frs-profile-merge-select',
+			array( $this, 'render_merge_select_page' )
+		);
+
+		// Import/Export page
+		add_submenu_page(
+			'frs-profiles',
+			__( 'Import / Export', 'frs-users' ),
+			__( 'Import / Export', 'frs-users' ),
+			'edit_users',
+			'frs-profile-import-export',
+			array( $this, 'render_import_export_page' )
 		);
 	}
 
-	// Assets now loaded by FRSAdmin class - see includes/Assets/FRSAdmin.php
-
 	/**
-	 * Render the main profiles page
-	 *
-	 * React SPA renders here.
+	 * Handle bulk actions early (before any output)
 	 *
 	 * @return void
 	 */
-	public static function render_page() {
-		// Determine initial route based on URL parameters
-		$action     = isset( $_GET['action'] ) ? sanitize_text_field( $_GET['action'] ) : '';
-		$profile_id = isset( $_GET['profile_id'] ) ? absint( $_GET['profile_id'] ) : 0;
-
-		$initial_route = '/profiles';
-
-		if ( $action === 'view' && $profile_id ) {
-			$initial_route = '/profiles/' . $profile_id;
-		} elseif ( $action === 'edit' && $profile_id ) {
-			$initial_route = '/profiles/' . $profile_id . '/edit';
+	public function handle_bulk_actions() {
+		// Only process on our page
+		if ( ! isset( $_GET['page'] ) || $_GET['page'] !== 'frs-profiles' ) {
+			return;
 		}
 
-		// Render React app container
-		?>
-		<div class="wrap">
-			<div id="frs-users-admin-root" data-route="<?php echo esc_attr( $initial_route ); ?>"></div>
-		</div>
-		<?php
+		// Only process POST requests
+		if ( $_SERVER['REQUEST_METHOD'] !== 'POST' ) {
+			return;
+		}
+
+		// Check if bulk action is set
+		$action = isset( $_POST['action'] ) && $_POST['action'] !== '-1' ? $_POST['action'] : '';
+		if ( empty( $action ) ) {
+			$action = isset( $_POST['action2'] ) && $_POST['action2'] !== '-1' ? $_POST['action2'] : '';
+		}
+
+		if ( empty( $action ) ) {
+			return;
+		}
+
+		// Handle bulk_merge specifically
+		if ( $action === 'bulk_merge' ) {
+			// Check nonce
+			check_admin_referer( 'bulk-profiles' );
+
+			if ( ! isset( $_POST['profile'] ) || ! is_array( $_POST['profile'] ) ) {
+				return;
+			}
+
+			$profile_ids = array_map( 'absint', $_POST['profile'] );
+
+			if ( count( $profile_ids ) < 2 ) {
+				wp_redirect( add_query_arg( 'error', 'merge_min_2', admin_url( 'admin.php?page=frs-profiles' ) ) );
+				exit;
+			}
+
+			// Redirect to merge page
+			wp_safe_redirect(
+				add_query_arg(
+					array(
+						'page'        => 'frs-profile-merge',
+						'profile_ids' => implode( ',', $profile_ids ),
+					),
+					admin_url( 'admin.php' )
+				)
+			);
+			exit;
+		}
 	}
 
 	/**
-	 * Render guest profiles page
-	 *
-	 * React SPA renders here.
+	 * Render profiles list page
 	 *
 	 * @return void
 	 */
-	public static function render_guests_page() {
-		?>
-		<div class="wrap">
-			<div id="frs-users-admin-root" data-route="/profiles?guests_only=true"></div>
-		</div>
-		<?php
+	public function render_list_page() {
+		// Security check
+		if ( ! current_user_can( 'edit_users' ) ) {
+			wp_die( esc_html__( 'You do not have permission to access this page.', 'frs-users' ) );
+		}
+
+		// Create list table instance
+		$list_table = new ProfilesList();
+		$list_table->prepare_items();
+
+		// Load template
+		include FRS_USERS_DIR . 'views/admin/profiles-list.php';
 	}
 
 	/**
-	 * Render add profile page
-	 *
-	 * React SPA renders here.
+	 * Render profile view page
 	 *
 	 * @return void
 	 */
-	public static function render_add_page() {
-		?>
-		<div class="wrap">
-			<div id="frs-users-admin-root" data-route="/profiles/new"></div>
-		</div>
-		<?php
+	public function render_view_page() {
+		$profile_id = isset( $_GET['id'] ) ? absint( $_GET['id'] ) : 0;
+
+		if ( ! $profile_id ) {
+			wp_die( esc_html__( 'Invalid profile ID.', 'frs-users' ) );
+		}
+
+		ProfileView::render( $profile_id );
 	}
 
 	/**
-	 * Render settings page
-	 *
-	 * React SPA renders here.
+	 * Render profile edit/add page
 	 *
 	 * @return void
 	 */
-	public static function render_settings_page() {
-		?>
-		<div class="wrap">
-			<div id="frs-users-admin-root" data-route="/settings"></div>
-		</div>
-		<?php
+	public function render_edit_page() {
+		$profile_id = isset( $_GET['id'] ) ? $_GET['id'] : null;
+
+		// Convert 'new' string to null
+		if ( 'new' === $profile_id ) {
+			$profile_id = null;
+		}
+
+		ProfileEdit::render( $profile_id );
+	}
+
+	/**
+	 * Render profile merge page
+	 *
+	 * @return void
+	 */
+	public function render_merge_page() {
+		error_log( 'ProfilesPage::render_merge_page() called' );
+		error_log( 'Current user can edit_users: ' . ( current_user_can( 'edit_users' ) ? 'YES' : 'NO' ) );
+		ProfileMerge::render();
+	}
+
+	/**
+	 * Render profile merge selection page
+	 *
+	 * @return void
+	 */
+	public function render_merge_select_page() {
+		ProfileMergeSelect::render();
+	}
+
+	/**
+	 * Render import/export page
+	 *
+	 * @return void
+	 */
+	public function render_import_export_page() {
+		ProfileImportExport::render();
+	}
+
+	/**
+	 * Handle profile deletion
+	 *
+	 * @return void
+	 */
+	public function handle_delete() {
+		// Security check
+		if ( ! current_user_can( 'edit_users' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'frs-users' ) );
+		}
+
+		// Get profile ID
+		$profile_id = isset( $_GET['profile_id'] ) ? absint( $_GET['profile_id'] ) : 0;
+
+		if ( ! $profile_id ) {
+			wp_die( esc_html__( 'Invalid profile ID.', 'frs-users' ) );
+		}
+
+		// Verify nonce
+		if ( ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'delete_profile_' . $profile_id ) ) {
+			wp_die( esc_html__( 'Security check failed.', 'frs-users' ) );
+		}
+
+		// Delete profile
+		$profile = Profile::find( $profile_id );
+
+		if ( ! $profile ) {
+			wp_die( esc_html__( 'Profile not found.', 'frs-users' ) );
+		}
+
+		try {
+			$profile->delete();
+
+			// Redirect with success message
+			wp_safe_redirect(
+				add_query_arg(
+					array(
+						'page'    => 'frs-profiles',
+						'message' => 'deleted',
+					),
+					admin_url( 'admin.php' )
+				)
+			);
+			exit;
+
+		} catch ( \Exception $e ) {
+			wp_die( esc_html__( 'Error deleting profile.', 'frs-users' ) );
+		}
+	}
+
+	/**
+	 * Handle profile archiving
+	 *
+	 * @return void
+	 */
+	public function handle_archive() {
+		// Security check
+		if ( ! current_user_can( 'edit_users' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'frs-users' ) );
+		}
+
+		// Get profile ID
+		$profile_id = isset( $_GET['profile_id'] ) ? absint( $_GET['profile_id'] ) : 0;
+
+		if ( ! $profile_id ) {
+			wp_die( esc_html__( 'Invalid profile ID.', 'frs-users' ) );
+		}
+
+		// Verify nonce
+		if ( ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'archive_profile_' . $profile_id ) ) {
+			wp_die( esc_html__( 'Security check failed.', 'frs-users' ) );
+		}
+
+		// Archive profile
+		$profile = Profile::find( $profile_id );
+
+		if ( ! $profile ) {
+			wp_die( esc_html__( 'Profile not found.', 'frs-users' ) );
+		}
+
+		$profile->is_active = 0;
+		$profile->save();
+
+		// Redirect with success message
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'page'    => 'frs-profiles',
+					'message' => 'archived',
+				),
+				admin_url( 'admin.php' )
+			)
+		);
+		exit;
+	}
+
+	/**
+	 * Handle profile unarchiving
+	 *
+	 * @return void
+	 */
+	public function handle_unarchive() {
+		// Security check
+		if ( ! current_user_can( 'edit_users' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'frs-users' ) );
+		}
+
+		// Get profile ID
+		$profile_id = isset( $_GET['profile_id'] ) ? absint( $_GET['profile_id'] ) : 0;
+
+		if ( ! $profile_id ) {
+			wp_die( esc_html__( 'Invalid profile ID.', 'frs-users' ) );
+		}
+
+		// Verify nonce
+		if ( ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'unarchive_profile_' . $profile_id ) ) {
+			wp_die( esc_html__( 'Security check failed.', 'frs-users' ) );
+		}
+
+		// Unarchive profile
+		$profile = Profile::find( $profile_id );
+
+		if ( ! $profile ) {
+			wp_die( esc_html__( 'Profile not found.', 'frs-users' ) );
+		}
+
+		$profile->is_active = 1;
+		$profile->save();
+
+		// Redirect with success message
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'page'    => 'frs-profiles',
+					'message' => 'unarchived',
+				),
+				admin_url( 'admin.php' )
+			)
+		);
+		exit;
 	}
 
 	/**
@@ -167,19 +401,21 @@ class ProfilesPage {
 	 *
 	 * @return void
 	 */
-	public static function ajax_create_user_account() {
-		check_ajax_referer( 'create_user_' . $_POST['profile_id'], 'nonce' );
+	public function ajax_create_user_account() {
+		// Verify nonce
+		if ( ! isset( $_POST['nonce'] ) || ! isset( $_POST['profile_id'] ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid request', 'frs-users' ) ) );
+		}
 
+		$profile_id = absint( $_POST['profile_id'] );
+		check_ajax_referer( 'create_user_' . $profile_id, 'nonce' );
+
+		// Security check
 		if ( ! current_user_can( 'edit_users' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Permission denied', 'frs-users' ) ) );
 		}
 
-		$profile_id = isset( $_POST['profile_id'] ) ? absint( $_POST['profile_id'] ) : 0;
-
-		if ( ! $profile_id ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid profile ID', 'frs-users' ) ) );
-		}
-
+		// Get profile
 		$profile = Profile::find( $profile_id );
 
 		if ( ! $profile ) {
@@ -188,6 +424,19 @@ class ProfilesPage {
 
 		if ( ! $profile->is_guest() ) {
 			wp_send_json_error( array( 'message' => __( 'Profile is already linked to a user account', 'frs-users' ) ) );
+		}
+
+		// Validate required fields for user creation
+		if ( empty( $profile->first_name ) ) {
+			wp_send_json_error( array( 'message' => __( 'Profile is missing first name', 'frs-users' ) ) );
+		}
+
+		if ( empty( $profile->last_name ) ) {
+			wp_send_json_error( array( 'message' => __( 'Profile is missing last name', 'frs-users' ) ) );
+		}
+
+		if ( empty( $profile->email ) ) {
+			wp_send_json_error( array( 'message' => __( 'Profile is missing email', 'frs-users' ) ) );
 		}
 
 		// Generate username
@@ -213,11 +462,10 @@ class ProfilesPage {
 			wp_send_json_error( array( 'message' => $user_id->get_error_message() ) );
 		}
 
-		// Add profile types as roles
-		$profile_types = $profile->get_types();
-		$user = new \WP_User( $user_id );
-		foreach ( $profile_types as $type ) {
-			$user->add_role( $type );
+		// Add profile type as role
+		if ( ! empty( $profile->select_person_type ) ) {
+			$user = new \WP_User( $user_id );
+			$user->add_role( $profile->select_person_type );
 		}
 
 		// Link profile

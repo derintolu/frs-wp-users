@@ -2,8 +2,6 @@
 /**
  * Profile View Page
  *
- * Loads the React admin app for viewing profiles.
- *
  * @package FRSUsers
  * @subpackage Admin
  * @since 1.0.0
@@ -12,18 +10,20 @@
 namespace FRSUsers\Admin;
 
 use FRSUsers\Models\Profile;
+use FRSUsers\Traits\Base;
 
 /**
  * Class ProfileView
  *
- * Renders the React app container for profile viewing.
+ * Handles the profile view admin page (read-only).
  *
  * @package FRSUsers\Admin
  */
 class ProfileView {
+	use Base;
 
 	/**
-	 * Render the view page
+	 * Render view page
 	 *
 	 * @param int $profile_id Profile ID to view.
 	 * @return void
@@ -31,21 +31,38 @@ class ProfileView {
 	public static function render( $profile_id ) {
 		// Security check
 		if ( ! current_user_can( 'edit_users' ) ) {
-			wp_die( __( 'You do not have permission to view profiles', 'frs-users' ) );
+			wp_die( esc_html__( 'You do not have permission to access this page.', 'frs-users' ) );
 		}
 
-		// Verify profile exists
+		// Get profile
 		$profile = Profile::find( $profile_id );
 
 		if ( ! $profile ) {
-			wp_die( __( 'Profile not found', 'frs-users' ) );
+			wp_die( esc_html__( 'Profile not found.', 'frs-users' ) );
 		}
 
-		// Render React app container
-		?>
-		<div class="wrap">
-			<div id="frs-users-admin-root" data-route="/profiles/<?php echo esc_attr( $profile_id ); ?>"></div>
-		</div>
-		<?php
+		// Helper function to decode JSON fields
+		$decode_json = function( $value ) {
+			if ( empty( $value ) ) {
+				return array();
+			}
+			if ( is_array( $value ) ) {
+				return $value;
+			}
+			$decoded = json_decode( $value, true );
+			return is_array( $decoded ) ? $decoded : array();
+		};
+
+		// Get headshot URL
+		$headshot_url = '';
+		if ( $profile->headshot_id ) {
+			$headshot_url = wp_get_attachment_image_url( $profile->headshot_id, 'medium' );
+		}
+
+		// Page title
+		$page_title = sprintf( __( 'Profile: %s', 'frs-users' ), $profile->first_name . ' ' . $profile->last_name );
+
+		// Load template
+		include FRS_USERS_DIR . 'views/admin/profile-view.php';
 	}
 }

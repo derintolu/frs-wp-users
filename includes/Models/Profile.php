@@ -141,37 +141,67 @@ class Profile extends Model {
 	/**
 	 * Get all active profiles.
 	 *
+	 * @param array $args Optional arguments (limit, offset).
 	 * @return \Illuminate\Database\Eloquent\Collection
 	 */
-	public static function get_all() {
-		return static::where( 'is_active', 1 )
-			->orderBy( 'last_name', 'asc' )
-			->get();
+	public static function get_all( $args = array() ) {
+		$query = static::where( 'is_active', 1 )
+			->orderBy( 'first_name', 'asc' );
+
+		// Apply pagination if provided
+		if ( isset( $args['limit'] ) ) {
+			$query->take( $args['limit'] );
+		}
+		if ( isset( $args['offset'] ) ) {
+			$query->skip( $args['offset'] );
+		}
+
+		return $query->get();
 	}
 
 	/**
 	 * Get guest profiles (no linked user).
 	 *
+	 * @param array $args Optional arguments (limit, offset).
 	 * @return \Illuminate\Database\Eloquent\Collection
 	 */
-	public static function get_guests() {
-		return static::whereNull( 'user_id' )
+	public static function get_guests( $args = array() ) {
+		$query = static::whereNull( 'user_id' )
 			->where( 'is_active', 1 )
-			->orderBy( 'last_name', 'asc' )
-			->get();
+			->orderBy( 'first_name', 'asc' );
+
+		// Apply pagination if provided
+		if ( isset( $args['limit'] ) ) {
+			$query->take( $args['limit'] );
+		}
+		if ( isset( $args['offset'] ) ) {
+			$query->skip( $args['offset'] );
+		}
+
+		return $query->get();
 	}
 
 	/**
 	 * Get profiles by type.
 	 *
 	 * @param string $type Profile type.
+	 * @param array $args Optional arguments (limit, offset).
 	 * @return \Illuminate\Database\Eloquent\Collection
 	 */
-	public static function get_by_type( $type ) {
-		return static::where( 'select_person_type', $type )
+	public static function get_by_type( $type, $args = array() ) {
+		$query = static::where( 'select_person_type', $type )
 			->where( 'is_active', 1 )
-			->orderBy( 'last_name', 'asc' )
-			->get();
+			->orderBy( 'first_name', 'asc' );
+
+		// Apply pagination if provided
+		if ( isset( $args['limit'] ) ) {
+			$query->take( $args['limit'] );
+		}
+		if ( isset( $args['offset'] ) ) {
+			$query->skip( $args['offset'] );
+		}
+
+		return $query->get();
 	}
 
 	/**

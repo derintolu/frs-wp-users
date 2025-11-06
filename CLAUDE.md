@@ -1370,3 +1370,4 @@ This plugin uses the **WordPress Plugin Boilerplate** architecture with **React 
 - Always use REST API from React
 - Always show ALL 45+ database fields
 - Always prioritize security and user experience
+- always assume that the last action you took or code you wrote is  the cause of the error. never assume its cacheing

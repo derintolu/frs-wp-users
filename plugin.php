@@ -9,6 +9,7 @@
 use FRSUsers\Core\ProfileFields;
 use FRSUsers\Core\ProfileStorage;
 use FRSUsers\Core\CLI;
+use FRSUsers\Core\ProfileApi;
 use FRSUsers\Routes\Api;
 use FRSUsers\Admin\ProfilesPage;
 use FRSUsers\Admin\ProfileEdit;
@@ -56,6 +57,9 @@ final class FRSUsers {
 
 		// Initialize REST API routes
 		Api::init();
+
+		// Initialize Profile API with CRUD and webhooks
+		ProfileApi::get_instance()->init();
 
 		// Initialize WP-CLI commands
 		CLI::init();

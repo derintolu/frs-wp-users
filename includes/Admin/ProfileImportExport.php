@@ -39,6 +39,47 @@ class ProfileImportExport {
 	}
 
 	/**
+	 * Download image from URL and import to media library
+	 *
+	 * @param string $image_url Image URL.
+	 * @return int|false Attachment ID on success, false on failure.
+	 */
+	private static function import_image_from_url( $image_url ) {
+		if ( empty( $image_url ) ) {
+			return false;
+		}
+
+		// Validate URL
+		$image_url = esc_url_raw( $image_url );
+		if ( ! filter_var( $image_url, FILTER_VALIDATE_URL ) ) {
+			return false;
+		}
+
+		// Download image
+		$tmp = download_url( $image_url );
+		if ( is_wp_error( $tmp ) ) {
+			return false;
+		}
+
+		// Get file info
+		$file_array = array(
+			'name'     => basename( wp_parse_url( $image_url, PHP_URL_PATH ) ),
+			'tmp_name' => $tmp,
+		);
+
+		// Import to media library
+		$attachment_id = media_handle_sideload( $file_array, 0 );
+
+		// Clean up temp file if upload failed
+		if ( is_wp_error( $attachment_id ) ) {
+			@unlink( $file_array['tmp_name'] );
+			return false;
+		}
+
+		return $attachment_id;
+	}
+
+	/**
 	 * All available profile fields for export
 	 *
 	 * @return array
@@ -54,6 +95,7 @@ class ProfileImportExport {
 			'mobile_number'           => __( 'Mobile Number', 'frs-users' ),
 			'office'                  => __( 'Office', 'frs-users' ),
 			'headshot_id'             => __( 'Headshot ID', 'frs-users' ),
+			'avatar_url'              => __( 'Avatar/Headshot URL', 'frs-users' ),
 			'job_title'               => __( 'Job Title', 'frs-users' ),
 			'biography'               => __( 'Biography', 'frs-users' ),
 			'date_of_birth'           => __( 'Date of Birth', 'frs-users' ),
@@ -158,7 +200,7 @@ class ProfileImportExport {
 					<?php foreach ( $fields as $key => $label ) : ?>
 						<label style="display: block; margin-bottom: 8px; break-inside: avoid;">
 							<input type="checkbox" name="export_fields[]" value="<?php echo esc_attr( $key ); ?>"
-								<?php checked( in_array( $key, array( 'first_name', 'last_name', 'email', 'phone_number', 'nmls', 'arrive' ) ) ); ?>>
+								<?php checked( in_array( $key, array( 'first_name', 'last_name', 'email', 'phone_number', 'nmls', 'arrive', 'avatar_url' ) ) ); ?>>
 							<?php echo esc_html( $label ); ?>
 						</label>
 					<?php endforeach; ?>
@@ -341,7 +383,12 @@ class ProfileImportExport {
 		foreach ( $profiles as $profile ) {
 			$row = array();
 			foreach ( $fields as $field ) {
-				$row[] = isset( $profile->$field ) ? $profile->$field : '';
+				// Special handling for avatar_url - get URL from headshot_id
+				if ( 'avatar_url' === $field ) {
+					$row[] = ! empty( $profile->headshot_id ) ? wp_get_attachment_url( $profile->headshot_id ) : '';
+				} else {
+					$row[] = isset( $profile->$field ) ? $profile->$field : '';
+				}
 			}
 			fputcsv( $output, $row );
 		}
@@ -413,8 +460,16 @@ class ProfileImportExport {
 				if ( $update_existing ) {
 					// Update existing profile
 					foreach ( $data as $key => $value ) {
-						if ( $key !== 'id' && $key !== 'created_at' ) {
+						if ( $key !== 'id' && $key !== 'created_at' && $key !== 'avatar_url' ) {
 							$existing->$key = $value;
+						}
+					}
+
+					// Handle avatar_url - download and import image
+					if ( ! empty( $data['avatar_url'] ) ) {
+						$attachment_id = self::import_image_from_url( $data['avatar_url'] );
+						if ( $attachment_id ) {
+							$existing->headshot_id = $attachment_id;
 						}
 					}
 
@@ -435,8 +490,16 @@ class ProfileImportExport {
 				try {
 					$profile = new Profile();
 					foreach ( $data as $key => $value ) {
-						if ( $key !== 'id' && $key !== 'created_at' && $key !== 'updated_at' ) {
+						if ( $key !== 'id' && $key !== 'created_at' && $key !== 'updated_at' && $key !== 'avatar_url' ) {
 							$profile->$key = $value;
+						}
+					}
+
+					// Handle avatar_url - download and import image
+					if ( ! empty( $data['avatar_url'] ) ) {
+						$attachment_id = self::import_image_from_url( $data['avatar_url'] );
+						if ( $attachment_id ) {
+							$profile->headshot_id = $attachment_id;
 						}
 					}
 

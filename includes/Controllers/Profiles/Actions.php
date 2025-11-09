@@ -506,8 +506,23 @@ class Actions {
 	 *
 	 * @return bool
 	 */
-	public function check_read_permissions() {
-		return current_user_can( 'edit_users' );
+	public function check_read_permissions( $request = null ) {
+		// Allow admins to read all profiles
+		if ( current_user_can( 'edit_users' ) ) {
+			return true;
+		}
+
+		// Allow authenticated users to read their own profile
+		if ( is_user_logged_in() && $request ) {
+			$user_id = $request->get_param( 'user_id' );
+
+			// Allow access if requesting own profile via "me" or their user ID
+			if ( $user_id === 'me' || (int) $user_id === get_current_user_id() ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

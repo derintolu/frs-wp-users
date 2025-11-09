@@ -18,8 +18,8 @@
     "rename": "grunt rename --force && npm run change-text-domain && composer dump-autoload",
     "change-text-domain": "grunt change-text-domain --force",
     "i18n": "wp i18n make-pot . languages/wordpress-plugin-boilerplate.pot --domain=wordpress-plugin-boilerplate --exclude='*/js/*,build'",
-    "block:start": "wp-scripts start --webpack-src-dir=src/blocks/block-1 --output-path=assets/blocks/block-1",
-    "block:build": "wp-scripts build --webpack-src-dir=src/blocks/block-1 --output-path=assets/blocks/block-1"
+    "block:start": "wp-scripts start --webpack-src-dir=src/blocks --output-path=assets/blocks",
+    "block:build": "wp-scripts build --webpack-src-dir=src/blocks --output-path=assets/blocks"
   },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.1.1",

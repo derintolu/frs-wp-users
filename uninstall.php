@@ -2,11 +2,12 @@
 /**
  * Uninstall the plugin
  *
- * @package WordPress_Plugin_Boilerplate
+ * @package FRSUsers
  * @subpackage Database
  */
 
-use WordPressPluginBoilerplate\Database\Migrations\Accounts;
+use FRSUsers\Database\Migrations\Profiles;
+use FRSUsers\Database\Migrations\ProfileTypes;
 
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
@@ -14,5 +15,7 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-// delete tables from database which is created by this plugin.
-Accounts::down();
+// Delete tables from database which are created by this plugin.
+// Note: MigratePersonCPT is not included as it's a one-time migration, not a table creation
+Profiles::down();
+ProfileTypes::down();

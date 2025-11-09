@@ -504,25 +504,16 @@ class Actions {
 	/**
 	 * Permission callback for read operations
 	 *
+	 * Profiles are public data meant to be displayed on the website,
+	 * so we allow public read access to profile lists and individual profiles.
+	 *
+	 * @param WP_REST_Request|null $request Request object.
 	 * @return bool
 	 */
 	public function check_read_permissions( $request = null ) {
-		// Allow admins to read all profiles
-		if ( current_user_can( 'edit_users' ) ) {
-			return true;
-		}
-
-		// Allow authenticated users to read their own profile
-		if ( is_user_logged_in() && $request ) {
-			$user_id = $request->get_param( 'user_id' );
-
-			// Allow access if requesting own profile via "me" or their user ID
-			if ( $user_id === 'me' || (int) $user_id === get_current_user_id() ) {
-				return true;
-			}
-		}
-
-		return false;
+		// Profiles are public - allow anyone to read them
+		// They contain only public-facing information (name, photo, bio, contact info)
+		return true;
 	}
 
 	/**

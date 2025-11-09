@@ -1,0 +1,51 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 2,
+	"name": "frs-users/loan-officer-card",
+	"version": "1.0.0",
+	"title": "Loan Officer Card",
+	"category": "frs-blocks",
+	"icon": "businessperson",
+	"description": "Display a loan officer profile card with configurable size and details",
+	"keywords": ["loan officer", "profile", "card", "team"],
+	"textdomain": "frs-users",
+	"editorScript": "file:./index.js",
+	"viewScript": "file:./view.js",
+	"style": "file:./style-index.css",
+	"editorStyle": "file:./index.css",
+	"render": "file:./render.php",
+	"attributes": {
+		"userId": {
+			"type": "number",
+			"default": 0
+		},
+		"profileId": {
+			"type": "number",
+			"default": 0
+		},
+		"size": {
+			"type": "string",
+			"enum": ["small", "medium", "large"],
+			"default": "medium"
+		},
+		"detailLevel": {
+			"type": "string",
+			"enum": ["minimal", "standard", "full"],
+			"default": "standard"
+		},
+		"audience": {
+			"type": "string",
+			"enum": ["internal", "external"],
+			"default": "external"
+		},
+		"showContactButtons": {
+			"type": "boolean",
+			"default": true
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": ["left", "center", "right", "wide", "full"]
+	},
+	"example": {}
+}

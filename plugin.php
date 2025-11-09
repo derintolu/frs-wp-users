@@ -10,11 +10,14 @@ use FRSUsers\Core\ProfileFields;
 use FRSUsers\Core\ProfileStorage;
 use FRSUsers\Core\CLI;
 use FRSUsers\Core\ProfileApi;
+use FRSUsers\Core\PluginDependencies;
 use FRSUsers\Routes\Api;
 use FRSUsers\Admin\ProfilesPage;
 use FRSUsers\Admin\ProfileEdit;
 use FRSUsers\Assets\Admin;
 use FRSUsers\Integrations\FRSSync;
+use FRSUsers\Integrations\OpenIDConnect;
+use FRSUsers\Controllers\Blocks;
 use FRSUsers\Traits\Base;
 
 defined( 'ABSPATH' ) || exit;
@@ -49,6 +52,9 @@ final class FRSUsers {
 	 * @return void
 	 */
 	public function init() {
+		// Check plugin dependencies (must run first)
+		PluginDependencies::get_instance()->init();
+
 		// Initialize Carbon Fields profile fields
 		ProfileFields::init();
 
@@ -61,11 +67,17 @@ final class FRSUsers {
 		// Initialize Profile API with CRUD and webhooks
 		ProfileApi::get_instance()->init();
 
+		// Initialize Gutenberg blocks
+		Blocks::init();
+
 		// Initialize WP-CLI commands
 		CLI::init();
 
 		// Initialize FRS Sync integration
 		FRSSync::init();
+
+		// Initialize OpenID Connect integration
+		OpenIDConnect::init();
 
 		// Initialize admin interface
 		if ( is_admin() ) {

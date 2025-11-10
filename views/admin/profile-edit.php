@@ -305,6 +305,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 						<th scope="row"><label for="region"><?php esc_html_e( 'Region', 'frs-users' ); ?></label></th>
 						<td><input type="text" name="region" id="region" class="regular-text" value="<?php echo esc_attr( $profile->region ?? '' ); ?>"></td>
 					</tr>
+					<tr>
+						<th scope="row">
+							<label for="service_areas"><?php esc_html_e( 'Service Areas', 'frs-users' ); ?></label>
+							<p class="description"><?php esc_html_e( 'One per line', 'frs-users' ); ?></p>
+						</th>
+						<td>
+							<textarea name="service_areas" id="service_areas" class="large-text" rows="5" placeholder="<?php esc_attr_e( 'Enter service areas (one per line)', 'frs-users' ); ?>"><?php
+								$service_areas = is_array( $profile->service_areas ?? '' ) ? $profile->service_areas : json_decode( $profile->service_areas ?? '[]', true );
+								if ( ! empty( $service_areas ) && is_array( $service_areas ) ) {
+									echo esc_textarea( implode( "\n", $service_areas ) );
+								}
+							?></textarea>
+							<p class="description"><?php esc_html_e( 'Enter service areas such as cities, states, or zip codes - one per line.', 'frs-users' ); ?></p>
+						</td>
+					</tr>
 				</tbody>
 			</table>
 		</div>

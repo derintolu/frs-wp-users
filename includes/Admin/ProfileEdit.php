@@ -289,6 +289,17 @@ class ProfileEdit {
 			}
 		}
 
+		// Service areas (textarea - one per line)
+		if ( isset( $post_data['service_areas'] ) && ! empty( $post_data['service_areas'] ) ) {
+			$areas = explode( "\n", sanitize_textarea_field( $post_data['service_areas'] ) );
+			$areas = array_map( 'trim', $areas );
+			$areas = array_filter( $areas ); // Remove empty lines
+			$data['service_areas'] = wp_json_encode( array_values( $areas ) );
+		} elseif ( isset( $post_data['service_areas'] ) ) {
+			// If field exists but is empty, save empty array
+			$data['service_areas'] = wp_json_encode( array() );
+		}
+
 		// Complex field: awards (JSON)
 		if ( isset( $post_data['awards'] ) ) {
 			$data['awards'] = sanitize_textarea_field( $post_data['awards'] );

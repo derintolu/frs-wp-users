@@ -265,7 +265,26 @@ if ( ! defined( 'ABSPATH' ) ) {
 						<td><?php echo esc_html( $profile->region ); ?></td>
 					</tr>
 					<?php endif; ?>
-					<?php if ( empty( $profile->city_state ) && empty( $profile->region ) ) : ?>
+					<?php if ( ! empty( $profile->service_areas ) ) : ?>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Service Areas', 'frs-users' ); ?></th>
+						<td>
+							<?php
+							$service_areas = is_array( $profile->service_areas ) ? $profile->service_areas : json_decode( $profile->service_areas, true );
+							if ( ! empty( $service_areas ) && is_array( $service_areas ) ) :
+								foreach ( $service_areas as $area ) :
+									?>
+									<span style="display: inline-block; background: #f0f0f1; border: 1px solid #c3c4c7; padding: 4px 10px; border-radius: 3px; font-size: 13px; margin-right: 6px; margin-bottom: 6px;">
+										<?php echo esc_html( $area ); ?>
+									</span>
+									<?php
+								endforeach;
+							endif;
+							?>
+						</td>
+					</tr>
+					<?php endif; ?>
+					<?php if ( empty( $profile->city_state ) && empty( $profile->region ) && empty( $profile->service_areas ) ) : ?>
 					<tr>
 						<td colspan="2" style="color: #666; font-style: italic;">
 							<?php esc_html_e( 'No location information available.', 'frs-users' ); ?>

@@ -52,6 +52,7 @@ class ProfilesList extends \WP_List_Table {
 			'email'         => __( 'Email', 'frs-users' ),
 			'phone_number'  => __( 'Phone', 'frs-users' ),
 			'nmls'          => __( 'NMLS', 'frs-users' ),
+			'service_areas' => __( 'Service Areas', 'frs-users' ),
 			'profile_types' => __( 'Type', 'frs-users' ),
 			'status'        => __( 'Status', 'frs-users' ),
 		);
@@ -239,6 +240,39 @@ class ProfilesList extends \WP_List_Table {
 	}
 
 	/**
+	 * Render service areas column
+	 *
+	 * @param object $item Profile item.
+	 * @return string
+	 */
+	protected function column_service_areas( $item ) {
+		if ( empty( $item->service_areas ) ) {
+			return '<span style="color: #999; font-style: italic;">—</span>';
+		}
+
+		$areas = is_array( $item->service_areas ) ? $item->service_areas : json_decode( $item->service_areas, true );
+
+		if ( empty( $areas ) || ! is_array( $areas ) ) {
+			return '<span style="color: #999; font-style: italic;">—</span>';
+		}
+
+		// Show first 2 areas, add "+" badge if more
+		$display_areas = array_slice( $areas, 0, 2 );
+		$remaining = count( $areas ) - 2;
+
+		$output = '';
+		foreach ( $display_areas as $area ) {
+			$output .= '<span style="display: inline-block; background: #f0f0f1; border: 1px solid #c3c4c7; padding: 2px 8px; border-radius: 3px; font-size: 11px; margin-right: 4px; margin-bottom: 4px;">' . esc_html( $area ) . '</span>';
+		}
+
+		if ( $remaining > 0 ) {
+			$output .= '<span style="display: inline-block; background: #2271b1; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px; margin-right: 4px; margin-bottom: 4px;">+' . $remaining . '</span>';
+		}
+
+		return $output;
+	}
+
+	/**
 	 * Render email column
 	 *
 	 * @param object $item Profile item.
@@ -336,6 +370,7 @@ class ProfilesList extends \WP_List_Table {
 		$filter_type     = isset( $_GET['filter_type'] ) ? sanitize_text_field( $_GET['filter_type'] ) : '';
 		$guests_only     = isset( $_GET['guests_only'] ) ? (bool) $_GET['guests_only'] : false;
 		$show_archived   = isset( $_GET['show_archived'] ) ? (bool) $_GET['show_archived'] : false;
+		$search          = isset( $_REQUEST['s'] ) ? sanitize_text_field( $_REQUEST['s'] ) : '';
 
 		// Pagination
 		$per_page     = 20;
@@ -360,6 +395,19 @@ class ProfilesList extends \WP_List_Table {
 		// Filter by type
 		if ( $filter_type ) {
 			$query->where( 'select_person_type', $filter_type );
+		}
+
+		// Search functionality
+		if ( ! empty( $search ) ) {
+			$query->where( function( $q ) use ( $search ) {
+				$q->where( 'first_name', 'LIKE', '%' . $search . '%' )
+				  ->orWhere( 'last_name', 'LIKE', '%' . $search . '%' )
+				  ->orWhere( 'email', 'LIKE', '%' . $search . '%' )
+				  ->orWhere( 'phone_number', 'LIKE', '%' . $search . '%' )
+				  ->orWhere( 'nmls', 'LIKE', '%' . $search . '%' )
+				  ->orWhere( 'nmls_number', 'LIKE', '%' . $search . '%' )
+				  ->orWhereRaw( 'JSON_SEARCH(service_areas, "one", ?) IS NOT NULL', array( '%' . $search . '%' ) );
+			});
 		}
 
 		// Get total count

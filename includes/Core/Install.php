@@ -13,6 +13,7 @@ namespace FRSUsers\Core;
 
 use FRSUsers\Database\Migrations\Profiles;
 use FRSUsers\Database\Migrations\ProfileTypes;
+use FRSUsers\Database\Migrations\AddServiceAreasToProfiles;
 use FRSUsers\Traits\Base;
 
 /**
@@ -51,6 +52,9 @@ class Install {
 
 		// Create profile types junction table
 		ProfileTypes::up();
+
+		// Add service areas column to profiles table
+		AddServiceAreasToProfiles::up();
 
 		// Set installed version
 		update_option( 'frs_users_version', \FRS_USERS_VERSION );

@@ -9,6 +9,7 @@ import {
 } from '@wordpress/components';
 import { useEffect, useState } from '@wordpress/element';
 import apiFetch from '@wordpress/api-fetch';
+import { ProfileCardCompact } from '../../components/ProfileCardCompact';
 
 interface BlockAttributes {
 	personType: string;
@@ -36,6 +37,14 @@ interface Profile {
 	region?: string;
 	select_person_type?: string;
 	specialties_lo?: string[];
+	biography?: string;
+	facebook_url?: string;
+	instagram_url?: string;
+	linkedin_url?: string;
+	twitter_url?: string;
+	youtube_url?: string;
+	tiktok_url?: string;
+	office?: string;
 }
 
 interface EditProps {
@@ -186,18 +195,6 @@ export default function Edit({ attributes, setAttributes }: EditProps) {
 
 			<div {...blockProps}>
 				<div className="loan-officer-directory">
-					{/* Header */}
-					<div className="mb-6">
-						<h2 className="text-2xl font-bold">{__('Loan Officer Directory', 'frs-users')}</h2>
-						{loading && (
-							<p className="text-gray-600">{__('Loading...', 'frs-users')}</p>
-						)}
-						{!loading && (
-							<p className="text-gray-600">
-								{profiles.length} {profiles.length === 1 ? __('officer', 'frs-users') : __('officers', 'frs-users')} {__('found', 'frs-users')}
-							</p>
-						)}
-					</div>
 
 					{loading && (
 						<div className="flex items-center justify-center p-12">
@@ -225,57 +222,13 @@ export default function Edit({ attributes, setAttributes }: EditProps) {
 					{!loading && !error && profiles.length > 0 && (
 						<div className={`grid gap-6 ${gridColsClass}`}>
 							{profiles.map((profile) => (
-								<div key={profile.id} className={`${cardSizeClass} border rounded-xl shadow-md p-4 bg-white`}>
-									<div className={`flex ${cardSize === 'large' ? 'flex-row' : 'flex-col'} gap-3 items-center`}>
-										{/* Avatar */}
-										<div
-											className={`${avatarSizeClass} rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-bold flex-shrink-0`}
-											style={{
-												backgroundImage: profile.headshot_url ? `url(${profile.headshot_url})` : undefined,
-												backgroundSize: 'cover',
-												backgroundPosition: 'center',
-											}}
-										>
-											{!profile.headshot_url && getInitials(profile.first_name, profile.last_name)}
-										</div>
-
-										{/* Name and Title */}
-										<div className={`flex-1 ${cardSize === 'large' ? 'text-left' : 'text-center'}`}>
-											<h3 className={`font-bold ${cardSize === 'small' ? 'text-sm' : cardSize === 'medium' ? 'text-base' : 'text-lg'}`}>
-												{profile.full_name}
-											</h3>
-											{profile.job_title && (
-												<p className="text-gray-600 text-xs mt-1">{profile.job_title}</p>
-											)}
-											{profile.nmls_number && detailLevel !== 'minimal' && (
-												<span className="inline-block mt-1 px-2 py-0.5 text-xs bg-blue-100 text-blue-800 rounded">
-													NMLS# {profile.nmls_number}
-												</span>
-											)}
-										</div>
-									</div>
-
-									{/* Contact Info */}
-									{detailLevel !== 'minimal' && (
-										<div className="mt-3 space-y-1 text-xs text-gray-600">
-											{profile.city_state && <p>📍 {profile.city_state}</p>}
-											{profile.email && <p>✉️ {profile.email}</p>}
-										</div>
-									)}
-
-									{/* Specialties */}
-									{detailLevel !== 'minimal' && profile.specialties_lo && profile.specialties_lo.length > 0 && (
-										<div className="mt-2">
-											<div className="flex flex-wrap gap-1">
-												{profile.specialties_lo.slice(0, 2).map((specialty, idx) => (
-													<span key={idx} className="px-1.5 py-0.5 text-xs bg-gray-100 rounded">
-														{specialty}
-													</span>
-												))}
-											</div>
-										</div>
-									)}
-								</div>
+								<ProfileCardCompact
+									key={profile.id}
+									profile={profile}
+									size={cardSize}
+									showContactButtons={showContactButtons}
+									showBio={detailLevel === 'full'}
+								/>
 							))}
 						</div>
 					)}

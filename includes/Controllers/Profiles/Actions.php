@@ -614,9 +614,29 @@ class Actions {
 	/**
 	 * Permission callback for write operations
 	 *
+	 * @param WP_REST_Request $request Request object.
 	 * @return bool
 	 */
-	public function check_write_permissions() {
-		return current_user_can( 'edit_users' );
+	public function check_write_permissions( $request = null ) {
+		// Administrators can edit any profile
+		if ( current_user_can( 'edit_users' ) ) {
+			return true;
+		}
+
+		// For update operations, check if user is editing their own profile
+		if ( $request && $request->get_method() === 'PUT' ) {
+			$profile_id = $request->get_param( 'id' );
+
+			if ( $profile_id ) {
+				$profile = Profile::find( $profile_id );
+
+				if ( $profile && $profile->user_id && $profile->user_id == get_current_user_id() ) {
+					return true;
+				}
+			}
+		}
+
+		// Default: deny access
+		return false;
 	}
 }

@@ -190,8 +190,25 @@ class Shortcodes {
 	 * @return void
 	 */
 	private static function enqueue_profile_editor_assets() {
-		// TODO: Implement asset enqueueing
-		// Will be implemented with Vite build
+		\FRSUsers\Libs\Assets\enqueue_asset(
+			FRS_USERS_DIR . '/assets/profile-editor/dist',
+			'src/frontend/profile-editor/main.tsx',
+			array(
+				'handle'       => 'frs-profile-editor',
+				'dependencies' => array( 'react', 'react-dom' ),
+				'in-footer'    => true,
+			)
+		);
+
+		// Localize script with WordPress API settings
+		wp_localize_script(
+			'frs-profile-editor',
+			'wpApiSettings',
+			array(
+				'root'  => esc_url_raw( rest_url() ),
+				'nonce' => wp_create_nonce( 'wp_rest' ),
+			)
+		);
 	}
 
 	/**
@@ -200,8 +217,8 @@ class Shortcodes {
 	 * @return void
 	 */
 	private static function enqueue_profile_view_assets() {
-		// TODO: Implement asset enqueueing
-		// Will be implemented with Vite build
+		// TODO: Implement profile view assets
+		// Will be implemented when profile view component is created
 	}
 
 	/**
@@ -210,7 +227,7 @@ class Shortcodes {
 	 * @return void
 	 */
 	private static function enqueue_directory_assets() {
-		// TODO: Implement asset enqueueing
-		// Will be implemented with Vite build
+		// TODO: Implement directory assets
+		// Will be implemented when directory component is created
 	}
 }

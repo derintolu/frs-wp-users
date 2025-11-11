@@ -1,0 +1,216 @@
+<?php
+/**
+ * Shortcodes Controller
+ *
+ * Registers frontend shortcodes for profile display and editing.
+ *
+ * @package FRSUsers
+ * @subpackage Controllers
+ * @since 1.0.0
+ */
+
+namespace FRSUsers\Controllers;
+
+use FRSUsers\Models\Profile;
+
+/**
+ * Class Shortcodes
+ *
+ * Handles registration of custom shortcodes.
+ *
+ * @package FRSUsers\Controllers
+ */
+class Shortcodes {
+
+	/**
+	 * Initialize shortcodes
+	 *
+	 * @return void
+	 */
+	public static function init() {
+		add_action( 'init', array( __CLASS__, 'register_shortcodes' ) );
+	}
+
+	/**
+	 * Register all custom shortcodes
+	 *
+	 * @return void
+	 */
+	public static function register_shortcodes() {
+		add_shortcode( 'frs_profile_editor', array( __CLASS__, 'render_profile_editor' ) );
+		add_shortcode( 'frs_profile_view', array( __CLASS__, 'render_profile_view' ) );
+		add_shortcode( 'frs_profile_directory', array( __CLASS__, 'render_directory' ) );
+
+		// Allow other plugins to register additional FRS shortcodes
+		do_action( 'frs_users_register_shortcodes' );
+	}
+
+	/**
+	 * Render profile editor shortcode
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string Rendered shortcode HTML.
+	 */
+	public static function render_profile_editor( $atts ) {
+		// Parse attributes
+		$atts = shortcode_atts(
+			array(
+				'profile_id' => null,
+				'user_id'    => 'current',
+			),
+			$atts,
+			'frs_profile_editor'
+		);
+
+		// Get user ID
+		$user_id = $atts['user_id'] === 'current' ? get_current_user_id() : absint( $atts['user_id'] );
+
+		// Check if user is logged in
+		if ( ! $user_id ) {
+			return '<div class="frs-profile-editor-error"><p>' . esc_html__( 'Please log in to edit your profile.', 'frs-users' ) . '</p></div>';
+		}
+
+		// Get profile
+		if ( $atts['profile_id'] ) {
+			$profile = Profile::find( absint( $atts['profile_id'] ) );
+		} else {
+			$profile = Profile::where( 'user_id', $user_id )->first();
+		}
+
+		// Create guest profile if none exists
+		if ( ! $profile ) {
+			$user = get_user_by( 'ID', $user_id );
+			if ( $user ) {
+				$profile = Profile::create(
+					array(
+						'user_id'    => $user_id,
+						'email'      => $user->user_email,
+						'first_name' => $user->first_name ?: $user->display_name,
+						'last_name'  => $user->last_name,
+					)
+				);
+			}
+		}
+
+		if ( ! $profile ) {
+			return '<div class="frs-profile-editor-error"><p>' . esc_html__( 'Profile not found.', 'frs-users' ) . '</p></div>';
+		}
+
+		// Enqueue assets
+		self::enqueue_profile_editor_assets();
+
+		// Output React mount point
+		return sprintf(
+			'<div class="frs-profile-editor-root" data-profile-id="%s" data-user-id="%s"><p>%s</p></div>',
+			esc_attr( $profile->id ),
+			esc_attr( $user_id ),
+			esc_html__( 'Loading profile editor...', 'frs-users' )
+		);
+	}
+
+	/**
+	 * Render profile view shortcode
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string Rendered shortcode HTML.
+	 */
+	public static function render_profile_view( $atts ) {
+		// Parse attributes
+		$atts = shortcode_atts(
+			array(
+				'profile_id' => null,
+				'slug'       => null,
+				'user_id'    => null,
+			),
+			$atts,
+			'frs_profile_view'
+		);
+
+		// Get profile
+		if ( $atts['slug'] ) {
+			$profile = Profile::where( 'profile_slug', sanitize_title( $atts['slug'] ) )->first();
+		} elseif ( $atts['user_id'] ) {
+			$profile = Profile::where( 'user_id', absint( $atts['user_id'] ) )->first();
+		} elseif ( $atts['profile_id'] ) {
+			$profile = Profile::find( absint( $atts['profile_id'] ) );
+		} else {
+			return '<div class="frs-profile-view-error"><p>' . esc_html__( 'No profile specified.', 'frs-users' ) . '</p></div>';
+		}
+
+		if ( ! $profile ) {
+			return '<div class="frs-profile-view-error"><p>' . esc_html__( 'Profile not found.', 'frs-users' ) . '</p></div>';
+		}
+
+		// Enqueue assets
+		self::enqueue_profile_view_assets();
+
+		// Output React mount point
+		return sprintf(
+			'<div class="frs-profile-view-root" data-profile-id="%s"><p>%s</p></div>',
+			esc_attr( $profile->id ),
+			esc_html__( 'Loading profile...', 'frs-users' )
+		);
+	}
+
+	/**
+	 * Render directory shortcode
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string Rendered shortcode HTML.
+	 */
+	public static function render_directory( $atts ) {
+		// Parse attributes
+		$atts = shortcode_atts(
+			array(
+				'type'    => 'all',
+				'limit'   => 12,
+				'layout'  => 'grid',
+				'columns' => 3,
+				'search'  => 'true',
+				'filters' => 'true',
+			),
+			$atts,
+			'frs_profile_directory'
+		);
+
+		// Enqueue assets
+		self::enqueue_directory_assets();
+
+		// Output React mount point with attributes
+		return sprintf(
+			'<div class="frs-profile-directory-root" data-attributes="%s"><p>%s</p></div>',
+			esc_attr( wp_json_encode( $atts ) ),
+			esc_html__( 'Loading directory...', 'frs-users' )
+		);
+	}
+
+	/**
+	 * Enqueue profile editor assets
+	 *
+	 * @return void
+	 */
+	private static function enqueue_profile_editor_assets() {
+		// TODO: Implement asset enqueueing
+		// Will be implemented with Vite build
+	}
+
+	/**
+	 * Enqueue profile view assets
+	 *
+	 * @return void
+	 */
+	private static function enqueue_profile_view_assets() {
+		// TODO: Implement asset enqueueing
+		// Will be implemented with Vite build
+	}
+
+	/**
+	 * Enqueue directory assets
+	 *
+	 * @return void
+	 */
+	private static function enqueue_directory_assets() {
+		// TODO: Implement asset enqueueing
+		// Will be implemented with Vite build
+	}
+}

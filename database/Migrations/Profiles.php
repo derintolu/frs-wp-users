@@ -100,6 +100,14 @@ class Profiles implements Migration {
 			loan_officer_profile BIGINT UNSIGNED NULL,
 			loan_officer_user BIGINT UNSIGNED NULL,
 
+			-- Public Profile Settings
+			profile_slug VARCHAR(255) NULL,
+			profile_headline TEXT NULL,
+			profile_visibility JSON NULL,
+			profile_theme VARCHAR(50) DEFAULT 'default',
+			custom_links JSON NULL,
+			service_areas JSON NULL,
+
 			-- Metadata
 			is_active BOOLEAN DEFAULT 1,
 			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -108,6 +116,7 @@ class Profiles implements Migration {
 
 			PRIMARY KEY (id),
 			UNIQUE KEY email (email),
+			UNIQUE KEY profile_slug (profile_slug),
 			KEY user_id (user_id),
 			KEY frs_agent_id (frs_agent_id),
 			KEY is_active (is_active),

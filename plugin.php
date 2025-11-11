@@ -11,6 +11,7 @@ use FRSUsers\Core\ProfileStorage;
 use FRSUsers\Core\CLI;
 use FRSUsers\Core\ProfileApi;
 use FRSUsers\Core\PluginDependencies;
+use FRSUsers\Controllers\Shortcodes;
 use FRSUsers\Routes\Api;
 use FRSUsers\Admin\ProfilesPage;
 use FRSUsers\Admin\ProfileEdit;
@@ -69,6 +70,9 @@ final class FRSUsers {
 
 		// Initialize Gutenberg blocks
 		Blocks::init();
+
+		// Initialize frontend shortcodes
+		Shortcodes::init();
 
 		// Initialize WP-CLI commands
 		CLI::init();

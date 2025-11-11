@@ -15,6 +15,10 @@ export default {
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    cors: true,
+    origin: 'http://localhost:5177',
+  },
   build: {
     manifest: true,
     rollupOptions: {

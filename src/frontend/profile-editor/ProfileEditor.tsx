@@ -1,5 +1,5 @@
 import React from 'react';
-import { ProfileDashboard } from './ProfileDashboard';
+import { ProfileSection } from './ProfileSection';
 
 interface ProfileEditorProps {
 	profileId: number;
@@ -7,5 +7,5 @@ interface ProfileEditorProps {
 }
 
 export default function ProfileEditor({ profileId, userId }: ProfileEditorProps) {
-	return <ProfileDashboard profileId={profileId} userId={userId} autoEdit={false} />;
+	return <ProfileSection profileId={profileId} userId={userId} activeTab="personal" autoEdit={true} />;
 }

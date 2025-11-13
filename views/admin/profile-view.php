@@ -77,6 +77,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<a href="#tab-location" class="nav-tab"><?php esc_html_e( 'Location', 'frs-users' ); ?></a>
 		<a href="#tab-social" class="nav-tab"><?php esc_html_e( 'Social Media', 'frs-users' ); ?></a>
 		<a href="#tab-tools" class="nav-tab"><?php esc_html_e( 'Tools & Platforms', 'frs-users' ); ?></a>
+		<a href="#tab-profile-pages" class="nav-tab"><?php esc_html_e( 'Profile Pages', 'frs-users' ); ?></a>
+		<?php do_action( 'frs_profile_tabs', $profile->user_id ); ?>
 	</h2>
 
 	<!-- Contact Info Tab -->
@@ -404,6 +406,185 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	</div>
 
+	<!-- Profile Pages Tab -->
+	<?php
+	// Get all profile pages for this profile (by profile ID, not user ID)
+	$profile_pages = get_posts(
+		array(
+			'post_type'      => 'frs_user_profile',
+			'posts_per_page' => -1,
+			'post_status'    => array( 'publish', 'draft', 'pending' ),
+			'orderby'        => 'date',
+			'order'          => 'DESC',
+			'meta_query'     => array(
+				array(
+					'key'   => '_profile_id',
+					'value' => $profile->id,
+				),
+			),
+		)
+	);
+	?>
+	<div id="tab-profile-pages" class="tab-content postbox" style="display: none;">
+		<div class="inside">
+			<?php settings_errors( 'frs_profile_pages' ); ?>
+
+			<div style="margin-bottom: 20px;">
+				<h3><?php esc_html_e( 'Profile Pages', 'frs-users' ); ?></h3>
+				<p class="description">
+					<?php esc_html_e( 'Manage user\'s public profile pages. They have one page for each template type.', 'frs-users' ); ?>
+				</p>
+			</div>
+
+			<?php if ( empty( $profile_pages ) ) : ?>
+				<div class="notice notice-info inline">
+					<p><?php esc_html_e( 'No profile pages found for this profile.', 'frs-users' ); ?></p>
+				</div>
+				<form method="post" style="margin-top: 15px;">
+					<?php wp_nonce_field( 'frs_generate_profile_pages_' . $profile->id ); ?>
+					<input type="hidden" name="profile_id" value="<?php echo esc_attr( $profile->id ); ?>" />
+					<button type="submit" name="frs_generate_profile_pages" class="button button-primary">
+						<?php esc_html_e( 'Generate Profile Pages', 'frs-users' ); ?>
+					</button>
+					<p class="description" style="margin-top: 10px;">
+						<?php esc_html_e( 'This will create one page for each available template.', 'frs-users' ); ?>
+					</p>
+				</form>
+			<?php else : ?>
+				<table class="wp-list-table widefat fixed striped posts">
+					<thead>
+						<tr>
+							<th scope="col" class="manage-column column-title column-primary" style="width: 40%;">
+								<?php esc_html_e( 'Title', 'frs-users' ); ?>
+							</th>
+							<th scope="col" class="manage-column" style="width: 20%;">
+								<?php esc_html_e( 'Template', 'frs-users' ); ?>
+							</th>
+							<th scope="col" class="manage-column" style="width: 15%;">
+								<?php esc_html_e( 'Status', 'frs-users' ); ?>
+							</th>
+							<th scope="col" class="manage-column" style="width: 15%;">
+								<?php esc_html_e( 'Date', 'frs-users' ); ?>
+							</th>
+							<th scope="col" class="manage-column" style="width: 10%;">
+								<?php esc_html_e( 'Actions', 'frs-users' ); ?>
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach ( $profile_pages as $page ) : ?>
+							<?php
+							$edit_url   = admin_url( 'post.php?post=' . $page->ID . '&action=edit' );
+							$view_url   = get_permalink( $page->ID );
+							$delete_url = get_delete_post_link( $page->ID );
+
+							// Get template from post meta
+							$template_id   = get_post_meta( $page->ID, '_template_id', true );
+							$template_name = '—';
+							if ( $template_id ) {
+								$template = get_post( $template_id );
+								if ( $template ) {
+									$template_name = $template->post_title;
+								}
+							}
+
+							// Status badge
+							$status_colors = array(
+								'publish' => '#00a32a',
+								'draft'   => '#dba617',
+								'pending' => '#2271b1',
+							);
+							$status_color  = isset( $status_colors[ $page->post_status ] ) ? $status_colors[ $page->post_status ] : '#666';
+							?>
+							<tr>
+								<td class="title column-title column-primary" data-colname="<?php esc_attr_e( 'Title', 'frs-users' ); ?>">
+									<strong>
+										<a href="<?php echo esc_url( $edit_url ); ?>" class="row-title">
+											<?php echo esc_html( $page->post_title ); ?>
+										</a>
+									</strong>
+									<div class="row-actions">
+										<span class="edit">
+											<a href="<?php echo esc_url( $edit_url ); ?>"><?php esc_html_e( 'Edit', 'frs-users' ); ?></a> |
+										</span>
+										<?php if ( 'publish' === $page->post_status ) : ?>
+											<span class="view">
+												<a href="<?php echo esc_url( $view_url ); ?>" target="_blank" rel="noopener"><?php esc_html_e( 'View', 'frs-users' ); ?></a> |
+											</span>
+										<?php endif; ?>
+										<span class="trash">
+											<a href="<?php echo esc_url( $delete_url ); ?>" class="submitdelete" onclick="return confirm('<?php esc_attr_e( 'Are you sure you want to delete this page?', 'frs-users' ); ?>');">
+												<?php esc_html_e( 'Delete', 'frs-users' ); ?>
+											</a>
+										</span>
+									</div>
+								</td>
+								<td class="template column-template" data-colname="<?php esc_attr_e( 'Template', 'frs-users' ); ?>">
+									<span class="badge" style="display: inline-block; padding: 4px 10px; background: #2271b1; color: #fff; border-radius: 3px; font-size: 12px;">
+										<?php echo esc_html( $template_name ); ?>
+									</span>
+								</td>
+								<td class="status column-status" data-colname="<?php esc_attr_e( 'Status', 'frs-users' ); ?>">
+									<span class="badge" style="display: inline-block; padding: 4px 10px; background: <?php echo esc_attr( $status_color ); ?>; color: #fff; border-radius: 3px; font-size: 12px;">
+										<?php echo esc_html( ucfirst( $page->post_status ) ); ?>
+									</span>
+								</td>
+								<td class="date column-date" data-colname="<?php esc_attr_e( 'Date', 'frs-users' ); ?>">
+									<?php
+									$time_diff = human_time_diff( strtotime( $page->post_date ), current_time( 'timestamp' ) );
+									printf(
+										/* translators: %s: Time difference */
+										esc_html__( '%s ago', 'frs-users' ),
+										esc_html( $time_diff )
+									);
+									?>
+								</td>
+								<td class="actions column-actions" data-colname="<?php esc_attr_e( 'Actions', 'frs-users' ); ?>">
+									<a href="<?php echo esc_url( $edit_url ); ?>" class="button button-small">
+										<?php esc_html_e( 'Edit', 'frs-users' ); ?>
+									</a>
+								</td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+					<tfoot>
+						<tr>
+							<th scope="col" class="manage-column column-title column-primary">
+								<?php esc_html_e( 'Title', 'frs-users' ); ?>
+							</th>
+							<th scope="col" class="manage-column">
+								<?php esc_html_e( 'Template', 'frs-users' ); ?>
+							</th>
+							<th scope="col" class="manage-column">
+								<?php esc_html_e( 'Status', 'frs-users' ); ?>
+							</th>
+							<th scope="col" class="manage-column">
+								<?php esc_html_e( 'Date', 'frs-users' ); ?>
+							</th>
+							<th scope="col" class="manage-column">
+								<?php esc_html_e( 'Actions', 'frs-users' ); ?>
+							</th>
+						</tr>
+					</tfoot>
+				</table>
+
+				<div style="margin-top: 20px;">
+					<p class="description">
+						<?php
+						printf(
+							/* translators: %d: Number of pages */
+							esc_html( _n( 'Total: %d page', 'Total: %d pages', count( $profile_pages ), 'frs-users' ) ),
+							count( $profile_pages )
+						);
+						?>
+					</p>
+				</div>
+			<?php endif; ?>
+		</div>
+	</div>
+
+	<?php do_action( 'frs_profile_tab_content', $profile->user_id ); ?>
+
 	<p class="submit" style="padding: 0; margin: 20px 0;">
 		<a href="<?php echo esc_url( admin_url( 'admin.php?page=frs-profile-edit&id=' . $profile->id ) ); ?>" class="button button-primary"><?php esc_html_e( 'Edit Profile', 'frs-users' ); ?></a>
 		<a href="<?php echo esc_url( admin_url( 'admin.php?page=frs-profiles' ) ); ?>" class="button"><?php esc_html_e( 'Back to List', 'frs-users' ); ?></a>
@@ -443,5 +624,25 @@ jQuery(document).ready(function($) {
 	font-size: 12px;
 	font-weight: 600;
 	margin-right: 5px;
+}
+/* WordPress posts table styles for Profile Pages tab */
+#tab-profile-pages .wp-list-table {
+	border: 1px solid #c3c4c7;
+	background: #fff;
+}
+#tab-profile-pages .wp-list-table .row-actions {
+	visibility: hidden;
+}
+#tab-profile-pages .wp-list-table tr:hover .row-actions {
+	visibility: visible;
+}
+#tab-profile-pages .wp-list-table .badge {
+	white-space: nowrap;
+}
+#tab-profile-pages .button-small {
+	padding: 4px 8px;
+	height: auto;
+	line-height: 1.5;
+	font-size: 12px;
 }
 </style>

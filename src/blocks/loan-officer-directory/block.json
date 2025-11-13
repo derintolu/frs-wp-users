@@ -1,59 +1,36 @@
 {
-	"$schema": "https://schemas.wp.org/trunk/block.json",
-	"apiVersion": 2,
-	"name": "frs-users/loan-officer-directory",
-	"version": "1.0.0",
-	"title": "Loan Officer Directory",
-	"category": "frs-blocks",
-	"icon": "groups",
-	"description": "Display a filterable directory of loan officers",
-	"keywords": ["loan officer", "directory", "team", "filter", "search"],
-	"textdomain": "frs-users",
-	"editorScript": "file:./index.js",
-	"viewScript": "file:./view.js",
-	"style": "file:./style-index.css",
-	"editorStyle": "file:./index.css",
-	"render": "file:./render.php",
-	"attributes": {
-		"personType": {
-			"type": "string",
-			"default": ""
-		},
-		"region": {
-			"type": "string",
-			"default": ""
-		},
-		"cardSize": {
-			"type": "string",
-			"enum": ["small", "medium", "large"],
-			"default": "medium"
-		},
-		"detailLevel": {
-			"type": "string",
-			"enum": ["minimal", "standard", "full"],
-			"default": "standard"
-		},
-		"audience": {
-			"type": "string",
-			"enum": ["internal", "external"],
-			"default": "external"
-		},
-		"showFilters": {
-			"type": "boolean",
-			"default": true
-		},
-		"showContactButtons": {
-			"type": "boolean",
-			"default": true
-		},
-		"perPage": {
-			"type": "number",
-			"default": 12
-		}
-	},
-	"supports": {
-		"html": false,
-		"align": ["wide", "full"]
-	},
-	"example": {}
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "frs-users/loan-officer-directory",
+  "version": "1.0.0",
+  "title": "Loan Officer Directory",
+  "category": "frs-blocks",
+  "icon": "businessperson",
+  "description": "Filterable directory of loan officers with state selection",
+  "keywords": [
+    "directory",
+    "loan officer",
+    "team",
+    "filter"
+  ],
+  "textdomain": "frs-users",
+  "render": "file:./render.php",
+  "attributes": {
+    "showFilters": {
+      "type": "boolean",
+      "default": true
+    },
+    "postsPerPage": {
+      "type": "number",
+      "default": 12
+    }
+  },
+  "supports": {
+    "html": false,
+    "align": [
+      "wide",
+      "full"
+    ]
+  },
+  "example": {}
 }

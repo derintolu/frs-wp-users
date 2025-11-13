@@ -1,0 +1,26 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "frs/profile-header",
+  "version": "1.0.0",
+  "title": "Profile Header",
+  "category": "frs-blocks",
+  "description": "Display profile header with photo, contact info, and action buttons",
+  "attributes": {
+    "user_id": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "supports": {
+    "html": false,
+    "align": [
+      "wide",
+      "full"
+    ]
+  },
+  "textdomain": "frs-users",
+  "editorScript": "file:./index.js",
+  "editorStyle": "file:./index.css",
+  "style": "file:./style-index.css"
+}

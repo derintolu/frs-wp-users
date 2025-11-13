@@ -43,7 +43,34 @@ class Api {
 	 */
 	public static function init() {
 		add_action( 'rest_api_init', array( __CLASS__, 'register_routes' ) );
+		add_action( 'rest_api_init', array( __CLASS__, 'register_profile_entity' ) );
 		self::$actions = new Actions();
+	}
+
+	/**
+	 * Register profile entity with WordPress core-data store
+	 *
+	 * @return void
+	 */
+	public static function register_profile_entity() {
+		// Register profiles as a custom entity type for block editor
+		register_rest_route(
+			'wp/v2',
+			'/frs-profiles',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( self::$actions, 'get_profiles_for_block_editor' ),
+				'permission_callback' => '__return_true', // Block editor needs access
+				'args'                => array(
+					'per_page' => array(
+						'description'       => 'Number of profiles per page',
+						'type'              => 'integer',
+						'default'           => 100,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
 	}
 
 	/**
@@ -281,6 +308,25 @@ class Api {
 				'methods'             => 'POST',
 				'callback'            => array( self::$actions, 'trigger_sync' ),
 				'permission_callback' => array( self::$actions, 'check_write_permissions' ),
+			)
+		);
+
+		// Upload avatar/headshot
+		register_rest_route(
+			self::$namespace,
+			'/profiles/upload-avatar',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( self::$actions, 'upload_avatar' ),
+				'permission_callback' => array( self::$actions, 'check_write_permissions' ),
+				'args'                => array(
+					'user_id' => array(
+						'description'       => 'WordPress user ID',
+						'type'              => 'string',
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
 			)
 		);
 

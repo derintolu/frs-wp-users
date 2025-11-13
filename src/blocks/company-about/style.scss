@@ -1,0 +1,87 @@
+.frs-company-about {
+	padding: 3rem 1rem;
+	max-width: 1200px;
+	margin: 0 auto;
+
+	&__container {
+		display: grid;
+		gap: 2rem;
+	}
+
+	&--sidebyside &__container {
+		grid-template-columns: 300px 1fr;
+
+		@media (max-width: 768px) {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	&--stacked &__container {
+		grid-template-columns: 1fr;
+	}
+
+	&__image {
+		width: 100%;
+		border-radius: 8px;
+		overflow: hidden;
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+		img {
+			width: 100%;
+			height: auto;
+			display: block;
+		}
+	}
+
+	&--stacked &__image {
+		max-width: 300px;
+		margin: 0 auto;
+	}
+
+	&__content {
+		flex: 1;
+	}
+
+	&__title {
+		margin-top: 0;
+		margin-bottom: 1.5rem;
+		font-size: clamp(1.75rem, 4vw, 2rem);
+		font-weight: 700;
+		color: #111827;
+	}
+
+	&__bio {
+		margin-bottom: 1.5rem;
+		line-height: 1.8;
+		color: #374151;
+		font-size: 1.0625rem;
+
+		p {
+			margin-bottom: 1rem;
+
+			&:last-child {
+				margin-bottom: 0;
+			}
+		}
+	}
+
+	&__nmls,
+	&__license {
+		margin: 0.5rem 0;
+		font-size: 0.9375rem;
+		color: #6b7280;
+
+		strong {
+			color: #111827;
+			font-weight: 600;
+		}
+	}
+
+	&-error {
+		padding: 1rem;
+		background: #f8d7da;
+		color: #721c24;
+		border: 1px solid #f5c6cb;
+		border-radius: 4px;
+	}
+}

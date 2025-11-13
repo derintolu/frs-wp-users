@@ -54,6 +54,7 @@ class ProfilesList extends \WP_List_Table {
 			'nmls'          => __( 'NMLS', 'frs-users' ),
 			'service_areas' => __( 'Service Areas', 'frs-users' ),
 			'profile_types' => __( 'Type', 'frs-users' ),
+			'pages'         => __( 'Pages', 'frs-users' ),
 			'status'        => __( 'Status', 'frs-users' ),
 		);
 	}
@@ -78,10 +79,12 @@ class ProfilesList extends \WP_List_Table {
 	 */
 	protected function get_bulk_actions() {
 		return array(
-			'bulk_create_users' => __( 'Create User Accounts', 'frs-users' ),
-			'bulk_archive'      => __( 'Archive', 'frs-users' ),
-			'bulk_unarchive'    => __( 'Unarchive', 'frs-users' ),
-			'bulk_merge'        => __( 'Merge Profiles', 'frs-users' ),
+			'bulk_create_users'        => __( 'Create User Accounts', 'frs-users' ),
+			'bulk_generate_pages'      => __( 'Generate Profile Pages', 'frs-users' ),
+			'bulk_regenerate_pages'    => __( 'Regenerate Profile Pages', 'frs-users' ),
+			'bulk_archive'             => __( 'Archive', 'frs-users' ),
+			'bulk_unarchive'           => __( 'Unarchive', 'frs-users' ),
+			'bulk_merge'               => __( 'Merge Profiles', 'frs-users' ),
 		);
 	}
 
@@ -294,6 +297,70 @@ class ProfilesList extends \WP_List_Table {
 		}
 
 		return '<span class="profile-type-badge">' . esc_html( ucwords( str_replace( '_', ' ', $item->select_person_type ) ) ) . '</span>';
+	}
+
+	/**
+	 * Render pages column with status indicator
+	 *
+	 * @param object $item Profile item.
+	 * @return string
+	 */
+	protected function column_pages( $item ) {
+		// Get profile pages for this profile
+		$profile_pages = get_posts(
+			array(
+				'post_type'      => 'frs_user_profile',
+				'posts_per_page' => -1,
+				'post_status'    => 'any',
+				'meta_query'     => array(
+					array(
+						'key'   => '_profile_id',
+						'value' => $item->id,
+					),
+				),
+			)
+		);
+
+		$page_count = count( $profile_pages );
+
+		// Get number of templates to determine expected page count
+		$templates = get_posts(
+			array(
+				'post_type'      => 'frs_profile_template',
+				'post_status'    => 'publish',
+				'posts_per_page' => -1,
+			)
+		);
+		$expected_count = count( $templates );
+
+		// Determine status
+		if ( $page_count === 0 ) {
+			// Red dot - no pages
+			$dot = '<span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #dc3232; margin-right: 5px;" title="' . esc_attr__( 'No pages generated', 'frs-users' ) . '"></span>';
+			$text = __( 'None', 'frs-users' );
+			$output = $dot . $text;
+		} elseif ( $page_count < $expected_count ) {
+			// Yellow dot - incomplete
+			$dot = '<span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #f0ad4e; margin-right: 5px;" title="' . esc_attr__( 'Incomplete - missing templates', 'frs-users' ) . '"></span>';
+			$text = sprintf( __( '%d of %d', 'frs-users' ), $page_count, $expected_count );
+			$output = $dot . $text;
+		} else {
+			// Green dot - complete
+			$dot = '<span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #46b450; margin-right: 5px;" title="' . esc_attr__( 'All pages generated', 'frs-users' ) . '"></span>';
+			$text = sprintf( __( '%d', 'frs-users' ), $page_count );
+			$output = $dot . $text;
+		}
+
+		// Add view links if pages exist
+		if ( $page_count > 0 ) {
+			$output .= '<br>';
+			foreach ( $profile_pages as $page ) {
+				$page_url = get_permalink( $page->ID );
+				$output .= '<a href="' . esc_url( $page_url ) . '" target="_blank" style="font-size: 12px; margin-right: 8px;">' . esc_html__( 'View', 'frs-users' ) . '</a>';
+			}
+		}
+
+		return $output;
 	}
 
 	/**

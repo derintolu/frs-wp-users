@@ -188,6 +188,9 @@ class Actions {
 			);
 		}
 
+		// Trigger profile creation hook (for profile pages generation)
+		do_action( 'frs_profile_created', $profile->id );
+
 		return new WP_REST_Response(
 			array(
 				'success' => true,
@@ -638,5 +641,133 @@ class Actions {
 
 		// Default: deny access
 		return false;
+	}
+
+	/**
+	 * Upload avatar/headshot for a profile
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function upload_avatar( WP_REST_Request $request ) {
+		$user_id = $request->get_param( 'user_id' );
+
+		if ( ! $user_id ) {
+			return new WP_Error(
+				'missing_user_id',
+				__( 'User ID is required', 'frs-users' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		// Get profile by user_id
+		$profile = Profile::where( 'user_id', $user_id )->first();
+
+		if ( ! $profile ) {
+			return new WP_Error(
+				'profile_not_found',
+				__( 'Profile not found for this user', 'frs-users' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		// Check file was uploaded
+		$files = $request->get_file_params();
+		if ( empty( $files['avatar'] ) ) {
+			return new WP_Error(
+				'no_file',
+				__( 'No file was uploaded', 'frs-users' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		$file = $files['avatar'];
+
+		// Validate file type
+		$allowed_types = array( 'image/jpeg', 'image/png', 'image/gif', 'image/webp' );
+		if ( ! in_array( $file['type'], $allowed_types ) ) {
+			return new WP_Error(
+				'invalid_file_type',
+				__( 'Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed.', 'frs-users' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		// Handle the upload
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+
+		$attachment_id = media_handle_sideload(
+			$file,
+			0,
+			null,
+			array(
+				'test_form' => false,
+				'mimes'     => array(
+					'jpg|jpeg|jpe' => 'image/jpeg',
+					'gif'          => 'image/gif',
+					'png'          => 'image/png',
+					'webp'         => 'image/webp',
+				),
+			)
+		);
+
+		if ( is_wp_error( $attachment_id ) ) {
+			return new WP_Error(
+				'upload_failed',
+				$attachment_id->get_error_message(),
+				array( 'status' => 500 )
+			);
+		}
+
+		// Update profile with new headshot_id
+		$profile->update( array( 'headshot_id' => $attachment_id ) );
+
+		// Get the image URL
+		$image_url = wp_get_attachment_url( $attachment_id );
+
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'data'    => array(
+					'attachment_id' => $attachment_id,
+					'url'           => $image_url,
+				),
+				'message' => __( 'Avatar uploaded successfully', 'frs-users' ),
+			),
+			200
+		);
+	}
+
+	/**
+	 * Get profiles for block editor (WordPress core-data format)
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function get_profiles_for_block_editor( WP_REST_Request $request ) {
+		$per_page = $request->get_param( 'per_page' ) ?: 100;
+
+		// Get all active profiles
+		$profiles = Profile::active()
+			->orderBy( 'full_name', 'asc' )
+			->take( $per_page )
+			->get();
+
+		// Format for WordPress core-data store
+		$formatted = $profiles->map(
+			function ( $profile ) {
+				return array(
+					'id'        => $profile->id,
+					'user_id'   => $profile->user_id,
+					'full_name' => $profile->full_name,
+					'email'     => $profile->primary_business_email ?? $profile->email,
+					'type'      => $profile->type,
+				);
+			}
+		);
+
+		return new WP_REST_Response( $formatted->toArray(), 200 );
 	}
 }

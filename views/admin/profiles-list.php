@@ -59,6 +59,50 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</p>
 			</div>
 			<?php
+		} elseif ( 'pages_generated' === $_GET['message'] ) {
+			$created = isset( $_GET['pages_created'] ) ? absint( $_GET['pages_created'] ) : 0;
+			$skipped = isset( $_GET['pages_skipped'] ) ? absint( $_GET['pages_skipped'] ) : 0;
+			$failed  = isset( $_GET['pages_failed'] ) ? absint( $_GET['pages_failed'] ) : 0;
+			?>
+			<div class="notice notice-success is-dismissible">
+				<p>
+					<?php
+					printf(
+						/* translators: 1: Created count, 2: Skipped count, 3: Failed count */
+						__( 'Profile pages generated! Created: %1$d | Skipped: %2$d | Failed: %3$d', 'frs-users' ),
+						$created,
+						$skipped,
+						$failed
+					);
+					?>
+				</p>
+			</div>
+			<?php
+		} elseif ( 'pages_regenerated' === $_GET['message'] ) {
+			$created = isset( $_GET['pages_created'] ) ? absint( $_GET['pages_created'] ) : 0;
+			$skipped = isset( $_GET['pages_skipped'] ) ? absint( $_GET['pages_skipped'] ) : 0;
+			$failed  = isset( $_GET['pages_failed'] ) ? absint( $_GET['pages_failed'] ) : 0;
+			?>
+			<div class="notice notice-success is-dismissible">
+				<p>
+					<?php
+					printf(
+						/* translators: 1: Created count, 2: Skipped count, 3: Failed count */
+						__( 'Profile pages regenerated! Created: %1$d | Skipped: %2$d | Failed: %3$d', 'frs-users' ),
+						$created,
+						$skipped,
+						$failed
+					);
+					?>
+				</p>
+			</div>
+			<?php
+		} elseif ( 'no_profiles_selected' === $_GET['message'] ) {
+			?>
+			<div class="notice notice-error is-dismissible">
+				<p><?php esc_html_e( 'Please select at least one profile.', 'frs-users' ); ?></p>
+			</div>
+			<?php
 		}
 	}
 	?>

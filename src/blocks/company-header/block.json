@@ -1,0 +1,38 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "frs-users/company-header",
+	"version": "1.0.0",
+	"title": "Company Header",
+	"category": "frs-blocks",
+	"icon": "building",
+	"description": "Display company name, logo, and tagline from user profile",
+	"keywords": ["company", "header", "logo", "brand"],
+	"textdomain": "frs-users",
+	"editorScript": "file:./index.js",
+	"style": "file:./style-index.css",
+	"render": "file:./render.php",
+	"attributes": {
+		"user_id": {
+			"type": "number",
+			"default": 0
+		},
+		"showLogo": {
+			"type": "boolean",
+			"default": true
+		},
+		"showTagline": {
+			"type": "boolean",
+			"default": true
+		},
+		"alignment": {
+			"type": "string",
+			"default": "center"
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": ["wide", "full"]
+	},
+	"example": {}
+}

@@ -12,6 +12,8 @@ use FRSUsers\Core\CLI;
 use FRSUsers\Core\ProfileApi;
 use FRSUsers\Core\PluginDependencies;
 use FRSUsers\Controllers\Shortcodes;
+use FRSUsers\Controllers\PostTypes;
+use FRSUsers\Controllers\ProfilePagesAdmin;
 use FRSUsers\Routes\Api;
 use FRSUsers\Admin\ProfilesPage;
 use FRSUsers\Admin\ProfileEdit;
@@ -68,6 +70,9 @@ final class FRSUsers {
 		// Initialize Profile API with CRUD and webhooks
 		ProfileApi::get_instance()->init();
 
+		// Initialize custom post types
+		PostTypes::get_instance()->init();
+
 		// Initialize Gutenberg blocks
 		Blocks::init();
 
@@ -88,6 +93,7 @@ final class FRSUsers {
 			ProfilesPage::get_instance()->init();
 			ProfileEdit::get_instance()->init();
 			\FRSUsers\Admin\ProfileMerge::get_instance()->init();
+			ProfilePagesAdmin::get_instance()->init();
 			Admin::get_instance()->bootstrap();
 		}
 

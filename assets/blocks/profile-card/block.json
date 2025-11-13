@@ -1,0 +1,31 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "frs-users/profile-card",
+  "version": "1.0.0",
+  "title": "Profile Card",
+  "category": "frs-blocks",
+  "description": "Display user profile card with QR code, contact info, and action buttons",
+  "keywords": [
+    "profile",
+    "card",
+    "contact",
+    "qr code"
+  ],
+  "textdomain": "frs-users",
+  "editorScript": "file:./index.js",
+  "viewScript": "file:./view.js",
+  "style": "file:./style-index.css",
+  "render": "file:./render.php",
+  "attributes": {
+    "user_id": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "supports": {
+    "html": false,
+    "customClassName": false
+  },
+  "example": {}
+}

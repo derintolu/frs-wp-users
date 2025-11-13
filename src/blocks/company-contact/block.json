@@ -1,0 +1,38 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "frs-users/company-contact",
+	"version": "1.0.0",
+	"title": "Company Contact",
+	"category": "frs-blocks",
+	"icon": "email",
+	"description": "Display company contact information with social links",
+	"keywords": ["company", "contact", "phone", "email", "social"],
+	"textdomain": "frs-users",
+	"editorScript": "file:./index.js",
+	"style": "file:./style-index.css",
+	"render": "file:./render.php",
+	"attributes": {
+		"user_id": {
+			"type": "number",
+			"default": 0
+		},
+		"showSocial": {
+			"type": "boolean",
+			"default": true
+		},
+		"showLocation": {
+			"type": "boolean",
+			"default": true
+		},
+		"layout": {
+			"type": "string",
+			"default": "grid"
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": ["wide", "full"]
+	},
+	"example": {}
+}

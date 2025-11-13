@@ -132,6 +132,10 @@ class ProfileEdit {
 				// Create new profile
 				$profile = Profile::create( $data );
 				error_log( 'FRS Users: Profile created - ID: ' . $profile->id );
+
+				// Trigger profile creation hook (for profile pages generation)
+				do_action( 'frs_profile_created', $profile->id );
+
 				$message = __( 'Profile created successfully.', 'frs-users' );
 				$redirect_id = $profile->id;
 			} else {

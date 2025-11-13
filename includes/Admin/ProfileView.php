@@ -41,6 +41,33 @@ class ProfileView {
 			wp_die( esc_html__( 'Profile not found.', 'frs-users' ) );
 		}
 
+		// Handle profile pages generation
+		if ( isset( $_POST['frs_generate_profile_pages'] ) && check_admin_referer( 'frs_generate_profile_pages_' . $profile->id ) ) {
+			$submitted_profile_id = isset( $_POST['profile_id'] ) ? intval( $_POST['profile_id'] ) : 0;
+
+			if ( $submitted_profile_id === $profile->id ) {
+				// Trigger page generation for this profile
+				if ( class_exists( 'FRSUsers\\Controllers\\PostTypes' ) ) {
+					$post_types = \FRSUsers\Controllers\PostTypes::get_instance();
+					// Use reflection to call private method
+					$method = new \ReflectionMethod( $post_types, 'generate_profile_pages_for_profile' );
+					$method->setAccessible( true );
+					$method->invoke( $post_types, $profile->id, $profile->full_name );
+
+					// Show success message
+					add_settings_error(
+						'frs_profile_pages',
+						'pages_generated',
+						__( 'Profile pages generated successfully!', 'frs-users' ),
+						'success'
+					);
+
+					// Clear transient to allow regeneration
+					delete_transient( 'frs_profile_pages_generated_' . $profile->id );
+				}
+			}
+		}
+
 		// Helper function to decode JSON fields
 		$decode_json = function( $value ) {
 			if ( empty( $value ) ) {

@@ -145,6 +145,60 @@ class ProfilesPage {
 			return;
 		}
 
+		// Handle bulk_generate_pages
+		if ( $action === 'bulk_generate_pages' ) {
+			// Check nonce
+			check_admin_referer( 'bulk-profiles' );
+
+			if ( ! isset( $_POST['profile'] ) || ! is_array( $_POST['profile'] ) ) {
+				wp_redirect( add_query_arg( 'message', 'no_profiles_selected', admin_url( 'admin.php?page=frs-profiles' ) ) );
+				exit;
+			}
+
+			$profile_ids = array_map( 'absint', $_POST['profile'] );
+			$stats       = $this->generate_pages_for_profiles( $profile_ids, false );
+
+			wp_redirect(
+				add_query_arg(
+					array(
+						'message'      => 'pages_generated',
+						'pages_created' => $stats['created'],
+						'pages_skipped' => $stats['skipped'],
+						'pages_failed'  => $stats['failed'],
+					),
+					admin_url( 'admin.php?page=frs-profiles' )
+				)
+			);
+			exit;
+		}
+
+		// Handle bulk_regenerate_pages
+		if ( $action === 'bulk_regenerate_pages' ) {
+			// Check nonce
+			check_admin_referer( 'bulk-profiles' );
+
+			if ( ! isset( $_POST['profile'] ) || ! is_array( $_POST['profile'] ) ) {
+				wp_redirect( add_query_arg( 'message', 'no_profiles_selected', admin_url( 'admin.php?page=frs-profiles' ) ) );
+				exit;
+			}
+
+			$profile_ids = array_map( 'absint', $_POST['profile'] );
+			$stats       = $this->generate_pages_for_profiles( $profile_ids, true );
+
+			wp_redirect(
+				add_query_arg(
+					array(
+						'message'      => 'pages_regenerated',
+						'pages_created' => $stats['created'],
+						'pages_skipped' => $stats['skipped'],
+						'pages_failed'  => $stats['failed'],
+					),
+					admin_url( 'admin.php?page=frs-profiles' )
+				)
+			);
+			exit;
+		}
+
 		// Handle bulk_merge specifically
 		if ( $action === 'bulk_merge' ) {
 			// Check nonce
@@ -173,6 +227,78 @@ class ProfilesPage {
 			);
 			exit;
 		}
+	}
+
+	/**
+	 * Generate profile pages for selected profiles.
+	 *
+	 * @param array $profile_ids Array of profile IDs.
+	 * @param bool  $force_regenerate Whether to force regeneration (delete existing first).
+	 * @return array Stats array with created, skipped, failed counts.
+	 */
+	private function generate_pages_for_profiles( $profile_ids, $force_regenerate = false ) {
+		$stats = array(
+			'created' => 0,
+			'skipped' => 0,
+			'failed'  => 0,
+		);
+
+		if ( ! class_exists( 'FRSUsers\\Models\\Profile' ) || ! class_exists( 'FRSUsers\\Controllers\\PostTypes' ) ) {
+			return $stats;
+		}
+
+		$post_types = \FRSUsers\Controllers\PostTypes::get_instance();
+
+		foreach ( $profile_ids as $profile_id ) {
+			$profile = \FRSUsers\Models\Profile::find( $profile_id );
+
+			if ( ! $profile ) {
+				$stats['failed']++;
+				continue;
+			}
+
+			// Check if pages already exist
+			$existing_pages = get_posts(
+				array(
+					'post_type'   => 'frs_user_profile',
+					'post_status' => 'any',
+					'numberposts' => -1,
+					'meta_query'  => array(
+						array(
+							'key'   => '_profile_id',
+							'value' => $profile_id,
+						),
+					),
+				)
+			);
+
+			// If regenerating, delete existing pages first
+			if ( $force_regenerate && ! empty( $existing_pages ) ) {
+				foreach ( $existing_pages as $page ) {
+					wp_delete_post( $page->ID, true );
+				}
+				$existing_pages = array();
+			}
+
+			// Skip if pages already exist and not forcing regeneration
+			if ( ! empty( $existing_pages ) && ! $force_regenerate ) {
+				$stats['skipped']++;
+				continue;
+			}
+
+			// Use reflection to call private method
+			try {
+				$method = new \ReflectionMethod( $post_types, 'generate_profile_pages_for_profile' );
+				$method->setAccessible( true );
+				$method->invoke( $post_types, $profile_id, $profile->full_name );
+				$stats['created']++;
+			} catch ( \Exception $e ) {
+				error_log( 'FRS Users: Failed to generate pages for profile ' . $profile_id . ': ' . $e->getMessage() );
+				$stats['failed']++;
+			}
+		}
+
+		return $stats;
 	}
 
 	/**

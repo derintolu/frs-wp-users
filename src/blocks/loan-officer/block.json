@@ -1,0 +1,42 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "frs-users/loan-officer",
+    "version": "0.1.0",
+    "title": "Loan Officer",
+    "category": "frs-blocks",
+    "icon": "businessperson",
+    "description": "Display loan officer information dynamically",
+    "example": {},
+    "attributes": {
+        "avatarSizes": {
+            "type": "object",
+            "default": {
+                "mobile": "clamp(120px, 30vw, 180px)",
+                "tablet": "clamp(180px, 25vw, 240px)",
+                "desktop": "clamp(160px, 15vw, 220px)"
+            }
+        },
+        "nameSizes": {
+            "type": "object",
+            "default": {
+                "mobile": "clamp(1.2rem, 4vw, 1.8rem)",
+                "tablet": "clamp(1.4rem, 3.5vw, 2rem)",
+                "desktop": "clamp(1.3rem, 2vw, 1.8rem)"
+            }
+        },
+        "titleSizes": {
+            "type": "object",
+            "default": {
+                "mobile": "clamp(0.9rem, 3vw, 1.2rem)",
+                "tablet": "clamp(1rem, 2.5vw, 1.4rem)",
+                "desktop": "clamp(1.1rem, 2vw, 1.6rem)"
+            }
+        }
+    },
+    "supports": {
+        "html": false
+    },
+    "textdomain": "frs-users",
+    "render": "file:./render.php"
+}

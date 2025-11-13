@@ -1,0 +1,151 @@
+.frs-company-contact {
+	padding: 3rem 1rem;
+	background: #f9fafb;
+	max-width: 1200px;
+	margin: 0 auto;
+
+	&__title {
+		text-align: center;
+		margin-bottom: 3rem;
+		font-size: clamp(1.75rem, 4vw, 2rem);
+		font-weight: 700;
+		color: #111827;
+	}
+
+	&__grid {
+		display: grid;
+		gap: 2rem;
+		margin-bottom: 3rem;
+	}
+
+	&--grid &__grid {
+		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+	}
+
+	&--stacked &__grid {
+		grid-template-columns: 1fr;
+		max-width: 500px;
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+	&__card {
+		padding: 2rem;
+		background: #fff;
+		border-radius: 8px;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+		text-align: center;
+		transition: transform 0.2s, box-shadow 0.2s;
+
+		&:hover {
+			transform: translateY(-4px);
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+		}
+
+		h3 {
+			margin: 0 0 0.5rem;
+			font-size: 1.125rem;
+			font-weight: 600;
+			color: #111827;
+		}
+
+		a {
+			color: #2563eb;
+			text-decoration: none;
+			font-weight: 500;
+
+			&:hover {
+				text-decoration: underline;
+			}
+		}
+
+		p {
+			margin: 0;
+			color: #6b7280;
+		}
+	}
+
+	&__icon {
+		font-size: 2.5rem;
+		margin-bottom: 1rem;
+	}
+
+	&__social {
+		text-align: center;
+		padding-top: 2rem;
+		border-top: 1px solid #e5e7eb;
+	}
+
+	&__social-label {
+		margin-bottom: 1.5rem;
+		color: #6b7280;
+		font-size: 1rem;
+	}
+
+	&__social-links {
+		display: flex;
+		gap: 1rem;
+		justify-content: center;
+		flex-wrap: wrap;
+	}
+
+	&__social-link {
+		width: 48px;
+		height: 48px;
+		background: #2563eb;
+		color: #fff;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		text-decoration: none;
+		font-weight: 600;
+		font-size: 0.875rem;
+		transition: background 0.2s, transform 0.2s;
+
+		&:hover {
+			background: #1d4ed8;
+			transform: scale(1.1);
+		}
+
+		&--facebook {
+			background: #1877f2;
+
+			&:hover {
+				background: #0c63d4;
+			}
+		}
+
+		&--linkedin {
+			background: #0a66c2;
+
+			&:hover {
+				background: #084a8f;
+			}
+		}
+
+		&--instagram {
+			background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+
+			&:hover {
+				opacity: 0.9;
+			}
+		}
+
+		&--twitter {
+			background: #000;
+
+			&:hover {
+				background: #333;
+			}
+		}
+	}
+
+	&-error {
+		padding: 1rem;
+		background: #f8d7da;
+		color: #721c24;
+		border: 1px solid #f5c6cb;
+		border-radius: 4px;
+	}
+}

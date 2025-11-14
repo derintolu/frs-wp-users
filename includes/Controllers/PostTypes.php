@@ -67,7 +67,7 @@ class PostTypes {
 				'supports'      => array( 'title', 'editor', 'author', 'custom-fields', 'thumbnail' ),
 				'has_archive'   => false,
 				'rewrite'       => array(
-					'slug'       => 'agent-profile',
+					'slug'       => 'team',
 					'with_front' => false,
 				),
 				'capability_type' => 'post',
@@ -357,7 +357,7 @@ class PostTypes {
 				array(
 					'post_type'    => 'frs_user_profile',
 					'post_title'   => $page_title,
-					'post_name'    => 'team/' . sanitize_title( $profile_name ),
+					'post_name'    => sanitize_title( $profile_name ),
 					'post_content' => $page_content,
 					'post_status'  => 'publish',
 					'post_author'  => $user_id, // May be 0 if no user linked

@@ -40,6 +40,7 @@ class Shortcodes {
 		add_shortcode( 'frs_profile_editor', array( __CLASS__, 'render_profile_editor' ) );
 		add_shortcode( 'frs_profile_view', array( __CLASS__, 'render_profile_view' ) );
 		add_shortcode( 'frs_profile_directory', array( __CLASS__, 'render_directory' ) );
+		add_shortcode( 'frs_profile_portal', array( __CLASS__, 'render_portal' ) );
 
 		// Allow other plugins to register additional FRS shortcodes
 		do_action( 'frs_users_register_shortcodes' );
@@ -185,6 +186,44 @@ class Shortcodes {
 	}
 
 	/**
+	 * Render portal shortcode
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string Rendered shortcode HTML.
+	 */
+	public static function render_portal( $atts ) {
+		// Check if user is logged in
+		if ( ! is_user_logged_in() ) {
+			return '<div class="frs-portal-error"><p>' . esc_html__( 'Please log in to access the portal.', 'frs-users' ) . '</p></div>';
+		}
+
+		// Get current user
+		$user = wp_get_current_user();
+
+		// Enqueue assets
+		self::enqueue_portal_assets();
+
+		// Localize script with user data and settings
+		wp_localize_script(
+			'frs-profile-portal',
+			'frsUsersData',
+			array(
+				'nonce'      => wp_create_nonce( 'wp_rest' ),
+				'userName'   => $user->display_name,
+				'userEmail'  => $user->user_email,
+				'userAvatar' => get_avatar_url( $user->ID ),
+				'userRole'   => 'loan_officer', // TODO: Get from user meta
+				'siteName'   => get_bloginfo( 'name' ),
+				'siteLogo'   => '', // TODO: Get site logo
+				'apiUrl'     => rest_url( 'frs-users/v1' ),
+			)
+		);
+
+		// Output React mount point
+		return '<div id="frs-users-portal-root"><p>' . esc_html__( 'Loading portal...', 'frs-users' ) . '</p></div>';
+	}
+
+	/**
 	 * Enqueue profile editor assets
 	 *
 	 * @return void
@@ -229,5 +268,22 @@ class Shortcodes {
 	private static function enqueue_directory_assets() {
 		// TODO: Implement directory assets
 		// Will be implemented when directory component is created
+	}
+
+	/**
+	 * Enqueue portal assets
+	 *
+	 * @return void
+	 */
+	private static function enqueue_portal_assets() {
+		\FRSUsers\Libs\Assets\enqueue_asset(
+			FRS_USERS_DIR . '/assets/portal/dist',
+			'src/frontend/portal/main.tsx',
+			array(
+				'handle'       => 'frs-profile-portal',
+				'dependencies' => array( 'react', 'react-dom' ),
+				'in-footer'    => true,
+			)
+		);
 	}
 }

@@ -1,0 +1,438 @@
+/**
+ * Profile Page - Figma Design Exact Specifications
+ *
+ * Colors from Figma:
+ * - Persian Blue: #1D4FC4 (license, company, buttons)
+ * - Cod Gray: #1A1A1A (name)
+ * - Black Pearl: #020817 (job title)
+ * - Ebony: #111827 (section headings)
+ * - Pale Sky: #6B7280 (italic text, empty states)
+ * - Royal Blue: #4678EB (button text)
+ * - White: #FFFFFF
+ * - Gradient: linear-gradient(90deg, #2DD4DA 0%, #2563EB 100%)
+ */
+
+.frs-profile-figma {
+	max-width: 1257px;
+	margin: 0 auto;
+	padding: 20px;
+
+	// Top Row: Profile Header + Biography/Service Areas
+	&__top-row {
+		display: flex;
+		gap: 13px;
+		margin-bottom: 15px;
+
+		@media (max-width: 1280px) {
+			flex-direction: column;
+		}
+	}
+
+	// Profile Header Card (621px)
+	&__profile-header {
+		width: 621px;
+		max-width: 100%;
+		background: #ffffff;
+		border: 1px solid #ffffff;
+		border-radius: 4px;
+		position: relative;
+		overflow: hidden;
+		min-height: 431px;
+		padding: 63px 41px 24px;
+
+		@media (max-width: 1280px) {
+			width: 100%;
+		}
+	}
+
+	// Background Video
+	&__video-bg {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 144px;
+		overflow: hidden;
+
+		video {
+			width: 100%;
+			height: 192px;
+			object-fit: cover;
+			filter: blur(30px);
+		}
+	}
+
+	// Avatar Section
+	&__avatar-section {
+		position: relative;
+		margin-bottom: 42px;
+	}
+
+	&__avatar-wrapper {
+		width: 156px;
+		height: 156px;
+		position: relative;
+	}
+
+	&__avatar-flip {
+		width: 100%;
+		height: 100%;
+		position: relative;
+		transition: transform 0.6s;
+		transform-style: preserve-3d;
+
+		&.is-flipped {
+			transform: rotateY(180deg);
+		}
+	}
+
+	&__avatar-front,
+	&__avatar-back {
+		width: 100%;
+		height: 100%;
+		position: absolute;
+		backface-visibility: hidden;
+		border-radius: 50%;
+		overflow: hidden;
+		border: 3px solid transparent;
+		background-image: linear-gradient(white, white), linear-gradient(135deg, #2563eb 0%, #2dd4da 100%);
+		background-origin: padding-box, border-box;
+		background-clip: padding-box, border-box;
+
+		img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+	}
+
+	&__avatar-back {
+		transform: rotateY(180deg);
+		background: #ffffff;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 26px;
+	}
+
+	&__qr-code {
+		width: 96px;
+		height: 96px;
+	}
+
+	&__qr-btn {
+		position: absolute;
+		top: 10px;
+		right: -5px;
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
+		background: #000000;
+		color: #ffffff;
+		border: none;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		padding: 0;
+		box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+		z-index: 20;
+
+		&:hover {
+			background: #1f2937;
+		}
+
+		svg {
+			width: 26px;
+			height: 26px;
+		}
+	}
+
+	// Profile Info Section
+	&__info {
+		position: relative;
+		z-index: 10;
+	}
+
+	&__name-license {
+		display: flex;
+		gap: 16px;
+		align-items: flex-end;
+		margin-bottom: 8px;
+	}
+
+	&__name {
+		margin: 0;
+		font-family: 'Mona Sans', sans-serif;
+		font-weight: 700;
+		font-size: 34px;
+		line-height: 37.4px;
+		color: #1A1A1A;
+		letter-spacing: -0.34px;
+	}
+
+	&__license {
+		font-family: 'Roboto', sans-serif;
+		font-weight: 400;
+		font-size: 16px;
+		line-height: 24px;
+		color: #1D4FC4;
+		letter-spacing: -0.32px;
+	}
+
+	&__title-company {
+		display: flex;
+		gap: 6px;
+		flex-wrap: wrap;
+		margin-bottom: 8px;
+	}
+
+	&__job-title {
+		font-family: 'Mona Sans', sans-serif;
+		font-weight: 400;
+		font-size: 15.8px;
+		line-height: 24px;
+		color: #020817;
+		letter-spacing: -0.32px;
+	}
+
+	&__company {
+		font-family: 'Mona Sans', sans-serif;
+		font-weight: 400;
+		font-size: 15.8px;
+		line-height: 24px;
+		color: #1D4FC4;
+		letter-spacing: -0.32px;
+	}
+
+	&__social {
+		display: flex;
+		gap: 8px;
+		padding: 8px 0;
+		margin-bottom: 8px;
+	}
+
+	&__social-icon {
+		width: 32px;
+		height: 32px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: #000000;
+
+		&:hover {
+			opacity: 0.7;
+		}
+
+		svg {
+			width: 26px;
+			height: 26px;
+		}
+	}
+
+	&__location {
+		font-family: 'Mona Sans', sans-serif;
+		font-weight: 400;
+		font-size: 15.8px;
+		line-height: 24px;
+		color: #1D4FC4;
+		letter-spacing: -0.32px;
+		margin-bottom: 24px;
+	}
+
+	&__actions {
+		display: flex;
+		gap: 16px;
+		flex-wrap: wrap;
+	}
+
+	&__btn {
+		padding: 10px 13px 11px;
+		min-height: 42px;
+		border-radius: 4px;
+		font-family: 'Mona Sans', sans-serif;
+		font-weight: 400;
+		font-size: 15.8px;
+		line-height: 24px;
+		letter-spacing: -0.32px;
+		text-align: center;
+		cursor: pointer;
+		transition: all 0.2s;
+		text-decoration: none;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+
+		&--outline {
+			background: transparent;
+			border: 1px solid #4678EB;
+			color: #4678EB;
+
+			&:hover {
+				background: #4678EB;
+				color: #ffffff;
+			}
+		}
+
+		&--primary {
+			background: linear-gradient(90deg, #2DD4DA 0%, #2563EB 100%);
+			border: none;
+			color: #ffffff;
+			font-weight: 700;
+
+			&:hover {
+				opacity: 0.9;
+			}
+		}
+	}
+
+	// Apply Now Button (positioned absolutely)
+	&__apply-btn {
+		position: absolute;
+		top: 164px;
+		right: 41px;
+		width: 176px;
+		min-height: 42px;
+		padding: 10px 13px 11px;
+		background: linear-gradient(90deg, #2DD4DA 0%, #2563EB 100%);
+		border-radius: 4px;
+		font-family: 'Mona Sans', sans-serif;
+		font-weight: 700;
+		font-size: 15.8px;
+		line-height: 24px;
+		letter-spacing: -0.32px;
+		color: #ffffff;
+		text-align: center;
+		text-decoration: none;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		&:hover {
+			opacity: 0.9;
+		}
+	}
+
+	// Right Column (624px)
+	&__right-column {
+		width: 624px;
+		max-width: 100%;
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+
+		@media (max-width: 1280px) {
+			width: 100%;
+		}
+	}
+
+	// Card Component
+	&__card {
+		background: #ffffff;
+		border: 1px solid #e2e8f0;
+		border-radius: 4px;
+		padding: 18px 24px 24px;
+	}
+
+	&__card-title {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin: 0 0 8px;
+		font-family: 'Mona Sans SemiExpanded', sans-serif;
+		font-weight: 600;
+		font-size: 16px;
+		line-height: 24px;
+		color: #111827;
+
+		svg {
+			width: 20px;
+			height: 20px;
+			flex-shrink: 0;
+		}
+	}
+
+	&__bio-text {
+		font-family: 'Mona Sans', sans-serif;
+		font-style: italic;
+		font-weight: 400;
+		font-size: 14px;
+		line-height: 20px;
+		color: #6B7280;
+
+		p {
+			margin: 0;
+		}
+	}
+
+	&__service-text {
+		font-family: 'Mona Sans', sans-serif;
+		font-weight: 400;
+		font-size: 14px;
+		line-height: 20px;
+		color: #6B7280;
+	}
+
+	// Bottom Row: Specialties (621px)
+	&__bottom-row {
+		width: 621px;
+		max-width: 100%;
+
+		@media (max-width: 1280px) {
+			width: 100%;
+		}
+	}
+
+	&__specialties-card {
+		box-shadow: 0px 1px 2px 0px rgba(0,0,0,0.3), 0px 1px 3px 1px rgba(0,0,0,0.15);
+	}
+
+	&__specialty-groups {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+	}
+
+	&__specialty-group {
+		h3, ul, p {
+			margin: 0;
+		}
+	}
+
+	&__specialty-label {
+		font-family: 'Mona Sans', sans-serif;
+		font-weight: 500;
+		font-size: 14px;
+		line-height: 20px;
+		color: #020817;
+		margin-bottom: 8px;
+	}
+
+	&__specialty-group ul {
+		list-style: none;
+		padding: 0;
+
+		li {
+			padding: 8px 0;
+			border-bottom: 1px solid #f3f4f6;
+			font-family: 'Mona Sans', sans-serif;
+			font-weight: 400;
+			font-size: 14px;
+			line-height: 20px;
+			color: #6B7280;
+
+			&:last-child {
+				border-bottom: none;
+			}
+		}
+	}
+
+	&__empty-state {
+		font-family: 'Mona Sans', sans-serif;
+		font-style: italic;
+		font-weight: 400;
+		font-size: 12px;
+		line-height: 16px;
+		color: #6B7280;
+	}
+}

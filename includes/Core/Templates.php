@@ -74,7 +74,7 @@ class Templates {
             $frs_profile = $this->get_profile_by_slug($profile_slug);
 
             if ($frs_profile) {
-                $plugin_template = FRS_USERS_DIR . 'views/templates/profile-page-dynamic.php';
+                $plugin_template = FRS_USERS_DIR . 'views/templates/profile-page-figma.php';
 
                 if (file_exists($plugin_template)) {
                     return $plugin_template;

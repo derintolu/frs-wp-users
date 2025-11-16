@@ -13,36 +13,40 @@
  */
 
 .frs-profile-figma {
-	max-width: 1257px;
+	max-width: 1260px;
 	margin: 0 auto;
-	padding: 20px;
+	padding: clamp(1rem, 2vw, 2rem);
+	display: grid;
+	grid-template-columns: 70% 30%;
+	gap: clamp(0.75rem, 1.5vw, 1rem);
+	align-items: stretch; // Equal height rows
+
+	@media (max-width: 768px) {
+		grid-template-columns: 1fr;
+	}
 
 	// Top Row: Profile Header + Biography/Service Areas
 	&__top-row {
-		display: flex;
-		gap: 13px;
-		margin-bottom: 15px;
-
-		@media (max-width: 1280px) {
-			flex-direction: column;
-		}
+		display: contents; // Children become grid items
 	}
 
-	// Profile Header Card (621px)
+	// Profile Header Card (70% of grid)
 	&__profile-header {
-		width: 621px;
-		max-width: 100%;
 		background: #ffffff;
 		border: 1px solid #e2e8f0;
-		border-radius: 4px;
+		border-radius: 0.25rem;
 		box-shadow: 0px 1px 2px 0px rgba(0,0,0,0.3), 0px 1px 3px 1px rgba(0,0,0,0.15);
 		position: relative;
 		overflow: hidden;
-		min-height: 431px;
-		padding: 63px 41px 24px;
+		padding: clamp(2rem, 4vw, 4rem) clamp(1.5rem, 3vw, 2.5rem) clamp(1rem, 2vw, 1.5rem);
+		grid-column: 1;
+		grid-row: 1 / 3; // Spans 2 rows
 
-		@media (max-width: 1280px) {
-			width: 100%;
+		@media (max-width: 768px) {
+			grid-column: 1;
+			grid-row: 1; // Always first on mobile
+			display: flex;
+			flex-direction: column;
 		}
 	}
 
@@ -52,7 +56,7 @@
 		top: 0;
 		left: 0;
 		right: 0;
-		height: 149px;
+		height: clamp(120px, 15vw, 149px);
 		overflow: hidden;
 		background: transparent;
 
@@ -69,12 +73,12 @@
 	// Avatar Section
 	&__avatar-section {
 		position: relative;
-		margin-bottom: 42px;
+		margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
 	}
 
 	&__avatar-wrapper {
-		width: 156px;
-		height: 156px;
+		width: clamp(120px, 15vw, 156px);
+		height: clamp(120px, 15vw, 156px);
 		position: relative;
 	}
 
@@ -116,30 +120,30 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		padding: 20px;
+		padding: clamp(1rem, 2vw, 1.25rem);
 	}
 
 	&__qr-code {
-		width: 130px;
-		height: 130px;
+		width: clamp(110px, 14vw, 130px);
+		height: clamp(110px, 14vw, 130px);
 		display: flex;
 		align-items: center;
 		justify-content: center;
 
 		canvas {
-			max-width: 123px;
-			max-height: 123px;
-			width: 123px !important;
-			height: 123px !important;
+			max-width: clamp(100px, 13vw, 123px);
+			max-height: clamp(100px, 13vw, 123px);
+			width: clamp(100px, 13vw, 123px) !important;
+			height: clamp(100px, 13vw, 123px) !important;
 		}
 	}
 
 	&__qr-btn {
 		position: absolute;
-		top: 10px;
-		right: -5px;
-		width: 40px;
-		height: 40px;
+		top: clamp(0.5rem, 1vw, 0.625rem);
+		right: clamp(-0.5rem, -0.5vw, -0.3125rem);
+		width: clamp(2rem, 4vw, 2.5rem);
+		height: clamp(2rem, 4vw, 2.5rem);
 		border-radius: 50%;
 		background: #000000;
 		color: #ffffff;
@@ -157,8 +161,8 @@
 		}
 
 		svg {
-			width: 26px;
-			height: 26px;
+			width: clamp(1.25rem, 2.5vw, 1.625rem);
+			height: clamp(1.25rem, 2.5vw, 1.625rem);
 		}
 	}
 
@@ -166,69 +170,74 @@
 	&__info {
 		position: relative;
 		z-index: 10;
+
+		@media (max-width: 768px) {
+			display: flex;
+			flex-direction: column;
+		}
 	}
 
 	&__name-license {
 		display: flex;
-		gap: 16px;
+		gap: clamp(0.75rem, 1.5vw, 1rem);
 		align-items: flex-end;
-		margin-bottom: 8px;
+		margin-bottom: clamp(0.5rem, 1vw, 0.5rem);
 	}
 
 	&__name {
 		margin: 0;
 		font-family: 'Mona Sans', sans-serif;
 		font-weight: 700;
-		font-size: 34px;
-		line-height: 37.4px;
+		font-size: clamp(1.5rem, 3.5vw, 2.125rem);
+		line-height: 1.1;
 		color: #1A1A1A;
-		letter-spacing: -0.34px;
+		letter-spacing: -0.01em;
 	}
 
 	&__license {
 		font-family: 'Roboto', sans-serif;
 		font-weight: 400;
-		font-size: 16px;
-		line-height: 24px;
+		font-size: clamp(0.875rem, 1.5vw, 1rem);
+		line-height: 1.5;
 		color: #1D4FC4;
-		letter-spacing: -0.32px;
+		letter-spacing: -0.02em;
 	}
 
 	&__title-company {
 		display: flex;
-		gap: 6px;
+		gap: clamp(0.25rem, 0.5vw, 0.375rem);
 		flex-wrap: wrap;
-		margin-bottom: 8px;
+		margin-bottom: clamp(0.5rem, 1vw, 0.5rem);
 	}
 
 	&__job-title {
 		font-family: 'Mona Sans', sans-serif;
 		font-weight: 400;
-		font-size: 15.8px;
-		line-height: 24px;
+		font-size: clamp(0.875rem, 1.5vw, 1rem);
+		line-height: 1.5;
 		color: #020817;
-		letter-spacing: -0.32px;
+		letter-spacing: -0.02em;
 	}
 
 	&__company {
 		font-family: 'Mona Sans', sans-serif;
 		font-weight: 400;
-		font-size: 15.8px;
-		line-height: 24px;
+		font-size: clamp(0.875rem, 1.5vw, 1rem);
+		line-height: 1.5;
 		color: #1D4FC4;
-		letter-spacing: -0.32px;
+		letter-spacing: -0.02em;
 	}
 
 	&__social {
 		display: flex;
-		gap: 8px;
-		padding: 8px 0;
-		margin-bottom: 8px;
+		gap: clamp(0.375rem, 0.75vw, 0.5rem);
+		padding: clamp(0.5rem, 1vw, 0.5rem) 0;
+		margin-bottom: clamp(0.5rem, 1vw, 0.5rem);
 	}
 
 	&__social-icon {
-		width: 32px;
-		height: 32px;
+		width: clamp(1.75rem, 3vw, 2rem);
+		height: clamp(1.75rem, 3vw, 2rem);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -239,36 +248,45 @@
 		}
 
 		svg {
-			width: 26px;
-			height: 26px;
+			width: clamp(1.375rem, 2.5vw, 1.625rem);
+			height: clamp(1.375rem, 2.5vw, 1.625rem);
 		}
 	}
 
 	&__location {
 		font-family: 'Mona Sans', sans-serif;
 		font-weight: 400;
-		font-size: 15.8px;
-		line-height: 24px;
+		font-size: clamp(0.875rem, 1.5vw, 1rem);
+		line-height: 1.5;
 		color: #1D4FC4;
-		letter-spacing: -0.32px;
-		margin-bottom: 24px;
+		letter-spacing: -0.02em;
+		margin-bottom: clamp(1rem, 2vw, 1.5rem);
+
+		@media (max-width: 768px) {
+			order: 4;
+		}
 	}
 
 	&__actions {
 		display: flex;
-		gap: 16px;
+		gap: clamp(0.5rem, 1vw, 1rem);
 		flex-wrap: wrap;
+
+		@media (max-width: 768px) {
+			flex-direction: column;
+			order: 10; // Come after Apply Now button
+		}
 	}
 
 	&__btn {
-		padding: 10px 13px 11px;
-		min-height: 42px;
-		border-radius: 4px;
+		padding: clamp(0.5rem, 1vw, 0.75rem) clamp(0.75rem, 1.5vw, 1rem);
+		min-height: clamp(2.25rem, 5vw, 2.5rem);
+		border-radius: 0.25rem;
 		font-family: 'Mona Sans', sans-serif;
 		font-weight: 400;
-		font-size: 15.8px;
-		line-height: 24px;
-		letter-spacing: -0.32px;
+		font-size: clamp(0.875rem, 1.5vw, 1rem);
+		line-height: 1.5;
+		letter-spacing: -0.02em;
 		text-align: center;
 		cursor: pointer;
 		transition: all 0.2s;
@@ -276,6 +294,13 @@
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
+		flex: 1 1 0;
+		white-space: nowrap;
+
+		@media (max-width: 768px) {
+			flex: 1 1 100%;
+			width: 100%;
+		}
 
 		&--outline {
 			background: transparent;
@@ -300,69 +325,93 @@
 		}
 	}
 
-	// Apply Now Button (positioned absolutely)
+	// Apply Now Button (positioned absolutely on desktop, first button on mobile)
 	&__apply-btn {
 		position: absolute;
-		top: 164px;
-		right: 41px;
-		width: 176px;
-		min-height: 42px;
-		padding: 10px 13px 11px;
+		top: clamp(8rem, 12vw, 10rem);
+		right: clamp(1.5rem, 3vw, 2.5rem);
+		min-width: 8rem;
+		min-height: 2.5rem;
+		padding: clamp(0.5rem, 1vw, 0.75rem) clamp(0.75rem, 1.5vw, 1rem);
 		background: linear-gradient(90deg, #2DD4DA 0%, #2563EB 100%);
-		border-radius: 4px;
+		border-radius: 0.25rem;
 		font-family: 'Mona Sans', sans-serif;
 		font-weight: 700;
-		font-size: 15.8px;
-		line-height: 24px;
-		letter-spacing: -0.32px;
+		font-size: clamp(0.875rem, 1.5vw, 1rem);
+		line-height: 1.5;
+		letter-spacing: -0.02em;
 		color: #ffffff;
 		text-align: center;
 		text-decoration: none;
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		white-space: nowrap;
+		border: none;
 
 		&:hover {
 			opacity: 0.9;
 		}
+
+		@media (max-width: 768px) {
+			position: static;
+			order: 2; // Come after info, before actions container
+			width: 100%;
+			min-height: clamp(2.25rem, 5vw, 2.5rem);
+		}
 	}
 
-	// Right Column (624px)
+	// Right Column (30% of grid)
 	&__right-column {
-		width: 624px;
-		max-width: 100%;
-		display: flex;
-		flex-direction: column;
-		gap: 16px;
-
-		@media (max-width: 1280px) {
-			width: 100%;
-		}
+		display: contents; // Children become grid items in column 2
 	}
 
 	// Card Component
 	&__card {
 		background: #ffffff;
 		border: 1px solid #e2e8f0;
-		border-radius: 4px;
-		padding: 18px 24px 24px;
+		border-radius: 0.25rem;
+		padding: clamp(1rem, 2vw, 1.5rem);
 		box-shadow: 0px 1px 2px 0px rgba(0,0,0,0.3), 0px 1px 3px 1px rgba(0,0,0,0.15);
+		grid-column: 2; // Right column by default
+		display: flex;
+		flex-direction: column;
+
+		&:nth-child(1) {
+			grid-row: 1; // Biography in row 1
+
+			@media (max-width: 768px) {
+				grid-row: 2; // Second on mobile (after header)
+			}
+		}
+
+		&:nth-child(2) {
+			grid-row: 2; // Service Areas in row 2
+
+			@media (max-width: 768px) {
+				grid-row: 3; // Third on mobile
+			}
+		}
+
+		@media (max-width: 768px) {
+			grid-column: 1;
+		}
 	}
 
 	&__card-title {
 		display: flex;
 		align-items: center;
-		gap: 8px;
-		margin: 0 0 8px;
+		gap: clamp(0.375rem, 0.75vw, 0.5rem);
+		margin: 0 0 clamp(0.5rem, 1vw, 0.5rem);
 		font-family: 'Mona Sans SemiExpanded', sans-serif;
 		font-weight: 600;
-		font-size: 16px;
-		line-height: 24px;
+		font-size: clamp(0.875rem, 1.5vw, 1rem);
+		line-height: 1.5;
 		color: #111827;
 
 		svg {
-			width: 20px;
-			height: 20px;
+			width: clamp(1rem, 2vw, 1.25rem);
+			height: clamp(1rem, 2vw, 1.25rem);
 			flex-shrink: 0;
 		}
 	}
@@ -371,8 +420,8 @@
 		font-family: 'Mona Sans', sans-serif;
 		font-style: italic;
 		font-weight: 400;
-		font-size: 14px;
-		line-height: 20px;
+		font-size: clamp(0.8125rem, 1.25vw, 0.875rem);
+		line-height: 1.4;
 		color: #6B7280;
 
 		p {
@@ -383,29 +432,30 @@
 	&__service-text {
 		font-family: 'Mona Sans', sans-serif;
 		font-weight: 400;
-		font-size: 14px;
-		line-height: 20px;
+		font-size: clamp(0.8125rem, 1.25vw, 0.875rem);
+		line-height: 1.4;
 		color: #6B7280;
 	}
 
-	// Bottom Row: Specialties (621px)
+	// Bottom Row: Specialties (spans full width)
 	&__bottom-row {
-		width: 621px;
-		max-width: 100%;
+		grid-column: 1 / -1; // Span all columns
+		grid-row: 3; // Third row
 
-		@media (max-width: 1280px) {
-			width: 100%;
+		@media (max-width: 768px) {
+			grid-row: 4; // Fourth on mobile (after header, bio, service areas)
 		}
 	}
 
 	&__specialties-card {
 		// Inherits box-shadow from &__card
+		grid-column: 1 / -1; // Override to span both columns
 	}
 
 	&__specialty-groups {
 		display: flex;
 		flex-direction: column;
-		gap: 16px;
+		gap: clamp(0.75rem, 1.5vw, 1rem);
 	}
 
 	&__specialty-group {
@@ -417,10 +467,10 @@
 	&__specialty-label {
 		font-family: 'Mona Sans', sans-serif;
 		font-weight: 500;
-		font-size: 14px;
-		line-height: 20px;
+		font-size: clamp(0.8125rem, 1.25vw, 0.875rem);
+		line-height: 1.4;
 		color: #020817;
-		margin-bottom: 8px;
+		margin-bottom: clamp(0.375rem, 0.75vw, 0.5rem);
 	}
 
 	&__specialty-group ul {
@@ -428,12 +478,12 @@
 		padding: 0;
 
 		li {
-			padding: 8px 0;
+			padding: clamp(0.375rem, 0.75vw, 0.5rem) 0;
 			border-bottom: 1px solid #f3f4f6;
 			font-family: 'Mona Sans', sans-serif;
 			font-weight: 400;
-			font-size: 14px;
-			line-height: 20px;
+			font-size: clamp(0.8125rem, 1.25vw, 0.875rem);
+			line-height: 1.4;
 			color: #6B7280;
 
 			&:last-child {
@@ -446,8 +496,8 @@
 		font-family: 'Mona Sans', sans-serif;
 		font-style: italic;
 		font-weight: 400;
-		font-size: 12px;
-		line-height: 16px;
+		font-size: clamp(0.75rem, 1.25vw, 0.75rem);
+		line-height: 1.3;
 		color: #6B7280;
 	}
 }

@@ -52,15 +52,17 @@
 		top: 0;
 		left: 0;
 		right: 0;
-		height: 144px;
+		height: 149px;
 		overflow: hidden;
-		display: none; // Hide blurry video background
+		background: transparent;
 
 		video {
 			width: 100%;
-			height: 192px;
+			height: 100%;
 			object-fit: cover;
 			filter: blur(30px);
+			transform: scale(1.2);
+			opacity: 1;
 		}
 	}
 

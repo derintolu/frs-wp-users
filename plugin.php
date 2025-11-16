@@ -11,6 +11,7 @@ use FRSUsers\Core\ProfileStorage;
 use FRSUsers\Core\CLI;
 use FRSUsers\Core\ProfileApi;
 use FRSUsers\Core\PluginDependencies;
+use FRSUsers\Core\Templates;
 use FRSUsers\Controllers\Shortcodes;
 use FRSUsers\Controllers\PostTypes;
 use FRSUsers\Controllers\ProfilePagesAdmin;
@@ -72,6 +73,9 @@ final class FRSUsers {
 
 		// Initialize custom post types
 		PostTypes::get_instance()->init();
+
+		// Initialize template loader
+		Templates::get_instance()->init();
 
 		// Initialize Gutenberg blocks
 		Blocks::init();

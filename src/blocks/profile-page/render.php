@@ -36,10 +36,18 @@ if ($profile->linkedin_url) $social_links['linkedin'] = ['url' => $profile->link
 if ($profile->instagram_url) $social_links['instagram'] = ['url' => $profile->instagram_url, 'icon' => 'instagram', 'label' => 'Instagram'];
 if ($profile->twitter_url) $social_links['twitter'] = ['url' => $profile->twitter_url, 'icon' => 'twitter', 'label' => 'Twitter/X'];
 
-// Build custom links array
-$custom_links = [];
-if ($profile->website_url) $custom_links['website'] = ['url' => $profile->website_url, 'label' => 'Website'];
-if ($profile->calendly_url) $custom_links['calendar'] = ['url' => $profile->calendly_url, 'label' => 'Schedule Meeting'];
+// Get booking link from post meta
+$post_id = get_the_ID();
+$booking_link = get_post_meta($post_id, '_booking_link', true);
+
+// Gradient video URL
+$gradient_video_url = get_site_url() . '/wp-content/uploads/2025/10/Blue-Dark-Blue-Gradient-Color-and-Style-Video-Background-1.mp4';
+
+// Profile page URL for QR code
+$profile_url = get_permalink();
+
+// Unique block ID
+$block_id = 'frs-profile-page-' . $profile_id . '-' . wp_rand();
 
 // Parse service areas and specialties (assuming comma-separated strings)
 $service_areas = !empty($profile->service_areas) ? array_map('trim', explode(',', $profile->service_areas)) : [];
@@ -47,39 +55,67 @@ $specialties = !empty($profile->specialties) ? array_map('trim', explode(',', $p
 
 ?>
 
-<div class="frs-profile-page">
+<div class="frs-profile-page" id="<?php echo esc_attr($block_id); ?>">
 	<!-- Profile Header Card -->
 	<div class="frs-profile-page__header">
-		<div class="frs-profile-page__header-gradient"></div>
+		<!-- Video Background -->
+		<div class="frs-profile-page__header-video">
+			<video autoplay loop muted playsinline>
+				<source src="<?php echo esc_url($gradient_video_url); ?>" type="video/mp4">
+			</video>
+		</div>
 
 		<div class="frs-profile-page__header-content">
-			<?php if ($profile->profile_photo_url) : ?>
-				<div class="frs-profile-page__avatar">
-					<img src="<?php echo esc_url($profile->profile_photo_url); ?>" alt="<?php echo esc_attr($profile->full_name); ?>" />
+			<!-- Avatar with Flip Animation -->
+			<?php if ($profile->headshot_url): ?>
+			<div class="frs-profile-page__avatar-container">
+				<div class="frs-profile-page__avatar-flip">
+					<!-- Front - Photo -->
+					<div class="frs-profile-page__avatar frs-profile-page__avatar-front">
+						<img src="<?php echo esc_url($profile->headshot_url); ?>" alt="<?php echo esc_attr($profile->full_name); ?>" />
+					</div>
+					<!-- Back - QR Code -->
+					<div class="frs-profile-page__avatar frs-profile-page__avatar-back">
+						<div id="qr-code-<?php echo esc_attr($profile->id); ?>" class="frs-profile-page__qr-code"></div>
+					</div>
 				</div>
-			<?php endif; ?>
-
-			<h1 class="frs-profile-page__name"><?php echo esc_html($profile->full_name); ?></h1>
-
-			<?php if ($profile->title || $profile->nmls_number) : ?>
-				<p class="frs-profile-page__title">
-					<?php
-					$title_parts = [];
-					if ($profile->title) $title_parts[] = esc_html($profile->title);
-					if ($profile->nmls_number) $title_parts[] = 'NMLS ' . esc_html($profile->nmls_number);
-					echo implode(' | ', $title_parts);
-					?>
-				</p>
-			<?php endif; ?>
-
-			<?php if ($profile->city_state) : ?>
-				<div class="frs-profile-page__location">
-					<svg class="frs-profile-page__location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+				<!-- QR Code Toggle Button -->
+				<button class="frs-profile-page__qr-button frs-flip-btn" type="button" aria-label="Toggle QR Code">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/>
 					</svg>
-					<?php echo esc_html($profile->city_state); ?>
+				</button>
+			</div>
+			<?php endif; ?>
+
+			<div class="frs-profile-page__main-content">
+				<div class="frs-profile-page__header-top">
+					<h1 class="frs-profile-page__name"><?php echo esc_html($profile->full_name); ?></h1>
+					<?php if ($profile->arrive): ?>
+					<a href="<?php echo esc_url($profile->arrive); ?>" target="_blank" rel="noopener" class="frs-profile-page__btn frs-profile-page__btn--arrive">
+						<svg width="16" height="16" viewBox="0 0 1024 1024" fill="currentColor">
+							<path d="M512 16c-273.934 0-496 222.066-496 496s222.066 496 496 496 496-222.066 496-496-222.066-496-496-496zM512 112c221.064 0 400 178.902 400 400 0 221.064-178.902 400-400 400-221.064 0-400-178.902-400-400 0-221.064 178.902-400 400-400zM792.408 372.534l-45.072-45.436c-9.334-9.41-24.53-9.472-33.94-0.136l-282.704 280.432-119.584-120.554c-9.334-9.41-24.53-9.472-33.94-0.138l-45.438 45.072c-9.41 9.334-9.472 24.53-0.136 33.942l181.562 183.032c9.334 9.41 24.53 9.472 33.94 0.136l345.178-342.408c9.408-9.336 9.468-24.532 0.134-33.942z"/>
+						</svg>
+						Get Pre-Approved
+					</a>
+					<?php endif; ?>
 				</div>
+
+			<?php if ($profile->job_title || $profile->city_state) : ?>
+				<p class="frs-profile-page__title">
+					<?php if ($profile->job_title): ?>
+					<span><?php echo esc_html($profile->job_title); ?></span>
+					<?php endif; ?>
+					<?php if ($profile->city_state): ?>
+					<span class="frs-profile-page__location">
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+							<circle cx="12" cy="10" r="3"/>
+						</svg>
+						<?php echo esc_html($profile->city_state); ?>
+					</span>
+					<?php endif; ?>
+				</p>
 			<?php endif; ?>
 
 			<!-- Contact Info -->
@@ -105,32 +141,19 @@ $specialties = !empty($profile->specialties) ? array_map('trim', explode(',', $p
 
 			<!-- Action Buttons -->
 			<div class="frs-profile-page__actions">
-				<?php if ($profile->phone_number) : ?>
-					<a href="tel:<?php echo esc_attr($profile->phone_number); ?>" class="frs-profile-page__btn frs-profile-page__btn--primary">
-						<?php esc_html_e('Call', 'frs-users'); ?>
-					</a>
-				<?php endif; ?>
-
-				<?php if ($profile->email) : ?>
-					<a href="mailto:<?php echo esc_attr($profile->email); ?>" class="frs-profile-page__btn frs-profile-page__btn--secondary">
-						<?php esc_html_e('Email', 'frs-users'); ?>
-					</a>
-				<?php endif; ?>
-
-				<?php if ($profile->calendly_url) : ?>
-					<a href="<?php echo esc_url($profile->calendly_url); ?>" target="_blank" rel="noopener noreferrer" class="frs-profile-page__btn frs-profile-page__btn--secondary">
-						<?php esc_html_e('Schedule Meeting', 'frs-users'); ?>
-					</a>
-				<?php endif; ?>
-
-				<?php if ($profile->apply_now_url) : ?>
-					<a href="<?php echo esc_url($profile->apply_now_url); ?>" target="_blank" rel="noopener noreferrer" class="frs-profile-page__btn frs-profile-page__btn--accent">
-						<?php esc_html_e('Apply Now', 'frs-users'); ?>
-					</a>
-				<?php endif; ?>
+				<a href="#contact" class="frs-profile-page__btn frs-profile-page__btn--secondary">
+					Send a Message
+				</a>
+				<a href="#" class="frs-profile-page__btn frs-profile-page__btn--secondary add-to-contacts">
+					Add To Contacts
+				</a>
+				<button type="button" class="frs-profile-page__btn frs-profile-page__btn--secondary frs-schedule-meeting-btn" data-booking-url="<?php echo esc_attr($booking_link); ?>">
+					Schedule Meeting
+				</button>
 			</div>
-		</div>
-	</div>
+			</div><!-- .frs-profile-page__main-content -->
+		</div><!-- .frs-profile-page__header-content -->
+	</div><!-- .frs-profile-page__header -->
 
 	<div class="frs-profile-page__content">
 		<!-- Links & Social Section -->
@@ -168,37 +191,179 @@ $specialties = !empty($profile->specialties) ? array_map('trim', explode(',', $p
 		<!-- Professional Biography Section -->
 		<?php if ($profile->biography) : ?>
 			<div class="frs-profile-page__section frs-profile-page__section--full">
-				<h2 class="frs-profile-page__section-title"><?php esc_html_e('Professional Biography', 'frs-users'); ?></h2>
+				<h2 class="frs-profile-page__section-title"><?php esc_html_e('About', 'frs-users'); ?></h2>
 				<div class="frs-profile-page__bio">
 					<?php echo wp_kses_post(wpautop($profile->biography)); ?>
 				</div>
 			</div>
 		<?php endif; ?>
 
-		<!-- Specialties & Credentials Section -->
-		<?php if (!empty($specialties) || $profile->license_number) : ?>
-			<div class="frs-profile-page__section frs-profile-page__section--full">
-				<h2 class="frs-profile-page__section-title"><?php esc_html_e('Specialties & Credentials', 'frs-users'); ?></h2>
+		<!-- Credentials Section -->
+		<?php if ($profile->license_number || $profile->nmls_number) : ?>
+			<div class="frs-profile-page__section">
+				<h2 class="frs-profile-page__section-title"><?php esc_html_e('Credentials', 'frs-users'); ?></h2>
+				<div class="frs-profile-page__credentials">
+					<?php if ($profile->nmls_number) : ?>
+						<p><strong><?php esc_html_e('NMLS #:', 'frs-users'); ?></strong> <?php echo esc_html($profile->nmls_number); ?></p>
+					<?php endif; ?>
+					<?php if ($profile->license_number) : ?>
+						<p><strong><?php esc_html_e('License #:', 'frs-users'); ?></strong> <?php echo esc_html($profile->license_number); ?></p>
+					<?php endif; ?>
+				</div>
+			</div>
+		<?php endif; ?>
 
-				<?php if (!empty($specialties)) : ?>
-					<div class="frs-profile-page__tags">
-						<?php foreach ($specialties as $specialty) : ?>
-							<span class="frs-profile-page__tag frs-profile-page__tag--specialty"><?php echo esc_html($specialty); ?></span>
-						<?php endforeach; ?>
-					</div>
-				<?php endif; ?>
+		<!-- Languages Section -->
+		<?php
+		$languages = !empty($profile->languages) ? (is_array($profile->languages) ? $profile->languages : json_decode($profile->languages, true)) : [];
+		if (!empty($languages)) : ?>
+			<div class="frs-profile-page__section">
+				<h2 class="frs-profile-page__section-title"><?php esc_html_e('Languages', 'frs-users'); ?></h2>
+				<p><?php echo esc_html(is_array($languages) ? implode(', ', $languages) : $languages); ?></p>
+			</div>
+		<?php endif; ?>
 
-				<?php if ($profile->license_number || $profile->nmls_number) : ?>
-					<div class="frs-profile-page__credentials">
-						<?php if ($profile->nmls_number) : ?>
-							<p><strong><?php esc_html_e('NMLS:', 'frs-users'); ?></strong> <?php echo esc_html($profile->nmls_number); ?></p>
-						<?php endif; ?>
-						<?php if ($profile->license_number) : ?>
-							<p><strong><?php esc_html_e('License:', 'frs-users'); ?></strong> <?php echo esc_html($profile->license_number); ?></p>
-						<?php endif; ?>
-					</div>
-				<?php endif; ?>
+		<!-- Specialties Section -->
+		<?php if (!empty($specialties)) : ?>
+			<div class="frs-profile-page__section">
+				<h2 class="frs-profile-page__section-title"><?php esc_html_e('Specialties', 'frs-users'); ?></h2>
+				<div class="frs-profile-page__tags">
+					<?php foreach ($specialties as $specialty) : ?>
+						<span class="frs-profile-page__tag frs-profile-page__tag--specialty"><?php echo esc_html($specialty); ?></span>
+					<?php endforeach; ?>
+				</div>
 			</div>
 		<?php endif; ?>
 	</div>
+
+	<!-- Booking Popup Modal -->
+	<div id="frs-booking-modal-<?php echo esc_attr($profile->id); ?>" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7);">
+		<div style="position: relative; margin: 5% auto; width: 90%; max-width: 800px; background: #fff; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+			<button type="button" class="frs-close-modal" style="position: absolute; right: 20px; top: 20px; background: #f3f4f6; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 24px; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; color: #6b7280;">&times;</button>
+			<div style="padding: 40px;">
+				<h2 style="margin: 0 0 20px 0; font-size: 28px; font-weight: 700;">Schedule a Meeting</h2>
+				<iframe class="frs-booking-iframe" src="" style="width: 100%; height: 600px; border: none; border-radius: 8px;"></iframe>
+			</div>
+		</div>
+	</div>
+
+	<!-- QR Code and Modal Scripts -->
+	<script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+	<style>
+	.frs-flip-btn:hover {
+		transform: scale(1.1) !important;
+	}
+	.frs-avatar-flip canvas {
+		max-width: 100%;
+		max-height: 100%;
+	}
+	</style>
+	<script>
+	(function() {
+		var blockId = '<?php echo esc_js($block_id); ?>';
+		var profileId = <?php echo intval($profile->id); ?>;
+
+		// Generate QR Code for profile with styling
+		var profileUrl = '<?php echo esc_js($profile_url); ?>';
+		var qrContainer = document.getElementById('qr-code-' + profileId);
+
+		if (qrContainer && typeof QRCodeStyling !== 'undefined') {
+			// Check if already generated
+			if (qrContainer.querySelector('canvas')) {
+				return;
+			}
+
+			var qrCode = new QRCodeStyling({
+				width: 200,
+				height: 200,
+				type: 'canvas',
+				data: profileUrl,
+				dotsOptions: {
+					color: '#1e3a8a',
+					type: 'rounded'
+				},
+				backgroundOptions: {
+					color: '#ffffff',
+				},
+				cornersSquareOptions: {
+					color: '#2dd4da',
+					type: 'extra-rounded'
+				},
+				cornersDotOptions: {
+					color: '#2563eb',
+					type: 'dot'
+				},
+				imageOptions: {
+					crossOrigin: 'anonymous',
+					margin: 8
+				}
+			});
+
+			qrCode.append(qrContainer);
+		}
+
+		// Flip card animation (toggle)
+		var container = document.getElementById(blockId);
+		if (container) {
+			var flipBtn = container.querySelector('.frs-flip-btn');
+			var flipCard = container.querySelector('.frs-avatar-flip');
+			var isFlipped = false;
+
+			if (flipBtn && flipCard) {
+				flipBtn.addEventListener('click', function(e) {
+					e.preventDefault();
+					isFlipped = !isFlipped;
+					flipCard.style.transform = isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)';
+				});
+			}
+
+			// Schedule Meeting Modal
+			var modal = document.getElementById('frs-booking-modal-' + profileId);
+			var iframe = modal ? modal.querySelector('.frs-booking-iframe') : null;
+			var closeBtn = modal ? modal.querySelector('.frs-close-modal') : null;
+			var scheduleBtn = container.querySelector('.frs-schedule-meeting-btn');
+
+			if (scheduleBtn && modal && iframe) {
+				scheduleBtn.addEventListener('click', function() {
+					var bookingUrl = this.getAttribute('data-booking-url');
+					if (bookingUrl && bookingUrl !== '') {
+						iframe.src = bookingUrl;
+						modal.style.display = 'block';
+						document.body.style.overflow = 'hidden';
+					} else {
+						alert('No booking link available for this profile.');
+					}
+				});
+			}
+
+			if (closeBtn && modal && iframe) {
+				closeBtn.addEventListener('click', function() {
+					modal.style.display = 'none';
+					iframe.src = '';
+					document.body.style.overflow = '';
+				});
+			}
+
+			// Close modal when clicking outside
+			if (modal && iframe) {
+				window.addEventListener('click', function(e) {
+					if (e.target === modal) {
+						modal.style.display = 'none';
+						iframe.src = '';
+						document.body.style.overflow = '';
+					}
+				});
+
+				// Close on ESC key
+				document.addEventListener('keydown', function(e) {
+					if (e.key === 'Escape' && modal.style.display === 'block') {
+						modal.style.display = 'none';
+						iframe.src = '';
+						document.body.style.overflow = '';
+					}
+				});
+			}
+		}
+	})();
+	</script>
 </div>

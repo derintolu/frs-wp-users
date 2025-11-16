@@ -16,6 +16,11 @@ class Templates {
     use Base;
 
     /**
+     * Cache duration in seconds (1 hour)
+     */
+    const CACHE_DURATION = HOUR_IN_SECONDS;
+
+    /**
      * Initialize template hooks
      */
     public function init() {
@@ -93,9 +98,22 @@ class Templates {
      * @return object|null Profile object or null
      */
     private function get_profile_by_slug($slug) {
-        // Try to find by first-last name slug format
-        $slug_parts = explode('-', $slug);
+        // Check if in remote mode
+        if (Config::is_remote()) {
+            return $this->get_profile_from_api($slug);
+        }
 
+        // Primary mode - query local database
+        return $this->get_profile_from_database($slug);
+    }
+
+    /**
+     * Get profile from local database
+     *
+     * @param string $slug Profile slug
+     * @return object|null Profile object or null
+     */
+    private function get_profile_from_database($slug) {
         // Try exact email match first
         $profile = Profile::where('email', $slug)->first();
         if ($profile) {
@@ -103,6 +121,8 @@ class Templates {
         }
 
         // Try to match by name pattern
+        $slug_parts = explode('-', $slug);
+
         if (count($slug_parts) >= 2) {
             $profiles = Profile::all();
 
@@ -115,5 +135,68 @@ class Templates {
         }
 
         return null;
+    }
+
+    /**
+     * Get profile from remote API
+     *
+     * @param string $slug Profile slug
+     * @return object|null Profile object or null
+     */
+    private function get_profile_from_api($slug) {
+        // Check cache first
+        $cache_key = 'frs_profile_' . md5($slug);
+        $cached = get_transient($cache_key);
+
+        if ($cached !== false) {
+            return (object) $cached;
+        }
+
+        // Get API URL
+        $api_url = Config::get_primary_api_url();
+
+        if (!$api_url) {
+            error_log('FRS Users: Primary API URL not configured for remote mode');
+            return null;
+        }
+
+        // Fetch from API
+        $endpoint = $api_url . 'profiles/slug/' . urlencode($slug);
+        $response = wp_remote_get($endpoint, array(
+            'timeout' => 15,
+        ));
+
+        if (is_wp_error($response)) {
+            error_log('FRS Users API Error: ' . $response->get_error_message());
+            return null;
+        }
+
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+        if (!empty($data['success']) && !empty($data['data'])) {
+            // Cache the result
+            set_transient($cache_key, $data['data'], self::CACHE_DURATION);
+
+            return (object) $data['data'];
+        }
+
+        return null;
+    }
+
+    /**
+     * Clear profile cache
+     *
+     * @param string $slug Profile slug
+     * @return bool Success
+     */
+    public static function clear_cache($slug = null) {
+        if ($slug) {
+            $cache_key = 'frs_profile_' . md5($slug);
+            return delete_transient($cache_key);
+        }
+
+        // Clear all profile caches (would need to track keys)
+        return true;
     }
 }

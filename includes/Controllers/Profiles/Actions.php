@@ -131,6 +131,55 @@ class Actions {
 	}
 
 	/**
+	 * Get profile by slug
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error Response object or error.
+	 */
+	public function get_profile_by_slug( WP_REST_Request $request ) {
+		$slug = $request->get_param( 'slug' );
+
+		// Try exact email match first
+		$profile = Profile::where( 'email', $slug )->first();
+
+		if ( $profile ) {
+			return new WP_REST_Response(
+				array(
+					'success' => true,
+					'data'    => $profile->toArray(),
+				),
+				200
+			);
+		}
+
+		// Try to match by name pattern
+		$slug_parts = explode( '-', $slug );
+
+		if ( count( $slug_parts ) >= 2 ) {
+			$profiles = Profile::all();
+
+			foreach ( $profiles as $profile ) {
+				$profile_slug = sanitize_title( $profile->first_name . '-' . $profile->last_name );
+				if ( $profile_slug === $slug ) {
+					return new WP_REST_Response(
+						array(
+							'success' => true,
+							'data'    => $profile->toArray(),
+						),
+						200
+					);
+				}
+			}
+		}
+
+		return new WP_Error(
+			'profile_not_found',
+			__( 'Profile not found', 'frs-users' ),
+			array( 'status' => 404 )
+		);
+	}
+
+	/**
 	 * Create profile
 	 *
 	 * @param WP_REST_Request $request Request object.

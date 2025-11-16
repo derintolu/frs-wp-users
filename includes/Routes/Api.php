@@ -203,6 +203,25 @@ class Api {
 			)
 		);
 
+		// Get profile by slug (for remote sites and public access)
+		register_rest_route(
+			self::$namespace,
+			'/profiles/slug/(?P<slug>[a-zA-Z0-9_-]+)',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( self::$actions, 'get_profile_by_slug' ),
+				'permission_callback' => '__return_true', // Public access for remote sites
+				'args'                => array(
+					'slug' => array(
+						'description'       => 'Profile slug (first-last format)',
+						'type'              => 'string',
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_title',
+					),
+				),
+			)
+		);
+
 		// Create user account for guest profile
 		register_rest_route(
 			self::$namespace,

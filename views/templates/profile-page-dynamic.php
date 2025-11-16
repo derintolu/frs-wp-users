@@ -171,58 +171,95 @@ get_header();
 
 				<!-- Action Buttons -->
 				<div class="frs-profile-page__actions">
+					<a href="#" class="frs-profile-page__btn frs-profile-page__btn--secondary add-to-contacts">
+						Save to Contacts
+					</a>
+					<button type="button" class="frs-profile-page__btn frs-profile-page__btn--secondary frs-schedule-meeting-btn-2" data-booking-url="<?php echo esc_attr($booking_link); ?>">
+						Schedule a Meeting
+					</button>
 					<?php if ($profile->phone_number): ?>
 					<a href="tel:<?php echo esc_attr($profile->phone_number); ?>" class="frs-profile-page__btn frs-profile-page__btn--secondary">
-						Call
+						Call Me
 					</a>
 					<?php endif; ?>
-					<?php if ($profile->email): ?>
-					<a href="mailto:<?php echo esc_attr($profile->email); ?>" class="frs-profile-page__btn frs-profile-page__btn--secondary">
-						Email
-					</a>
-					<?php endif; ?>
-					<a href="#" class="frs-profile-page__btn frs-profile-page__btn--secondary add-to-contacts">
-						Add To Phone
-					</a>
 				</div>
 			</div><!-- .frs-profile-page__main-content -->
 		</div><!-- .frs-profile-page__header-content -->
 	</div><!-- .frs-profile-page__header -->
 
 	<div class="frs-profile-page__content">
-		<!-- Professional Biography Section -->
-		<?php if ($profile->biography) : ?>
-			<div class="frs-profile-page__section frs-profile-page__section--full">
-				<h2 class="frs-profile-page__section-title"><?php esc_html_e('About', 'frs-users'); ?></h2>
-				<div class="frs-profile-page__bio">
-					<?php echo wp_kses_post(wpautop($profile->biography)); ?>
+		<!-- Left Column: Specialties & Credentials -->
+		<div class="frs-profile-page__left-column">
+			<div class="frs-profile-page__section">
+				<h2 class="frs-profile-page__section-title">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+					</svg>
+					<?php esc_html_e('Specialties & Credentials', 'frs-users'); ?>
+				</h2>
+
+				<!-- Loan Officer Specialties -->
+				<div class="frs-profile-page__specialty-group">
+					<h3 class="frs-profile-page__specialty-title"><?php esc_html_e('Loan Officer Specialties', 'frs-users'); ?></h3>
+					<?php if (!empty($specialties) && is_array($specialties)): ?>
+						<ul class="frs-profile-page__specialty-list">
+							<?php foreach ($specialties as $specialty): ?>
+								<li><?php echo esc_html($specialty); ?></li>
+							<?php endforeach; ?>
+						</ul>
+					<?php else: ?>
+						<p class="frs-profile-page__no-data"><em><?php esc_html_e('No specialties selected', 'frs-users'); ?></em></p>
+					<?php endif; ?>
+				</div>
+
+				<!-- NAMB Certifications -->
+				<div class="frs-profile-page__specialty-group">
+					<h3 class="frs-profile-page__specialty-title"><?php esc_html_e('NAMB Certifications', 'frs-users'); ?></h3>
+					<?php
+					$namb_certs = !empty($profile->namb_certifications) ? (is_array($profile->namb_certifications) ? $profile->namb_certifications : json_decode($profile->namb_certifications, true)) : [];
+					if (!empty($namb_certs) && is_array($namb_certs)):
+					?>
+						<ul class="frs-profile-page__specialty-list">
+							<?php foreach ($namb_certs as $cert): ?>
+								<li><?php echo esc_html($cert); ?></li>
+							<?php endforeach; ?>
+						</ul>
+					<?php else: ?>
+						<p class="frs-profile-page__no-data"><em><?php esc_html_e('No certifications selected', 'frs-users'); ?></em></p>
+					<?php endif; ?>
 				</div>
 			</div>
-		<?php endif; ?>
+		</div>
 
-		<div class="frs-profile-page__two-column">
-			<!-- Credentials Section -->
-			<?php if ($profile->license_number || $profile->nmls_number) : ?>
+		<!-- Right Column: Biography & Service Areas -->
+		<div class="frs-profile-page__right-column">
+			<!-- Biography Section -->
+			<?php if ($profile->biography) : ?>
 				<div class="frs-profile-page__section">
-					<h2 class="frs-profile-page__section-title"><?php esc_html_e('Credentials', 'frs-users'); ?></h2>
-					<div class="frs-profile-page__credentials">
-						<?php if ($profile->nmls_number) : ?>
-							<p><strong><?php esc_html_e('NMLS #:', 'frs-users'); ?></strong> <?php echo esc_html($profile->nmls_number); ?></p>
-						<?php endif; ?>
-						<?php if ($profile->license_number) : ?>
-							<p><strong><?php esc_html_e('License #:', 'frs-users'); ?></strong> <?php echo esc_html($profile->license_number); ?></p>
-						<?php endif; ?>
+					<h2 class="frs-profile-page__section-title">
+						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+						</svg>
+						<?php esc_html_e('Biography', 'frs-users'); ?>
+					</h2>
+					<div class="frs-profile-page__bio">
+						<?php echo wp_kses_post(wpautop($profile->biography)); ?>
 					</div>
 				</div>
 			<?php endif; ?>
 
-			<!-- Languages Section -->
-			<?php
-			$languages = !empty($profile->languages) ? (is_array($profile->languages) ? $profile->languages : json_decode($profile->languages, true)) : [];
-			if (!empty($languages)) : ?>
+			<!-- Service Areas Section -->
+			<?php if (!empty($service_areas) && is_array($service_areas)): ?>
 				<div class="frs-profile-page__section">
-					<h2 class="frs-profile-page__section-title"><?php esc_html_e('Languages', 'frs-users'); ?></h2>
-					<p><?php echo esc_html(is_array($languages) ? implode(', ', $languages) : $languages); ?></p>
+					<h2 class="frs-profile-page__section-title">
+						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+						</svg>
+						<?php esc_html_e('Service Areas', 'frs-users'); ?>
+					</h2>
+					<div class="frs-profile-page__service-areas">
+						<?php echo esc_html(implode(', ', $service_areas)); ?>
+					</div>
 				</div>
 			<?php endif; ?>
 		</div>

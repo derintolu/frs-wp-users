@@ -334,6 +334,17 @@ get_header();
 		});
 
 		qrCode.append(qrContainer);
+
+		// Constrain canvas size after generation (matching React component)
+		setTimeout(function() {
+			var canvas = qrContainer.querySelector('canvas');
+			if (canvas) {
+				canvas.style.width = '123px';
+				canvas.style.height = '123px';
+				canvas.style.maxWidth = '123px';
+				canvas.style.maxHeight = '123px';
+			}
+		}, 100);
 	}
 
 	// Flip card animation

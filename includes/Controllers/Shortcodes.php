@@ -37,10 +37,8 @@ class Shortcodes {
 	 * @return void
 	 */
 	public static function register_shortcodes() {
-		add_shortcode( 'frs_profile_editor', array( __CLASS__, 'render_profile_editor' ) );
-		add_shortcode( 'frs_profile_view', array( __CLASS__, 'render_profile_view' ) );
+		add_shortcode( 'frs_profile', array( __CLASS__, 'render_profile' ) );
 		add_shortcode( 'frs_profile_directory', array( __CLASS__, 'render_directory' ) );
-		add_shortcode( 'frs_profile_portal', array( __CLASS__, 'render_portal' ) );
 
 		// Allow other plugins to register additional FRS shortcodes
 		do_action( 'frs_users_register_shortcodes' );
@@ -186,15 +184,15 @@ class Shortcodes {
 	}
 
 	/**
-	 * Render portal shortcode
+	 * Render profile shortcode (unified portal with sidebar and routing)
 	 *
 	 * @param array $atts Shortcode attributes.
 	 * @return string Rendered shortcode HTML.
 	 */
-	public static function render_portal( $atts ) {
+	public static function render_profile( $atts ) {
 		// Check if user is logged in
 		if ( ! is_user_logged_in() ) {
-			return '<div class="frs-portal-error"><p>' . esc_html__( 'Please log in to access the portal.', 'frs-users' ) . '</p></div>';
+			return '<div class="frs-profile-error"><p>' . esc_html__( 'Please log in to access your profile.', 'frs-users' ) . '</p></div>';
 		}
 
 		// Get current user
@@ -220,7 +218,7 @@ class Shortcodes {
 		);
 
 		// Output React mount point
-		return '<div id="frs-users-portal-root"><p>' . esc_html__( 'Loading portal...', 'frs-users' ) . '</p></div>';
+		return '<div id="frs-users-portal-root"><p>' . esc_html__( 'Loading profile...', 'frs-users' ) . '</p></div>';
 	}
 
 	/**

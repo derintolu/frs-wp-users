@@ -1,15 +1,14 @@
 /**
  * Portal Sidebar Component
- * Dynamic sidebar that loads WordPress menus based on user role
+ * Simplified sidebar with hardcoded menu items for profile management
  */
 
 import * as React from "react";
-import { useEffect, useState } from "react";
-import { Building2, LayoutDashboard } from "lucide-react";
+import { Building2, LayoutDashboard, User, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
-import { NavMain } from "@/components/nav-main";
-import { NavUser } from "@/components/nav-user";
-import { TeamSwitcher } from "@/components/team-switcher";
+import { NavMain } from "./nav-main";
+import { NavUser } from "./nav-user";
+import { TeamSwitcher } from "./team-switcher";
 import {
   Sidebar,
   SidebarContent,
@@ -17,8 +16,6 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { fetchPortalMenuCached, getMenuLocationForRole } from "@/services/menuService";
-import type { SidebarMenuItem } from "@/types/menu";
 
 interface PortalSidebarProps extends React.ComponentProps<typeof Sidebar> {
   userRole: 'loan_officer' | 'realtor_partner' | 'manager' | 'frs_admin';
@@ -38,35 +35,31 @@ export function PortalSidebar({
   siteLogo = '',
   ...props
 }: PortalSidebarProps) {
-  const [menuItems, setMenuItems] = useState<SidebarMenuItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    console.log('PortalSidebar mounted, userRole:', userRole);
-
-    async function loadMenu() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const location = getMenuLocationForRole(userRole);
-        console.log('Fetching menu for location:', location);
-        const items = await fetchPortalMenuCached(location);
-
-        console.log('Menu items loaded:', items);
-        setMenuItems(items);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load menu';
-        setError(errorMessage);
-        console.error('Menu loading error:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadMenu();
-  }, [userRole]);
+  // Hardcoded menu items for profile management
+  const menuItems = [
+    {
+      title: "Profile",
+      url: "/profile",
+      icon: User,
+      isActive: true,
+      items: [
+        {
+          title: "View Profile",
+          url: "/profile",
+        },
+        {
+          title: "Edit Profile",
+          url: "/profile/edit",
+        },
+      ],
+    },
+    {
+      title: "Settings",
+      url: "/settings",
+      icon: Settings,
+      items: [],
+    },
+  ];
 
   // User data for footer
   const userData = {
@@ -123,31 +116,7 @@ export function PortalSidebar({
           </Link>
         </nav>
 
-        {loading && (
-          <div className="flex items-center justify-center p-4">
-            <div className="text-sm text-muted-foreground">Loading menu...</div>
-          </div>
-        )}
-
-        {error && (
-          <div className="flex flex-col items-center justify-center p-4 text-center">
-            <div className="text-sm text-destructive mb-2">Failed to load menu</div>
-            <div className="text-xs text-muted-foreground">{error}</div>
-          </div>
-        )}
-
-        {!loading && !error && menuItems.length > 0 && (
-          <NavMain items={menuItems} />
-        )}
-
-        {!loading && !error && menuItems.length === 0 && (
-          <div className="flex flex-col items-center justify-center p-4 text-center">
-            <div className="text-sm text-muted-foreground mb-2">No menu configured</div>
-            <div className="text-xs text-muted-foreground">
-              Go to Appearance → Menus in WordPress admin to create a menu and assign it to "Portal - {userRole === 'loan_officer' ? 'Loan Officer' : 'Realtor Partner'}"
-            </div>
-          </div>
-        )}
+        <NavMain items={menuItems} />
       </SidebarContent>
 
       <SidebarFooter>

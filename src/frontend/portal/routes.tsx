@@ -24,7 +24,11 @@ export const router = createHashRouter([
       },
       {
         path: 'profile',
-        element: <ProfileSection userRole="loan-officer" userId="me" />,
+        element: <ProfileSection userRole="loan-officer" userId="me" activeTab="personal" autoEdit={false} />,
+      },
+      {
+        path: 'profile/edit',
+        element: <ProfileSection userRole="loan-officer" userId="me" activeTab="personal" autoEdit={true} />,
       },
       {
         path: 'settings',

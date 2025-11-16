@@ -285,14 +285,52 @@ get_header();
 		if (qrContainer.querySelector('canvas')) return;
 
 		var qrCode = new QRCodeStyling({
-			width: 200,
-			height: 200,
+			width: 123,
+			height: 123,
 			type: 'canvas',
 			data: profileUrl,
-			dotsOptions: { color: '#1e3a8a', type: 'rounded' },
+			margin: 0,
+			shape: 'square',
+			qrOptions: {
+				typeNumber: 0,
+				mode: 'Byte',
+				errorCorrectionLevel: 'L'
+			},
+			dotsOptions: {
+				type: 'extra-rounded',
+				roundSize: true,
+				gradient: {
+					type: 'linear',
+					rotation: 0,
+					colorStops: [
+						{ offset: 0, color: '#2563eb' },
+						{ offset: 1, color: '#2dd4da' }
+					]
+				}
+			},
 			backgroundOptions: { color: '#ffffff' },
-			cornersSquareOptions: { color: '#2dd4da', type: 'extra-rounded' },
-			cornersDotOptions: { color: '#2563eb', type: 'dot' }
+			cornersSquareOptions: {
+				type: 'extra-rounded',
+				gradient: {
+					type: 'linear',
+					rotation: 0,
+					colorStops: [
+						{ offset: 0, color: '#2563ea' },
+						{ offset: 1, color: '#2dd4da' }
+					]
+				}
+			},
+			cornersDotOptions: {
+				type: '',
+				gradient: {
+					type: 'linear',
+					rotation: 0,
+					colorStops: [
+						{ offset: 0, color: '#2dd4da' },
+						{ offset: 1, color: '#2563e9' }
+					]
+				}
+			}
 		});
 
 		qrCode.append(qrContainer);

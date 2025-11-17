@@ -1155,13 +1155,13 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
         <CardContent className="space-y-3">
           {isEditingSocial ? (
             <div className="space-y-3">
-              <div className="flex gap-2">
+              <div className="grid grid-cols-[1fr,1fr,auto] gap-2 items-end">
                 <FloatingInput
                   id="link-title"
                   label="Link Title"
                   value={customLinkInput.title}
                   onChange={(e) => setCustomLinkInput({...customLinkInput, title: e.target.value})}
-                  className="bg-white flex-1"
+                  className="bg-white"
                 />
                 <FloatingInput
                   id="link-url"
@@ -1169,7 +1169,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
                   type="url"
                   value={customLinkInput.url}
                   onChange={(e) => setCustomLinkInput({...customLinkInput, url: e.target.value})}
-                  className="bg-white flex-1"
+                  className="bg-white"
                 />
                 <Button
                   variant="ghost"

@@ -265,7 +265,13 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
 
       // Save handler
       setHandleSave(() => async () => {
-        if (!profile) return;
+        if (!profile) {
+          console.error('No profile data to save');
+          return;
+        }
+
+        console.log('Saving profile data:', profile);
+        console.log('Service areas:', profile.service_areas);
 
         setIsSaving(true);
         setContextSaving(true);
@@ -282,8 +288,11 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
             body: JSON.stringify(profile)
           });
 
+          console.log('Response status:', response.status);
+
           if (response.ok) {
             const result = await response.json();
+            console.log('Save result:', result);
             const updatedProfile = result.data || result;
             setProfile(updatedProfile);
             setOriginalProfile(updatedProfile); // Update original after successful save
@@ -295,10 +304,22 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
             document.body.appendChild(successMsg);
             setTimeout(() => successMsg.remove(), 3000);
           } else {
-            setError('Failed to save profile changes');
+            const errorData = await response.json();
+            console.error('Save failed:', errorData);
+            const errorMsg = document.createElement('div');
+            errorMsg.className = 'fixed top-20 right-6 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+            errorMsg.textContent = errorData.message || 'Failed to save profile changes';
+            document.body.appendChild(errorMsg);
+            setTimeout(() => errorMsg.remove(), 5000);
+            setError(errorData.message || 'Failed to save profile changes');
           }
         } catch (error) {
           console.error('Failed to save profile:', error);
+          const errorMsg = document.createElement('div');
+          errorMsg.className = 'fixed top-20 right-6 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+          errorMsg.textContent = 'Network error - please try again';
+          document.body.appendChild(errorMsg);
+          setTimeout(() => errorMsg.remove(), 5000);
           setError('Failed to save profile changes');
         } finally {
           setIsSaving(false);

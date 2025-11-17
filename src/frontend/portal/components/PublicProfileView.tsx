@@ -22,7 +22,8 @@ import {
   Smartphone,
   Edit,
   Link2,
-  ExternalLink
+  ExternalLink,
+  PlusCircle
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loading';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
@@ -881,7 +882,6 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
               {/* Service Areas editing will be implemented in Professional Details section */}
               {isEditingProfessional ? (
                 <div className="space-y-3">
-                  <p className="text-sm text-gray-600">Add states where you provide services (e.g., California, Texas, etc.).</p>
                   <div className="flex gap-2">
                     <FloatingInput
                       id="service-state"
@@ -889,11 +889,10 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
                       value={serviceAreaInput}
                       onChange={(e) => setServiceAreaInput(e.target.value)}
                       className="bg-white flex-1"
-                      placeholder="e.g., California"
                     />
                     <Button
-                      variant="outline"
-                      size="sm"
+                      variant="ghost"
+                      size="icon"
                       type="button"
                       onClick={() => {
                         if (serviceAreaInput.trim() !== '') {
@@ -904,9 +903,9 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
                           setServiceAreaInput('');
                         }
                       }}
-                      className="px-4"
+                      className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
                     >
-                      Add
+                      <PlusCircle className="h-5 w-5" />
                     </Button>
                   </div>
                   {profile.service_areas && profile.service_areas.length > 0 && (
@@ -1135,7 +1134,6 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
         <CardContent className="space-y-3">
           {isEditingSocial ? (
             <div className="space-y-3">
-              <p className="text-sm text-gray-600">Add custom links to your profile (e.g., personal website, portfolio, etc.).</p>
               <div className="space-y-2">
                 <FloatingInput
                   id="link-title"
@@ -1143,7 +1141,6 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
                   value={customLinkInput.title}
                   onChange={(e) => setCustomLinkInput({...customLinkInput, title: e.target.value})}
                   className="bg-white"
-                  placeholder="e.g., My Portfolio"
                 />
                 <div className="flex gap-2">
                   <FloatingInput
@@ -1153,11 +1150,10 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
                     value={customLinkInput.url}
                     onChange={(e) => setCustomLinkInput({...customLinkInput, url: e.target.value})}
                     className="bg-white flex-1"
-                    placeholder="https://example.com"
                   />
                   <Button
-                    variant="outline"
-                    size="sm"
+                    variant="ghost"
+                    size="icon"
                     type="button"
                     onClick={() => {
                       if (customLinkInput.title.trim() !== '' && customLinkInput.url.trim() !== '') {
@@ -1171,9 +1167,9 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
                         setCustomLinkInput({ title: '', url: '' });
                       }
                     }}
-                    className="px-4"
+                    className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
                   >
-                    Add
+                    <PlusCircle className="h-5 w-5" />
                   </Button>
                 </div>
               </div>

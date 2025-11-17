@@ -24,14 +24,14 @@ import { calculateProfileCompletion } from '@/frontend/portal/utils/profileCompl
 import { CustomizerPreview, type Breakpoint } from './CustomizerPreview';
 import { useProfileEdit } from '@/frontend/portal/contexts/ProfileEditContext';
 
-interface DashboardLayoutProps {
+interface ProfileCustomizerLayoutProps {
   currentUser: UserType;
   userId: string;
 }
 
 type SidebarView = 'menu' | 'edit-personal' | 'edit-professional' | 'edit-social' | 'edit-links' | 'tool-calculator' | 'tool-valuation' | 'settings';
 
-export function DashboardLayout({ currentUser, userId }: DashboardLayoutProps) {
+export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomizerLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { activeSection, setActiveSection, isSaving, handleSave, handleCancel } = useProfileEdit();

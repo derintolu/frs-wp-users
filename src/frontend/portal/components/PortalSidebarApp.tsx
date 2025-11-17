@@ -1,6 +1,6 @@
 /**
  * Portal Sidebar App - Standalone Component
- * Visually identical to DashboardLayout sidebar
+ * Visually identical to ProfileCustomizerLayout sidebar
  * Uses menu items passed from PHP (not hardcoded here)
  */
 

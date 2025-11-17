@@ -1,5 +1,5 @@
 import { createHashRouter, Navigate } from 'react-router-dom';
-import { DashboardLayout } from './components/DashboardLayout';
+import { ProfileCustomizerLayout } from './components/ProfileCustomizerLayout';
 import { MyProfile } from './components/MyProfile';
 import type { User } from './utils/dataService';
 
@@ -15,7 +15,7 @@ export const createRouter = (config: RouteConfig) => {
   return createHashRouter([
     {
       path: '/',
-      element: <DashboardLayout currentUser={currentUser} userId={userId} />,
+      element: <ProfileCustomizerLayout currentUser={currentUser} userId={userId} />,
       children: [
         {
           index: true,

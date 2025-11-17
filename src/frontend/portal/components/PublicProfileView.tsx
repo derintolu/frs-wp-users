@@ -348,16 +348,16 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
 
   if (loading) {
     return (
-      <div className="w-full max-w-[1290px] mx-auto px-4 py-6 animate-pulse">
+      <div className="@container w-full max-w-[1290px] mx-auto px-4 py-6 animate-pulse">
         {/* Two Column Layout Skeleton */}
-        <div className="grid grid-cols-1 @md:grid-cols-[65%,35%] gap-4 mb-4">
+        <div className="grid grid-cols-1 @lg:!grid-cols-[65%,35%] gap-4 mb-4">
           {/* Profile Card Skeleton */}
           <div className="bg-white shadow-lg rounded border border-gray-200 p-8">
             {/* Header background */}
             <div className="h-[149px] bg-gradient-to-r from-blue-500 to-cyan-500 -mx-8 -mt-8 mb-4 rounded-t"></div>
 
             {/* Avatar skeleton */}
-            <div className="w-[156px] h-[156px] bg-gray-300 rounded-full mx-auto md:mx-0 mb-4"></div>
+            <div className="w-[156px] h-[156px] bg-gray-300 rounded-full mx-auto @lg:mx-0 mb-4"></div>
 
             {/* Name skeleton */}
             <div className="h-10 bg-gray-300 rounded w-3/4 mb-4"></div>
@@ -399,7 +399,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
         </div>
 
         {/* Biography Row Skeleton */}
-        <div className="grid grid-cols-1 @md:grid-cols-[65%,35%] gap-4 mb-4">
+        <div className="grid grid-cols-1 @lg:!grid-cols-[65%,35%] gap-4 mb-4">
           <div className="bg-white shadow-lg rounded border border-gray-200 p-6">
             <div className="h-6 bg-gray-300 rounded w-1/3 mb-4"></div>
             <div className="space-y-2">
@@ -445,16 +445,16 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
 
   return (
     <div
-      className="w-full max-w-[1290px] mx-auto px-4 py-6 animate-in fade-in duration-500"
+      className="@container w-full max-w-[1290px] mx-auto px-4 py-6 animate-in fade-in duration-500"
       style={{
         opacity: loading ? 0 : 1,
         transition: 'opacity 0.5s ease-in-out'
       }}
     >
       {/* Two Column Layout: Profile Card + Links & Social */}
-      <div className="grid grid-cols-1 @md:grid-cols-[65%,35%] gap-4 mb-4">
+      <div className="grid grid-cols-1 @lg:!grid-cols-[65%,35%] gap-4 mb-4">
         {/* Profile Card */}
-        <Card className="shadow-lg max-md:rounded-none md:rounded border border-gray-200 h-full">
+        <Card className="@container shadow-lg max-md:rounded-none @lg:rounded border border-gray-200 h-full">
           <div
             className="p-8 relative overflow-hidden"
             style={{
@@ -479,7 +479,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
             </div>
 
             {/* Avatar with Gradient Border - Flip Card */}
-            <div className="mb-4 relative z-10 mx-auto md:mx-0" style={{ perspective: '1000px', width: '156px' }}>
+            <div className="mb-4 relative z-10 mx-auto @lg:!mx-0" style={{ perspective: '1000px', width: '156px' }}>
               <div
                 className="relative transition-transform duration-700"
                 style={{
@@ -626,43 +626,34 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
                 />
               </div>
             ) : (
-              <>
-                {/* Tablet + Desktop: Name and Apply Now side by side */}
-                <div className="hidden md:flex items-center justify-between mb-2 relative z-10 gap-4">
-                  <h3 className="text-[34px] font-bold text-[#1A1A1A]" style={{ fontFamily: 'Mona Sans Extended, sans-serif' }}>
-                    {fullName}
-                  </h3>
-                  <Button
-                    asChild
-                    className="text-white font-semibold px-6 py-2 shadow-lg whitespace-nowrap"
-                    style={{
-                      background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
-                    }}
-                  >
-                    <a href={profile.arrive || '#'} target="_blank" rel="noopener noreferrer">
-                      Apply Now
-                    </a>
-                  </Button>
-                </div>
-                {/* Mobile only: Name centered */}
-                <div className="md:hidden mb-2 relative z-10 text-center">
-                  <h3 className="text-[34px] font-bold text-[#1A1A1A]" style={{ fontFamily: 'Mona Sans Extended, sans-serif' }}>
-                    {fullName}
-                  </h3>
-                </div>
-              </>
+              <div className="flex flex-col @lg:!flex-row items-center @lg:!items-start justify-center @lg:!justify-between mb-2 relative z-10 gap-4 text-center @lg:!text-left">
+                <h3 className="text-[34px] font-bold text-[#1A1A1A]" style={{ fontFamily: 'Mona Sans Extended, sans-serif' }}>
+                  {fullName}
+                </h3>
+                <Button
+                  asChild
+                  className="hidden @lg:!inline-flex text-white font-semibold px-6 py-2 shadow-lg whitespace-nowrap"
+                  style={{
+                    background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
+                  }}
+                >
+                  <a href={profile.arrive || '#'} target="_blank" rel="noopener noreferrer">
+                    Apply Now
+                  </a>
+                </Button>
+              </div>
             )}
 
             {/* Job Title, NMLS, and Location */}
             {!isEditingPersonal && (
               <div className="mb-4 relative z-10">
-                <p className="text-base text-[#1D4FC4] flex flex-col md:flex-row items-center md:items-start justify-center md:justify-start gap-2 md:gap-6 text-center md:text-left" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                <p className="text-base text-[#1D4FC4] flex flex-col @lg:!flex-row items-center @lg:!items-start justify-center @lg:!justify-start gap-2 @lg:!gap-6 text-center @lg:!text-left" style={{ fontFamily: 'Roboto, sans-serif' }}>
                   <span>
                     {profile.job_title || 'Loan Officer'}
                     {(profile.nmls || profile.nmls_number) && <span> | NMLS {profile.nmls || profile.nmls_number}</span>}
                   </span>
                   {profile.city_state && (
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center justify-center @lg:!justify-start gap-2">
                       <MapPin className="h-4 w-4" />
                       {profile.city_state}
                     </span>
@@ -673,7 +664,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
 
             {/* Social Media Icons Row */}
             {!isEditingPersonal && (profile.linkedin_url || profile.facebook_url || profile.instagram_url || profile.twitter_url || profile.youtube_url || profile.website) && (
-              <div className="flex items-center justify-center md:justify-start gap-3 mb-4 relative z-10">
+              <div className="flex items-center justify-center @lg:!justify-start gap-3 mb-4 relative z-10">
                 {profile.linkedin_url && (
                   <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer">
                     <Linkedin className="h-6 w-6 text-[#1A1A1A] hover:text-[#2563eb] transition-colors" />
@@ -711,7 +702,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
             {!isEditingPersonal && profile.biography && (
               <div className="mb-4 relative z-10">
                 <p
-                  className="text-base text-[#1E1E1E] text-center md:text-left"
+                  className="text-base text-[#1E1E1E] text-center @lg:!text-left"
                   style={{
                     fontFamily: 'Roboto, sans-serif',
                     lineHeight: '22.4px'
@@ -724,7 +715,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
 
             {/* Contact Information - Always visible */}
             {!isEditingPersonal && (
-              <div className="flex items-center justify-center md:justify-start gap-6 mb-6 relative z-10">
+              <div className="flex flex-col @lg:!flex-row items-center @lg:!items-start justify-center @lg:!justify-start gap-2 @lg:!gap-6 mb-6 relative z-10">
                 {profile.email && (
                   <div className="flex items-center gap-2 text-sm text-gray-700">
                     <img src={`${iconPath}/Email.svg`} alt="Email" className="w-6 h-6" />
@@ -746,7 +737,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
 
             {/* Mobile only: Apply Now Button - Centered at bottom */}
             {!isEditingPersonal && (
-              <div className="md:hidden flex justify-center relative z-10">
+              <div className="@lg:!hidden flex justify-center relative z-10">
                 <Button
                   asChild
                   className="text-white font-semibold px-12 py-3 shadow-lg text-lg rounded-lg w-full"
@@ -810,7 +801,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
         <div className="space-y-4 h-full flex flex-col" style={{ backgroundColor: 'white' }}>
           {/* Action Buttons Card */}
           {!isEditingPersonal && (
-            <Card className="shadow-lg rounded-sm border border-gray-200">
+            <Card className="@container shadow-lg rounded-sm border border-gray-200">
               <CardContent className="pt-6">
                 <div className="flex flex-col gap-3">
                   <Button
@@ -886,7 +877,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
           )}
 
           {/* Service Areas Card */}
-          <Card className="shadow-lg rounded-sm border border-gray-200 flex-1" style={{ backgroundColor: 'white' }}>
+          <Card className="@container shadow-lg rounded-sm border border-gray-200 flex-1" style={{ backgroundColor: 'white' }}>
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
                 <MapPin className="h-5 w-5" />
@@ -1014,9 +1005,9 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
       </div>
 
       {/* Second Row: Biography + Links & Social */}
-      <div className="grid grid-cols-1 @md:grid-cols-[65%,35%] gap-4 mb-4">
+      <div className="grid grid-cols-1 @lg:!grid-cols-[65%,35%] gap-4 mb-4">
         {/* Biography Card */}
-        <Card className="shadow-lg rounded-sm border border-gray-200">
+        <Card className="@container shadow-lg rounded-sm border border-gray-200">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
             <FileText className="h-5 w-5" />
@@ -1041,7 +1032,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
       </Card>
 
         {/* Links & Social Card */}
-        <Card className="shadow-lg max-md:rounded-none md:rounded border border-gray-200" style={{ backgroundColor: 'white' }}>
+        <Card className="@container shadow-lg max-md:rounded-none @lg:rounded border border-gray-200" style={{ backgroundColor: 'white' }}>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
               <Globe className="h-5 w-5" />
@@ -1124,7 +1115,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
       </div>
 
       {/* Specialties Card */}
-      <Card className="shadow-lg rounded-sm border border-gray-200">
+      <Card className="@container shadow-lg rounded-sm border border-gray-200">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
             <CheckSquare className="h-5 w-5" />
@@ -1137,7 +1128,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
             <Label className="text-sm font-medium mb-2 block">Loan Officer Specialties</Label>
             {/* Specialties editing will be implemented in Professional Details section */}
             {false ? (
-              <div className="grid grid-cols-1 @md:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 @lg:grid-cols-3 gap-2">
                 {[
                   'Residential Mortgages',
                   'Consumer Loans',
@@ -1193,7 +1184,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
             <Label className="text-sm font-medium mb-2 block">NAMB Certifications</Label>
             {/* Certifications editing will be implemented in Professional Details section */}
             {false ? (
-              <div className="grid grid-cols-1 @md:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 @lg:grid-cols-3 gap-2">
                 {[
                   'CMC - Certified Mortgage Consultant',
                   'CRMS - Certified Residential Mortgage Specialist',

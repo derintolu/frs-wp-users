@@ -37,6 +37,7 @@ class CLI {
 		\WP_CLI::add_command( 'frs-users list-profiles', array( __CLASS__, 'list_profiles' ) );
 		\WP_CLI::add_command( 'frs-users list-guests', array( __CLASS__, 'list_guests' ) );
 		\WP_CLI::add_command( 'frs-users create-user', array( __CLASS__, 'create_user_account' ) );
+		\WP_CLI::add_command( 'frs-users generate-slugs', array( __CLASS__, 'generate_profile_slugs' ) );
 	}
 
 	/**
@@ -238,5 +239,56 @@ class CLI {
 		} else {
 			\WP_CLI::success( sprintf( 'User account created (ID: %d, Username: %s)', $user_id, $username ) );
 		}
+	}
+
+	/**
+	 * Generate profile slugs for profiles that don't have one
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp frs-users generate-slugs
+	 *
+	 * @when after_wp_load
+	 */
+	public static function generate_profile_slugs( $args, $assoc_args ) {
+		\WP_CLI::line( 'Generating profile slugs...' );
+
+		// Get profiles without slugs
+		$profiles = Profile::whereNull( 'profile_slug' )
+			->orWhere( 'profile_slug', '' )
+			->get();
+
+		$total = count( $profiles );
+
+		if ( $total === 0 ) {
+			\WP_CLI::success( 'All profiles already have slugs!' );
+			return;
+		}
+
+		\WP_CLI::line( sprintf( 'Found %d profiles without slugs.', $total ) );
+
+		$generated = 0;
+		$errors = 0;
+
+		foreach ( $profiles as $profile ) {
+			if ( empty( $profile->first_name ) || empty( $profile->last_name ) ) {
+				\WP_CLI::warning( sprintf( 'Skipping profile ID %d - missing first/last name', $profile->id ) );
+				$errors++;
+				continue;
+			}
+
+			// Generate unique slug
+			$profile->profile_slug = Profile::generate_unique_slug( $profile->first_name, $profile->last_name, $profile->id );
+
+			if ( $profile->save() ) {
+				\WP_CLI::line( sprintf( 'Generated slug for %s %s: %s', $profile->first_name, $profile->last_name, $profile->profile_slug ) );
+				$generated++;
+			} else {
+				\WP_CLI::error( sprintf( 'Failed to save slug for profile ID %d', $profile->id ) );
+				$errors++;
+			}
+		}
+
+		\WP_CLI::success( sprintf( 'Generated %d slugs. Errors: %d', $generated, $errors ) );
 	}
 }

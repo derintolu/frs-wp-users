@@ -11,6 +11,8 @@ use FRSUsers\Core\ProfileStorage;
 use FRSUsers\Core\CLI;
 use FRSUsers\Core\ProfileApi;
 use FRSUsers\Core\PluginDependencies;
+use FRSUsers\Core\Template;
+use FRSUsers\Core\CORS;
 use FRSUsers\Controllers\Shortcodes;
 use FRSUsers\Routes\Api;
 use FRSUsers\Admin\ProfilesPage;
@@ -73,6 +75,12 @@ final class FRSUsers {
 
 		// Initialize frontend shortcodes
 		Shortcodes::init();
+
+		// Initialize template handler for public profiles
+		Template::get_instance()->init();
+
+		// Initialize CORS handler for REST API
+		CORS::get_instance()->init();
 
 		// Initialize WP-CLI commands
 		CLI::init();

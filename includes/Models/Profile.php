@@ -69,6 +69,7 @@ class Profile extends Model {
 		'email',
 		'first_name',
 		'last_name',
+		'display_name',
 		'phone_number',
 		'mobile_number',
 		'office',
@@ -147,6 +148,89 @@ class Profile extends Model {
 	 * @var array
 	 */
 	protected $hidden = [];
+
+	/**
+	 * Boot the model.
+	 *
+	 * @return void
+	 */
+	protected static function boot() {
+		parent::boot();
+
+		// Auto-generate slug on create
+		static::creating( function ( $profile ) {
+			if ( empty( $profile->profile_slug ) && ! empty( $profile->first_name ) && ! empty( $profile->last_name ) ) {
+				$profile->profile_slug = static::generate_unique_slug( $profile->first_name, $profile->last_name );
+			}
+		} );
+
+		// Update slug if name changes
+		static::updating( function ( $profile ) {
+			// Only auto-update slug if it was never manually set
+			// Check if first_name or last_name changed
+			if ( $profile->isDirty( 'first_name' ) || $profile->isDirty( 'last_name' ) ) {
+				// Only auto-update if slug matches the pattern of old name or is empty
+				$old_slug = static::generate_slug_from_name( $profile->getOriginal( 'first_name' ), $profile->getOriginal( 'last_name' ) );
+				$current_slug = $profile->profile_slug;
+
+				// If current slug is empty, matches old auto-generated slug, or starts with old slug pattern
+				if ( empty( $current_slug ) || $current_slug === $old_slug || strpos( $current_slug, $old_slug ) === 0 ) {
+					$profile->profile_slug = static::generate_unique_slug( $profile->first_name, $profile->last_name, $profile->id );
+				}
+			}
+		} );
+	}
+
+	/**
+	 * Generate a unique profile slug.
+	 *
+	 * @param string $first_name First name.
+	 * @param string $last_name Last name.
+	 * @param int|null $exclude_id Profile ID to exclude from uniqueness check.
+	 * @return string
+	 */
+	public static function generate_unique_slug( $first_name, $last_name, $exclude_id = null ) {
+		$base_slug = static::generate_slug_from_name( $first_name, $last_name );
+		$slug = $base_slug;
+		$counter = 1;
+
+		// Check for uniqueness
+		while ( static::slug_exists( $slug, $exclude_id ) ) {
+			$slug = $base_slug . '-' . $counter;
+			$counter++;
+		}
+
+		return $slug;
+	}
+
+	/**
+	 * Generate slug from first and last name.
+	 *
+	 * @param string $first_name First name.
+	 * @param string $last_name Last name.
+	 * @return string
+	 */
+	protected static function generate_slug_from_name( $first_name, $last_name ) {
+		$full_name = trim( $first_name . ' ' . $last_name );
+		return sanitize_title( $full_name );
+	}
+
+	/**
+	 * Check if a slug exists in the database.
+	 *
+	 * @param string $slug Slug to check.
+	 * @param int|null $exclude_id Profile ID to exclude from check.
+	 * @return bool
+	 */
+	protected static function slug_exists( $slug, $exclude_id = null ) {
+		$query = static::where( 'profile_slug', $slug );
+
+		if ( $exclude_id ) {
+			$query->where( 'id', '!=', $exclude_id );
+		}
+
+		return $query->exists();
+	}
 
 	/**
 	 * Get all active profiles.

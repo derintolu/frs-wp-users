@@ -53,6 +53,7 @@ class Profiles implements Migration {
 			email VARCHAR(255) NOT NULL,
 			first_name VARCHAR(255) NULL,
 			last_name VARCHAR(255) NULL,
+			display_name VARCHAR(255) NULL,
 			phone_number VARCHAR(50) NULL,
 			mobile_number VARCHAR(50) NULL,
 			office VARCHAR(255) NULL,

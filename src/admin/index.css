@@ -25,7 +25,7 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
-    --radius: 1rem;
+    --radius: 0.25rem; /* WordPress-like border radius (4px) */
 
     /* Chart theme */
     --chart-1: 12 76% 61%;
@@ -74,4 +74,34 @@
 
 #wpcontent {
   padding-left: 0px;
+}
+
+/* WordPress Admin-like styling overrides */
+@layer components {
+  /* Reduce border radius on form inputs */
+  input[type="text"],
+  input[type="email"],
+  input[type="url"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="date"],
+  textarea,
+  select {
+    @apply rounded-sm; /* 2px instead of default */
+  }
+
+  /* Cards with minimal border radius */
+  .card {
+    @apply rounded-sm shadow-sm;
+  }
+
+  /* Buttons with subtle radius */
+  button {
+    @apply rounded-sm;
+  }
+
+  /* Avatar keep circular but less pronounced */
+  .avatar {
+    @apply rounded-full;
+  }
 }

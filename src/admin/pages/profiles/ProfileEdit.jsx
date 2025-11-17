@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
   SelectContent,
@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { MediaUploader } from "@/components/ui/media-uploader";
 import { toast } from "sonner";
 
 const getInitials = (firstName, lastName) => {
@@ -32,10 +33,13 @@ export default function ProfileEdit() {
     phone_number: "",
     mobile_number: "",
     office: "",
+    headshot_id: null,
+    headshot_url: null,
     job_title: "",
     biography: "",
     date_of_birth: "",
     select_person_type: "",
+    profile_slug: "",
     nmls: "",
     nmls_number: "",
     license_number: "",
@@ -171,69 +175,28 @@ export default function ProfileEdit() {
         </Button>
       </div>
 
-      {/* Profile Header Card - Always Visible */}
-      {id !== 'new' && (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-start space-x-6">
-              <div className="flex-shrink-0">
-                {profile.headshot_url ? (
-                  <img
-                    src={profile.headshot_url}
-                    alt={`${profile.first_name} ${profile.last_name}`}
-                    className="rounded-lg max-w-md object-cover"
-                    style={{ aspectRatio: '1/1', maxHeight: '300px' }}
-                  />
-                ) : (
-                  <Avatar className="h-32 w-32">
-                    <AvatarFallback className="text-3xl">
-                      {getInitials(profile.first_name, profile.last_name)}
-                    </AvatarFallback>
-                  </Avatar>
-                )}
-              </div>
-              <div className="flex-1 space-y-4">
-                <div>
-                  <h3 className="text-xl font-bold">
-                    {profile.first_name} {profile.last_name}
-                  </h3>
-                  {profile.job_title && (
-                    <p className="text-sm text-muted-foreground">
-                      {profile.job_title}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  {profile.email && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-muted-foreground">Email:</span>
-                      <span className="text-sm">{profile.email}</span>
-                    </div>
-                  )}
-                  {profile.phone_number && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-muted-foreground">Phone:</span>
-                      <span className="text-sm">{profile.phone_number}</span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {profile.select_person_type && (
-                    <Badge variant="default">
-                      {profile.select_person_type.replace('_', ' ')}
-                    </Badge>
-                  )}
-                  {profile.status && (
-                    <Badge variant={profile.status === 'active' ? 'success' : 'secondary'}>
-                      {profile.status}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Profile Photo Upload */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Profile Photo</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <MediaUploader
+            value={profile.headshot_id}
+            imageUrl={profile.headshot_url}
+            onChange={(attachmentId, imageUrl) => {
+              setProfile(prev => ({
+                ...prev,
+                headshot_id: attachmentId,
+                headshot_url: imageUrl
+              }));
+            }}
+            buttonText={profile.headshot_url ? "Change Photo" : "Upload Photo"}
+            avatarSize="h-32 w-32"
+            fallbackText={getInitials(profile.first_name, profile.last_name)}
+          />
+        </CardContent>
+      </Card>
 
       <form onSubmit={handleSubmit}>
         <Tabs defaultValue="contact" className="space-y-4">
@@ -351,6 +314,17 @@ export default function ProfileEdit() {
                       <SelectItem value="inactive">Inactive</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                <div>
+                  <Label>Public Profile Slug</Label>
+                  <Input
+                    value={profile.profile_slug}
+                    onChange={(e) => handleChange('profile_slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                    placeholder="john-doe"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    URL: {window.location.origin}/profile/{profile.profile_slug || 'your-slug'}
+                  </p>
                 </div>
               </CardContent>
             </Card>

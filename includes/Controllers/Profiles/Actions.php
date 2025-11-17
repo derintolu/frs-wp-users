@@ -131,6 +131,34 @@ class Actions {
 	}
 
 	/**
+	 * Get profile by slug
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function get_profile_by_slug( WP_REST_Request $request ) {
+		$slug = $request->get_param( 'slug' );
+
+		$profile = Profile::where( 'profile_slug', sanitize_title( $slug ) )->first();
+
+		if ( ! $profile ) {
+			return new WP_Error(
+				'profile_not_found',
+				__( 'Profile not found', 'frs-users' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'data'    => $profile->toArray(),
+			),
+			200
+		);
+	}
+
+	/**
 	 * Create profile
 	 *
 	 * @param WP_REST_Request $request Request object.

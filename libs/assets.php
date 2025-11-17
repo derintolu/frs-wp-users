@@ -289,6 +289,7 @@ function load_production_asset( object $manifest, string $entry, array $options 
 		}
 	}
 
+	// Load CSS from the entry itself
 	if ( ! empty( $item->css ) ) {
 		foreach ( $item->css as $index => $css_file_path ) {
 			$style_handle = "{$options['handle']}-{$index}";
@@ -297,6 +298,23 @@ function load_production_asset( object $manifest, string $entry, array $options 
             // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
 			if ( wp_register_style( $style_handle, "{$url}/{$css_file_path}", $options['css-dependencies'], null, $options['css-media'] ) ) {
 				$assets['styles'][] = $style_handle;
+			}
+		}
+	}
+
+	// Load CSS from imported chunks
+	if ( ! empty( $item->imports ) ) {
+		foreach ( $item->imports as $import ) {
+			if ( isset( $manifest->data->{$import} ) && ! empty( $manifest->data->{$import}->css ) ) {
+				foreach ( $manifest->data->{$import}->css as $index => $css_file_path ) {
+					$style_handle = "{$options['handle']}-import-{$import}-{$index}";
+
+					// Don't worry about browser caching as the version is embedded in the file name.
+					// phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
+					if ( wp_register_style( $style_handle, "{$url}/{$css_file_path}", $options['css-dependencies'], null, $options['css-media'] ) ) {
+						$assets['styles'][] = $style_handle;
+					}
+				}
 			}
 		}
 	}

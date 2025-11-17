@@ -37,7 +37,7 @@ import {
 } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { LoadingSpinner } from '@/components/ui/loading';
-import { profileService } from '../utils/profileService';
+import { DataService } from '../utils/dataService';
 import { ProfileTour, TourTrigger } from './ProfileTour';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 
@@ -138,51 +138,90 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
   // QR Code ref
   const qrCodeRef = useRef<HTMLDivElement>(null);
 
-  // Load user profile data from frs_profiles table
+  // Load user profile data
   useEffect(() => {
     const loadProfile = async () => {
       try {
         setLoading(true);
 
-        // Load profile from frs_profiles table via REST API
-        const profile = await profileService.getCurrentUserProfile();
+        // Load basic user data
+        const user = await DataService.getCurrentUser();
 
-        if (profile) {
-          // Map frs_profiles data to ProfileSection state
-          setProfileData({
-            firstName: profile.first_name || '',
-            lastName: profile.last_name || '',
-            email: profile.email || '',
-            phone: profile.phone_number || '',
-            mobileNumber: profile.mobile_number || '',
-            title: profile.job_title || '',
-            company: profile.office || '21st Century Lending',
-            nmls: profile.nmls || '',
-            nmls_number: profile.nmls_number || '',
-            license_number: profile.license_number || '',
-            dre_license: profile.dre_license || '',
-            location: profile.city_state || '',
-            bio: profile.biography || '',
-            website: '',
-            linkedin: profile.linkedin_url || '',
-            facebook: profile.facebook_url || '',
-            instagram: profile.instagram_url || '',
-            twitter: profile.twitter_url || '',
-            youtube: profile.youtube_url || '',
-            tiktok: profile.tiktok_url || '',
-            profileImage: '', // TODO: Get from headshot_id
-            specialtiesLo: profile.specialties_lo || [],
-            specialties: profile.specialties || [],
-            languages: profile.languages || [],
-            awards: profile.awards || [],
-            nambCertifications: profile.namb_certifications || [],
-            narDesignations: profile.nar_designations || [],
-            brand: profile.brand || '',
-            arrive: profile.arrive || '',
-            canvaFolderLink: profile.canva_folder_link || '',
-            nicheBioContent: profile.niche_bio_content || '',
-            username: ''
+        // Try to load Person CPT data
+        try {
+          const personResponse = await fetch('/wp-json/frs/v1/users/me/person-profile', {
+            headers: {
+              'X-WP-Nonce': (window as any).frsPortalData?.nonce || ''
+            }
           });
+
+          if (personResponse.ok) {
+            const personData = await personResponse.json();
+            setPersonCPTData(personData);
+            setHasPersonCPT(personData.has_person_cpt);
+
+            if (personData.has_person_cpt) {
+              // Use Person CPT data when available
+              const nameParts = personData.name?.split(' ') || [];
+              setProfileData(prev => ({
+                ...prev,
+                firstName: nameParts[0] || prev.firstName,
+                lastName: nameParts.slice(1).join(' ') || prev.lastName,
+                email: personData.primary_business_email || prev.email,
+                phone: personData.phone_number || prev.phone,
+                title: personData.job_title || prev.title,
+                bio: personData.biography || prev.bio,
+                linkedin: personData.linkedin_url || prev.linkedin,
+                facebook: personData.facebook_url || prev.facebook,
+                profileImage: personData.headshot || prev.profileImage,
+                company: '21st Century Lending', // Fixed company for all users
+                specialtiesLo: Array.isArray(personData.specialties_lo) ? personData.specialties_lo : [],
+                nambCertifications: Array.isArray(personData.namb_certifications) ? personData.namb_certifications : []
+              }));
+            }
+          }
+        } catch (personError) {
+          console.log('Person CPT data not available:', personError);
+        }
+
+        // Set base user data
+        if (user) {
+          const nameParts = user.name?.split(' ') || [];
+          setProfileData(prev => ({
+            ...prev,
+            firstName: prev.firstName || nameParts[0] || '',
+            lastName: prev.lastName || nameParts.slice(1).join(' ') || '',
+            email: prev.email || user.email || '',
+            phone: prev.phone || user.phone || '',
+            mobileNumber: prev.mobileNumber || user.mobile_number || '',
+            title: prev.title || user.title || user.job_title || '',
+            company: user.company || user.office || '21st Century Lending',
+            nmls: user.nmls || user.nmls_number || '',
+            nmls_number: user.nmls_number || user.nmls || '',
+            license_number: user.license_number || '',
+            dre_license: user.dre_license || '',
+            location: prev.location || user.location || user.city_state || '',
+            bio: prev.bio || user.biography || '',
+            website: user.website || '',
+            linkedin: prev.linkedin || user.linkedin_url || '',
+            facebook: prev.facebook || user.facebook_url || '',
+            instagram: prev.instagram || user.instagram_url || '',
+            twitter: prev.twitter || user.twitter_url || '',
+            youtube: prev.youtube || user.youtube_url || '',
+            tiktok: prev.tiktok || user.tiktok_url || '',
+            profileImage: prev.profileImage || user.avatar || user.headshot_url || '',
+            specialtiesLo: user.specialties_lo || prev.specialtiesLo || [],
+            specialties: user.specialties || prev.specialties || [],
+            languages: user.languages || prev.languages || [],
+            awards: user.awards || prev.awards || [],
+            nambCertifications: user.namb_certifications || prev.nambCertifications || [],
+            narDesignations: user.nar_designations || prev.narDesignations || [],
+            brand: user.brand || prev.brand || '',
+            arrive: user.arrive || prev.arrive || '',
+            canvaFolderLink: user.canva_folder_link || prev.canvaFolderLink || '',
+            nicheBioContent: user.niche_bio_content || prev.nicheBioContent || '',
+            username: user.username || user.user_nicename || ''
+          }));
         }
       } catch (error) {
         console.error('Failed to load profile:', error);
@@ -316,47 +355,19 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
     setError(null);
     try {
       console.log('Saving profile data:', profileData);
-
-      // Map ProfileSection state back to frs_profiles format
-      await profileService.updateCurrentUserProfile({
-        first_name: profileData.firstName,
-        last_name: profileData.lastName,
-        email: profileData.email,
-        phone_number: profileData.phone,
-        mobile_number: profileData.mobileNumber,
-        job_title: profileData.title,
-        office: profileData.company,
-        nmls: profileData.nmls,
-        nmls_number: profileData.nmls_number,
-        license_number: profileData.license_number,
-        dre_license: profileData.dre_license,
-        city_state: profileData.location,
-        biography: profileData.bio,
-        linkedin_url: profileData.linkedin,
-        facebook_url: profileData.facebook,
-        instagram_url: profileData.instagram,
-        twitter_url: profileData.twitter,
-        youtube_url: profileData.youtube,
-        tiktok_url: profileData.tiktok,
-        specialties_lo: profileData.specialtiesLo,
-        specialties: profileData.specialties,
-        languages: profileData.languages,
-        awards: profileData.awards,
-        namb_certifications: profileData.nambCertifications,
-        nar_designations: profileData.narDesignations,
-        brand: profileData.brand,
-        arrive: profileData.arrive,
-        canva_folder_link: profileData.canvaFolderLink,
-        niche_bio_content: profileData.nicheBioContent,
-      });
-
-      setIsEditing(false);
-      // Show success message briefly
-      const successMsg = document.createElement('div');
-      successMsg.className = 'fixed top-20 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-      successMsg.textContent = 'Profile saved successfully!';
-      document.body.appendChild(successMsg);
-      setTimeout(() => successMsg.remove(), 3000);
+      const success = await DataService.updateUserProfile(userId, profileData);
+      console.log('Save result:', success);
+      if (success) {
+        setIsEditing(false);
+        // Show success message briefly
+        const successMsg = document.createElement('div');
+        successMsg.className = 'fixed top-20 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+        successMsg.textContent = 'Profile saved successfully!';
+        document.body.appendChild(successMsg);
+        setTimeout(() => successMsg.remove(), 3000);
+      } else {
+        setError('Failed to save profile changes');
+      }
     } catch (error) {
       console.error('Failed to save profile:', error);
       setError('Failed to save profile changes');
@@ -367,13 +378,9 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
 
   const handleAvatarUpload = async (file: File) => {
     try {
-      const result = await profileService.uploadProfileImage(file);
-      if (result) {
-        setProfileData(prev => ({ ...prev, profileImage: result.url }));
-        // Also update headshot_id in the profile
-        await profileService.updateCurrentUserProfile({
-          headshot_id: result.id,
-        });
+      const avatarUrl = await DataService.uploadAvatar(userId, file);
+      if (avatarUrl) {
+        setProfileData(prev => ({ ...prev, profileImage: avatarUrl }));
       }
     } catch (error) {
       console.error('Failed to upload avatar:', error);

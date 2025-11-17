@@ -92,6 +92,11 @@
   color: white !important;
 }
 
+/* View Transitions */
+@view-transition {
+  navigation: auto;
+}
+
 /* Base styles */
 @layer base {
   * {

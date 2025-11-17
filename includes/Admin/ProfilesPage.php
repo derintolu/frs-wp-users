@@ -114,8 +114,8 @@ class ProfilesPage {
 			__( 'Import / Export', 'frs-users' ),
 			__( 'Import / Export', 'frs-users' ),
 			'edit_users',
-			'frs-profile-import-export',
-			array( $this, 'render_import_export_page' )
+			'frs-profiles#/profiles/import-export', // React route
+			array( $this, 'render_react_app' )
 		);
 	}
 
@@ -186,12 +186,12 @@ class ProfilesPage {
 			wp_die( esc_html__( 'You do not have permission to access this page.', 'frs-users' ) );
 		}
 
-		// Create list table instance
-		$list_table = new ProfilesList();
-		$list_table->prepare_items();
-
-		// Load template
-		include FRS_USERS_DIR . 'views/admin/profiles-list.php';
+		// Render React app container
+		?>
+		<div class="wrap">
+			<div id="frs-users-admin-root" data-route="/profiles"></div>
+		</div>
+		<?php
 	}
 
 	/**
@@ -200,13 +200,23 @@ class ProfilesPage {
 	 * @return void
 	 */
 	public function render_view_page() {
+		// Security check
+		if ( ! current_user_can( 'edit_users' ) ) {
+			wp_die( esc_html__( 'You do not have permission to access this page.', 'frs-users' ) );
+		}
+
 		$profile_id = isset( $_GET['id'] ) ? absint( $_GET['id'] ) : 0;
 
 		if ( ! $profile_id ) {
 			wp_die( esc_html__( 'Invalid profile ID.', 'frs-users' ) );
 		}
 
-		ProfileView::render( $profile_id );
+		// Render React app container
+		?>
+		<div class="wrap">
+			<div id="frs-users-admin-root" data-route="/profiles/<?php echo esc_attr( $profile_id ); ?>"></div>
+		</div>
+		<?php
 	}
 
 	/**
@@ -215,14 +225,26 @@ class ProfilesPage {
 	 * @return void
 	 */
 	public function render_edit_page() {
-		$profile_id = isset( $_GET['id'] ) ? $_GET['id'] : null;
-
-		// Convert 'new' string to null
-		if ( 'new' === $profile_id ) {
-			$profile_id = null;
+		// Security check
+		if ( ! current_user_can( 'edit_users' ) ) {
+			wp_die( esc_html__( 'You do not have permission to access this page.', 'frs-users' ) );
 		}
 
-		ProfileEdit::render( $profile_id );
+		$profile_id = isset( $_GET['id'] ) ? $_GET['id'] : null;
+
+		// Convert 'new' string to null for new profiles
+		if ( 'new' === $profile_id || empty( $profile_id ) ) {
+			$route = '/profiles/new';
+		} else {
+			$route = '/profiles/' . absint( $profile_id ) . '/edit';
+		}
+
+		// Render React app container
+		?>
+		<div class="wrap">
+			<div id="frs-users-admin-root" data-route="<?php echo esc_attr( $route ); ?>"></div>
+		</div>
+		<?php
 	}
 
 	/**

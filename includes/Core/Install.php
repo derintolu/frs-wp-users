@@ -14,6 +14,8 @@ namespace FRSUsers\Core;
 use FRSUsers\Database\Migrations\Profiles;
 use FRSUsers\Database\Migrations\ProfileTypes;
 use FRSUsers\Database\Migrations\AddServiceAreasToProfiles;
+use FRSUsers\Database\Migrations\AddDisplayNameToProfiles;
+use FRSUsers\Database\Migrations\AddProfileSlug;
 use FRSUsers\Traits\Base;
 
 /**
@@ -55,6 +57,12 @@ class Install {
 
 		// Add service areas column to profiles table
 		AddServiceAreasToProfiles::up();
+
+		// Add display_name column to profiles table
+		AddDisplayNameToProfiles::up();
+
+		// Add profile_slug column to profiles table
+		AddProfileSlug::up();
 
 		// Set installed version
 		update_option( 'frs_users_version', \FRS_USERS_VERSION );

@@ -176,6 +176,25 @@ class Api {
 			)
 		);
 
+		// Get profile by slug (public endpoint)
+		register_rest_route(
+			self::$namespace,
+			'/profiles/slug/(?P<slug>[a-z0-9-]+)',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( self::$actions, 'get_profile_by_slug' ),
+				'permission_callback' => '__return_true', // Public endpoint
+				'args'                => array(
+					'slug' => array(
+						'description'       => 'Profile slug',
+						'type'              => 'string',
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_title',
+					),
+				),
+			)
+		);
+
 		// Create user account for guest profile
 		register_rest_route(
 			self::$namespace,

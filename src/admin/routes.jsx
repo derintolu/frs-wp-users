@@ -9,6 +9,7 @@ import Charts from "./pages/charts";
 import ProfileList from "./pages/profiles/ProfileList";
 import ProfileView from "./pages/profiles/ProfileView";
 import ProfileEdit from "./pages/profiles/ProfileEdit";
+import ImportExport from "./pages/profiles/ImportExport";
 
 export const router = createHashRouter([
   {
@@ -56,6 +57,10 @@ export const router = createHashRouter([
       {
         path: "profiles/:id/edit",
         element: <ProfileEdit />,
+      },
+      {
+        path: "profiles/import-export",
+        element: <ImportExport />,
       }
     ],
   },

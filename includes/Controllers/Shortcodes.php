@@ -100,10 +100,9 @@ class Shortcodes {
 
 		// Output React mount point
 		return sprintf(
-			'<div class="frs-profile-editor-root" data-profile-id="%s" data-user-id="%s"><p>%s</p></div>',
+			'<div class="frs-profile-editor-root" data-profile-id="%s" data-user-id="%s"></div>',
 			esc_attr( $profile->id ),
-			esc_attr( $user_id ),
-			esc_html__( 'Loading profile editor...', 'frs-users' )
+			esc_attr( $user_id )
 		);
 	}
 
@@ -145,9 +144,8 @@ class Shortcodes {
 
 		// Output React mount point
 		return sprintf(
-			'<div class="frs-profile-view-root" data-profile-id="%s"><p>%s</p></div>',
-			esc_attr( $profile->id ),
-			esc_html__( 'Loading profile...', 'frs-users' )
+			'<div class="frs-profile-view-root" data-profile-id="%s"></div>',
+			esc_attr( $profile->id )
 		);
 	}
 
@@ -177,9 +175,8 @@ class Shortcodes {
 
 		// Output React mount point with attributes
 		return sprintf(
-			'<div class="frs-profile-directory-root" data-attributes="%s"><p>%s</p></div>',
-			esc_attr( wp_json_encode( $atts ) ),
-			esc_html__( 'Loading directory...', 'frs-users' )
+			'<div class="frs-profile-directory-root" data-attributes="%s"></div>',
+			esc_attr( wp_json_encode( $atts ) )
 		);
 	}
 
@@ -204,21 +201,29 @@ class Shortcodes {
 		// Localize script with user data and settings
 		wp_localize_script(
 			'frs-profile-portal',
-			'frsUsersData',
+			'frsPortalConfig',
 			array(
-				'nonce'      => wp_create_nonce( 'wp_rest' ),
-				'userName'   => $user->display_name,
-				'userEmail'  => $user->user_email,
-				'userAvatar' => get_avatar_url( $user->ID ),
-				'userRole'   => 'loan_officer', // TODO: Get from user meta
-				'siteName'   => get_bloginfo( 'name' ),
-				'siteLogo'   => '', // TODO: Get site logo
-				'apiUrl'     => rest_url( 'frs-users/v1' ),
+				'restNonce'   => wp_create_nonce( 'wp_rest' ),
+				'userName'    => $user->display_name,
+				'userEmail'   => $user->user_email,
+				'userAvatar'  => get_avatar_url( $user->ID ),
+				'userRole'    => 'loan_officer', // TODO: Get from user meta
+				'siteName'    => get_bloginfo( 'name' ),
+				'siteLogo'    => '', // TODO: Get site logo
+				'apiUrl'      => rest_url( 'frs-users/v1' ),
+				'userId'      => $user->ID,
+				'gradientUrl' => FRS_USERS_URL . 'assets/images/Blue-Dark-Blue-Gradient-Color-and-Style-Video-Background-1.mp4',
+				'currentUser' => array(
+					'id'    => $user->ID,
+					'name'  => $user->display_name,
+					'email' => $user->user_email,
+					'roles' => (array) $user->roles,
+				),
 			)
 		);
 
 		// Output React mount point
-		return '<div id="frs-users-portal-root"><p>' . esc_html__( 'Loading profile...', 'frs-users' ) . '</p></div>';
+		return '<div id="frs-users-portal-root"></div>';
 	}
 
 	/**
@@ -275,7 +280,7 @@ class Shortcodes {
 	 */
 	private static function enqueue_portal_assets() {
 		\FRSUsers\Libs\Assets\enqueue_asset(
-			FRS_USERS_DIR . '/assets/portal/dist',
+			FRS_USERS_DIR . '/assets/frontend/dist',
 			'src/frontend/portal/main.tsx',
 			array(
 				'handle'       => 'frs-profile-portal',

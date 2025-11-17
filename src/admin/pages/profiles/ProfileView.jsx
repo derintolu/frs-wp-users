@@ -139,6 +139,26 @@ export default function ProfileView() {
           <Link to={`/profiles/${id}/edit`}>
             <Button>Edit Profile</Button>
           </Link>
+          <Button
+            variant="outline"
+            onClick={() => {
+              // Open public profile in new tab
+              const slug = profile.profile_slug || `${profile.first_name}-${profile.last_name}`.toLowerCase().replace(/\s+/g, '-');
+              const publicUrl = `${window.location.origin}/profile/${slug}`;
+              window.open(publicUrl, '_blank');
+            }}
+          >
+            View Public Profile
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              const fluentUrl = `/wp-admin/admin.php?page=fluentcrm-admin#/subscribers/${profile.email}`;
+              window.open(fluentUrl, '_blank');
+            }}
+          >
+            View FluentCRM Profile
+          </Button>
           {!profile.user_id && (
             <Button variant="outline" onClick={async () => {
               try {
@@ -175,20 +195,19 @@ export default function ProfileView() {
         <CardContent className="pt-6">
           <div className="flex items-start space-x-6">
             <div className="flex-shrink-0">
-              {profile.headshot_url ? (
-                <img
-                  src={profile.headshot_url}
-                  alt={`${profile.first_name} ${profile.last_name}`}
-                  className="rounded-lg max-w-md object-cover"
-                  style={{ aspectRatio: '1/1', maxHeight: '300px' }}
-                />
-              ) : (
-                <Avatar className="h-32 w-32">
+              <Avatar className="h-32 w-32">
+                {profile.headshot_url ? (
+                  <AvatarImage
+                    src={profile.headshot_url}
+                    alt={`${profile.first_name} ${profile.last_name}`}
+                    className="object-cover"
+                  />
+                ) : (
                   <AvatarFallback className="text-3xl">
                     {getInitials(profile.first_name, profile.last_name)}
                   </AvatarFallback>
-                </Avatar>
-              )}
+                )}
+              </Avatar>
             </div>
             <div className="flex-1 space-y-4">
               <div>

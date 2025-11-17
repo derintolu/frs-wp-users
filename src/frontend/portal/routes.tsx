@@ -1,39 +1,35 @@
-/**
- * Portal Routes
- *
- * React Router configuration for frs-wp-users profile management portal
- */
+import { createHashRouter, Navigate } from 'react-router-dom';
+import { DashboardLayout } from './components/DashboardLayout';
+import { MyProfile } from './components/MyProfile';
+import type { User } from './utils/dataService';
 
-import { createHashRouter } from 'react-router-dom';
-import { PortalLayout } from './components/PortalLayout';
-import { Dashboard } from './components/Dashboard';
-import { ProfileSection } from './components/ProfileSection';
+interface RouteConfig {
+  currentUser: User;
+  userId: string;
+  userRole: 'loan-officer' | 'realtor';
+}
 
-export const router = createHashRouter([
-  {
-    path: '/',
-    element: <PortalLayout />,
-    children: [
-      {
-        index: true,
-        element: <Dashboard />,
-      },
-      {
-        path: 'dashboard',
-        element: <Dashboard />,
-      },
-      {
-        path: 'profile',
-        element: <ProfileSection userRole="loan-officer" userId="me" activeTab="personal" autoEdit={false} />,
-      },
-      {
-        path: 'profile/edit',
-        element: <ProfileSection userRole="loan-officer" userId="me" activeTab="personal" autoEdit={true} />,
-      },
-      {
-        path: 'settings',
-        element: <div className="p-6"><h1 className="text-2xl font-bold">Settings</h1><p className="text-gray-600 mt-2">Settings page coming soon...</p></div>,
-      },
-    ],
-  },
-]);
+export const createRouter = (config: RouteConfig) => {
+  const { currentUser, userId } = config;
+
+  return createHashRouter([
+    {
+      path: '/',
+      element: <DashboardLayout currentUser={currentUser} userId={userId} />,
+      children: [
+        {
+          index: true,
+          element: <Navigate to="profile" replace />,
+        },
+        {
+          path: 'profile',
+          element: <MyProfile userId={userId} autoEdit={false} />,
+        },
+        {
+          path: '*',
+          element: <Navigate to="profile" replace />,
+        },
+      ],
+    },
+  ]);
+};

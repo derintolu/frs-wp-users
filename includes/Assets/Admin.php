@@ -39,10 +39,14 @@ class Admin {
 	 * @var array
 	 */
 	private $allowed_screens = array(
-		'toplevel_page_frs-users-profiles',
-		'frs-users-profiles_page_frs-users-guests',
-		'frs-users-profiles_page_frs-users-add-profile',
-		'frs-users-profiles_page_frs-users-settings',
+		'toplevel_page_frs-profiles',           // Main profiles page
+		'frs-profiles_page_frs-profiles',       // All Profiles submenu
+		'admin_page_frs-profile-view',          // View profile page
+		'admin_page_frs-profile-edit',          // Edit profile page
+		'frs-profiles_page_frs-profile-edit',   // Add New profile page
+		'admin_page_frs-profile-merge',         // Merge profiles page
+		'admin_page_frs-profile-merge-select',  // Merge selection page
+		'frs-profiles_page_frs-profile-import-export', // Import/Export page
 	);
 
 	/**
@@ -60,7 +64,11 @@ class Admin {
 	 * @param string $screen The current screen.
 	 */
 	public function enqueue_script( $screen ) {
-		if ( in_array( $screen, $this->allowed_screens, true ) ) {
+		// Check if on allowed screen or any FRS profile page
+		$is_frs_page = in_array( $screen, $this->allowed_screens, true ) ||
+		               strpos( $screen, 'frs-profile' ) !== false;
+
+		if ( $is_frs_page ) {
 			Assets\enqueue_asset(
 				FRS_USERS_DIR . '/assets/admin/dist',
 				self::DEV_SCRIPT,

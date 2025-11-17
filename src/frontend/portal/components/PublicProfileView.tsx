@@ -706,21 +706,6 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
               </div>
             )}
 
-            {/* Bio Preview - Only show if bio exists */}
-            {!isEditingPersonal && profile.biography && (
-              <div className="mb-4 relative z-10">
-                <p
-                  className="text-base text-[#1E1E1E] text-center @lg:!text-left"
-                  style={{
-                    fontFamily: 'Roboto, sans-serif',
-                    lineHeight: '22.4px'
-                  }}
-                >
-                  {profile.biography}
-                </p>
-              </div>
-            )}
-
             {/* Contact Information - Always visible */}
             {!isEditingPersonal && (
               <div className="flex flex-col @lg:!flex-row items-center @lg:!items-start justify-center @lg:!justify-start gap-2 @lg:!gap-6 mb-6 relative z-10">

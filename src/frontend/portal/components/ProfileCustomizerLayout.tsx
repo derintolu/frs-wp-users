@@ -29,7 +29,7 @@ interface ProfileCustomizerLayoutProps {
   userId: string;
 }
 
-type SidebarView = 'menu' | 'edit-personal' | 'edit-professional' | 'edit-social' | 'edit-links' | 'tool-calculator' | 'tool-valuation' | 'settings';
+type SidebarView = 'menu' | 'edit-personal' | 'edit-professional' | 'edit-social' | 'tool-calculator' | 'tool-valuation' | 'settings';
 
 export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomizerLayoutProps) {
   const navigate = useNavigate();
@@ -333,8 +333,7 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
     }] : []),
     { id: 'edit-personal', label: 'Personal Information', icon: Users },
     { id: 'edit-professional', label: 'Professional Details', icon: Edit },
-    { id: 'edit-social', label: 'Social Media', icon: Link },
-    { id: 'edit-links', label: 'Custom Links', icon: Link },
+    { id: 'edit-social', label: 'Links & Social', icon: Link },
     {
       id: 'tools',
       label: 'Tools',
@@ -439,7 +438,6 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
       'edit-personal': 'edit-personal',
       'edit-professional': 'edit-professional',
       'edit-social': 'edit-social',
-      'edit-links': 'edit-links',
       'tool-calculator': 'tool-calculator',
       'tool-valuation': 'tool-valuation',
       'settings': 'settings',
@@ -455,8 +453,6 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
         setActiveSection('professional');
       } else if (item.id === 'edit-social') {
         setActiveSection('social');
-      } else if (item.id === 'edit-links') {
-        setActiveSection('links');
       } else {
         setActiveSection(null);
       }
@@ -539,23 +535,102 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
         )}
 
         {sidebarView === 'edit-professional' && (
-          <div>
-            <h2 className="text-lg font-bold mb-4">Professional Details</h2>
-            <p className="text-sm text-gray-600">Form coming soon...</p>
+          <div className="space-y-4">
+            <h2 className="text-lg font-bold">Professional Details</h2>
+            <p className="text-sm text-gray-600">Edit your biography, specialties, credentials, and service areas.</p>
+
+            {/* Save and Cancel Buttons */}
+            <div className="space-y-3 pt-4 border-t border-gray-200">
+              <Button
+                onClick={async () => {
+                  if (handleSave) {
+                    await handleSave();
+                  }
+                }}
+                disabled={isSaving || !handleSave}
+                className="w-full text-white shadow-lg font-semibold h-11"
+                style={{
+                  background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
+                }}
+              >
+                {isSaving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={() => {
+                  if (handleCancel) {
+                    handleCancel();
+                  }
+                  setSidebarView('menu');
+                  setActiveSection(null);
+                }}
+                disabled={isSaving}
+                variant="outline"
+                className="w-full border-2 border-gray-300 hover:border-red-500 hover:bg-red-50 hover:text-red-700 font-semibold h-11 transition-all"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+            </div>
           </div>
         )}
 
         {sidebarView === 'edit-social' && (
-          <div>
-            <h2 className="text-lg font-bold mb-4">Social Media</h2>
-            <p className="text-sm text-gray-600">Form coming soon...</p>
-          </div>
-        )}
+          <div className="space-y-4">
+            <h2 className="text-lg font-bold">Links & Social</h2>
+            <p className="text-sm text-gray-600">Edit your social media profiles and custom links.</p>
 
-        {sidebarView === 'edit-links' && (
-          <div>
-            <h2 className="text-lg font-bold mb-4">Custom Links</h2>
-            <p className="text-sm text-gray-600">Form coming soon...</p>
+            {/* Save and Cancel Buttons */}
+            <div className="space-y-3 pt-4 border-t border-gray-200">
+              <Button
+                onClick={async () => {
+                  if (handleSave) {
+                    await handleSave();
+                  }
+                }}
+                disabled={isSaving || !handleSave}
+                className="w-full text-white shadow-lg font-semibold h-11"
+                style={{
+                  background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
+                }}
+              >
+                {isSaving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={() => {
+                  if (handleCancel) {
+                    handleCancel();
+                  }
+                  setSidebarView('menu');
+                  setActiveSection(null);
+                }}
+                disabled={isSaving}
+                variant="outline"
+                className="w-full border-2 border-gray-300 hover:border-red-500 hover:bg-red-50 hover:text-red-700 font-semibold h-11 transition-all"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+            </div>
           </div>
         )}
 

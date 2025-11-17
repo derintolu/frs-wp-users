@@ -88,7 +88,6 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
   const isEditingPersonal = activeSection === 'personal';
   const isEditingProfessional = activeSection === 'professional';
   const isEditingSocial = activeSection === 'social';
-  const isEditingLinks = activeSection === 'links';
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -258,7 +257,14 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
 
   // Register save and cancel handlers with context
   useEffect(() => {
-    if (activeSection === 'personal') {
+    if (activeSection === 'personal' || activeSection === 'professional' || activeSection === 'social') {
+      // Determine success message based on section
+      const successMessages: Record<string, string> = {
+        'personal': 'Personal information saved successfully!',
+        'professional': 'Professional details saved successfully!',
+        'social': 'Links & social media saved successfully!'
+      };
+
       // Save handler
       setHandleSave(() => async () => {
         if (!profile) return;
@@ -287,7 +293,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
 
             const successMsg = document.createElement('div');
             successMsg.className = 'fixed top-20 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-            successMsg.textContent = 'Personal information saved successfully!';
+            successMsg.textContent = successMessages[activeSection] || 'Profile saved successfully!';
             document.body.appendChild(successMsg);
             setTimeout(() => successMsg.remove(), 3000);
           } else {
@@ -1165,7 +1171,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {isEditingLinks ? (
+          {isEditingSocial ? (
             <div className="space-y-4">
               <p className="text-sm text-gray-600">Add custom links to your profile. Each link will show with a preview image and title.</p>
               {/* Add link form will be implemented here */}

@@ -76,11 +76,8 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showQRCode, setShowQRCode] = useState(false);
-  const [serviceAreaInput, setServiceAreaInput] = useState({
-    city: '',
-    state: '',
-    zip: ''
-  });
+  const [serviceAreaInput, setServiceAreaInput] = useState('');
+  const [customLinkInput, setCustomLinkInput] = useState({ title: '', url: '' });
 
   const qrCodeRef = useRef<HTMLDivElement>(null);
 
@@ -899,57 +896,37 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
               {/* Service Areas editing will be implemented in Professional Details section */}
               {isEditingProfessional ? (
                 <div className="space-y-3">
-                  <p className="text-sm text-gray-600">Add service areas by entering city, state, zip code, or any combination.</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    <FloatingInput
-                      id="service-city"
-                      label="City (Optional)"
-                      value={serviceAreaInput.city}
-                      onChange={(e) => setServiceAreaInput({...serviceAreaInput, city: e.target.value})}
-                      className="bg-white"
-                    />
+                  <p className="text-sm text-gray-600">Add states where you provide services (e.g., California, Texas, etc.).</p>
+                  <div className="flex gap-2">
                     <FloatingInput
                       id="service-state"
-                      label="State (Optional)"
-                      value={serviceAreaInput.state}
-                      onChange={(e) => setServiceAreaInput({...serviceAreaInput, state: e.target.value})}
-                      className="bg-white"
+                      label="State"
+                      value={serviceAreaInput}
+                      onChange={(e) => setServiceAreaInput(e.target.value)}
+                      className="bg-white flex-1"
+                      placeholder="e.g., California"
                     />
-                    <FloatingInput
-                      id="service-zip"
-                      label="Zip Code (Optional)"
-                      value={serviceAreaInput.zip}
-                      onChange={(e) => setServiceAreaInput({...serviceAreaInput, zip: e.target.value})}
-                      className="bg-white"
-                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      type="button"
+                      onClick={() => {
+                        if (serviceAreaInput.trim() !== '') {
+                          setProfile({
+                            ...profile,
+                            service_areas: [...(profile.service_areas || []), serviceAreaInput.trim()]
+                          });
+                          setServiceAreaInput('');
+                        }
+                      }}
+                      className="px-4"
+                    >
+                      Add
+                    </Button>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    type="button"
-                    onClick={() => {
-                      const parts = [
-                        serviceAreaInput.city,
-                        serviceAreaInput.state,
-                        serviceAreaInput.zip
-                      ].filter(part => part.trim() !== '');
-
-                      if (parts.length > 0) {
-                        const newArea = parts.join(', ');
-                        setProfile({
-                          ...profile,
-                          service_areas: [...(profile.service_areas || []), newArea]
-                        });
-                        setServiceAreaInput({ city: '', state: '', zip: '' });
-                      }
-                    }}
-                  >
-                    <span className="mr-2">+</span> Add Service Area
-                  </Button>
                   {profile.service_areas && profile.service_areas.length > 0 && (
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">Current Service Areas</Label>
+                      <Label className="text-sm font-medium">States Added</Label>
                       <div className="flex flex-wrap gap-2">
                         {profile.service_areas.map((area: string, index: number) => (
                           <Badge key={index} variant="secondary" className="text-xs flex items-center gap-1">
@@ -1172,15 +1149,78 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
         </CardHeader>
         <CardContent className="space-y-3">
           {isEditingSocial ? (
-            <div className="space-y-4">
-              <p className="text-sm text-gray-600">Add custom links to your profile. Each link will show with a preview image and title.</p>
-              {/* Add link form will be implemented here */}
-              <div className="text-center py-8 text-gray-500 text-sm italic">
-                Link editor coming soon...
+            <div className="space-y-3">
+              <p className="text-sm text-gray-600">Add custom links to your profile (e.g., personal website, portfolio, etc.).</p>
+              <div className="space-y-2">
+                <FloatingInput
+                  id="link-title"
+                  label="Link Title"
+                  value={customLinkInput.title}
+                  onChange={(e) => setCustomLinkInput({...customLinkInput, title: e.target.value})}
+                  className="bg-white"
+                  placeholder="e.g., My Portfolio"
+                />
+                <div className="flex gap-2">
+                  <FloatingInput
+                    id="link-url"
+                    label="URL"
+                    type="url"
+                    value={customLinkInput.url}
+                    onChange={(e) => setCustomLinkInput({...customLinkInput, url: e.target.value})}
+                    className="bg-white flex-1"
+                    placeholder="https://example.com"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    type="button"
+                    onClick={() => {
+                      if (customLinkInput.title.trim() !== '' && customLinkInput.url.trim() !== '') {
+                        setProfile({
+                          ...profile,
+                          custom_links: [...(profile.custom_links || []), {
+                            title: customLinkInput.title.trim(),
+                            url: customLinkInput.url.trim()
+                          }]
+                        });
+                        setCustomLinkInput({ title: '', url: '' });
+                      }
+                    }}
+                    className="px-4"
+                  >
+                    Add
+                  </Button>
+                </div>
               </div>
+              {profile.custom_links && profile.custom_links.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Links Added</Label>
+                  <div className="space-y-2">
+                    {profile.custom_links.map((link: any, index: number) => (
+                      <div key={index} className="flex items-center gap-2 p-2 rounded border border-gray-200 bg-gray-50">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{link.title}</p>
+                          <p className="text-xs text-gray-500 truncate">{link.url}</p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setProfile({
+                              ...profile,
+                              custom_links: profile.custom_links?.filter((_: any, i: number) => i !== index)
+                            });
+                          }}
+                          className="text-red-500 hover:text-red-700 px-2"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {profile.custom_links && Array.isArray(profile.custom_links) && profile.custom_links.length > 0 ? (
                 profile.custom_links.map((link: any, index: number) => (
                   <a
@@ -1188,37 +1228,17 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all group"
+                    className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all group"
                   >
-                    {/* Preview Image */}
-                    {link.image && (
-                      <div className="flex-shrink-0 w-16 h-16 rounded overflow-hidden bg-gray-100">
-                        <img
-                          src={link.image}
-                          alt={link.title || 'Link preview'}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                      </div>
-                    )}
-                    {/* Link Info */}
                     <div className="flex-1 min-w-0">
                       <h4 className="font-semibold text-sm text-gray-900 group-hover:text-blue-600 transition-colors truncate">
-                        {link.title || link.url}
+                        {link.title}
                       </h4>
-                      {link.description && (
-                        <p className="text-xs text-gray-600 line-clamp-2 mt-0.5">
-                          {link.description}
-                        </p>
-                      )}
-                      <p className="text-xs text-gray-400 truncate mt-1">
-                        {new URL(link.url).hostname}
+                      <p className="text-xs text-gray-500 truncate mt-0.5">
+                        {link.url}
                       </p>
                     </div>
-                    {/* External link icon */}
-                    <ExternalLink className="h-4 w-4 text-gray-400 group-hover:text-blue-600 flex-shrink-0" />
+                    <ExternalLink className="h-4 w-4 text-gray-400 group-hover:text-blue-600 flex-shrink-0 ml-2" />
                   </a>
                 ))
               ) : (

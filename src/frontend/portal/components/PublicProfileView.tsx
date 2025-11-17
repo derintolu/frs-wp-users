@@ -656,7 +656,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
             {/* Job Title, NMLS, and Location */}
             {!isEditingPersonal && (
               <div className="mb-4 relative z-10">
-                <p className="text-base text-[#1D4FC4] flex items-center justify-center md:justify-start gap-6" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                <p className="text-base text-[#1D4FC4] flex flex-col md:flex-row items-center md:items-start justify-center md:justify-start gap-2 md:gap-6 text-center md:text-left" style={{ fontFamily: 'Roboto, sans-serif' }}>
                   <span>
                     {profile.job_title || 'Loan Officer'}
                     {(profile.nmls || profile.nmls_number) && <span> | NMLS {profile.nmls || profile.nmls_number}</span>}

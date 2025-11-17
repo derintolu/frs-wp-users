@@ -964,7 +964,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
                         return (
                           <div
                             key={index}
-                            className="flex flex-col items-center justify-center pt-2 pb-3 px-2 rounded-lg border-2 border-gray-200 bg-white hover:border-blue-400 hover:shadow-md transition-all cursor-pointer aspect-square"
+                            className="flex flex-col items-center justify-center pt-0.5 pb-3 px-2 rounded-lg border-2 border-gray-200 bg-white hover:border-blue-400 hover:shadow-md transition-all cursor-pointer aspect-square"
                           >
                             <img
                               src={stateInfo.svgUrl}
@@ -980,7 +980,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
                       return (
                         <div
                           key={index}
-                          className="flex flex-col items-center justify-center pt-2 pb-3 px-2 rounded-lg border-2 border-gray-200 bg-white hover:border-blue-400 hover:shadow-md transition-all aspect-square"
+                          className="flex flex-col items-center justify-center pt-0.5 pb-3 px-2 rounded-lg border-2 border-gray-200 bg-white hover:border-blue-400 hover:shadow-md transition-all aspect-square"
                         >
                           <MapPin className="w-12 h-12 mb-1 text-gray-500" />
                           <span className="text-xs font-medium text-gray-700 text-center break-words">{area}</span>

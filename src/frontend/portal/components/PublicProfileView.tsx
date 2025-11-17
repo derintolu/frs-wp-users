@@ -891,7 +891,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
             </CardHeader>
             <CardContent className="space-y-2 py-3">
               {/* Service Areas editing will be implemented in Professional Details section */}
-              {false ? (
+              {isEditingProfessional ? (
                 <div className="space-y-3">
                   <p className="text-sm text-gray-600">Add service areas by entering city, state, zip code, or any combination.</p>
                   <div className="grid grid-cols-3 gap-2">
@@ -1009,10 +1009,10 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
         </div>
       </div>
 
-      {/* Second Row: Biography + Links & Social */}
+      {/* Second Row: Biography + Specialties & Credentials */}
       <div className="grid grid-cols-1 @lg:!grid-cols-[65%,35%] gap-4 mb-4">
         {/* Biography Card */}
-        <Card className="@container shadow-lg rounded-sm border border-gray-200">
+        <Card className="@container shadow-lg rounded-sm border border-gray-200 h-full">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
             <FileText className="h-5 w-5" />
@@ -1036,82 +1036,15 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
         </CardContent>
       </Card>
 
-        {/* Links & Social Card */}
-        <Card className="@container shadow-lg max-md:rounded-none @lg:rounded border border-gray-200" style={{ backgroundColor: 'white' }}>
-          <CardHeader className="pb-2">
+        {/* Specialties & Credentials Card */}
+        <Card className="@container shadow-lg rounded-sm border border-gray-200 h-full">
+          <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
-              <Globe className="h-5 w-5" />
-              Links & Social
+              <CheckSquare className="h-5 w-5" />
+              Specialties & Credentials
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 py-3">
-            <div className="grid grid-cols-2 gap-2">
-              {/* Links & Social editing will be implemented in Social Media section */}
-              {isEditingSocial ? (
-                <>
-                  <FloatingInput
-                    id="website"
-                    label="Website"
-                    type="url"
-                    value={profile.website || ''}
-                    onChange={(e) => setProfile({...profile, website: e.target.value})}
-                  />
-                  <FloatingInput
-                    id="linkedin"
-                    label="LinkedIn"
-                    type="url"
-                    value={profile.linkedin_url || ''}
-                    onChange={(e) => setProfile({...profile, linkedin_url: e.target.value})}
-                  />
-                  <FloatingInput
-                    id="facebook"
-                    label="Facebook"
-                    type="url"
-                    value={profile.facebook_url || ''}
-                    onChange={(e) => setProfile({...profile, facebook_url: e.target.value})}
-                  />
-                  <FloatingInput
-                    id="instagram"
-                    label="Instagram"
-                    type="url"
-                    value={profile.instagram_url || ''}
-                    onChange={(e) => setProfile({...profile, instagram_url: e.target.value})}
-                  />
-                </>
-              ) : (
-                <>
-                  <div className="flex items-center gap-2 p-2 rounded border">
-                    <Globe className="h-4 w-4 text-gray-600" />
-                    <span className="text-xs truncate">{profile.website || 'Website'}</span>
-                  </div>
-                  <div className="flex items-center gap-2 p-2 rounded border">
-                    <Linkedin className="h-4 w-4 text-gray-600" />
-                    <span className="text-xs truncate">{profile.linkedin_url || 'LinkedIn'}</span>
-                  </div>
-                  <div className="flex items-center gap-2 p-2 rounded border">
-                    <Facebook className="h-4 w-4 text-gray-600" />
-                    <span className="text-xs truncate">{profile.facebook_url || 'Facebook'}</span>
-                  </div>
-                  <div className="flex items-center gap-2 p-2 rounded border">
-                    <Smartphone className="h-4 w-4 text-gray-600" />
-                    <span className="text-xs truncate">{profile.instagram_url || 'Instagram'}</span>
-                  </div>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Specialties Card */}
-      <Card className="@container shadow-lg rounded-sm border border-gray-200">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
-            <CheckSquare className="h-5 w-5" />
-            Specialties & Credentials
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+          <CardContent className="space-y-4">
           {/* Loan Officer Specialties */}
           <div>
             <Label className="text-sm font-medium mb-2 block">Loan Officer Specialties</Label>
@@ -1219,9 +1152,78 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
           </div>
         </CardContent>
       </Card>
+      </div>
 
-      {/* Custom Links Card */}
-      <Card className="@container shadow-lg rounded-sm border border-gray-200">
+      {/* Third Row: Links & Social + Custom Links */}
+      <div className="grid grid-cols-1 @lg:!grid-cols-[65%,35%] gap-4 mb-4">
+        {/* Links & Social Card */}
+        <Card className="@container shadow-lg rounded-sm border border-gray-200 h-full">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
+              <Globe className="h-5 w-5" />
+              Links & Social
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 py-3">
+            <div className="grid grid-cols-2 gap-2">
+              {/* Links & Social editing will be implemented in Social Media section */}
+              {isEditingSocial ? (
+                <>
+                  <FloatingInput
+                    id="website"
+                    label="Website"
+                    type="url"
+                    value={profile.website || ''}
+                    onChange={(e) => setProfile({...profile, website: e.target.value})}
+                  />
+                  <FloatingInput
+                    id="linkedin"
+                    label="LinkedIn"
+                    type="url"
+                    value={profile.linkedin_url || ''}
+                    onChange={(e) => setProfile({...profile, linkedin_url: e.target.value})}
+                  />
+                  <FloatingInput
+                    id="facebook"
+                    label="Facebook"
+                    type="url"
+                    value={profile.facebook_url || ''}
+                    onChange={(e) => setProfile({...profile, facebook_url: e.target.value})}
+                  />
+                  <FloatingInput
+                    id="instagram"
+                    label="Instagram"
+                    type="url"
+                    value={profile.instagram_url || ''}
+                    onChange={(e) => setProfile({...profile, instagram_url: e.target.value})}
+                  />
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2 p-2 rounded border">
+                    <Globe className="h-4 w-4 text-gray-600" />
+                    <span className="text-xs truncate">{profile.website || 'Website'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 p-2 rounded border">
+                    <Linkedin className="h-4 w-4 text-gray-600" />
+                    <span className="text-xs truncate">{profile.linkedin_url || 'LinkedIn'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 p-2 rounded border">
+                    <Facebook className="h-4 w-4 text-gray-600" />
+                    <span className="text-xs truncate">{profile.facebook_url || 'Facebook'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 p-2 rounded border">
+                    <Smartphone className="h-4 w-4 text-gray-600" />
+                    <span className="text-xs truncate">{profile.instagram_url || 'Instagram'}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Custom Links Card */}
+        <Card className="@container shadow-lg rounded-sm border border-gray-200 h-full">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
             <Link2 className="h-5 w-5" />
@@ -1287,5 +1289,6 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
         </CardContent>
       </Card>
     </div>
+  </div>
   );
 }

@@ -1155,44 +1155,42 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
         <CardContent className="space-y-3">
           {isEditingSocial ? (
             <div className="space-y-3">
-              <div className="space-y-2">
+              <div className="flex gap-2">
                 <FloatingInput
                   id="link-title"
                   label="Link Title"
                   value={customLinkInput.title}
                   onChange={(e) => setCustomLinkInput({...customLinkInput, title: e.target.value})}
-                  className="bg-white"
+                  className="bg-white flex-1"
                 />
-                <div className="flex gap-2">
-                  <FloatingInput
-                    id="link-url"
-                    label="URL"
-                    type="url"
-                    value={customLinkInput.url}
-                    onChange={(e) => setCustomLinkInput({...customLinkInput, url: e.target.value})}
-                    className="bg-white flex-1"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    type="button"
-                    onClick={() => {
-                      if (customLinkInput.title.trim() !== '' && customLinkInput.url.trim() !== '') {
-                        setProfile({
-                          ...profile,
-                          custom_links: [...(profile.custom_links || []), {
-                            title: customLinkInput.title.trim(),
-                            url: customLinkInput.url.trim()
-                          }]
-                        });
-                        setCustomLinkInput({ title: '', url: '' });
-                      }
-                    }}
-                    className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
-                  >
-                    <PlusCircle className="h-5 w-5" />
-                  </Button>
-                </div>
+                <FloatingInput
+                  id="link-url"
+                  label="URL"
+                  type="url"
+                  value={customLinkInput.url}
+                  onChange={(e) => setCustomLinkInput({...customLinkInput, url: e.target.value})}
+                  className="bg-white flex-1"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  type="button"
+                  onClick={() => {
+                    if (customLinkInput.title.trim() !== '' && customLinkInput.url.trim() !== '') {
+                      setProfile({
+                        ...profile,
+                        custom_links: [...(profile.custom_links || []), {
+                          title: customLinkInput.title.trim(),
+                          url: customLinkInput.url.trim()
+                        }]
+                      });
+                      setCustomLinkInput({ title: '', url: '' });
+                    }
+                  }}
+                  className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
+                >
+                  <PlusCircle className="h-5 w-5" />
+                </Button>
               </div>
               {profile.custom_links && profile.custom_links.length > 0 && (
                 <div className="space-y-2">

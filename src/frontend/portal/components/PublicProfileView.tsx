@@ -1155,7 +1155,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
         <CardContent className="space-y-3">
           {isEditingSocial ? (
             <div className="space-y-3">
-              <div className="grid grid-cols-[1fr,1fr,auto] gap-2 items-end">
+              <div className="grid grid-cols-[1fr,1fr,auto] gap-2 items-center">
                 <FloatingInput
                   id="link-title"
                   label="Link Title"

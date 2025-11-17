@@ -20,7 +20,9 @@ import {
   Linkedin,
   Facebook,
   Smartphone,
-  Edit
+  Edit,
+  Link2,
+  ExternalLink
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loading';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
@@ -82,8 +84,11 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
 
   const qrCodeRef = useRef<HTMLDivElement>(null);
 
-  // Check if Personal Information section is being edited
+  // Check which section is being edited
   const isEditingPersonal = activeSection === 'personal';
+  const isEditingProfessional = activeSection === 'professional';
+  const isEditingSocial = activeSection === 'social';
+  const isEditingLinks = activeSection === 'links';
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -1016,7 +1021,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
         </CardHeader>
         <CardContent className="space-y-3">
           {/* Biography editing will be implemented in Professional Details section */}
-          {false ? (
+          {isEditingProfessional ? (
             <RichTextEditor
               value={profile.biography || ''}
               onChange={(value) => setProfile({...profile, biography: value})}
@@ -1042,7 +1047,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
           <CardContent className="space-y-2 py-3">
             <div className="grid grid-cols-2 gap-2">
               {/* Links & Social editing will be implemented in Social Media section */}
-              {false ? (
+              {isEditingSocial ? (
                 <>
                   <FloatingInput
                     id="website"
@@ -1072,14 +1077,6 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
                     value={profile.instagram_url || ''}
                     onChange={(e) => setProfile({...profile, instagram_url: e.target.value})}
                   />
-                  <FloatingInput
-                    id="arrive"
-                    label="Arrive (Scheduling)"
-                    type="url"
-                    value={profile.arrive || ''}
-                    onChange={(e) => setProfile({...profile, arrive: e.target.value})}
-                    className="col-span-2"
-                  />
                 </>
               ) : (
                 <>
@@ -1099,14 +1096,6 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
                     <Smartphone className="h-4 w-4 text-gray-600" />
                     <span className="text-xs truncate">{profile.instagram_url || 'Instagram'}</span>
                   </div>
-                  {profile.arrive && (
-                    <div className="flex items-center gap-2 p-2 rounded border col-span-2">
-                      <svg className="h-4 w-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <span className="text-xs truncate">{profile.arrive}</span>
-                    </div>
-                  )}
                 </>
               )}
             </div>
@@ -1127,7 +1116,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
           <div>
             <Label className="text-sm font-medium mb-2 block">Loan Officer Specialties</Label>
             {/* Specialties editing will be implemented in Professional Details section */}
-            {false ? (
+            {isEditingProfessional ? (
               <div className="grid grid-cols-1 @lg:grid-cols-3 gap-2">
                 {[
                   'Residential Mortgages',
@@ -1183,7 +1172,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
           <div>
             <Label className="text-sm font-medium mb-2 block">NAMB Certifications</Label>
             {/* Certifications editing will be implemented in Professional Details section */}
-            {false ? (
+            {isEditingProfessional ? (
               <div className="grid grid-cols-1 @lg:grid-cols-3 gap-2">
                 {[
                   'CMC - Certified Mortgage Consultant',
@@ -1228,6 +1217,73 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
               </div>
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Custom Links Card */}
+      <Card className="@container shadow-lg rounded-sm border border-gray-200">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
+            <Link2 className="h-5 w-5" />
+            Custom Links
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {isEditingLinks ? (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">Add custom links to your profile. Each link will show with a preview image and title.</p>
+              {/* Add link form will be implemented here */}
+              <div className="text-center py-8 text-gray-500 text-sm italic">
+                Link editor coming soon...
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {profile.custom_links && Array.isArray(profile.custom_links) && profile.custom_links.length > 0 ? (
+                profile.custom_links.map((link: any, index: number) => (
+                  <a
+                    key={index}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all group"
+                  >
+                    {/* Preview Image */}
+                    {link.image && (
+                      <div className="flex-shrink-0 w-16 h-16 rounded overflow-hidden bg-gray-100">
+                        <img
+                          src={link.image}
+                          alt={link.title || 'Link preview'}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
+                    {/* Link Info */}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-sm text-gray-900 group-hover:text-blue-600 transition-colors truncate">
+                        {link.title || link.url}
+                      </h4>
+                      {link.description && (
+                        <p className="text-xs text-gray-600 line-clamp-2 mt-0.5">
+                          {link.description}
+                        </p>
+                      )}
+                      <p className="text-xs text-gray-400 truncate mt-1">
+                        {new URL(link.url).hostname}
+                      </p>
+                    </div>
+                    {/* External link icon */}
+                    <ExternalLink className="h-4 w-4 text-gray-400 group-hover:text-blue-600 flex-shrink-0" />
+                  </a>
+                ))
+              ) : (
+                <p className="text-sm text-gray-500 italic text-center py-4">No custom links added yet.</p>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

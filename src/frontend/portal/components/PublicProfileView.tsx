@@ -1187,7 +1187,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
                       setCustomLinkInput({ title: '', url: '' });
                     }
                   }}
-                  className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
+                  className="text-blue-500 hover:text-blue-600 hover:bg-blue-50 -mt-1.5"
                 >
                   <PlusCircle className="h-5 w-5" />
                 </Button>

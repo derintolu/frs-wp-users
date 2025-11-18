@@ -14,6 +14,10 @@ interface ProfileCompletionCardProps {
 
 /**
  * Profile completion card with half-circle gauge and accordion checklist
+ *
+ * NOTE: This component is saved for future use in the bento widget area.
+ * Currently replaced by a thin horizontal progress bar in the sidebar.
+ * This full card with gauge and checklist will be reused in the bento dashboard.
  */
 export function ProfileCompletionCard({ userData, onDismiss }: ProfileCompletionCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);

@@ -179,6 +179,11 @@ class Profile extends Model {
 				}
 			}
 		} );
+
+		// Fire action after profile is saved (created or updated)
+		static::saved( function ( $profile ) {
+			do_action( 'frs_profile_saved', $profile->id, $profile->toArray() );
+		} );
 	}
 
 	/**

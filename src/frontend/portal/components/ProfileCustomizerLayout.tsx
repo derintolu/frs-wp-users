@@ -15,7 +15,9 @@ import {
   X,
   Monitor,
   Tablet,
-  Smartphone
+  Smartphone,
+  Copy,
+  ExternalLink
 } from 'lucide-react';
 import type { User as UserType } from '@/frontend/portal/utils/dataService';
 import { CollapsibleSidebar, MenuItem } from '@/components/ui/CollapsibleSidebar';
@@ -152,19 +154,8 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
           const result = await response.json();
           const profileData = result.data || result;
 
-          setProfileMetadata({
-            first_name: profileData.first_name || '',
-            last_name: profileData.last_name || '',
-            email: profileData.email || currentUser.email || '',
-            phone: profileData.phone_number || profileData.mobile_number || '',
-            job_title: profileData.job_title || '',
-            company: profileData.office || '21st Century Lending',
-            nmls_id: profileData.nmls_number || profileData.nmls || '',
-            bio: profileData.biography || '',
-            linkedin_url: profileData.linkedin_url || '',
-            facebook_url: profileData.facebook_url || '',
-            instagram_url: profileData.instagram_url || '',
-          });
+          // Store full profile data for completion calculation
+          setProfileMetadata(profileData);
         } else {
           // Fallback to basic user data if profile not found
           const nameParts = (currentUser.name || '').split(' ');
@@ -277,6 +268,66 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
   // Show profile-specific menu when on profile page
   const shouldShowProfileCard = isProfilePage && !hasReached100Percent && !isCardDismissed;
 
+  // Profile link viewer widget
+  const profileUrl = currentUser?.profile_slug
+    ? `${window.location.origin}/profile/${currentUser.profile_slug}`
+    : '';
+
+  const handleCopyProfileLink = async () => {
+    if (profileUrl) {
+      try {
+        await navigator.clipboard.writeText(profileUrl);
+        // Show success toast
+        const toast = document.createElement('div');
+        toast.className = 'fixed top-20 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+        toast.textContent = 'Profile link copied!';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
+    }
+  };
+
+  const handleOpenProfileLink = () => {
+    if (profileUrl) {
+      window.open(profileUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const profileLinkWidget = (
+    <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+        Profile Link
+      </div>
+      <div className="bg-white rounded-md border border-gray-200 p-2 mb-2">
+        <div className="text-xs text-gray-600 truncate" title={profileUrl}>
+          {currentUser?.profile_slug || 'No profile slug'}
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleCopyProfileLink}
+          className="flex-1 flex items-center justify-center gap-1.5"
+        >
+          <Copy className="h-3.5 w-3.5" />
+          <span className="text-xs">Copy</span>
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleOpenProfileLink}
+          className="flex-1 flex items-center justify-center gap-1.5"
+        >
+          <ExternalLink className="h-3.5 w-3.5" />
+          <span className="text-xs">Open</span>
+        </Button>
+      </div>
+    </div>
+  );
+
   // Device preview controls widget
   const devicePreviewWidget = (
     <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
@@ -324,6 +375,33 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
     </div>
   );
 
+  // Calculate live profile completion
+  const currentCompletion = calculateProfileCompletion(profileMetadata);
+  const completionPercentage = hasReached100Percent ? 100 : currentCompletion.percentage;
+
+  // Thin horizontal progress bar widget
+  const profileProgressWidget = (
+    <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          Profile Completion
+        </div>
+        <div className="text-xs font-semibold text-gray-700">
+          {completionPercentage}%
+        </div>
+      </div>
+      <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{
+            width: `${completionPercentage}%`,
+            background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
+          }}
+        />
+      </div>
+    </div>
+  );
+
   const menuItems: MenuItem[] = [
     // Device preview controls - only show on profile page
     ...(isProfilePage ? [{
@@ -344,16 +422,17 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
       ]
     },
     { id: 'settings', label: 'Settings', icon: Wrench },
-    // Only show ProfileCompletionCard if not at 100% and not dismissed
-    ...(shouldShowProfileCard ? [{
-      id: 'profile-completion-widget',
+    // Profile link viewer - below settings, only show on profile page
+    ...(isProfilePage ? [{
+      id: 'profile-link-widget',
       label: '',
-      customWidget: (
-        <ProfileCompletionCard
-          userData={profileMetadata}
-          onDismiss={handleDismissProfileCard}
-        />
-      )
+      customWidget: profileLinkWidget
+    }] : []),
+    // Thin progress bar - only show if not at 100% and not dismissed
+    ...(shouldShowProfileCard ? [{
+      id: 'profile-progress-widget',
+      label: '',
+      customWidget: profileProgressWidget
     }] : []),
   ];
 

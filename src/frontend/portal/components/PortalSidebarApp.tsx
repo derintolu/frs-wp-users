@@ -125,7 +125,7 @@ export function PortalSidebarApp({
   // Header content - User Profile Section with Gradient Background and Video
   const sidebarHeader = (
     <div
-      className="relative p-6 flex flex-col items-center text-center w-full overflow-hidden"
+      className="relative p-6 flex flex-col items-center justify-center text-center w-full overflow-hidden"
       style={{
         background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
         minHeight: '200px',
@@ -153,11 +153,11 @@ export function PortalSidebarApp({
       )}
 
       {/* User Avatar */}
-      <div className="relative mb-3 z-10">
+      <div className="relative mb-3 z-10 flex items-center justify-center">
         <img
           src={userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName || 'User')}&background=2DD4DA&color=fff`}
           alt={userName || 'User'}
-          className="size-20 rounded-full border-4 border-white shadow-lg"
+          className="w-[104px] h-[104px] rounded-full border-4 border-white shadow-lg"
           onError={(e) => {
             e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName || 'User')}&background=2DD4DA&color=fff`;
           }}
@@ -165,8 +165,8 @@ export function PortalSidebarApp({
       </div>
 
       {/* User Info */}
-      <h3 className="font-semibold text-white text-lg mb-1 z-10 relative">{userName}</h3>
-      <p className="text-white/80 text-xs mb-3 z-10 relative">{userEmail || 'User'}</p>
+      <h3 className="font-semibold text-white text-2xl mb-1 z-10 relative">{userName}</h3>
+      <p className="text-white/80 text-base mb-3 z-10 relative">{userEmail || 'User'}</p>
 
       {/* Action Buttons */}
       <div className="flex gap-2 z-10 relative">

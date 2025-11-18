@@ -159,12 +159,7 @@ class Shortcodes {
 		// Parse attributes
 		$atts = shortcode_atts(
 			array(
-				'type'    => 'all',
-				'limit'   => 12,
-				'layout'  => 'grid',
-				'columns' => 3,
-				'search'  => 'true',
-				'filters' => 'true',
+				'class' => '',
 			),
 			$atts,
 			'frs_profile_directory'
@@ -173,10 +168,10 @@ class Shortcodes {
 		// Enqueue assets
 		self::enqueue_directory_assets();
 
-		// Output React mount point with attributes
+		// Output React mount point
 		return sprintf(
-			'<div class="frs-profile-directory-root" data-attributes="%s"></div>',
-			esc_attr( wp_json_encode( $atts ) )
+			'<div id="frs-directory-root" class="frs-directory-wrapper %s"></div>',
+			esc_attr( $atts['class'] )
 		);
 	}
 
@@ -269,8 +264,25 @@ class Shortcodes {
 	 * @return void
 	 */
 	private static function enqueue_directory_assets() {
-		// TODO: Implement directory assets
-		// Will be implemented when directory component is created
+		\FRSUsers\Libs\Assets\enqueue_asset(
+			FRS_USERS_DIR . '/assets/directory/dist',
+			'src/frontend/directory/index.tsx',
+			array(
+				'handle'       => 'frs-directory',
+				'dependencies' => array( 'react', 'react-dom' ),
+				'in-footer'    => true,
+			)
+		);
+
+		// Localize script with WordPress API settings
+		wp_localize_script(
+			'frs-directory',
+			'wpApiSettings',
+			array(
+				'root'  => esc_url_raw( rest_url() ),
+				'nonce' => wp_create_nonce( 'wp_rest' ),
+			)
+		);
 	}
 
 	/**

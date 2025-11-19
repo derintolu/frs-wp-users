@@ -23,11 +23,17 @@ rsync -av \
   "$PLUGIN_DIR/" \
   "$TEMP_DIR/"
 
-# Remove vendor and reinstall production only
-echo "📚 Installing production dependencies..."
+# Copy composer files for dependency installation
+echo "📚 Installing production Composer dependencies..."
 cd "$TEMP_DIR"
-if [ -f "composer.json" ]; then
-  composer install --no-dev --optimize-autoloader --quiet
+if [ -f "$PLUGIN_DIR/composer.json" ]; then
+  cp "$PLUGIN_DIR/composer.json" "$TEMP_DIR/"
+  if [ -f "$PLUGIN_DIR/composer.lock" ]; then
+    cp "$PLUGIN_DIR/composer.lock" "$TEMP_DIR/"
+  fi
+  composer install --no-dev --optimize-autoloader --no-interaction
+  # Remove composer files from production package
+  rm -f composer.json composer.lock
 fi
 
 # Remove source maps from production

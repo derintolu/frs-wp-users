@@ -30,14 +30,7 @@ class PluginDependencies {
 	 *
 	 * @var array
 	 */
-	private array $required_plugins = [
-		'openid-connect-server/openid-connect-server.php' => [
-			'name'        => 'OpenID Connect Server',
-			'slug'        => 'openid-connect-server',
-			'required'    => true,
-			'description' => 'Provides SSO (Single Sign-On) capabilities for company-wide authentication.',
-		],
-	];
+	private array $required_plugins = [];
 
 	/**
 	 * Missing plugins

@@ -76,7 +76,7 @@ class Api {
 						'type'              => 'integer',
 						'default'           => 50,
 						'minimum'           => 1,
-						'maximum'           => 100,
+						'maximum'           => 1000,
 						'sanitize_callback' => 'absint',
 					),
 					'page'        => array(

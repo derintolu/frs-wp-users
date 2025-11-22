@@ -48,14 +48,31 @@ class Actions {
 			$query->ofType( $type );
 		}
 
-		// Get total count for pagination
-		$total = $query->count();
+		// Get all profiles, sort by first name alphabetically
+		$all_profiles = $query->orderBy( 'first_name', 'asc' )->get();
 
-		// Apply pagination - sort by first name alphabetically
-		$profiles = $query->orderBy( 'first_name', 'asc' )
-			->skip( ( $page - 1 ) * $limit )
-			->take( $limit )
-			->get();
+		// Filter out administrators
+		$filtered_profiles = $all_profiles->filter( function( $profile ) {
+			// If no user_id (guest profile), include it
+			if ( ! $profile->user_id ) {
+				return true;
+			}
+
+			// Check if user has administrator role
+			$user = get_user_by( 'ID', $profile->user_id );
+			if ( ! $user ) {
+				return true; // Include if user doesn't exist anymore
+			}
+
+			// Exclude if user is an administrator
+			return ! in_array( 'administrator', (array) $user->roles, true );
+		} );
+
+		// Get total count after filtering
+		$total = $filtered_profiles->count();
+
+		// Apply pagination to filtered results
+		$profiles = $filtered_profiles->slice( ( $page - 1 ) * $limit, $limit )->values();
 
 		return new WP_REST_Response(
 			array(

@@ -19,7 +19,7 @@ use FRSUsers\Admin\ProfilesPage;
 use FRSUsers\Admin\ProfileEdit;
 use FRSUsers\Assets\Admin;
 use FRSUsers\Integrations\FRSSync;
-use FRSUsers\Integrations\OpenIDConnect;
+use FRSUsers\Integrations\FluentCRMSync;
 use FRSUsers\Controllers\Blocks;
 use FRSUsers\Traits\Base;
 
@@ -88,8 +88,8 @@ final class FRSUsers {
 		// Initialize FRS Sync integration
 		FRSSync::init();
 
-		// Initialize OpenID Connect integration
-		OpenIDConnect::init();
+		// Initialize FluentCRM real-time sync integration
+		FluentCRMSync::get_instance()->init();
 
 		// Initialize admin interface
 		if ( is_admin() ) {
@@ -102,8 +102,47 @@ final class FRSUsers {
 		// Initialize internationalization
 		add_action( 'init', array( $this, 'i18n' ) );
 
+		// Check dependencies and show admin notices
+		add_action( 'admin_notices', array( $this, 'check_dependencies' ) );
+
 		// Allow other plugins to hook into FRS Users
 		do_action( 'frs_users_loaded' );
+	}
+
+	/**
+	 * Check plugin dependencies and show admin notices
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public function check_dependencies() {
+		$missing = array();
+
+		// Check for Carbon Fields
+		if ( !class_exists('\\Carbon_Fields\\Carbon_Fields') ) {
+			$missing[] = 'Carbon Fields';
+		}
+
+		// Check for FluentCRM (optional)
+		if ( !function_exists('FluentCrmApi') ) {
+			$missing[] = 'FluentCRM (optional - required for automatic contact sync)';
+		}
+
+		// Show notice if dependencies are missing
+		if ( !empty($missing) ) {
+			?>
+			<div class="notice notice-warning">
+				<p>
+					<strong>FRS User Profiles</strong> requires the following plugins to function properly:
+				</p>
+				<ul style="list-style: disc; margin-left: 20px;">
+					<?php foreach ($missing as $plugin): ?>
+						<li><?php echo esc_html($plugin); ?></li>
+					<?php endforeach; ?>
+				</ul>
+			</div>
+			<?php
+		}
 	}
 
 	/**

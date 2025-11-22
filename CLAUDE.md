@@ -42,17 +42,22 @@ npm run dev              # Admin + Frontend (ports 5174 + 5173)
 npm run dev:admin        # Admin only (port 5174)
 npm run dev:portal       # Portal only (port 5176) ⚠️ See VITE-DEV-SERVER.md
 npm run dev:profile-editor  # Profile editor (port 5175)
+npm run dev:directory    # Directory only (port 5177)
 
 # Production
-npm run build            # Build all (frontend, admin, portal, profile-editor, blocks, widget)
+npm run build            # Build all (frontend, admin, portal, profile-editor, directory, blocks, widget)
 
 # Code quality
 npm run lint:fix
 npm run format:fix
 
 # WP-CLI
-wp frs-users list
-wp frs-users create --email=user@example.com --first_name=John --last_name=Doe
+wp frs-users list-profiles
+wp frs-users list-profiles --type=loan_officer
+wp frs-users list-guests
+wp frs-users create-user <profile_id>
+wp frs-users generate-slugs
+wp frs-users migrate-person-cpt
 ```
 
 **⚠️ VITE CRITICAL:** When working on React components, **always read [docs/VITE-DEV-SERVER.md](docs/VITE-DEV-SERVER.md)** first. Dev server issues are common.
@@ -79,7 +84,7 @@ wp frs-users create --email=user@example.com --first_name=John --last_name=Doe
 
 **Backend:** PHP 8.1+ | WordPress 6.0+ | Carbon Fields | Eloquent ORM | PSR-4
 **Frontend:** React 18 | TypeScript | Vite 4 | Tailwind + shadcn/ui | React Hook Form + Zod | Jotai
-**Build:** Vite (5 configs: admin, frontend, portal, profile-editor, widget) | @wordpress/scripts | Grunt
+**Build:** Vite (6 configs: admin, frontend, portal, profile-editor, directory, widget) | @wordpress/scripts | Grunt
 
 ### Core Architecture Pattern
 
@@ -120,7 +125,7 @@ frs-wp-users/
 │   └── components/ui/      # shadcn/ui
 ├── assets/                 # Built (generated)
 ├── docs/                   # Documentation
-└── vite.*.config.js        # 5 Vite configs
+└── vite.*.config.js        # 6 Vite configs
 ```
 
 ---
@@ -137,7 +142,7 @@ class MyClass {
 // Usage: MyClass::get_instance()->init();
 ```
 
-###2. Eloquent ORM (MANDATORY - Never use raw SQL)
+### 2. Eloquent ORM (MANDATORY - Never use raw SQL)
 ```php
 use FRSUsers\Models\Profile;
 

@@ -98,7 +98,11 @@ class ProfileStorage {
 	}
 
 	/**
-	 * Prevent Carbon Fields from saving to user meta
+	 * Allow Carbon Fields to save to user meta (dual storage)
+	 *
+	 * Profile data is now saved to BOTH:
+	 * 1. Custom wp_frs_profiles table (via save_to_profile hook)
+	 * 2. WordPress user meta (via Carbon Fields default behavior)
 	 *
 	 * @param bool   $save Whether to save.
 	 * @param mixed  $value Field value.
@@ -122,9 +126,10 @@ class ProfileStorage {
 			'arrive', 'canva_folder_link', 'niche_bio_content', 'personal_branding_images',
 		);
 
-		// If this is one of our profile fields, prevent usermeta save
+		// Allow profile fields to save to user meta (dual storage enabled)
+		// save_to_profile() hook still runs, so data goes to both places
 		if ( in_array( $field_name, $profile_fields, true ) ) {
-			return false;
+			return true;
 		}
 
 		return $save;

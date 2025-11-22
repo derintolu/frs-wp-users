@@ -283,6 +283,16 @@ class Shortcodes {
 				'nonce' => wp_create_nonce( 'wp_rest' ),
 			)
 		);
+
+		// Localize script with portal config for video background
+		wp_localize_script(
+			'frs-directory',
+			'frsPortalConfig',
+			array(
+				'gradientUrl' => FRS_USERS_URL . 'assets/images/Blue-Dark-Blue-Gradient-Color-and-Style-Video-Background-1.mp4',
+				'contentUrl'  => WP_CONTENT_URL,
+			)
+		);
 	}
 
 	/**

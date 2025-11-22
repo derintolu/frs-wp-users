@@ -111,6 +111,7 @@ class Profile extends Model {
 		'profile_theme',
 		'custom_links',
 		'service_areas',
+		'directory_button_type',
 		'is_active',
 		'synced_to_fluentcrm_at',
 	];

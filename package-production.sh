@@ -5,7 +5,7 @@
 
 PLUGIN_SLUG="frs-wp-users"
 PLUGIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-TEMP_DIR="/tmp/${PLUGIN_SLUG}-production"
+TEMP_DIR="/tmp/${PLUGIN_SLUG}"
 PACKAGE_DIR="/tmp/${PLUGIN_SLUG}-packages"
 
 echo "🚀 Packaging FRS User Profiles for Production..."
@@ -43,7 +43,7 @@ find "$TEMP_DIR/assets" -name "*.map" -type f -delete
 # Create zip file
 echo "📦 Creating production zip..."
 cd /tmp
-zip -r "${PACKAGE_DIR}/${PLUGIN_SLUG}.zip" "${PLUGIN_SLUG}-production" -q
+zip -r "${PACKAGE_DIR}/${PLUGIN_SLUG}.zip" "${PLUGIN_SLUG}" -q
 
 # Get file size
 FILESIZE=$(du -h "${PACKAGE_DIR}/${PLUGIN_SLUG}.zip" | cut -f1)

@@ -108,6 +108,7 @@ class Profiles implements Migration {
 			profile_theme VARCHAR(50) DEFAULT 'default',
 			custom_links JSON NULL,
 			service_areas JSON NULL,
+			directory_button_type VARCHAR(20) DEFAULT 'schedule',
 
 			-- Metadata
 			is_active BOOLEAN DEFAULT 1,

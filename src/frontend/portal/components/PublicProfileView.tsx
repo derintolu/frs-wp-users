@@ -61,6 +61,7 @@ interface ProfileData {
   brand?: string;
   office?: string;
   profile_slug?: string;
+  directory_button_type?: 'schedule' | 'call' | 'contact';
 }
 
 interface PublicProfileViewProps {
@@ -255,12 +256,13 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
 
   // Register save and cancel handlers with context
   useEffect(() => {
-    if (activeSection === 'personal' || activeSection === 'professional' || activeSection === 'social') {
+    if (activeSection === 'personal' || activeSection === 'professional' || activeSection === 'social' || activeSection === 'directory') {
       // Determine success message based on section
       const successMessages: Record<string, string> = {
         'personal': 'Personal information saved successfully!',
         'professional': 'Professional details saved successfully!',
-        'social': 'Links & social media saved successfully!'
+        'social': 'Links & social media saved successfully!',
+        'directory': 'Directory settings saved successfully!'
       };
 
       // Save handler
@@ -807,6 +809,67 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
                   onChange={(e) => setProfile({...profile, city_state: e.target.value})}
                   className="bg-white/90"
                 />
+
+                {/* Directory Button Settings */}
+                <div className="space-y-3 pt-2">
+                  <Label className="text-sm font-medium">Directory Card Button</Label>
+                  <p className="text-xs text-gray-500">
+                    Choose which button appears on your profile card in the team directory
+                  </p>
+                  <div className="space-y-2">
+                    <label
+                      className="flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors hover:bg-gray-50"
+                      style={{
+                        borderColor: profile.directory_button_type === 'schedule' ? '#2563eb' : '#e5e7eb',
+                        backgroundColor: profile.directory_button_type === 'schedule' ? '#eff6ff' : 'white'
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="directory_button"
+                        value="schedule"
+                        checked={profile.directory_button_type === 'schedule'}
+                        onChange={(e) => setProfile({...profile, directory_button_type: e.target.value as 'schedule' | 'call' | 'contact'})}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm font-medium">Schedule a Meeting</span>
+                    </label>
+                    <label
+                      className="flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors hover:bg-gray-50"
+                      style={{
+                        borderColor: profile.directory_button_type === 'call' ? '#2563eb' : '#e5e7eb',
+                        backgroundColor: profile.directory_button_type === 'call' ? '#eff6ff' : 'white'
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="directory_button"
+                        value="call"
+                        checked={profile.directory_button_type === 'call'}
+                        onChange={(e) => setProfile({...profile, directory_button_type: e.target.value as 'schedule' | 'call' | 'contact'})}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm font-medium">Call Me</span>
+                    </label>
+                    <label
+                      className="flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors hover:bg-gray-50"
+                      style={{
+                        borderColor: profile.directory_button_type === 'contact' ? '#2563eb' : '#e5e7eb',
+                        backgroundColor: profile.directory_button_type === 'contact' ? '#eff6ff' : 'white'
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="directory_button"
+                        value="contact"
+                        checked={profile.directory_button_type === 'contact'}
+                        onChange={(e) => setProfile({...profile, directory_button_type: e.target.value as 'schedule' | 'call' | 'contact'})}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm font-medium">Contact Form</span>
+                    </label>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -1315,6 +1378,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
           </CardContent>
         </Card>
     </div>
+
   </div>
   );
 }

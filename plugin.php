@@ -23,6 +23,7 @@ use FRSUsers\Integrations\FRSSync;
 use FRSUsers\Integrations\FluentCRMSync;
 use FRSUsers\Controllers\Blocks;
 use FRSUsers\Traits\Base;
+use Prappo\WpEloquent\Application;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -56,7 +57,10 @@ final class FRSUsers {
 	 * @return void
 	 */
 	public function init() {
-		// Check plugin dependencies (must run first)
+		// Initialize Eloquent ORM (must run first)
+		Application::bootWp();
+
+		// Check plugin dependencies
 		PluginDependencies::get_instance()->init();
 
 		// Initialize Carbon Fields profile fields

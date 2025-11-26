@@ -7,7 +7,9 @@
     "psr-4": {
       "FRSUsers\\": "includes/",
       "FRSUsers\\Database\\": "database/",
-      "FRSUsers\\Libs\\": "libs/"
+      "FRSUsers\\Libs\\": "libs/",
+      "FRSUsers\\DataKit\\": "includes/DataKit/",
+      "DataKit\\DataViews\\": "libs/datakit/src/"
     },
     "files": [
       "libs/assets.php"

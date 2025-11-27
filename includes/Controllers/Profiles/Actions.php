@@ -657,6 +657,97 @@ class Actions {
 	}
 
 	/**
+	 * Submit meeting request (public endpoint)
+	 *
+	 * Sends an email notification to the profile owner when someone
+	 * requests a meeting through the public profile page.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function submit_meeting_request( WP_REST_Request $request ) {
+		$profile_id    = $request->get_param( 'profile_id' );
+		$profile_email = $request->get_param( 'profile_email' );
+		$profile_name  = $request->get_param( 'profile_name' );
+		$name          = $request->get_param( 'name' );
+		$email         = $request->get_param( 'email' );
+		$phone         = $request->get_param( 'phone' ) ?: 'Not provided';
+		$message       = $request->get_param( 'message' ) ?: 'No message provided';
+
+		// Validate required fields
+		if ( empty( $profile_email ) || empty( $name ) || empty( $email ) ) {
+			return new WP_Error(
+				'missing_fields',
+				__( 'Required fields are missing', 'frs-users' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		// Build email content
+		$subject = sprintf(
+			/* translators: %s: requester name */
+			__( 'New Meeting Request from %s', 'frs-users' ),
+			$name
+		);
+
+		$email_body = sprintf(
+			"Hello %s,\n\n" .
+			"You have received a new meeting request through your profile page.\n\n" .
+			"=== Request Details ===\n\n" .
+			"Name: %s\n" .
+			"Email: %s\n" .
+			"Phone: %s\n\n" .
+			"Message:\n%s\n\n" .
+			"---\n" .
+			"Please respond to this request within 24 hours.\n\n" .
+			"Best regards,\n" .
+			"21st Century Lending Team",
+			$profile_name,
+			$name,
+			$email,
+			$phone,
+			$message
+		);
+
+		// Set headers for plain text email with reply-to
+		$headers = array(
+			'Content-Type: text/plain; charset=UTF-8',
+			'Reply-To: ' . $name . ' <' . $email . '>',
+		);
+
+		// Send email to profile owner
+		$sent = wp_mail( $profile_email, $subject, $email_body, $headers );
+
+		if ( ! $sent ) {
+			// Log the error but still return success to user
+			error_log( sprintf(
+				'[FRS Users] Failed to send meeting request email to %s from %s',
+				$profile_email,
+				$email
+			) );
+		}
+
+		// Trigger action for other integrations (CRM, etc.)
+		do_action( 'frs_meeting_request_submitted', array(
+			'profile_id'    => $profile_id,
+			'profile_email' => $profile_email,
+			'profile_name'  => $profile_name,
+			'requester_name'  => $name,
+			'requester_email' => $email,
+			'requester_phone' => $phone,
+			'message'         => $message,
+		) );
+
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'message' => __( 'Meeting request sent successfully', 'frs-users' ),
+			),
+			200
+		);
+	}
+
+	/**
 	 * Permission callback for write operations
 	 *
 	 * @param WP_REST_Request $request Request object.

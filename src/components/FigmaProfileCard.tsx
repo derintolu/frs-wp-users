@@ -14,6 +14,7 @@ interface FigmaProfileCardProps {
   city_state?: string;
   headshot_url?: string;
   profile_slug?: string;
+  select_person_type?: 'loan_officer' | 'agent' | 'staff' | 'leadership' | 'assistant';
   onScheduleMeeting?: () => void;
   onApplyNow?: () => void;
   onMenuClick?: () => void;
@@ -42,6 +43,7 @@ export function FigmaProfileCard({
   city_state = 'San Francisco, CA',
   headshot_url,
   profile_slug,
+  select_person_type = 'loan_officer',
   id,
   onScheduleMeeting,
   onApplyNow,
@@ -55,9 +57,29 @@ export function FigmaProfileCard({
   const gradientUrl = (window as any).frsPortalConfig?.gradientUrl || '';
   const contentUrl = (window as any).frsPortalConfig?.contentUrl || '/wp-content';
   const iconPath = `${contentUrl}/plugins/frs-wp-users/assets/images`;
-  const profileUrl = `/profile/${profile_slug || id}`;
   const siteUrl = window.location.origin;
-  const qrProfileUrl = `${siteUrl}${profileUrl}`;
+
+  // Determine directory path based on person type (matches DirectoryProfileCard)
+  const getDirectoryPath = () => {
+    const slug = profile_slug || `${first_name.toLowerCase()}-${last_name.toLowerCase()}`;
+    switch (select_person_type) {
+      case 'loan_officer':
+        return `/lo/${slug}`;
+      case 'agent':
+        return `/agent/${slug}`;
+      case 'staff':
+        return `/staff/${slug}`;
+      case 'leadership':
+        return `/leadership/${slug}`;
+      case 'assistant':
+        return `/assistant/${slug}`;
+      default:
+        return `/lo/${slug}`;
+    }
+  };
+
+  const directoryPath = getDirectoryPath();
+  const qrProfileUrl = `${siteUrl}/directory#${directoryPath}`;
 
   // Generate QR Code
   useEffect(() => {

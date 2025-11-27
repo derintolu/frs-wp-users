@@ -5,7 +5,7 @@
  */
 
 import { createRoot } from "react-dom/client";
-import { PublicProfileView } from './components/PublicProfileView';
+import { ProfileEditorView } from './components/ProfileEditorView';
 import { ProfileEditProvider } from './contexts/ProfileEditContext';
 import "./index.css";
 
@@ -25,7 +25,7 @@ if (publicProfileRoot) {
 
   createRoot(publicProfileRoot).render(
     <ProfileEditProvider>
-      <PublicProfileView slug={profileSlug} />
+      <ProfileEditorView slug={profileSlug} />
     </ProfileEditProvider>
   );
 

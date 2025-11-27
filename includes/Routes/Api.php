@@ -303,6 +303,61 @@ class Api {
 			)
 		);
 
+		// Meeting request (public endpoint for contact form)
+		register_rest_route(
+			self::$namespace,
+			'/meeting-request',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( self::$actions, 'submit_meeting_request' ),
+				'permission_callback' => '__return_true', // Public endpoint
+				'args'                => array(
+					'profile_id'    => array(
+						'description'       => 'Profile ID to send request to',
+						'type'              => 'integer',
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+					'profile_email' => array(
+						'description'       => 'Profile email address',
+						'type'              => 'string',
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_email',
+					),
+					'profile_name'  => array(
+						'description'       => 'Profile owner name',
+						'type'              => 'string',
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'name'          => array(
+						'description'       => 'Requester name',
+						'type'              => 'string',
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'email'         => array(
+						'description'       => 'Requester email',
+						'type'              => 'string',
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_email',
+					),
+					'phone'         => array(
+						'description'       => 'Requester phone',
+						'type'              => 'string',
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'message'       => array(
+						'description'       => 'Meeting request message',
+						'type'              => 'string',
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_textarea_field',
+					),
+				),
+			)
+		);
+
 		// Allow hooks to add more custom API routes
 		do_action( 'frs_users_api_routes', self::$namespace );
 	}

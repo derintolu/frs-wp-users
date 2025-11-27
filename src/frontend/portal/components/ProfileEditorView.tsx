@@ -1,10 +1,97 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { FloatingInput } from '@/components/ui/floating-input';
 import QRCodeStyling from 'qr-code-styling';
+
+/**
+ * Forces all external links to open in a new tab
+ * Works both in the main document and inside same-origin iframes
+ */
+const useExternalLinkHandler = () => {
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+
+  // Check if a URL is external (different origin)
+  const isExternalUrl = useCallback((url: string, baseOrigin: string): boolean => {
+    try {
+      const linkUrl = new URL(url, baseOrigin);
+      return linkUrl.origin !== baseOrigin;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  // Handler for click events that forces external links to open in new tabs
+  const handleLinkClick = useCallback((e: MouseEvent, doc: Document) => {
+    const target = e.target as HTMLElement;
+    const anchor = target.closest('a');
+
+    if (anchor && anchor.href) {
+      const origin = doc.location.origin;
+
+      if (isExternalUrl(anchor.href, origin)) {
+        e.preventDefault();
+        e.stopPropagation();
+        window.open(anchor.href, '_blank', 'noopener,noreferrer');
+      }
+    }
+  }, [isExternalUrl]);
+
+  // Set up handler for the main document
+  useEffect(() => {
+    const handler = (e: MouseEvent) => handleLinkClick(e, document);
+    document.addEventListener('click', handler, true);
+    return () => document.removeEventListener('click', handler, true);
+  }, [handleLinkClick]);
+
+  // Callback ref for iframe - sets up handler inside iframe
+  const setIframeRef = useCallback((iframe: HTMLIFrameElement | null) => {
+    iframeRef.current = iframe;
+
+    if (!iframe) return;
+
+    const setupIframeHandler = () => {
+      try {
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (iframeDoc) {
+          // Add <base target="_blank"> to make all links open in new tab by default
+          let base = iframeDoc.querySelector('base');
+          if (!base) {
+            base = iframeDoc.createElement('base');
+            iframeDoc.head.appendChild(base);
+          }
+          base.setAttribute('target', '_blank');
+
+          // Also add click handler as backup for dynamically created links
+          const handler = (e: MouseEvent) => handleLinkClick(e, iframeDoc);
+          iframeDoc.addEventListener('click', handler, true);
+
+          // Set up a MutationObserver to handle dynamically added content
+          const observer = new MutationObserver(() => {
+            // Re-ensure base target is set
+            const currentBase = iframeDoc.querySelector('base');
+            if (currentBase) {
+              currentBase.setAttribute('target', '_blank');
+            }
+          });
+
+          observer.observe(iframeDoc.body, { childList: true, subtree: true });
+        }
+      } catch (error) {
+        // Cross-origin iframe - can't access contentDocument
+        console.warn('Could not set up external link handler in iframe (cross-origin):', error);
+      }
+    };
+
+    // Try immediately and also on load
+    setupIframeHandler();
+    iframe.addEventListener('load', setupIframeHandler);
+  }, [handleLinkClick]);
+
+  return { setIframeRef };
+};
 import {
   Phone,
   Mail,
@@ -23,7 +110,12 @@ import {
   Edit,
   Link2,
   ExternalLink,
-  PlusCircle
+  PlusCircle,
+  Calendar,
+  Settings,
+  MessageSquare,
+  Send,
+  CheckCircle
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loading';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
@@ -62,14 +154,17 @@ interface ProfileData {
   office?: string;
   profile_slug?: string;
   directory_button_type?: 'schedule' | 'call' | 'contact';
+  scheduling_url?: string;
+  calendar_id?: number;
 }
 
-interface PublicProfileViewProps {
+interface ProfileEditorViewProps {
   userId?: string;
   slug?: string;
 }
 
-export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
+// Also export as PublicProfileView for backwards compatibility
+export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
   const { activeSection, setActiveSection, setIsSaving: setContextSaving, setHandleSave, setHandleCancel } = useProfileEdit();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [originalProfile, setOriginalProfile] = useState<ProfileData | null>(null);
@@ -80,8 +175,17 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
   const [showQRCode, setShowQRCode] = useState(false);
   const [serviceAreaInput, setServiceAreaInput] = useState('');
   const [customLinkInput, setCustomLinkInput] = useState({ title: '', url: '' });
+  const [showSchedulingModal, setShowSchedulingModal] = useState(false);
+  const [showMeetingRequestForm, setShowMeetingRequestForm] = useState(false);
+  const [meetingFormSubmitted, setMeetingFormSubmitted] = useState(false);
 
   const qrCodeRef = useRef<HTMLDivElement>(null);
+
+  // Determine if this is a public view (accessed via slug) vs portal view (accessed via userId)
+  const isPublicView = !!slug && !userId;
+
+  // Hook to force external links to open in new tabs (including in iframes)
+  const { setIframeRef } = useExternalLinkHandler();
 
   // Check which section is being edited
   const isEditingPersonal = activeSection === 'personal';
@@ -145,6 +249,10 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
   const generateVCard = () => {
     if (!profile) return;
 
+    // Build NMLS info for note
+    const nmlsInfo = (profile.nmls || profile.nmls_number) ? `NMLS #${profile.nmls || profile.nmls_number}` : '';
+    const noteContent = [nmlsInfo, profile.biography?.replace(/\n/g, '\\n')].filter(Boolean).join(' - ');
+
     const vcard = [
       'BEGIN:VCARD',
       'VERSION:3.0',
@@ -157,8 +265,17 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
       profile.mobile_number ? `TEL;TYPE=CELL:${profile.mobile_number}` : '',
       profile.city_state ? `ADR;TYPE=WORK:;;${profile.city_state};;;;` : '',
       profile.website ? `URL:${profile.website}` : '',
+      // Photo (headshot)
+      profile.headshot_url ? `PHOTO;VALUE=URI:${profile.headshot_url}` : '',
+      // Social Media
       profile.linkedin_url ? `X-SOCIALPROFILE;TYPE=linkedin:${profile.linkedin_url}` : '',
-      profile.biography ? `NOTE:${profile.biography.replace(/\n/g, '\\n')}` : '',
+      profile.facebook_url ? `X-SOCIALPROFILE;TYPE=facebook:${profile.facebook_url}` : '',
+      profile.instagram_url ? `X-SOCIALPROFILE;TYPE=instagram:${profile.instagram_url}` : '',
+      profile.twitter_url ? `X-SOCIALPROFILE;TYPE=twitter:${profile.twitter_url}` : '',
+      profile.youtube_url ? `X-SOCIALPROFILE;TYPE=youtube:${profile.youtube_url}` : '',
+      profile.tiktok_url ? `X-SOCIALPROFILE;TYPE=tiktok:${profile.tiktok_url}` : '',
+      // Note with NMLS and biography
+      noteContent ? `NOTE:${noteContent}` : '',
       'END:VCARD'
     ].filter(line => line !== '').join('\r\n');
 
@@ -173,15 +290,37 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
     URL.revokeObjectURL(url);
   };
 
+  // Determine the directory path based on person type (matches DirectoryProfileCard)
+  const getDirectoryPath = () => {
+    if (!profile) return '/lo/';
+    const profileSlug = slug || (profile as any).profile_slug || `${profile.first_name?.toLowerCase()}-${profile.last_name?.toLowerCase()}`;
+    const personType = (profile as any).select_person_type || 'loan_officer';
+
+    switch (personType) {
+      case 'loan_officer':
+        return `/lo/${profileSlug}`;
+      case 'agent':
+        return `/agent/${profileSlug}`;
+      case 'staff':
+        return `/staff/${profileSlug}`;
+      case 'leadership':
+        return `/leadership/${profileSlug}`;
+      case 'assistant':
+        return `/assistant/${profileSlug}`;
+      default:
+        return `/lo/${profileSlug}`;
+    }
+  };
+
   // Generate QR Code
   useEffect(() => {
     if (qrCodeRef.current && profile) {
       qrCodeRef.current.innerHTML = '';
 
       const siteUrl = window.location.origin;
-      // Point to the actual profile page - use slug prop, profile_slug field, or construct from name
-      const profileSlug = slug || (profile as any).profile_slug || `${profile.first_name?.toLowerCase()}-${profile.last_name?.toLowerCase()}`;
-      const profileUrl = `${siteUrl}/profile/${profileSlug}`;
+      // QR code points to directory hash route for embeddable widget compatibility
+      const directoryPath = getDirectoryPath();
+      const qrProfileUrl = `${siteUrl}/directory#${directoryPath}`;
 
       const qrSize = 100;
 
@@ -191,7 +330,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
           shape: 'square',
           width: qrSize,
           height: qrSize,
-          data: profileUrl,
+          data: qrProfileUrl,
           margin: 0,
           qrOptions: {
             typeNumber: 0,
@@ -470,7 +609,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
 
   // Get content URL for custom icons
   const contentUrl = (window as any).frsPublicProfileConfig?.contentUrl || (window as any).frsPortalConfig?.contentUrl || '/wp-content';
-  const iconPath = `${contentUrl}/plugins/frs-lrg/assets/images`;
+  const iconPath = `${contentUrl}/plugins/frs-wp-users/assets/images`;
 
   console.log('[PublicProfileView] gradientUrl:', gradientUrl);
   console.log('[PublicProfileView] contentUrl:', contentUrl);
@@ -549,15 +688,17 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
                   </div>
 
                   {/* QR Code button - flips with avatar, shows QR icon */}
-                  <Button
-                    size="sm"
-                    className="absolute rounded-full w-10 h-10 p-0 bg-transparent hover:bg-transparent shadow-lg z-20 border-0"
-                    style={{ top: '10px', right: '-5px' }}
+                  <button
                     onClick={() => setShowQRCode(!showQRCode)}
+                    className="absolute top-2 right-[-5px] w-[35px] h-[35px] flex items-center justify-center z-20"
                     type="button"
                   >
-                    <img src={`${iconPath}/Button.svg`} alt="QR Code" className="w-9 h-9" />
-                  </Button>
+                    <img
+                      alt="Toggle QR"
+                      className="w-[35px] h-[35px]"
+                      src={`${iconPath}/qr-flip.svg`}
+                    />
+                  </button>
                 </div>
 
                 {/* Back Side - QR Code */}
@@ -591,20 +732,20 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
                     </div>
                   </div>
 
-                  {/* Avatar button - flips with QR code, shows User icon */}
-                  <Button
-                    size="sm"
-                    className="absolute rounded-full w-10 h-10 p-0 bg-black text-white hover:bg-gray-900 shadow-lg z-20"
-                    style={{
-                      top: '10px',
-                      right: '-5px',
-                      transform: 'scaleX(-1)' // Flip button content back so icon is readable
-                    }}
+                  {/* Avatar button - flips with QR code, shows profile icon */}
+                  <button
                     onClick={() => setShowQRCode(!showQRCode)}
+                    className="absolute top-2 right-[-5px] w-[35px] h-[35px] flex items-center justify-center z-20"
+                    style={{ transform: 'scaleX(-1)' }}
                     type="button"
                   >
-                    <User className="h-5 w-5" style={{ transform: 'scaleX(-1)' }} />
-                  </Button>
+                    <img
+                      alt="Show Profile"
+                      className="w-[35px] h-[35px]"
+                      src={`${iconPath}/profile flip.svg`}
+                      style={{ transform: 'scaleX(-1)' }}
+                    />
+                  </button>
                 </div>
 
                 {/* Camera button - overlaps avatar at 10 o'clock (only when editing personal info) */}
@@ -907,6 +1048,18 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
                   </Button>
                   <Button
                     variant="outline"
+                    onClick={() => {
+                      if (profile?.scheduling_url) {
+                        // If scheduling is set up, open the scheduling page
+                        window.open(profile.scheduling_url, '_blank');
+                      } else if (isPublicView) {
+                        // Public view without scheduling - show meeting request form
+                        setShowMeetingRequestForm(true);
+                      } else {
+                        // Portal view - open the setup modal
+                        setShowSchedulingModal(true);
+                      }
+                    }}
                     className="font-semibold px-6 py-2 shadow-lg whitespace-nowrap bg-white hover:bg-gray-50 transition-all border-0 relative overflow-hidden w-full"
                     style={{
                       backgroundImage: 'linear-gradient(white, white), linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
@@ -916,7 +1069,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
                     }}
                   >
                     <span
-                      className="font-semibold"
+                      className="font-semibold flex items-center gap-2"
                       style={{
                         background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                         WebkitBackgroundClip: 'text',
@@ -924,11 +1077,31 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
                         backgroundClip: 'text',
                       }}
                     >
-                      Schedule Meeting
+                      {profile?.scheduling_url ? (
+                        <>
+                          <Calendar className="h-4 w-4" style={{ color: '#2563eb' }} />
+                          Schedule Meeting
+                        </>
+                      ) : isPublicView ? (
+                        <>
+                          <MessageSquare className="h-4 w-4" style={{ color: '#2563eb' }} />
+                          Request Meeting
+                        </>
+                      ) : (
+                        <>
+                          <Settings className="h-4 w-4" style={{ color: '#2563eb' }} />
+                          Set Up Scheduling
+                        </>
+                      )}
                     </span>
                   </Button>
                   <Button
                     variant="outline"
+                    onClick={() => {
+                      if (phoneNumber) {
+                        window.location.href = `tel:${phoneNumber}`;
+                      }
+                    }}
                     className="font-semibold px-6 py-2 shadow-lg whitespace-nowrap bg-white hover:bg-gray-50 transition-all border-0 relative overflow-hidden w-full"
                     style={{
                       backgroundImage: 'linear-gradient(white, white), linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
@@ -938,7 +1111,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
                     }}
                   >
                     <span
-                      className="font-semibold"
+                      className="font-semibold flex items-center gap-2"
                       style={{
                         background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                         WebkitBackgroundClip: 'text',
@@ -946,6 +1119,7 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
                         backgroundClip: 'text',
                       }}
                     >
+                      <Phone className="h-4 w-4" style={{ color: '#2563eb' }} />
                       Call Me
                     </span>
                   </Button>
@@ -1379,6 +1553,183 @@ export function PublicProfileView({ userId, slug }: PublicProfileViewProps) {
         </Card>
     </div>
 
+      {/* Scheduling Setup Modal (Portal View Only) */}
+      {showSchedulingModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-[90vw] max-w-4xl h-[80vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Set Up Your Scheduling Calendar
+              </h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSchedulingModal(false)}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <iframe
+                ref={setIframeRef}
+                src={`/my-bookings#/calendars/${profile?.calendar_id || 6}/settings/remote-calendars`}
+                className="w-full h-full border-0"
+                title="Calendar Setup"
+              />
+            </div>
+            <div className="flex items-center justify-end gap-3 p-4 border-t">
+              <p className="text-sm text-gray-500 flex-1">
+                Connect your calendar to enable scheduling. Click "Done" when finished.
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => setShowSchedulingModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  setShowSchedulingModal(false);
+                  // Show success message
+                  const successMsg = document.createElement('div');
+                  successMsg.className = 'fixed top-20 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                  successMsg.textContent = 'Calendar setup complete!';
+                  document.body.appendChild(successMsg);
+                  setTimeout(() => successMsg.remove(), 3000);
+                }}
+                style={{
+                  background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
+                }}
+                className="text-white"
+              >
+                Done
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Meeting Request Form (Public View - FluentForms via iframe) */}
+      {showMeetingRequestForm && !meetingFormSubmitted && (
+        <div className="fixed inset-0 bg-white z-50 flex flex-col">
+          {/* Back Button */}
+          <button
+            onClick={() => setShowMeetingRequestForm(false)}
+            className="absolute top-5 left-5 text-gray-600 hover:text-gray-900 flex items-center gap-2 text-base z-10 bg-white/80 backdrop-blur-sm px-3 py-2 rounded-lg"
+          >
+            ← Back to Profile
+          </button>
+
+          {/* FluentForms Iframe - Form ID 7 is Schedule Appointment */}
+          <div className="flex-1 w-full">
+            <iframe
+              ref={(iframe) => {
+                if (iframe) {
+                  // Set up external link handler
+                  setIframeRef(iframe);
+
+                  // Listen for FluentForms submission success inside iframe (same-origin)
+                  const setupFluentFormListener = () => {
+                    try {
+                      const iframeWindow = iframe.contentWindow;
+                      const iframeJQuery = iframeWindow && (iframeWindow as any).jQuery;
+
+                      if (iframeJQuery) {
+                        iframeJQuery(iframeWindow?.document.body).on(
+                          'fluentform_submission_success',
+                          () => {
+                            console.log('FluentForm submission detected in iframe');
+                            setMeetingFormSubmitted(true);
+                          }
+                        );
+                        console.log('FluentForm listener attached to iframe');
+                      }
+                    } catch (e) {
+                      console.log('Could not attach FluentForm listener:', e);
+                    }
+                  };
+
+                  // Try on load
+                  iframe.addEventListener('load', () => {
+                    // Wait a bit for jQuery to be available
+                    setTimeout(setupFluentFormListener, 500);
+                  });
+                }
+              }}
+              src={`/?fluent-form=7&loan_officer_id=${profile?.user_id || ''}`}
+              className="w-full h-full border-0"
+              title="Schedule Appointment Form"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Thank You Screen (after form submission) - matches biolink style */}
+      {showMeetingRequestForm && meetingFormSubmitted && (
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          {/* Video Background */}
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          >
+            <source src={gradientUrl} type="video/mp4" />
+          </video>
+
+          {/* Content Overlay */}
+          <div className="absolute inset-0 flex items-center justify-center p-6">
+            <div className="text-center max-w-lg">
+              <h2
+                className="text-4xl md:text-5xl font-bold text-white mb-6"
+                style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
+              >
+                Thank You!
+              </h2>
+
+              <p
+                className="text-white text-lg md:text-xl mb-10 leading-relaxed"
+                style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.5)' }}
+              >
+                Thanks for reaching out! {profile?.first_name} will personally review your information and get back to you soon.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+                <button
+                  onClick={() => {
+                    setShowMeetingRequestForm(false);
+                    setMeetingFormSubmitted(false);
+                  }}
+                  className="flex-1 px-8 py-4 rounded-xl font-medium text-gray-900 transition-all hover:-translate-y-1"
+                  style={{
+                    background: 'linear-gradient(145deg, #f8f9fa, #e9ecef)',
+                    boxShadow: '0 8px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04)',
+                  }}
+                >
+                  Return to Profile
+                </button>
+
+                <button
+                  onClick={() => window.close()}
+                  className="flex-1 px-8 py-4 rounded-xl font-medium text-gray-900 transition-all hover:-translate-y-1"
+                  style={{
+                    background: 'linear-gradient(145deg, #f8f9fa, #e9ecef)',
+                    boxShadow: '0 8px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04)',
+                  }}
+                >
+                  Close Tab
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
   </div>
   );
 }
+
+// Backwards compatibility export
+export const PublicProfileView = ProfileEditorView;

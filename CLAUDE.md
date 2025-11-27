@@ -4,135 +4,132 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
-## 📚 Documentation Structure
+## Quick Start
 
-This is the main overview. Detailed guides are in `/docs`:
-- **[VITE-DEV-SERVER.md](docs/VITE-DEV-SERVER.md)** - Critical Vite setup (READ THIS if working on React)
-- **[DATABASE-SCHEMA.md](docs/DATABASE-SCHEMA.md)** - Complete 51-field schema
+**Plugin:** FRS User Profiles | **Namespace:** `FRSUsers` | **PHP:** 8.1+ | **WordPress:** 6.0+
+
+```bash
+npm install && composer install   # Install dependencies
+npm run build                     # Build all assets
+npm run dev:admin                 # Dev server for admin (port 5174)
+```
+
+**Core Pattern:** React SPA → REST API → Controllers → Eloquent → Database
+
+---
+
+## Critical Rules
+
+1. **Research First** - Read actual code before making changes. Check `database/Migrations/Profiles.php`, `src/admin/routes.jsx`, existing patterns.
+2. **React SPA for Profiles** - Profile management uses React SPA, not traditional WordPress admin. PHP renders container, React takes over.
+3. **Eloquent Only** - NEVER use raw SQL. ALWAYS use `FRSUsers\Models\Profile` and Eloquent ORM.
+4. **REST API for React** - React components MUST fetch data via REST API (`/wp-json/frs-users/v1/`).
+5. **Assume Your Change Broke It** - When debugging, fix YOUR code first before blaming caching.
+6. **Push After Commit** - ALWAYS push to remote after committing. Never leave commits local.
+
+---
+
+## Documentation
+
+Detailed guides in `/docs`:
+- **[VITE-DEV-SERVER.md](docs/VITE-DEV-SERVER.md)** - Critical Vite setup (READ THIS for React work)
+- **[DATABASE-SCHEMA.md](docs/DATABASE-SCHEMA.md)** - Complete database schema
 - **[DEVELOPMENT-WORKFLOWS.md](docs/DEVELOPMENT-WORKFLOWS.md)** - Step-by-step guides
 - **[TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)** - Common issues & fixes
 
 ---
 
-## 🚨 Critical Rules - Read First
-
-**RESEARCH-FIRST APPROACH:**
-
-1. **READ THE ACTUAL CODE** - Check `database/Migrations/Profiles.php`, `src/admin/routes.jsx`, existing patterns
-2. **CHECK DOCS** - See `/docs` folder for detailed guides
-3. **ASK IF UNSURE** - Don't guess at architecture or patterns
-
-**DEBUGGING RULE:**
-- **ALWAYS assume your last change caused the error** - Fix YOUR code first, don't blame caching
-
-**BOILERPLATE COMPLIANCE:**
-- Use `@kucrut/vite-for-wp` for Vite (see [VITE-DEV-SERVER.md](docs/VITE-DEV-SERVER.md))
-- Use `libs/assets.php` helper functions
-- Use Eloquent ORM (never raw SQL)
-- Follow PSR-4 autoloading patterns
-
-## Quick Reference - Dev Commands
+## Commands
 
 ```bash
-# Install
-npm install && composer install
-
-# Development (see docs/VITE-DEV-SERVER.md for critical setup)
+# Development (see docs/VITE-DEV-SERVER.md)
 npm run dev              # Admin + Frontend (ports 5174 + 5173)
 npm run dev:admin        # Admin only (port 5174)
-npm run dev:portal       # Portal only (port 5176) ⚠️ See VITE-DEV-SERVER.md
+npm run dev:portal       # Portal only (port 5176)
 npm run dev:profile-editor  # Profile editor (port 5175)
 npm run dev:directory    # Directory only (port 5177)
 
 # Production
-npm run build            # Build all (frontend, admin, portal, profile-editor, directory, blocks, widget)
+npm run build            # Build all apps
 
 # Code quality
-npm run lint:fix
-npm run format:fix
+npm run lint:fix         # Fix JS/PHP linting
+npm run format:fix       # Fix formatting
 
 # WP-CLI
-wp frs-users list-profiles
-wp frs-users list-profiles --type=loan_officer
+wp frs-users list-profiles [--type=loan_officer]
 wp frs-users list-guests
 wp frs-users create-user <profile_id>
 wp frs-users generate-slugs
 wp frs-users migrate-person-cpt
 ```
 
-**⚠️ VITE CRITICAL:** When working on React components, **always read [docs/VITE-DEV-SERVER.md](docs/VITE-DEV-SERVER.md)** first. Dev server issues are common.
-
 ---
 
-## Project Info
+## Architecture
 
-- **Plugin**: FRS User Profiles
-- **Namespace**: `FRSUsers`
-- **Text Domain**: `frs-users`
-- **PHP**: 8.1+ (typed properties, readonly, enums)
-- **WordPress**: 6.0+
+### React Apps (6 Vite configs)
 
-**Purpose:** User profile management for 21st Century Lending (loan officers, agents, staff, leadership, assistants)
+| App | Entry Point | Dev Port | Dist Directory |
+|-----|-------------|----------|----------------|
+| Admin | `src/admin/main.jsx` | 5174 | `assets/admin/dist` |
+| Frontend | `src/frontend/main.jsx` | 5173 | `assets/frontend/dist` |
+| Portal | `src/frontend/portal/main.tsx` | 5176 | `assets/portal/dist` |
+| Profile Editor | `src/frontend/profile-editor/main.tsx` | 5175 | `assets/profile-editor/dist` |
+| Directory | `src/frontend/directory/` | 5177 | `assets/directory/dist` |
+| Widget | `src/widget/` | - | `assets/widget/dist` |
 
-**Key Features:** Guest profiles, Carbon Fields metadata, Eloquent ORM, REST API, React admin, WP-CLI
-
----
-
-## Architecture Overview
-
-### Tech Stack Summary
-
-**Backend:** PHP 8.1+ | WordPress 6.0+ | Carbon Fields | Eloquent ORM | PSR-4
-**Frontend:** React 18 | TypeScript | Vite 4 | Tailwind + shadcn/ui | React Hook Form + Zod | Jotai
-**Build:** Vite (6 configs: admin, frontend, portal, profile-editor, directory, widget) | @wordpress/scripts | Grunt
-
-### Core Architecture Pattern
-
-**Admin Interface = React SPA**
+### Data Flow
 
 ```
-PHP renders container → React mounts → React Router (HashRouter) → REST API for data
+React Component → REST API (/wp-json/frs-users/v1/) → Controller → Eloquent Model → wp_frs_profiles
 ```
 
-**Data Flow:**
-```
-React Component → REST API (/wp-json/frs-users/v1/) → Controller → Eloquent Model → Database
-```
-
-**Key Points:**
-- ✅ Profile management uses React SPA (not traditional WordPress admin)
-- ✅ PHP renders `<div id="frs-users-admin-root">`, React takes over
-- ❌ Do NOT create traditional WordPress admin for profiles
-- ❌ Do NOT use `views/admin/` templates for profile UI
-
----
-
-## File Structure (Key Directories)
+### Key Files
 
 ```
 frs-wp-users/
-├── database/Migrations/Profiles.php  # 51-field schema
+├── database/Migrations/Profiles.php  # Database schema (source of truth)
 ├── includes/
-│   ├── Admin/              # Admin classes
-│   ├── Controllers/        # API controllers
-│   ├── Core/               # ProfileFields, ProfileStorage, CLI, Api
-│   ├── Models/Profile.php  # Eloquent model
-│   └── Routes/Api.php      # REST API routes
+│   ├── Models/Profile.php            # Eloquent model
+│   ├── Routes/Api.php                # REST API routes
+│   ├── Controllers/Profiles/Actions.php  # API handlers
+│   ├── Core/CLI.php                  # WP-CLI commands
+│   └── Core/ProfileStorage.php       # Carbon Fields → custom table
 ├── src/
-│   ├── admin/pages/        # React admin pages
-│   ├── admin/routes.jsx    # React Router config
-│   ├── frontend/portal/    # Portal React app
-│   └── components/ui/      # shadcn/ui
-├── assets/                 # Built (generated)
-├── docs/                   # Documentation
-└── vite.*.config.js        # 6 Vite configs
+│   ├── admin/routes.jsx              # Admin React Router
+│   ├── admin/pages/                  # Admin React pages
+│   └── frontend/portal/routes.tsx    # Portal React Router
+├── libs/assets.php                   # Vite asset loading
+└── vite.*.config.js                  # 6 Vite configs
 ```
 
 ---
 
-## Key Development Patterns
+## REST API
 
-### 1. Singleton Pattern
+**Base:** `/wp-json/frs-users/v1/`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/profiles` | List profiles (`?type=`, `?guests_only=`, `?per_page=`, `?page=`) |
+| POST | `/profiles` | Create profile |
+| GET | `/profiles/{id}` | Get single profile |
+| PUT | `/profiles/{id}` | Update profile |
+| DELETE | `/profiles/{id}` | Delete profile |
+| GET | `/profiles/user/{user_id}` | Get profile by user ID (or "me") |
+| GET | `/profiles/slug/{slug}` | Get profile by slug (public) |
+| POST | `/profiles/{id}/create-user` | Create WP user for guest profile |
+| POST | `/profiles/bulk-create-users` | Bulk create users |
+| GET/POST | `/sync-settings` | FluentCRM sync settings |
+| GET | `/sync-stats` | Sync statistics |
+| POST | `/trigger-sync` | Manual sync trigger |
+
+---
+
+## Key Patterns
+
+### Singleton Pattern
 ```php
 use FRSUsers\Traits\Base;
 
@@ -142,218 +139,93 @@ class MyClass {
 // Usage: MyClass::get_instance()->init();
 ```
 
-### 2. Eloquent ORM (MANDATORY - Never use raw SQL)
+### Eloquent ORM
 ```php
 use FRSUsers\Models\Profile;
 
+// Basic CRUD
 $profiles = Profile::all();
 $profile = Profile::find($id);
 $profile = Profile::create(['email' => 'user@example.com']);
-$profile->first_name = 'Jane';
-$profile->save();
+$profile->update(['first_name' => 'Jane']);
 
-$loan_officers = Profile::where('select_person_type', 'loan_officer')
-    ->where('is_active', 1)
-    ->orderBy('last_name')
-    ->get();
+// Scopes
+$active = Profile::active()->get();
+$guests = Profile::guests()->get();
+$loan_officers = Profile::ofType('loan_officer')->get();
+
+// Static helpers
+$profile = Profile::get_by_email('user@example.com');
+$profile = Profile::get_by_user_id($user_id);
+$profile = Profile::get_by_frs_agent_id($frs_id);
 ```
 
-### 3. REST API Routes (`includes/Routes/Api.php`)
-**Base:** `/wp-json/frs-users/v1/`
-
-```
-GET/POST   /profiles
-GET/PUT/DELETE /profiles/{id}
-GET        /profiles/user/{user_id}
-POST       /profiles/{id}/create-user
-```
-
-### 4. Carbon Fields Integration
-`ProfileStorage.php` intercepts Carbon Fields saves → stores in `wp_frs_profiles` table (not postmeta)
+### Creating React Admin Features
+1. Add REST endpoint in `includes/Routes/Api.php`
+2. Create component in `src/admin/pages/MyFeature.tsx`
+3. Add route in `src/admin/routes.jsx`
+4. Add menu item in `includes/Admin/Menu.php` (use `#/route` format)
+5. Build: `npm run build`
 
 ---
 
 ## Database
 
-**Table:** `wp_frs_profiles` - **51 fields total**
+**Table:** `wp_frs_profiles`
 
-**📖 See [docs/DATABASE-SCHEMA.md](docs/DATABASE-SCHEMA.md) for complete schema**
+Key fields:
+- `id`, `user_id` (NULL for guests), `email` (unique), `profile_slug` (unique)
+- `select_person_type`: loan_officer | agent | staff | leadership | assistant
+- **JSON fields:** `languages`, `specialties_lo`, `specialties`, `awards`, `nar_designations`, `namb_certifications`, `profile_visibility`, `custom_links`, `service_areas`, `personal_branding_images`
 
-**Key Fields:**
-- `id`, `user_id` (NULL for guests), `email` (unique)
-- `select_person_type` (loan_officer|agent|staff|leadership|assistant)
-- **JSON fields:** `languages`, `specialties_lo`, `specialties`, `awards`, `nar_designations`, `profile_visibility`, `custom_links`, `service_areas`, `personal_branding_images`
-
-**Verify field count:**
-```bash
-grep -E "^\s+\w+\s+(VARCHAR|TEXT|JSON|BIGINT|DATE|BOOLEAN)" database/Migrations/Profiles.php | wc -l
-# Should output: 51
-```
+See [DATABASE-SCHEMA.md](docs/DATABASE-SCHEMA.md) for complete schema.
 
 ---
 
----
+## Tech Stack
 
-## Creating React Admin Features
+**Backend:** PHP 8.1+ | WordPress 6.0+ | Carbon Fields | Eloquent ORM (prappo/wp-eloquent) | PSR-4
 
-**📖 Full step-by-step guides in [docs/DEVELOPMENT-WORKFLOWS.md](docs/DEVELOPMENT-WORKFLOWS.md)**
+**Frontend:** React 18 | TypeScript | Vite 4 | Tailwind + shadcn/ui | React Hook Form + Zod | Jotai | React Router (HashRouter)
 
-**Quick Pattern:**
-1. Create REST API endpoint (`includes/Routes/Api.php`)
-2. Create React component (`src/admin/pages/MyFeature.tsx`)
-3. Add route (`src/admin/routes.jsx`)
-4. Add menu item (`includes/Admin/Menu.php`)
-5. Build: `npm run dev:admin` or `npm run build`
+**Build:** @kucrut/vite-for-wp | @wordpress/scripts (blocks)
 
 ---
 
-## Critical Rules
+## Quick Fixes
 
-### Rule #0: React SPA for Profile Management
-- ✅ Create React components in `src/admin/pages/`
-- ✅ Add routes to `src/admin/routes.jsx`
-- ✅ Fetch data from REST API
-- ❌ Do NOT create traditional WordPress admin pages for profiles
-
-### Rule #1: Database Schema Completeness
-When creating profile forms, ALL 51 fields must be included. **Verify the count.**
-
-### Rule #2: Use Eloquent ORM
-**NEVER** use raw SQL. **ALWAYS** use Eloquent models.
-
-### Rule #3: REST API for Data Access
-React components MUST use REST API. No direct database access.
-
-### Rule #4: Security ALWAYS
-**PHP:** Sanitize inputs, escape outputs, verify nonces, check capabilities
-**React:** Validate API responses, use TypeScript, React Hook Form + Zod
-
----
-
-## Coding Standards
-
-### PHP Example (2025)
-```php
-namespace FRSUsers\Admin;
-
-use FRSUsers\Models\Profile;
-use FRSUsers\Traits\Base;
-
-class ProfileView {
-    use Base;
-
-    public function render(int $profile_id): void {
-        if (!current_user_can('manage_options')) {
-            wp_die(__('No permission', 'frs-users'));
-        }
-
-        $profile = Profile::find($profile_id);
-        // React container or views/ template
-    }
-}
-```
-
-### React/TypeScript Example (2025)
-```typescript
-interface ProfileData {
-  readonly id: number;
-  readonly email: string;
-}
-
-export function ProfileList(): JSX.Element {
-  const [profiles, setProfiles] = useState<ProfileData[]>([]);
-
-  useEffect(() => {
-    fetch('/wp-json/frs-users/v1/profiles')
-      .then(res => res.json())
-      .then(data => setProfiles(data.data));
-  }, []);
-
-  return <div>{profiles.map(p => <div key={p.id}>{p.email}</div>)}</div>;
-}
-```
-
----
-
-## Common Issues
-
-**📖 Full troubleshooting in [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)**
-
-**Quick Fixes:**
-- **React blank screen:** `npm run build` + check browser console
-- **REST API 404:** `wp rewrite flush`
-- **Vite dev server:** See [docs/VITE-DEV-SERVER.md](docs/VITE-DEV-SERVER.md)
-- **Profile not saving:** Check `$fillable` array, permission callbacks, browser console
+| Problem | Solution |
+|---------|----------|
+| React blank screen | `npm run build` + check browser console |
+| REST API 404 | `wp rewrite flush` |
+| Vite dev server issues | See [VITE-DEV-SERVER.md](docs/VITE-DEV-SERVER.md) |
+| Profile not saving | Check `$fillable` array, permission callbacks, browser console |
+| Changes not loading | Verify `vite-dev-server.json` exists in dist directory |
 
 ---
 
 ## Git Workflow
 
 ```bash
-# 1. Create branch
 git checkout -b feature/name-YYYY-MM-DD
-
-# 2. Build
+# Make changes
 npm run build
-
-# 3. Commit (ALWAYS push after commit)
-git add .
-git commit -m "feat: description
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>"
-
-# 4. Push (MANDATORY - never leave commits local)
+git add . && git commit -m "feat: description"
 git push origin feature/name-YYYY-MM-DD
-
-# 5. Merge to main
+# Merge
 git checkout main && git merge feature/name-YYYY-MM-DD && git push origin main
 ```
 
-**Commit types:** `feat:` `fix:` `docs:` `refactor:` `perf:` `security:` `test:` `chore:` `cleanup:`
+**Commit types:** `feat:` `fix:` `docs:` `refactor:` `perf:` `security:` `test:` `chore:`
 
 ---
 
-## Checklist Before "Done"
+## Checklist Before Done
 
-**React SPA:**
-- [ ] Created components in `src/admin/pages/`
-- [ ] Added routes to `src/admin/routes.jsx`
-- [ ] Created REST API endpoints
-- [ ] Used TypeScript + shadcn/ui
-- [ ] Verified ALL 51 fields (if form)
-- [ ] Built assets: `npm run build`
-- [ ] No console errors
-
-**Backend:**
 - [ ] Used Eloquent (not raw SQL)
-- [ ] Added permission callbacks
-- [ ] Sanitized inputs
-- [ ] Checked capabilities
-
-**Git:**
-- [ ] Ran `npm run build`
+- [ ] REST API has permission callbacks
+- [ ] React fetches via REST API
+- [ ] TypeScript + shadcn/ui for new components
+- [ ] `npm run build` successful
+- [ ] No browser console errors
 - [ ] Pushed to remote
-
----
-
-## Summary
-
-**Core Pattern:** React SPA → REST API → Controllers → Eloquent → Database
-
-**Remember:**
-1. Profile management = React SPA
-2. Always use Eloquent (never raw SQL)
-3. Always use REST API from React
-4. Always show ALL 51 database fields in forms
-5. Always assume your last change caused the error
-6. Always push commits to remote
-
-**When confused:** STOP and ASK the user.
-
-**Documentation:**
-- [VITE-DEV-SERVER.md](docs/VITE-DEV-SERVER.md) - Critical for React work
-- [DATABASE-SCHEMA.md](docs/DATABASE-SCHEMA.md) - Complete 51-field schema
-- [DEVELOPMENT-WORKFLOWS.md](docs/DEVELOPMENT-WORKFLOWS.md) - Step-by-step guides
-- [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) - Common issues & fixes

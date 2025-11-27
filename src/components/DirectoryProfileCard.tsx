@@ -314,34 +314,33 @@ export function DirectoryProfileCard({
           {job_title}{nmlsDisplay && ` | NMLS ${nmlsDisplay}`}
         </div>
 
-        {/* Email */}
-        <div className="flex items-center justify-center gap-2">
-          <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="0.385714" y="0.385714" width="24.2286" height="24.2286" rx="12.1143" fill="#F3F3F3"/>
-            <rect x="0.385714" y="0.385714" width="24.2286" height="24.2286" rx="12.1143" stroke="url(#paint0_linear_email)" strokeWidth="0.771429"/>
-            <path d="M19.4834 6.2925C19.342 6.16683 19.1654 6.07696 18.9718 6.03214C18.7783 5.98731 18.5748 5.98917 18.3823 6.0375H18.3718L4.87602 9.6775C4.65633 9.73366 4.4611 9.84797 4.31633 10.0052C4.17156 10.1625 4.08411 10.3552 4.06563 10.5577C4.04715 10.7602 4.09852 10.963 4.2129 11.1389C4.32727 11.3148 4.49923 11.4556 4.70586 11.5425L10.726 14.0769L13.5772 19.4281C13.6672 19.5995 13.8105 19.7444 13.9902 19.8457C14.1698 19.9471 14.3783 20.0006 14.5911 20C14.6234 20 14.6558 19.9987 14.6881 19.9962C14.9152 19.9799 15.1312 19.9022 15.3071 19.7736C15.4831 19.6451 15.6106 19.4717 15.6725 19.2769L19.7647 7.28062C19.7647 7.2775 19.7647 7.27437 19.7647 7.27125C19.8198 7.1006 19.8228 6.91999 19.7733 6.74799C19.7239 6.57598 19.6238 6.41876 19.4834 6.2925ZM14.5974 18.9906L14.5939 18.9994L11.8264 13.8062L15.148 10.8531C15.249 10.7586 15.3045 10.6327 15.3026 10.5023C15.3007 10.372 15.2416 10.2474 15.1379 10.1552C15.0342 10.063 14.8941 10.0104 14.7474 10.0088C14.6007 10.0071 14.4591 10.0564 14.3527 10.1462L11.0305 13.0987L5.1875 10.6387H5.19735L18.6875 7L14.5974 18.9906Z" fill="url(#paint1_linear_email)"/>
-            <defs>
-              <linearGradient id="paint0_linear_email" x1="0" y1="12.5" x2="25" y2="12.5" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#2DD4DA"/>
-                <stop offset="1" stopColor="#2563EB"/>
-              </linearGradient>
-              <linearGradient id="paint1_linear_email" x1="4.06195" y1="12.9999" x2="19.8083" y2="12.9999" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#2DD4DA"/>
-                <stop offset="1" stopColor="#2563EB"/>
-              </linearGradient>
-            </defs>
-          </svg>
-          <a
-            href={`mailto:${email}`}
-            className="text-base text-[#4678eb] hover:underline"
-            style={{ fontFamily: 'Mona Sans, sans-serif' }}
-          >
-            {email}
-          </a>
-        </div>
+        {/* Contact Info - Stacked vertically: Location, Phone, Email */}
+        <div className="flex flex-col items-center gap-1.5">
+          {/* Location */}
+          <div className="flex items-center gap-2">
+            <svg width="25" height="25" viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg" className="rotate-[283deg]">
+              <rect x="2.2451" y="2.2451" width="24.2286" height="24.2286" rx="12.1143" fill="#F3F3F3"/>
+              <rect x="2.2451" y="2.2451" width="24.2286" height="24.2286" rx="12.1143" stroke="url(#paint0_linear_location)" strokeWidth="0.771429"/>
+              <path d="M11.1636 9.28574L16.8962 12.7615L17.5552 19.433L11.8226 15.9573L11.1636 9.28574Z" stroke="url(#paint1_linear_location)" strokeLinecap="round" strokeLinejoin="round"/>
+              <defs>
+                <linearGradient id="paint0_linear_location" x1="1.85939" y1="14.3594" x2="26.8594" y2="14.3594" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#2DD4DA"/>
+                  <stop offset="1" stopColor="#2563EB"/>
+                </linearGradient>
+                <linearGradient id="paint1_linear_location" x1="13.4205" y1="18.4941" x2="15.2983" y2="10.2246" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#2DD4DA"/>
+                  <stop offset="1" stopColor="#2563EB"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <span
+              className="text-base text-[#1d4fc4]"
+              style={{ fontFamily: 'Mona Sans, sans-serif' }}
+            >
+              {location}
+            </span>
+          </div>
 
-        {/* Phone and Location */}
-        <div className="flex items-center justify-center gap-8">
           {/* Phone */}
           <div className="flex items-center gap-2">
             <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -372,29 +371,30 @@ export function DirectoryProfileCard({
             </a>
           </div>
 
-          {/* Location */}
+          {/* Email */}
           <div className="flex items-center gap-2">
-            <svg width="29" height="29" viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg" className="rotate-[283deg]">
-              <rect x="2.2451" y="2.2451" width="24.2286" height="24.2286" rx="12.1143" fill="#F3F3F3"/>
-              <rect x="2.2451" y="2.2451" width="24.2286" height="24.2286" rx="12.1143" stroke="url(#paint0_linear_location)" strokeWidth="0.771429"/>
-              <path d="M11.1636 9.28574L16.8962 12.7615L17.5552 19.433L11.8226 15.9573L11.1636 9.28574Z" stroke="url(#paint1_linear_location)" strokeLinecap="round" strokeLinejoin="round"/>
+            <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="0.385714" y="0.385714" width="24.2286" height="24.2286" rx="12.1143" fill="#F3F3F3"/>
+              <rect x="0.385714" y="0.385714" width="24.2286" height="24.2286" rx="12.1143" stroke="url(#paint0_linear_email)" strokeWidth="0.771429"/>
+              <path d="M19.4834 6.2925C19.342 6.16683 19.1654 6.07696 18.9718 6.03214C18.7783 5.98731 18.5748 5.98917 18.3823 6.0375H18.3718L4.87602 9.6775C4.65633 9.73366 4.4611 9.84797 4.31633 10.0052C4.17156 10.1625 4.08411 10.3552 4.06563 10.5577C4.04715 10.7602 4.09852 10.963 4.2129 11.1389C4.32727 11.3148 4.49923 11.4556 4.70586 11.5425L10.726 14.0769L13.5772 19.4281C13.6672 19.5995 13.8105 19.7444 13.9902 19.8457C14.1698 19.9471 14.3783 20.0006 14.5911 20C14.6234 20 14.6558 19.9987 14.6881 19.9962C14.9152 19.9799 15.1312 19.9022 15.3071 19.7736C15.4831 19.6451 15.6106 19.4717 15.6725 19.2769L19.7647 7.28062C19.7647 7.2775 19.7647 7.27437 19.7647 7.27125C19.8198 7.1006 19.8228 6.91999 19.7733 6.74799C19.7239 6.57598 19.6238 6.41876 19.4834 6.2925ZM14.5974 18.9906L14.5939 18.9994L11.8264 13.8062L15.148 10.8531C15.249 10.7586 15.3045 10.6327 15.3026 10.5023C15.3007 10.372 15.2416 10.2474 15.1379 10.1552C15.0342 10.063 14.8941 10.0104 14.7474 10.0088C14.6007 10.0071 14.4591 10.0564 14.3527 10.1462L11.0305 13.0987L5.1875 10.6387H5.19735L18.6875 7L14.5974 18.9906Z" fill="url(#paint1_linear_email)"/>
               <defs>
-                <linearGradient id="paint0_linear_location" x1="1.85939" y1="14.3594" x2="26.8594" y2="14.3594" gradientUnits="userSpaceOnUse">
+                <linearGradient id="paint0_linear_email" x1="0" y1="12.5" x2="25" y2="12.5" gradientUnits="userSpaceOnUse">
                   <stop stopColor="#2DD4DA"/>
                   <stop offset="1" stopColor="#2563EB"/>
                 </linearGradient>
-                <linearGradient id="paint1_linear_location" x1="13.4205" y1="18.4941" x2="15.2983" y2="10.2246" gradientUnits="userSpaceOnUse">
+                <linearGradient id="paint1_linear_email" x1="4.06195" y1="12.9999" x2="19.8083" y2="12.9999" gradientUnits="userSpaceOnUse">
                   <stop stopColor="#2DD4DA"/>
                   <stop offset="1" stopColor="#2563EB"/>
                 </linearGradient>
               </defs>
             </svg>
-            <span
-              className="text-base text-[#1d4fc4]"
+            <a
+              href={`mailto:${email}`}
+              className="text-base text-[#4678eb] hover:underline"
               style={{ fontFamily: 'Mona Sans, sans-serif' }}
             >
-              {location}
-            </span>
+              {email}
+            </a>
           </div>
         </div>
       </div>

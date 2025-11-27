@@ -1,4 +1,4 @@
-import { PublicProfileView } from './PublicProfileView';
+import { ProfileEditorView } from './ProfileEditorView';
 
 interface MyProfileProps {
   userId: string;
@@ -6,5 +6,5 @@ interface MyProfileProps {
 }
 
 export function MyProfile({ userId }: MyProfileProps) {
-  return <PublicProfileView userId={userId} />;
+  return <ProfileEditorView userId={userId} />;
 }

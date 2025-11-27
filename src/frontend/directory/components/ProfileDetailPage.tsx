@@ -1,8 +1,8 @@
 import { useParams } from 'react-router-dom';
-import { PublicProfileView } from '@/frontend/portal/components/PublicProfileView';
+import { ProfileEditorView } from '@/frontend/portal/components/ProfileEditorView';
 
 export function ProfileDetailPage() {
   const { slug } = useParams<{ slug: string }>();
 
-  return <PublicProfileView slug={slug} />;
+  return <ProfileEditorView slug={slug} />;
 }

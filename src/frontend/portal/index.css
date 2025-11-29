@@ -446,3 +446,164 @@ body.frs-portal-page main {
   display: flex;
   flex-direction: column;
 }
+
+/* ============================================
+   UNIFIED CARD COMPONENT SYSTEM
+   ============================================ */
+
+/* Base card styles */
+.brand-card {
+  @apply bg-white rounded-lg border border-[var(--brand-powder-blue)] shadow-sm transition-all duration-200;
+}
+
+.brand-card:hover {
+  @apply shadow-md;
+}
+
+/* Interactive card */
+.brand-card-interactive {
+  @apply cursor-pointer hover:scale-[1.02] hover:shadow-lg hover:border-[var(--brand-electric-blue)];
+}
+
+/* Card with accent border */
+.brand-card-accent {
+  @apply border-l-4;
+  border-left-color: var(--brand-electric-blue);
+}
+
+.brand-card-accent-cyan {
+  border-left-color: var(--brand-cyan);
+}
+
+.brand-card-accent-warning {
+  border-left-color: #f59e0b;
+}
+
+.brand-card-accent-error {
+  border-left-color: #ef4444;
+}
+
+/* Gradient card backgrounds */
+.brand-card-gradient-blue {
+  @apply border-0 text-white;
+  background: var(--gradient-brand-blue);
+}
+
+.brand-card-gradient-teal {
+  @apply border-0 text-white;
+  background: var(--gradient-brand-teal);
+}
+
+.brand-card-gradient-navy {
+  @apply border-0 text-white;
+  background: var(--gradient-brand-navy);
+}
+
+.brand-card-gradient-hero {
+  @apply border-0 text-white;
+  background: var(--gradient-hero);
+}
+
+/* Card header with colored background */
+.brand-card-header {
+  @apply h-12 flex items-center px-4 rounded-t-lg text-sm font-medium;
+  background-color: var(--brand-powder-blue);
+  color: var(--brand-slate);
+}
+
+.brand-card-header-dark {
+  background-color: var(--brand-dark-navy);
+  color: white;
+}
+
+/* Icon container in cards */
+.brand-icon-container {
+  @apply w-12 h-12 rounded-xl flex items-center justify-center;
+  background-color: var(--brand-pale-blue);
+  color: var(--brand-electric-blue);
+}
+
+.brand-icon-container-sm {
+  @apply w-10 h-10;
+}
+
+.brand-icon-container-lg {
+  @apply w-14 h-14;
+}
+
+/* Stats value styling */
+.brand-stat-value {
+  @apply text-2xl font-bold;
+  color: var(--brand-dark-navy);
+}
+
+.brand-stat-label {
+  @apply text-sm font-medium;
+  color: var(--brand-slate);
+}
+
+.brand-stat-change-positive {
+  @apply text-green-600;
+}
+
+.brand-stat-change-negative {
+  @apply text-red-600;
+}
+
+/* Tool card grid responsive layout */
+.brand-tool-grid {
+  @apply grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4;
+}
+
+.brand-tool-grid-compact {
+  @apply grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3;
+}
+
+/* Feature card grid */
+.brand-feature-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
+/* Announcement card styling */
+.brand-announcement {
+  @apply border-l-4 rounded-lg transition-all duration-200 cursor-pointer;
+  border-left-color: var(--brand-electric-blue);
+  background-color: var(--brand-off-white);
+}
+
+.brand-announcement:hover {
+  background-color: var(--brand-pale-blue);
+  @apply shadow-md;
+}
+
+.brand-announcement-high {
+  border-left-color: #ef4444;
+}
+
+.brand-announcement-low {
+  border-left-color: var(--brand-slate);
+}
+
+/* Badge variants */
+.brand-badge {
+  @apply inline-flex items-center px-2 py-0.5 text-xs font-medium rounded;
+}
+
+.brand-badge-new {
+  background: var(--gradient-brand-blue);
+  color: white;
+}
+
+.brand-badge-popular {
+  background: var(--gradient-brand-teal);
+  color: white;
+}
+
+.brand-badge-premium {
+  background: var(--gradient-hero);
+  color: white;
+}
+
+.brand-badge-important {
+  @apply bg-red-500 text-white;
+}

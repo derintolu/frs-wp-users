@@ -38,6 +38,10 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
   const location = useLocation();
   const { activeSection, setActiveSection, isSaving, handleSave, handleCancel } = useProfileEdit();
   const [headerHeight, setHeaderHeight] = useState<string>('0px');
+
+  // Check if running in content-only mode (no sidebar)
+  const contentOnly = (window as any).frsPortalConfig?.contentOnly || false;
+
   // Start collapsed on mobile (< 768px), open on desktop
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     return typeof window !== 'undefined' && window.innerWidth < 768;
@@ -748,8 +752,8 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
         marginTop: 0
       }}
     >
-      {/* Conditionally render sidebar based on view */}
-      {sidebarView === 'menu' ? (
+      {/* Conditionally render sidebar based on view and contentOnly mode */}
+      {!contentOnly && (sidebarView === 'menu' ? (
         <CollapsibleSidebar
           menuItems={menuItems}
           activeItemId={location.pathname}
@@ -780,10 +784,10 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
           {sidebarHeader}
           {renderSidebarContent()}
         </div>
-      )}
+      ))}
 
       {/* Main Content - ALWAYS shows profile preview in customizer style */}
-      <main className="max-md:p-0 max-md:m-0 md:pt-8 md:pb-8 md:pl-8 md:pr-8 md:ml-[320px] md:mr-0">
+      <main className={contentOnly ? "p-0 m-0" : "max-md:p-0 max-md:m-0 md:pt-8 md:pb-8 md:pl-8 md:pr-8 md:ml-[320px] md:mr-0"}>
         <CustomizerPreview viewport={viewport}>
           <Outlet />
         </CustomizerPreview>

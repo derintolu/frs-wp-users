@@ -14,6 +14,7 @@ use FRSUsers\Core\PluginDependencies;
 use FRSUsers\Core\Template;
 use FRSUsers\Core\CORS;
 use FRSUsers\Core\DataKit;
+use FRSUsers\Core\EmbeddablePages;
 use FRSUsers\Controllers\Shortcodes;
 use FRSUsers\Routes\Api;
 use FRSUsers\Admin\ProfilesPage;
@@ -82,6 +83,9 @@ final class FRSUsers {
 
 		// Initialize CORS handler for REST API
 		CORS::get_instance()->init();
+
+		// Initialize embeddable pages for Nextcloud integration
+		EmbeddablePages::get_instance()->init();
 
 		// Initialize DataKit integration if SDK is available
 		if ( class_exists( 'DataKit\DataViews\DataView\DataView' ) ) {

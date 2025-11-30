@@ -365,6 +365,9 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
         successMsg.textContent = 'Profile saved successfully!';
         document.body.appendChild(successMsg);
         setTimeout(() => successMsg.remove(), 3000);
+
+        // Reload the page to fetch latest data from server
+        setTimeout(() => window.location.reload(), 500);
       } else {
         setError('Failed to save profile changes');
       }
@@ -846,8 +849,11 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
 
                     <Button
                       onClick={() => setIsEditing(true)}
-                      className="bg-[var(--brand-electric-blue)] hover:bg-[var(--brand-electric-blue)]/90 text-white shadow-lg hover:shadow-xl transition-all hover:scale-105"
+                      className="text-white shadow-lg hover:shadow-xl transition-all hover:scale-105"
                       size="sm"
+                      style={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      }}
                     >
                       <Edit className="h-4 w-4 mr-2" />
                       Edit Profile

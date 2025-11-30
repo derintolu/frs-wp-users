@@ -38,6 +38,7 @@ class CLI {
 		\WP_CLI::add_command( 'frs-users list-guests', array( __CLASS__, 'list_guests' ) );
 		\WP_CLI::add_command( 'frs-users create-user', array( __CLASS__, 'create_user_account' ) );
 		\WP_CLI::add_command( 'frs-users generate-slugs', array( __CLASS__, 'generate_profile_slugs' ) );
+		\WP_CLI::add_command( 'frs-users sync-suredash-avatars', array( __CLASS__, 'sync_suredash_avatars' ) );
 	}
 
 	/**
@@ -290,5 +291,95 @@ class CLI {
 		}
 
 		\WP_CLI::success( sprintf( 'Generated %d slugs. Errors: %d', $generated, $errors ) );
+	}
+
+	/**
+	 * Sync FRS profile headshots to SureDash avatars
+	 *
+	 * Copies headshot_url from FRS profiles to user_profile_photo user meta
+	 * so SureDash displays the correct avatar instead of initials.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--force]
+	 * : Overwrite existing SureDash avatars
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp frs-users sync-suredash-avatars
+	 *     wp frs-users sync-suredash-avatars --force
+	 *
+	 * @when after_wp_load
+	 */
+	public static function sync_suredash_avatars( $args, $assoc_args ) {
+		if ( ! function_exists( 'sd_update_user_meta' ) ) {
+			\WP_CLI::error( 'SureDash plugin is not active. Please activate SureDash first.' );
+		}
+
+		$force = isset( $assoc_args['force'] );
+
+		\WP_CLI::line( 'Syncing FRS profile headshots to SureDash avatars...' );
+
+		// Get all profiles with user accounts
+		$profiles = Profile::whereNotNull( 'user_id' )->get();
+
+		$total = count( $profiles );
+
+		if ( $total === 0 ) {
+			\WP_CLI::warning( 'No profiles with user accounts found.' );
+			return;
+		}
+
+		\WP_CLI::line( sprintf( 'Found %d profiles with user accounts.', $total ) );
+
+		$synced   = 0;
+		$skipped  = 0;
+		$errors   = 0;
+
+		$progress = \WP_CLI\Utils\make_progress_bar( 'Syncing avatars', $total );
+
+		foreach ( $profiles as $profile ) {
+			// Check if profile has headshot
+			if ( empty( $profile->headshot_url ) ) {
+				$skipped++;
+				$progress->tick();
+				continue;
+			}
+
+			// Check if user already has SureDash avatar (unless --force)
+			if ( ! $force ) {
+				$existing_avatar = get_user_meta( $profile->user_id, 'user_profile_photo', true );
+				if ( ! empty( $existing_avatar ) ) {
+					$skipped++;
+					$progress->tick();
+					continue;
+				}
+			}
+
+			// Sync avatar
+			$result = update_user_meta( $profile->user_id, 'user_profile_photo', $profile->headshot_url );
+
+			if ( $result !== false ) {
+				$synced++;
+			} else {
+				\WP_CLI::warning( sprintf( 'Failed to sync avatar for %s %s (User ID: %d)', $profile->first_name, $profile->last_name, $profile->user_id ) );
+				$errors++;
+			}
+
+			$progress->tick();
+		}
+
+		$progress->finish();
+
+		\WP_CLI::success( sprintf(
+			'Avatar sync complete! Synced: %d, Skipped: %d, Errors: %d',
+			$synced,
+			$skipped,
+			$errors
+		) );
+
+		if ( $skipped > 0 && ! $force ) {
+			\WP_CLI::line( 'Tip: Use --force to overwrite existing SureDash avatars.' );
+		}
 	}
 }

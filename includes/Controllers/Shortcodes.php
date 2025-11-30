@@ -37,7 +37,15 @@ class Shortcodes {
 	 * @return void
 	 */
 	public static function register_shortcodes() {
+		// Full portal with sidebar
 		add_shortcode( 'frs_profile', array( __CLASS__, 'render_profile' ) );
+
+		// Content-only shortcodes (no sidebar) for SureDash integration
+		add_shortcode( 'frs_my_profile', array( __CLASS__, 'render_my_profile_content' ) );
+		add_shortcode( 'frs_profile_settings', array( __CLASS__, 'render_settings_content' ) );
+		add_shortcode( 'frs_welcome', array( __CLASS__, 'render_welcome_content' ) );
+
+		// Directory
 		add_shortcode( 'frs_profile_directory', array( __CLASS__, 'render_directory' ) );
 
 		// Allow other plugins to register additional FRS shortcodes
@@ -310,5 +318,140 @@ class Shortcodes {
 				'in-footer'    => true,
 			)
 		);
+	}
+
+	/**
+	 * Render My Profile content only (no sidebar)
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string Rendered shortcode HTML.
+	 */
+	public static function render_my_profile_content( $atts ) {
+		// Check if user is logged in
+		if ( ! is_user_logged_in() ) {
+			return '<div class="frs-profile-error"><p>' . esc_html__( 'Please log in to access your profile.', 'frs-users' ) . '</p></div>';
+		}
+
+		$user = wp_get_current_user();
+
+		// Enqueue assets
+		self::enqueue_portal_assets();
+
+		// Localize script
+		wp_localize_script(
+			'frs-profile-portal',
+			'frsPortalConfig',
+			array(
+				'restNonce'   => wp_create_nonce( 'wp_rest' ),
+				'userName'    => $user->display_name,
+				'userEmail'   => $user->user_email,
+				'userAvatar'  => get_avatar_url( $user->ID ),
+				'userRole'    => 'loan_officer',
+				'siteName'    => get_bloginfo( 'name' ),
+				'apiUrl'      => rest_url( 'frs-users/v1' ),
+				'userId'      => $user->ID,
+				'gradientUrl' => FRS_USERS_URL . 'assets/images/Blue-Dark-Blue-Gradient-Color-and-Style-Video-Background-1.mp4',
+				'contentOnly' => true, // Flag for content-only mode
+				'initialRoute' => '/my-profile',
+				'currentUser' => array(
+					'id'    => $user->ID,
+					'name'  => $user->display_name,
+					'email' => $user->user_email,
+					'roles' => (array) $user->roles,
+				),
+			)
+		);
+
+		return '<div id="frs-users-portal-root" class="frs-content-only"></div>';
+	}
+
+	/**
+	 * Render Settings content only (no sidebar)
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string Rendered shortcode HTML.
+	 */
+	public static function render_settings_content( $atts ) {
+		// Check if user is logged in
+		if ( ! is_user_logged_in() ) {
+			return '<div class="frs-profile-error"><p>' . esc_html__( 'Please log in to access settings.', 'frs-users' ) . '</p></div>';
+		}
+
+		$user = wp_get_current_user();
+
+		// Enqueue assets
+		self::enqueue_portal_assets();
+
+		// Localize script
+		wp_localize_script(
+			'frs-profile-portal',
+			'frsPortalConfig',
+			array(
+				'restNonce'   => wp_create_nonce( 'wp_rest' ),
+				'userName'    => $user->display_name,
+				'userEmail'   => $user->user_email,
+				'userAvatar'  => get_avatar_url( $user->ID ),
+				'userRole'    => 'loan_officer',
+				'siteName'    => get_bloginfo( 'name' ),
+				'apiUrl'      => rest_url( 'frs-users/v1' ),
+				'userId'      => $user->ID,
+				'gradientUrl' => FRS_USERS_URL . 'assets/images/Blue-Dark-Blue-Gradient-Color-and-Style-Video-Background-1.mp4',
+				'contentOnly' => true,
+				'initialRoute' => '/settings',
+				'currentUser' => array(
+					'id'    => $user->ID,
+					'name'  => $user->display_name,
+					'email' => $user->user_email,
+					'roles' => (array) $user->roles,
+				),
+			)
+		);
+
+		return '<div id="frs-users-portal-root" class="frs-content-only"></div>';
+	}
+
+	/**
+	 * Render Welcome content only (no sidebar)
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string Rendered shortcode HTML.
+	 */
+	public static function render_welcome_content( $atts ) {
+		// Check if user is logged in
+		if ( ! is_user_logged_in() ) {
+			return '<div class="frs-profile-error"><p>' . esc_html__( 'Please log in to view this content.', 'frs-users' ) . '</p></div>';
+		}
+
+		$user = wp_get_current_user();
+
+		// Enqueue assets
+		self::enqueue_portal_assets();
+
+		// Localize script
+		wp_localize_script(
+			'frs-profile-portal',
+			'frsPortalConfig',
+			array(
+				'restNonce'   => wp_create_nonce( 'wp_rest' ),
+				'userName'    => $user->display_name,
+				'userEmail'   => $user->user_email,
+				'userAvatar'  => get_avatar_url( $user->ID ),
+				'userRole'    => 'loan_officer',
+				'siteName'    => get_bloginfo( 'name' ),
+				'apiUrl'      => rest_url( 'frs-users/v1' ),
+				'userId'      => $user->ID,
+				'gradientUrl' => FRS_USERS_URL . 'assets/images/Blue-Dark-Blue-Gradient-Color-and-Style-Video-Background-1.mp4',
+				'contentOnly' => true,
+				'initialRoute' => '/welcome',
+				'currentUser' => array(
+					'id'    => $user->ID,
+					'name'  => $user->display_name,
+					'email' => $user->user_email,
+					'roles' => (array) $user->roles,
+				),
+			)
+		);
+
+		return '<div id="frs-users-portal-root" class="frs-content-only"></div>';
 	}
 }

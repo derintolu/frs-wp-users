@@ -29,4 +29,7 @@ composer.lock
 *.sln
 *.sw?
 
+# Git error files
+git-error-*
+
 /vendor/

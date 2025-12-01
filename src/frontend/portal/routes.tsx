@@ -1,4 +1,4 @@
-import { createHashRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { ProfileCustomizerLayout } from './components/ProfileCustomizerLayout';
 import { MyProfile } from './components/MyProfile';
 import type { User } from './utils/dataService';
@@ -12,7 +12,7 @@ interface RouteConfig {
 export const createRouter = (config: RouteConfig) => {
   const { currentUser, userId } = config;
 
-  return createHashRouter([
+  return createBrowserRouter([
     {
       path: '/',
       element: <ProfileCustomizerLayout currentUser={currentUser} userId={userId} />,

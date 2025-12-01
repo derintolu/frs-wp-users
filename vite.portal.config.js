@@ -10,7 +10,7 @@ export default {
         'portal': "src/frontend/portal/main.tsx",
         'public-profile': "src/frontend/portal/public-main.tsx"
       },
-      outDir: "assets/frontend/dist",
+      outDir: "assets/portal/dist",
     }),
     react(),
   ],

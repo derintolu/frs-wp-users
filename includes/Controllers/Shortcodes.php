@@ -310,7 +310,7 @@ class Shortcodes {
 	 */
 	private static function enqueue_portal_assets() {
 		\FRSUsers\Libs\Assets\enqueue_asset(
-			FRS_USERS_DIR . '/assets/frontend/dist',
+			FRS_USERS_DIR . '/assets/portal/dist',
 			'src/frontend/portal/main.tsx',
 			array(
 				'handle'       => 'frs-profile-portal',
@@ -318,6 +318,14 @@ class Shortcodes {
 				'in-footer'    => true,
 			)
 		);
+
+		// Ensure script is loaded as module
+		add_filter( 'script_loader_tag', function( $tag, $handle ) {
+			if ( 'frs-profile-portal' === $handle ) {
+				$tag = str_replace( '<script ', '<script type="module" ', $tag );
+			}
+			return $tag;
+		}, 10, 2 );
 	}
 
 	/**

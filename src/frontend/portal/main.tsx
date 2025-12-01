@@ -10,6 +10,7 @@ import { RouterProvider } from 'react-router-dom';
 import { createRouter } from './routes';
 import { DataService, type User } from './utils/dataService';
 import { ProfileEditProvider } from './contexts/ProfileEditContext';
+import { ProfileCustomizerLayout } from './components/ProfileCustomizerLayout';
 import "./index.css";
 
 // WordPress integration - look for the portal root element
@@ -165,7 +166,19 @@ function ProfilePortal() {
   // Determine user role
   const userRole = currentUser.role === 'realtor' ? 'realtor' : 'loan-officer';
 
-  // Create router with configuration
+  // Check if we're in content-only mode (no sidebar, no router)
+  const isContentOnly = (window as any).frsPortalConfig?.contentOnly === true;
+
+  if (isContentOnly) {
+    // Content-only mode: Just render the component directly without router
+    return (
+      <ProfileEditProvider>
+        <ProfileCustomizerLayout currentUser={currentUser} userId={currentUser.id} contentOnly={true} />
+      </ProfileEditProvider>
+    );
+  }
+
+  // Full portal mode: Use router with sidebar
   const router = createRouter({
     currentUser,
     userId: currentUser.id,

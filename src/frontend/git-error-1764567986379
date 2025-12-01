@@ -1,0 +1,3 @@
+> git -c user.useConfigOnly=true commit --quiet --allow-empty-message --file -
+hint: The '.git/hooks/pre-commit' hook was ignored because it's not set as executable.
+hint: You can disable this warning with `git config set advice.ignoredHook false`.

@@ -306,9 +306,10 @@ class Shortcodes {
 	/**
 	 * Enqueue portal assets
 	 *
+	 * @param array $config Configuration data to localize.
 	 * @return void
 	 */
-	private static function enqueue_portal_assets() {
+	private static function enqueue_portal_assets( $config = array() ) {
 		\FRSUsers\Libs\Assets\enqueue_asset(
 			FRS_USERS_DIR . '/assets/portal/dist',
 			'src/frontend/portal/main.tsx',
@@ -318,6 +319,11 @@ class Shortcodes {
 				'in-footer'    => true,
 			)
 		);
+
+		// Localize script if config provided
+		if ( ! empty( $config ) ) {
+			wp_localize_script( 'frs-profile-portal', 'frsPortalConfig', $config );
+		}
 
 		// Ensure script is loaded as module
 		add_filter( 'script_loader_tag', function( $tag, $handle ) {
@@ -342,33 +348,29 @@ class Shortcodes {
 
 		$user = wp_get_current_user();
 
-		// Enqueue assets
-		self::enqueue_portal_assets();
-
-		// Localize script
-		wp_localize_script(
-			'frs-profile-portal',
-			'frsPortalConfig',
-			array(
-				'restNonce'   => wp_create_nonce( 'wp_rest' ),
-				'userName'    => $user->display_name,
-				'userEmail'   => $user->user_email,
-				'userAvatar'  => get_avatar_url( $user->ID ),
-				'userRole'    => 'loan_officer',
-				'siteName'    => get_bloginfo( 'name' ),
-				'apiUrl'      => rest_url( 'frs-users/v1' ),
-				'userId'      => $user->ID,
-				'gradientUrl' => FRS_USERS_URL . 'assets/images/Blue-Dark-Blue-Gradient-Color-and-Style-Video-Background-1.mp4',
-				'contentOnly' => true, // Flag for content-only mode
-				'initialRoute' => '/my-profile',
-				'currentUser' => array(
-					'id'    => $user->ID,
-					'name'  => $user->display_name,
-					'email' => $user->user_email,
-					'roles' => (array) $user->roles,
-				),
-			)
+		// Prepare config
+		$config = array(
+			'restNonce'   => wp_create_nonce( 'wp_rest' ),
+			'userName'    => $user->display_name,
+			'userEmail'   => $user->user_email,
+			'userAvatar'  => get_avatar_url( $user->ID ),
+			'userRole'    => 'loan_officer',
+			'siteName'    => get_bloginfo( 'name' ),
+			'apiUrl'      => rest_url( 'frs-users/v1' ),
+			'userId'      => $user->ID,
+			'gradientUrl' => FRS_USERS_URL . 'assets/images/Blue-Dark-Blue-Gradient-Color-and-Style-Video-Background-1.mp4',
+			'contentOnly' => true, // Flag for content-only mode
+			'initialRoute' => '/my-profile',
+			'currentUser' => array(
+				'id'    => $user->ID,
+				'name'  => $user->display_name,
+				'email' => $user->user_email,
+				'roles' => (array) $user->roles,
+			),
 		);
+
+		// Enqueue assets with config
+		self::enqueue_portal_assets( $config );
 
 		return '<div id="frs-users-portal-root" class="frs-content-only"></div>';
 	}
@@ -387,33 +389,29 @@ class Shortcodes {
 
 		$user = wp_get_current_user();
 
-		// Enqueue assets
-		self::enqueue_portal_assets();
-
-		// Localize script
-		wp_localize_script(
-			'frs-profile-portal',
-			'frsPortalConfig',
-			array(
-				'restNonce'   => wp_create_nonce( 'wp_rest' ),
-				'userName'    => $user->display_name,
-				'userEmail'   => $user->user_email,
-				'userAvatar'  => get_avatar_url( $user->ID ),
-				'userRole'    => 'loan_officer',
-				'siteName'    => get_bloginfo( 'name' ),
-				'apiUrl'      => rest_url( 'frs-users/v1' ),
-				'userId'      => $user->ID,
-				'gradientUrl' => FRS_USERS_URL . 'assets/images/Blue-Dark-Blue-Gradient-Color-and-Style-Video-Background-1.mp4',
-				'contentOnly' => true,
-				'initialRoute' => '/settings',
-				'currentUser' => array(
-					'id'    => $user->ID,
-					'name'  => $user->display_name,
-					'email' => $user->user_email,
-					'roles' => (array) $user->roles,
-				),
-			)
+		// Prepare config
+		$config = array(
+			'restNonce'   => wp_create_nonce( 'wp_rest' ),
+			'userName'    => $user->display_name,
+			'userEmail'   => $user->user_email,
+			'userAvatar'  => get_avatar_url( $user->ID ),
+			'userRole'    => 'loan_officer',
+			'siteName'    => get_bloginfo( 'name' ),
+			'apiUrl'      => rest_url( 'frs-users/v1' ),
+			'userId'      => $user->ID,
+			'gradientUrl' => FRS_USERS_URL . 'assets/images/Blue-Dark-Blue-Gradient-Color-and-Style-Video-Background-1.mp4',
+			'contentOnly' => true,
+			'initialRoute' => '/settings',
+			'currentUser' => array(
+				'id'    => $user->ID,
+				'name'  => $user->display_name,
+				'email' => $user->user_email,
+				'roles' => (array) $user->roles,
+			),
 		);
+
+		// Enqueue assets with config
+		self::enqueue_portal_assets( $config );
 
 		return '<div id="frs-users-portal-root" class="frs-content-only"></div>';
 	}
@@ -432,33 +430,29 @@ class Shortcodes {
 
 		$user = wp_get_current_user();
 
-		// Enqueue assets
-		self::enqueue_portal_assets();
-
-		// Localize script
-		wp_localize_script(
-			'frs-profile-portal',
-			'frsPortalConfig',
-			array(
-				'restNonce'   => wp_create_nonce( 'wp_rest' ),
-				'userName'    => $user->display_name,
-				'userEmail'   => $user->user_email,
-				'userAvatar'  => get_avatar_url( $user->ID ),
-				'userRole'    => 'loan_officer',
-				'siteName'    => get_bloginfo( 'name' ),
-				'apiUrl'      => rest_url( 'frs-users/v1' ),
-				'userId'      => $user->ID,
-				'gradientUrl' => FRS_USERS_URL . 'assets/images/Blue-Dark-Blue-Gradient-Color-and-Style-Video-Background-1.mp4',
-				'contentOnly' => true,
-				'initialRoute' => '/welcome',
-				'currentUser' => array(
-					'id'    => $user->ID,
-					'name'  => $user->display_name,
-					'email' => $user->user_email,
-					'roles' => (array) $user->roles,
-				),
-			)
+		// Prepare config
+		$config = array(
+			'restNonce'   => wp_create_nonce( 'wp_rest' ),
+			'userName'    => $user->display_name,
+			'userEmail'   => $user->user_email,
+			'userAvatar'  => get_avatar_url( $user->ID ),
+			'userRole'    => 'loan_officer',
+			'siteName'    => get_bloginfo( 'name' ),
+			'apiUrl'      => rest_url( 'frs-users/v1' ),
+			'userId'      => $user->ID,
+			'gradientUrl' => FRS_USERS_URL . 'assets/images/Blue-Dark-Blue-Gradient-Color-and-Style-Video-Background-1.mp4',
+			'contentOnly' => true,
+			'initialRoute' => '/welcome',
+			'currentUser' => array(
+				'id'    => $user->ID,
+				'name'  => $user->display_name,
+				'email' => $user->user_email,
+				'roles' => (array) $user->roles,
+			),
 		);
+
+		// Enqueue assets with config
+		self::enqueue_portal_assets( $config );
 
 		return '<div id="frs-users-portal-root" class="frs-content-only"></div>';
 	}

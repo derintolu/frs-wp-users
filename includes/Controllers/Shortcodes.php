@@ -320,9 +320,13 @@ class Shortcodes {
 			)
 		);
 
-		// Localize script if config provided
+		// Output config as inline script BEFORE the module loads
 		if ( ! empty( $config ) ) {
-			wp_localize_script( 'frs-profile-portal', 'frsPortalConfig', $config );
+			wp_add_inline_script(
+				'frs-profile-portal',
+				'window.frsPortalConfig = ' . wp_json_encode( $config ) . ';',
+				'before'
+			);
 		}
 
 		// Ensure script is loaded as module

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
 	User,
@@ -7,6 +8,8 @@ import {
 	Link,
 	MapPin,
 	Award,
+	Copy,
+	ExternalLink,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -120,6 +123,61 @@ export default function Sidebar({
 					</button>
 				))}
 			</nav>
+
+			{/* Profile Completion Widget */}
+			<div className="mt-4 px-4 py-3 border-b border-gray-200 bg-white rounded-lg">
+				<div className="flex items-center justify-between mb-2">
+					<div className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+						Profile Completion
+					</div>
+					<div className="text-sm font-semibold text-gray-700">50%</div>
+				</div>
+				<div className="w-full bg-gray-200 rounded-full h-2">
+					<div
+						className="h-2 rounded-full"
+						style={{
+							width: '50%',
+							background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
+						}}
+					/>
+				</div>
+			</div>
+
+			{/* Profile Link Widget */}
+			<div className="mt-4 px-4 py-3 border-t border-gray-200 bg-white rounded-lg">
+				<div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+					Profile Link
+				</div>
+				<div className="text-sm text-gray-700 mb-2 p-2 bg-gray-50 rounded border border-gray-300 truncate">
+					{profile?.profile_slug ? `${window.location.origin}/member/${profile.profile_slug}` : 'No profile slug'}
+				</div>
+				<div className="flex gap-2">
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => {
+							const url = profile?.profile_slug ? `${window.location.origin}/member/${profile.profile_slug}` : '';
+							if (url) navigator.clipboard.writeText(url);
+						}}
+						className="flex-1"
+					>
+						<Copy className="h-3 w-3 mr-1" />
+						Copy
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => {
+							const url = profile?.profile_slug ? `${window.location.origin}/member/${profile.profile_slug}` : '';
+							if (url) window.open(url, '_blank');
+						}}
+						className="flex-1"
+					>
+						<ExternalLink className="h-3 w-3 mr-1" />
+						Open
+					</Button>
+				</div>
+			</div>
 		</Card>
 	);
 }

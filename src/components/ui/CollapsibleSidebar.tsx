@@ -31,6 +31,7 @@ export interface CollapsibleSidebarProps {
   activeItemBackground?: string;
   position?: 'left' | 'right';
   topOffset?: string;
+  integrated?: boolean; // If true, renders as a regular div without fixed positioning
 }
 
 export function CollapsibleSidebar({
@@ -50,6 +51,7 @@ export function CollapsibleSidebar({
   activeItemBackground = 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
   position = 'left',
   topOffset = '0',
+  integrated = false,
 }: CollapsibleSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
@@ -202,8 +204,8 @@ export function CollapsibleSidebar({
         <Element
           {...elementProps}
           className={cn(
-            'w-full inline-flex items-center gap-2 text-sm font-medium transition-all rounded-md h-9 px-4 py-2',
-            isChild && 'h-8 px-3 ml-6',
+            'w-full inline-flex items-center gap-2 text-xs font-medium transition-all rounded-md h-8 px-3 py-1.5',
+            isChild && 'h-7 px-2 ml-6 text-[11px]',
             shouldShowCollapsed && !isChild && 'justify-center px-2',
             !isActive && 'hover:bg-accent hover:text-accent-foreground',
             isActive && 'shadow-sm',
@@ -219,7 +221,7 @@ export function CollapsibleSidebar({
           }}
           title={shouldShowCollapsed ? item.label : undefined}
         >
-          {Icon && <Icon className="size-4 flex-shrink-0" />}
+          {Icon && <Icon className="size-3.5 flex-shrink-0" />}
           {!shouldShowCollapsed && (
             <>
               <span className="flex-1 text-left">{item.label}</span>
@@ -337,46 +339,49 @@ export function CollapsibleSidebar({
   return (
     <aside
       className={cn(
-        'fixed transition-all duration-300 ease-in-out z-[50]',
-        'border shadow-lg overflow-visible',
-        position === 'left' ? 'left-0 border-r border-border' : 'right-0 border-l border-border',
+        !integrated && 'fixed transition-all duration-300 ease-in-out z-[50]',
+        !integrated && 'border shadow-lg overflow-visible',
+        !integrated && (position === 'left' ? 'left-0 border-r border-border' : 'right-0 border-l border-border'),
+        integrated && 'h-full flex flex-col',
         className
       )}
       style={{
-        width: isCollapsed ? collapsedWidth : width,
+        width: !integrated && isCollapsed ? collapsedWidth : !integrated ? width : undefined,
         backgroundColor,
         color: textColor,
-        top: topOffset,
-        height: `calc(100vh - ${topOffset})`,
-        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+        top: !integrated ? topOffset : undefined,
+        height: !integrated ? `calc(100vh - ${topOffset})` : undefined,
+        boxShadow: !integrated ? '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)' : undefined,
       }}
     >
-      {/* Toggle Button */}
-      <a
-        href="#frs-portal-sidebar-toggle"
-        id="frs-portal-sidebar-toggle"
-        className={cn(
-          'frs-portal-sidebar-toggle',
-          'frs-sidebar-toggle-btn',
-          'absolute top-[30px] z-50 h-8 w-8 rounded-full border bg-white shadow-md hover:bg-gray-50',
-          'flex items-center justify-center transition-colors cursor-pointer no-underline',
-          '-right-4'
-        )}
-        onClick={(e) => {
-          e.preventDefault();
-          const newCollapsedState = !isCollapsed;
-          setIsCollapsed(newCollapsedState);
-          onCollapsedChange?.(newCollapsedState);
-        }}
-        aria-label="Toggle sidebar navigation"
-        data-frs-component="sidebar-toggle"
-      >
-        {isCollapsed ? (
-          <ChevronRight className="h-4 w-4" />
-        ) : (
-          <ChevronLeft className="h-4 w-4" />
-        )}
-      </a>
+      {/* Toggle Button - Hidden in integrated mode */}
+      {!integrated && (
+        <a
+          href="#frs-portal-sidebar-toggle"
+          id="frs-portal-sidebar-toggle"
+          className={cn(
+            'frs-portal-sidebar-toggle',
+            'frs-sidebar-toggle-btn',
+            'absolute top-[30px] z-50 h-8 w-8 rounded-full border bg-white shadow-md hover:bg-gray-50',
+            'flex items-center justify-center transition-colors cursor-pointer no-underline',
+            '-right-4'
+          )}
+          onClick={(e) => {
+            e.preventDefault();
+            const newCollapsedState = !isCollapsed;
+            setIsCollapsed(newCollapsedState);
+            onCollapsedChange?.(newCollapsedState);
+          }}
+          aria-label="Toggle sidebar navigation"
+          data-frs-component="sidebar-toggle"
+        >
+          {isCollapsed ? (
+            <ChevronRight className="h-4 w-4" />
+          ) : (
+            <ChevronLeft className="h-4 w-4" />
+          )}
+        </a>
+      )}
 
       <div className="h-full flex flex-col overflow-hidden">
         {/* Header Section */}

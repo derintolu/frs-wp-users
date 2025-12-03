@@ -778,8 +778,6 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
               </div>
             </div>
 
-            {/* Old Save/Cancel Buttons - REMOVED - Now in sidebar */}
-
             {/* Name */}
             {isEditingPersonal ? (
               <div className="grid grid-cols-2 gap-4 mb-6 relative z-10">
@@ -1552,6 +1550,107 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
           </CardContent>
         </Card>
     </div>
+
+      {/* Floating Save/Cancel Bar - appears when editing */}
+      {activeSection && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg">
+          <div className="max-w-[1290px] mx-auto px-4 py-3 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Edit className="h-4 w-4" />
+              <span>
+                Editing: <span className="font-medium capitalize">{activeSection === 'personal' ? 'Personal Information' : activeSection === 'professional' ? 'Professional Details' : activeSection === 'social' ? 'Links & Social' : activeSection}</span>
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (originalProfile) {
+                    setProfile(originalProfile);
+                  }
+                  setActiveSection(null);
+                  setError(null);
+                }}
+                disabled={isSaving}
+                className="px-6"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+              <Button
+                onClick={async () => {
+                  if (!profile) return;
+
+                  setIsSaving(true);
+                  setContextSaving(true);
+                  setError(null);
+
+                  try {
+                    const response = await fetch(`/wp-json/frs-users/v1/profiles/${profile.id}`, {
+                      method: 'PUT',
+                      credentials: 'include',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'X-WP-Nonce': (window as any).wpApiSettings?.nonce || (window as any).frsPortalConfig?.restNonce || ''
+                      },
+                      body: JSON.stringify(profile)
+                    });
+
+                    if (response.ok) {
+                      const result = await response.json();
+                      const updatedProfile = result.data || result;
+                      setProfile(updatedProfile);
+                      setOriginalProfile(updatedProfile);
+                      setActiveSection(null);
+
+                      const successMsg = document.createElement('div');
+                      successMsg.className = 'fixed top-20 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                      successMsg.textContent = 'Profile saved successfully!';
+                      document.body.appendChild(successMsg);
+                      setTimeout(() => successMsg.remove(), 3000);
+                    } else {
+                      const errorData = await response.json();
+                      const errorMsg = document.createElement('div');
+                      errorMsg.className = 'fixed top-20 right-6 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                      errorMsg.textContent = errorData.message || 'Failed to save profile changes';
+                      document.body.appendChild(errorMsg);
+                      setTimeout(() => errorMsg.remove(), 5000);
+                      setError(errorData.message || 'Failed to save profile changes');
+                    }
+                  } catch (err) {
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'fixed top-20 right-6 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                    errorMsg.textContent = 'Network error - please try again';
+                    document.body.appendChild(errorMsg);
+                    setTimeout(() => errorMsg.remove(), 5000);
+                    setError('Failed to save profile changes');
+                  } finally {
+                    setIsSaving(false);
+                    setContextSaving(false);
+                  }
+                }}
+                disabled={isSaving}
+                className="px-6 text-white"
+                style={{
+                  background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
+                }}
+              >
+                {isSaving ? (
+                  <>
+                    <LoadingSpinner className="h-4 w-4 mr-2" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Scheduling Setup Modal (Portal View Only) */}
       {showSchedulingModal && (

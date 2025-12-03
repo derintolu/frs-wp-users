@@ -10,7 +10,7 @@ import { RouterProvider } from 'react-router-dom';
 import { createRouter } from './routes';
 import { DataService, type User } from './utils/dataService';
 import { ProfileEditProvider } from './contexts/ProfileEditContext';
-import { ProfileCustomizerLayout } from './components/ProfileCustomizerLayout';
+import { MyProfile } from './components/MyProfile';
 import "./index.css";
 
 // WordPress integration - look for the portal root element
@@ -170,10 +170,10 @@ function ProfilePortal() {
   const isContentOnly = (window as any).frsPortalConfig?.contentOnly === true;
 
   if (isContentOnly) {
-    // Content-only mode: Just render the component directly without router
+    // Content-only mode: Just render the profile component directly without router or layout
     return (
       <ProfileEditProvider>
-        <ProfileCustomizerLayout currentUser={currentUser} userId={currentUser.id} contentOnly={true} />
+        <MyProfile userId={currentUser.id} />
       </ProfileEditProvider>
     );
   }

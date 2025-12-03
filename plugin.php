@@ -23,6 +23,7 @@ use FRSUsers\Assets\Admin;
 use FRSUsers\Integrations\FRSSync;
 use FRSUsers\Integrations\FluentCRMSync;
 use FRSUsers\Controllers\Blocks;
+use FRSUsers\Abilities\AbilitiesRegistry;
 use FRSUsers\Traits\Base;
 
 defined( 'ABSPATH' ) || exit;
@@ -100,6 +101,9 @@ final class FRSUsers {
 
 		// Initialize FluentCRM real-time sync integration
 		FluentCRMSync::get_instance()->init();
+
+		// Initialize WordPress Abilities API integration
+		AbilitiesRegistry::init();
 
 		// Initialize admin interface
 		if ( is_admin() ) {

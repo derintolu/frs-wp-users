@@ -20,9 +20,9 @@ import {
 } from 'lucide-react';
 import { CollapsibleSidebar, MenuItem } from '@/components/ui/CollapsibleSidebar';
 import { ProfileCompletionCard } from './ProfileCompletionCard';
-import { calculateProfileCompletion } from '@/frontend/buddypress/utils/profileCompletion';
+import { calculateProfileCompletion } from '@/frontend/public-profile/utils/profileCompletion';
 import { CustomizerPreview, type Breakpoint } from './CustomizerPreview';
-import { useProfileEdit } from '@/frontend/buddypress/contexts/ProfileEditContext';
+import { useProfileEdit } from '@/frontend/portal/contexts/ProfileEditContext';
 
 interface ProfileCustomizerLayoutProps {
   currentUser: any;

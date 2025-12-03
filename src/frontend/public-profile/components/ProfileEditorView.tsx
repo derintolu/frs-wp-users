@@ -120,7 +120,7 @@ import {
 import { LoadingSpinner } from '@/components/ui/loading';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import { parseServiceAreaForState } from '@/frontend/portal/utils/stateUtils';
-import { useProfileEdit } from '@/frontend/buddypress/contexts/ProfileEditContext';
+import { useProfileEdit } from '@/frontend/portal/contexts/ProfileEditContext';
 
 interface ProfileData {
   id: number;

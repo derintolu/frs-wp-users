@@ -33,7 +33,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ProfileHeader } from './components/ProfileHeader';
 import { CustomizerPreview, type Breakpoint } from './components/CustomizerPreview';
 import { parseServiceAreaForState } from './utils/stateUtils';
-import { useProfileEdit } from '@/frontend/buddypress/contexts/ProfileEditContext';
+import { useProfileEdit } from '@/frontend/portal/contexts/ProfileEditContext';
 import { ProfileEditorView } from './components/ProfileEditorView';
 import {
   Phone,

@@ -26,7 +26,7 @@ import {
   Save,
   X,
 } from 'lucide-react';
-import { useProfileEdit } from '@/frontend/buddypress/contexts/ProfileEditContext';
+import { useProfileEdit } from '@/frontend/portal/contexts/ProfileEditContext';
 import { Button } from '@/components/ui/button';
 
 interface BuddyPressLayoutProps {

@@ -117,6 +117,16 @@ class ProfilesPage {
 			'frs-profiles#/profiles/import-export', // React route
 			array( $this, 'render_react_app' )
 		);
+
+		// Shortcodes documentation page
+		add_submenu_page(
+			'frs-profiles',
+			__( 'Shortcodes', 'frs-users' ),
+			__( 'Shortcodes', 'frs-users' ),
+			'edit_users',
+			'frs-profiles-shortcodes',
+			array( $this, 'render_shortcodes_page' )
+		);
 	}
 
 	/**
@@ -503,5 +513,144 @@ class ProfilesPage {
 				'username' => $username,
 			)
 		);
+	}
+
+	/**
+	 * Render shortcodes documentation page
+	 *
+	 * @return void
+	 */
+	public function render_shortcodes_page() {
+		// Security check
+		if ( ! current_user_can( 'edit_users' ) ) {
+			wp_die( esc_html__( 'You do not have permission to access this page.', 'frs-users' ) );
+		}
+		?>
+		<div class="wrap">
+			<h1><?php esc_html_e( 'FRS Profiles - Shortcodes', 'frs-users' ); ?></h1>
+
+			<div class="card" style="max-width: none;">
+				<h2>Available Shortcodes</h2>
+				<p>Use these shortcodes to display profile content on your pages.</p>
+
+				<hr>
+
+				<!-- Profile Directory -->
+				<h3>📂 Profile Directory</h3>
+				<p>Display a full searchable directory with sidebar filters, pagination, and individual profile pages.</p>
+				<pre><code>[frs_profile_directory]</code></pre>
+				<p><strong>Features:</strong></p>
+				<ul>
+					<li>Search functionality</li>
+					<li>Pagination (9 profiles per page)</li>
+					<li>Sidebar with filters</li>
+					<li>Individual profile detail pages</li>
+					<li>Routes: /lo/:slug, /agent/:slug, /staff/:slug</li>
+				</ul>
+				<p><strong>Optional Parameters:</strong></p>
+				<pre><code>[frs_profile_directory class="my-custom-class"]</code></pre>
+
+				<hr>
+
+				<!-- Full Profile Portal -->
+				<h3>👤 Full Profile Portal</h3>
+				<p>Display the complete profile management portal with sidebar navigation (requires login).</p>
+				<pre><code>[frs_profile]</code></pre>
+				<p><strong>Features:</strong></p>
+				<ul>
+					<li>Full portal with sidebar navigation</li>
+					<li>Profile editing</li>
+					<li>Settings management</li>
+					<li>Welcome dashboard</li>
+				</ul>
+
+				<hr>
+
+				<!-- My Profile Content -->
+				<h3>✏️ My Profile (Content Only)</h3>
+				<p>Display only the profile editing form without sidebar (for SureDash integration).</p>
+				<pre><code>[frs_my_profile]</code></pre>
+				<p><strong>Use Case:</strong> Embed in custom dashboards or portals that have their own navigation.</p>
+
+				<hr>
+
+				<!-- Profile Settings Content -->
+				<h3>⚙️ Profile Settings (Content Only)</h3>
+				<p>Display only the settings form without sidebar.</p>
+				<pre><code>[frs_profile_settings]</code></pre>
+				<p><strong>Use Case:</strong> Embed in custom settings pages.</p>
+
+				<hr>
+
+				<!-- Welcome Content -->
+				<h3>👋 Welcome Dashboard (Content Only)</h3>
+				<p>Display only the welcome dashboard content without sidebar.</p>
+				<pre><code>[frs_welcome]</code></pre>
+				<p><strong>Use Case:</strong> Embed in custom onboarding or dashboard pages.</p>
+
+				<hr>
+
+				<!-- DataKit Directory -->
+				<h3>📊 Profiles Directory (DataKit)</h3>
+				<p>Display profiles using WordPress DataKit with advanced filtering.</p>
+				<pre><code>[frs_profiles_directory]</code></pre>
+				<p><strong>Features:</strong> Advanced admin-style table with sorting and filtering.</p>
+
+				<hr>
+
+				<!-- DataView -->
+				<h3>📋 Profiles DataView</h3>
+				<p>Display profiles in a DataView format with customizable columns.</p>
+				<pre><code>[frs_profiles_dataview]</code></pre>
+
+				<hr>
+
+				<h2>Tips</h2>
+				<ul>
+					<li><strong>Directory Pages:</strong> Use <code>[frs_profile_directory]</code> for public-facing team/staff directories</li>
+					<li><strong>Portal Pages:</strong> Use <code>[frs_profile]</code> for full portal experience with navigation</li>
+					<li><strong>Content-Only:</strong> Use <code>[frs_my_profile]</code>, <code>[frs_profile_settings]</code>, or <code>[frs_welcome]</code> when embedding in custom dashboards</li>
+					<li><strong>Custom Styling:</strong> Add the <code>class</code> parameter to apply custom CSS classes</li>
+				</ul>
+
+				<h2>Example Page Setup</h2>
+				<h4>Public Directory Page:</h4>
+				<pre><code>&lt;!-- Page Title: Team Directory --&gt;
+[frs_profile_directory]</code></pre>
+
+				<h4>User Profile Portal Page:</h4>
+				<pre><code>&lt;!-- Page Title: My Profile --&gt;
+[frs_profile]</code></pre>
+
+				<h4>Custom Dashboard Integration:</h4>
+				<pre><code>&lt;!-- Using custom dashboard with own navigation --&gt;
+&lt;h2&gt;Edit Your Profile&lt;/h2&gt;
+[frs_my_profile]</code></pre>
+			</div>
+		</div>
+
+		<style>
+			.card {
+				background: white;
+				padding: 20px;
+				margin-top: 20px;
+			}
+			pre {
+				background: #f5f5f5;
+				padding: 10px;
+				border-left: 3px solid #0073aa;
+				overflow-x: auto;
+			}
+			pre code {
+				color: #d63384;
+				font-size: 14px;
+			}
+			hr {
+				margin: 30px 0;
+				border: none;
+				border-top: 1px solid #ddd;
+			}
+		</style>
+		<?php
 	}
 }

@@ -19,6 +19,8 @@ interface PortalSidebarAppProps {
   restNonce: string;
   gradientUrl: string;
   menuItems: any[];
+  colorScheme?: 'blue' | 'gold';
+  backgroundColor?: string;
 }
 
 export function PortalSidebarApp({
@@ -31,7 +33,9 @@ export function PortalSidebarApp({
   portalUrl,
   restNonce,
   gradientUrl,
-  menuItems: phpMenuItems
+  menuItems: phpMenuItems,
+  colorScheme = 'blue',
+  backgroundColor = '#252526'
 }: PortalSidebarAppProps) {
   const [headerHeight, setHeaderHeight] = useState<string>('0px');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -122,12 +126,28 @@ export function PortalSidebarApp({
 
   const menuItems = convertMenuItems(phpMenuItems);
 
+  // Color scheme configurations
+  const colorConfigs = {
+    blue: {
+      gradient: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
+      videoOverlay: 'bg-black/20',
+      videoFilter: 'none',
+    },
+    gold: {
+      gradient: `linear-gradient(135deg, ${backgroundColor} 0%, ${backgroundColor} 100%)`,
+      videoOverlay: 'bg-[#beaf87]/40', // Gold overlay
+      videoFilter: 'sepia(100%) saturate(150%) hue-rotate(10deg) brightness(0.9)',
+    },
+  };
+
+  const config = colorConfigs[colorScheme];
+
   // Header content - User Profile Section with Gradient Background and Video
   const sidebarHeader = (
     <div
       className="relative p-6 flex flex-col items-center justify-center text-center w-full overflow-hidden"
       style={{
-        background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
+        background: config.gradient,
         minHeight: '200px',
       }}
     >
@@ -140,15 +160,32 @@ export function PortalSidebarApp({
             loop
             playsInline
             className="absolute inset-0 w-full h-full object-cover"
-            style={{ zIndex: 0 }}
+            style={{
+              zIndex: 0,
+              filter: config.videoFilter,
+            }}
           >
             <source src={gradientUrl} type="video/mp4" />
           </video>
-          {/* Dark overlay for text readability */}
+          {/* Gold shimmer overlay */}
           <div
-            className="absolute inset-0 bg-black/20"
-            style={{ zIndex: 1 }}
+            className={`absolute inset-0 ${config.videoOverlay}`}
+            style={{
+              zIndex: 1,
+              mixBlendMode: colorScheme === 'gold' ? 'overlay' : 'normal',
+            }}
           />
+          {/* Additional gold shimmer layer for depth */}
+          {colorScheme === 'gold' && (
+            <div
+              className="absolute inset-0"
+              style={{
+                zIndex: 2,
+                background: 'linear-gradient(135deg, rgba(190, 175, 135, 0.3) 0%, rgba(255, 215, 0, 0.2) 50%, rgba(190, 175, 135, 0.3) 100%)',
+                mixBlendMode: 'screen',
+              }}
+            />
+          )}
         </>
       )}
 

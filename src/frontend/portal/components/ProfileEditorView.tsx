@@ -170,7 +170,6 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
   const [originalProfile, setOriginalProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showQRCode, setShowQRCode] = useState(false);
   const [serviceAreaInput, setServiceAreaInput] = useState('');
@@ -187,10 +186,8 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
   // Hook to force external links to open in new tabs (including in iframes)
   const { setIframeRef } = useExternalLinkHandler();
 
-  // Check which section is being edited
-  const isEditingPersonal = activeSection === 'personal';
-  const isEditingProfessional = activeSection === 'professional';
-  const isEditingSocial = activeSection === 'social';
+  // Unified edit mode - use single 'edit' section for all fields
+  const isEditing = activeSection === 'edit';
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -395,14 +392,8 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
   // Register save and cancel handlers with context
   useEffect(() => {
-    if (activeSection === 'personal' || activeSection === 'professional' || activeSection === 'social' || activeSection === 'directory') {
-      // Determine success message based on section
-      const successMessages: Record<string, string> = {
-        'personal': 'Personal information saved successfully!',
-        'professional': 'Professional details saved successfully!',
-        'social': 'Links & social media saved successfully!',
-        'directory': 'Directory settings saved successfully!'
-      };
+    if (activeSection === 'edit') {
+      const successMessage = 'Profile saved successfully!';
 
       // Save handler
       setHandleSave(() => async () => {
@@ -441,7 +432,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
             const successMsg = document.createElement('div');
             successMsg.className = 'fixed top-20 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-            successMsg.textContent = successMessages[activeSection] || 'Profile saved successfully!';
+            successMsg.textContent = successMessage;
             document.body.appendChild(successMsg);
             setTimeout(() => successMsg.remove(), 3000);
           } else {
@@ -500,7 +491,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
       });
 
       if (response.ok) {
-        setIsEditing(false);
+        setActiveSection(null);
         const successMsg = document.createElement('div');
         successMsg.className = 'fixed top-20 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
         successMsg.textContent = 'Profile saved successfully!';
@@ -616,7 +607,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
   return (
     <div
-      className="@container w-full max-w-[1290px] mx-auto px-4 py-6 animate-in fade-in duration-500"
+      className="@container w-full max-w-[1290px] mx-auto px-4 py-6 pb-24 animate-in fade-in duration-500"
       style={{
         opacity: loading ? 0 : 1,
         transition: 'opacity 0.5s ease-in-out'
@@ -748,8 +739,8 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
                   </button>
                 </div>
 
-                {/* Camera button - overlaps avatar at 10 o'clock (only when editing personal info) */}
-                {isEditingPersonal && (
+                {/* Camera button - overlaps avatar at 10 o'clock (only when editing) */}
+                {isEditing && (
                   <>
                     <input
                       type="file"
@@ -779,7 +770,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
             </div>
 
             {/* Name */}
-            {isEditingPersonal ? (
+            {isEditing ? (
               <div className="grid grid-cols-2 gap-4 mb-6 relative z-10">
                 <FloatingInput
                   id="firstName-profile"
@@ -816,7 +807,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
             )}
 
             {/* Job Title, NMLS, and Location */}
-            {!isEditingPersonal && (
+            {!isEditing && (
               <div className="mb-4 relative z-10">
                 <p className="text-base text-[#1D4FC4] flex flex-col @lg:!flex-row items-center @lg:!items-start justify-center @lg:!justify-start gap-2 @lg:!gap-6 text-center @lg:!text-left" style={{ fontFamily: 'Roboto, sans-serif' }}>
                   <span>
@@ -834,7 +825,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
             )}
 
             {/* Social Media Icons Row */}
-            {!isEditingPersonal && (profile.linkedin_url || profile.facebook_url || profile.instagram_url || profile.twitter_url || profile.youtube_url || profile.website) && (
+            {!isEditing && (profile.linkedin_url || profile.facebook_url || profile.instagram_url || profile.twitter_url || profile.youtube_url || profile.website) && (
               <div className="flex items-center justify-center @lg:!justify-start gap-3 mb-4 relative z-10">
                 {profile.linkedin_url && (
                   <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer">
@@ -870,7 +861,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
             )}
 
             {/* Contact Information - Always visible */}
-            {!isEditingPersonal && (
+            {!isEditing && (
               <div className="flex flex-col @lg:!flex-row items-center @lg:!items-start justify-center @lg:!justify-start gap-2 @lg:!gap-6 mb-6 relative z-10">
                 {profile.email && (
                   <div className="flex items-center gap-2 text-sm text-gray-700">
@@ -892,7 +883,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
             )}
 
             {/* Mobile only: Apply Now Button - Centered at bottom */}
-            {!isEditingPersonal && (
+            {!isEditing && (
               <div className="@lg:!hidden flex justify-center relative z-10">
                 <Button
                   asChild
@@ -909,7 +900,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
             )}
 
             {/* Edit Mode Fields - Personal Information */}
-            {isEditingPersonal && (
+            {isEditing && (
               <div className="space-y-4 relative z-10">
                 <FloatingInput
                   id="display-name-profile"
@@ -1017,7 +1008,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
         {/* Right Column: Action Buttons + Service Areas */}
         <div className="space-y-4 h-full flex flex-col" style={{ backgroundColor: 'white' }}>
           {/* Action Buttons Card */}
-          {!isEditingPersonal && (
+          {!isEditing && (
             <Card className="@container shadow-lg rounded-sm border border-gray-200">
               <CardContent className="pt-6">
                 <div className="flex flex-col gap-3">
@@ -1136,7 +1127,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
             </CardHeader>
             <CardContent className="space-y-2 py-3">
               {/* Service Areas editing will be implemented in Professional Details section */}
-              {isEditingProfessional ? (
+              {isEditing ? (
                 <div className="space-y-3">
                   <div className="flex gap-2">
                     <FloatingInput
@@ -1244,7 +1235,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
         </CardHeader>
         <CardContent className="space-y-3">
           {/* Biography editing will be implemented in Professional Details section */}
-          {isEditingProfessional ? (
+          {isEditing ? (
             <RichTextEditor
               value={profile.biography || ''}
               onChange={(value) => setProfile({...profile, biography: value})}
@@ -1272,7 +1263,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
           <div>
             <Label className="text-sm font-medium mb-2 block">Loan Officer Specialties</Label>
             {/* Specialties editing will be implemented in Professional Details section */}
-            {isEditingProfessional ? (
+            {isEditing ? (
               <div className="grid grid-cols-1 @lg:grid-cols-3 gap-2">
                 {[
                   'Residential Mortgages',
@@ -1328,7 +1319,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
           <div>
             <Label className="text-sm font-medium mb-2 block">NAMB Certifications</Label>
             {/* Certifications editing will be implemented in Professional Details section */}
-            {isEditingProfessional ? (
+            {isEditing ? (
               <div className="grid grid-cols-1 @lg:grid-cols-3 gap-2">
                 {[
                   'CMC - Certified Mortgage Consultant',
@@ -1388,7 +1379,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {isEditingSocial ? (
+          {isEditing ? (
             <div className="space-y-3">
               <div className="grid grid-cols-[1fr,1fr,auto] gap-2 items-center">
                 <FloatingInput
@@ -1495,7 +1486,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
           <CardContent className="space-y-2 py-3">
             <div className="grid grid-cols-2 gap-2">
               {/* Links & Social editing will be implemented in Social Media section */}
-              {isEditingSocial ? (
+              {isEditing ? (
                 <>
                   <FloatingInput
                     id="website"
@@ -1551,103 +1542,110 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
         </Card>
     </div>
 
-      {/* Floating Save/Cancel Bar - appears when editing */}
-      {activeSection && (
+      {/* Bottom Bar - Edit or Save/Cancel */}
+      {!isPublicView && (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg">
-          <div className="max-w-[1290px] mx-auto px-4 py-3 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Edit className="h-4 w-4" />
-              <span>
-                Editing: <span className="font-medium capitalize">{activeSection === 'personal' ? 'Personal Information' : activeSection === 'professional' ? 'Professional Details' : activeSection === 'social' ? 'Links & Social' : activeSection}</span>
-              </span>
-            </div>
-            <div className="flex items-center gap-3">
+          <div className="max-w-[1290px] mx-auto px-4 py-3 flex items-center justify-center gap-3">
+            {!activeSection ? (
               <Button
-                variant="outline"
-                onClick={() => {
-                  if (originalProfile) {
-                    setProfile(originalProfile);
-                  }
-                  setActiveSection(null);
-                  setError(null);
-                }}
-                disabled={isSaving}
-                className="px-6"
-              >
-                <X className="h-4 w-4 mr-2" />
-                Cancel
-              </Button>
-              <Button
-                onClick={async () => {
-                  if (!profile) return;
-
-                  setIsSaving(true);
-                  setContextSaving(true);
-                  setError(null);
-
-                  try {
-                    const response = await fetch(`/wp-json/frs-users/v1/profiles/${profile.id}`, {
-                      method: 'PUT',
-                      credentials: 'include',
-                      headers: {
-                        'Content-Type': 'application/json',
-                        'X-WP-Nonce': (window as any).wpApiSettings?.nonce || (window as any).frsPortalConfig?.restNonce || ''
-                      },
-                      body: JSON.stringify(profile)
-                    });
-
-                    if (response.ok) {
-                      const result = await response.json();
-                      const updatedProfile = result.data || result;
-                      setProfile(updatedProfile);
-                      setOriginalProfile(updatedProfile);
-                      setActiveSection(null);
-
-                      const successMsg = document.createElement('div');
-                      successMsg.className = 'fixed top-20 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-                      successMsg.textContent = 'Profile saved successfully!';
-                      document.body.appendChild(successMsg);
-                      setTimeout(() => successMsg.remove(), 3000);
-                    } else {
-                      const errorData = await response.json();
-                      const errorMsg = document.createElement('div');
-                      errorMsg.className = 'fixed top-20 right-6 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-                      errorMsg.textContent = errorData.message || 'Failed to save profile changes';
-                      document.body.appendChild(errorMsg);
-                      setTimeout(() => errorMsg.remove(), 5000);
-                      setError(errorData.message || 'Failed to save profile changes');
-                    }
-                  } catch (err) {
-                    const errorMsg = document.createElement('div');
-                    errorMsg.className = 'fixed top-20 right-6 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-                    errorMsg.textContent = 'Network error - please try again';
-                    document.body.appendChild(errorMsg);
-                    setTimeout(() => errorMsg.remove(), 5000);
-                    setError('Failed to save profile changes');
-                  } finally {
-                    setIsSaving(false);
-                    setContextSaving(false);
-                  }
-                }}
-                disabled={isSaving}
-                className="px-6 text-white"
+                onClick={() => setActiveSection('edit')}
+                className="text-white font-semibold px-8 py-2"
                 style={{
                   background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                 }}
               >
-                {isSaving ? (
-                  <>
-                    <LoadingSpinner className="h-4 w-4 mr-2" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Changes
-                  </>
-                )}
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Profile
               </Button>
-            </div>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    if (originalProfile) {
+                      setProfile(originalProfile);
+                    }
+                    setActiveSection(null);
+                    setError(null);
+                  }}
+                  disabled={isSaving}
+                  className="px-6"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
+                <Button
+                  onClick={async () => {
+                    if (!profile) return;
+
+                    setIsSaving(true);
+                    setContextSaving(true);
+                    setError(null);
+
+                    try {
+                      const response = await fetch(`/wp-json/frs-users/v1/profiles/${profile.id}`, {
+                        method: 'PUT',
+                        credentials: 'include',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'X-WP-Nonce': (window as any).wpApiSettings?.nonce || (window as any).frsPortalConfig?.restNonce || ''
+                        },
+                        body: JSON.stringify(profile)
+                      });
+
+                      if (response.ok) {
+                        const result = await response.json();
+                        const updatedProfile = result.data || result;
+                        setProfile(updatedProfile);
+                        setOriginalProfile(updatedProfile);
+                        setActiveSection(null);
+
+                        const successMsg = document.createElement('div');
+                        successMsg.className = 'fixed top-20 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                        successMsg.textContent = 'Profile saved successfully!';
+                        document.body.appendChild(successMsg);
+                        setTimeout(() => successMsg.remove(), 3000);
+                      } else {
+                        const errorData = await response.json();
+                        const errorMsg = document.createElement('div');
+                        errorMsg.className = 'fixed top-20 right-6 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                        errorMsg.textContent = errorData.message || 'Failed to save profile changes';
+                        document.body.appendChild(errorMsg);
+                        setTimeout(() => errorMsg.remove(), 5000);
+                        setError(errorData.message || 'Failed to save profile changes');
+                      }
+                    } catch (err) {
+                      const errorMsg = document.createElement('div');
+                      errorMsg.className = 'fixed top-20 right-6 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                      errorMsg.textContent = 'Network error - please try again';
+                      document.body.appendChild(errorMsg);
+                      setTimeout(() => errorMsg.remove(), 5000);
+                      setError('Failed to save profile changes');
+                    } finally {
+                      setIsSaving(false);
+                      setContextSaving(false);
+                    }
+                  }}
+                  disabled={isSaving}
+                  className="px-6 text-white"
+                  style={{
+                    background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
+                  }}
+                >
+                  {isSaving ? (
+                    <>
+                      <LoadingSpinner className="h-4 w-4 mr-2" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Changes
+                    </>
+                  )}
+                </Button>
+              </>
+            )}
           </div>
         </div>
       )}

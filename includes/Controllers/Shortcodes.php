@@ -190,6 +190,15 @@ class Shortcodes {
 	 * @return string Rendered shortcode HTML.
 	 */
 	public static function render_profile( $atts ) {
+		// Parse attributes
+		$atts = shortcode_atts(
+			array(
+				'contentOnly' => 'false',
+			),
+			$atts,
+			'frs_profile'
+		);
+
 		// Check if user is logged in
 		if ( ! is_user_logged_in() ) {
 			return '<div class="frs-profile-error"><p>' . esc_html__( 'Please log in to access your profile.', 'frs-users' ) . '</p></div>';
@@ -197,6 +206,9 @@ class Shortcodes {
 
 		// Get current user
 		$user = wp_get_current_user();
+
+		// Convert string boolean to actual boolean
+		$content_only = filter_var( $atts['contentOnly'], FILTER_VALIDATE_BOOLEAN );
 
 		// Enqueue assets
 		self::enqueue_portal_assets();
@@ -216,6 +228,7 @@ class Shortcodes {
 				'apiUrl'      => rest_url( 'frs-users/v1' ),
 				'userId'      => $user->ID,
 				'gradientUrl' => FRS_USERS_URL . 'assets/images/Blue-Dark-Blue-Gradient-Color-and-Style-Video-Background-1.mp4',
+				'contentOnly' => $content_only,
 				'currentUser' => array(
 					'id'    => $user->ID,
 					'name'  => $user->display_name,

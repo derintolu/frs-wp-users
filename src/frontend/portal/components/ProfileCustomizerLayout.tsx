@@ -787,7 +787,7 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
       ))}
 
       {/* Main Content - ALWAYS shows profile preview in customizer style */}
-      <main className={contentOnly ? "p-0 m-0" : "max-md:p-0 max-md:m-0 md:pt-8 md:pb-8 md:pl-8 md:pr-8 md:ml-[320px] md:mr-0"}>
+      <main className={contentOnly ? "p-0 m-0 flex items-center justify-center min-h-screen" : "max-md:p-0 max-md:m-0 md:pt-8 md:pb-8 md:pl-8 md:pr-8 md:ml-[320px] md:mr-0"}>
         <CustomizerPreview viewport={viewport}>
           <Outlet />
         </CustomizerPreview>

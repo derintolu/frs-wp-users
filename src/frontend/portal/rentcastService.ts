@@ -17,30 +17,35 @@ export interface RentcastPropertyData {
 }
 
 export interface RentcastValueEstimate {
+  bathrooms: number;
+  bedrooms: number;
+  comparables: RentcastComparable[];
+  confidence: number;
+  latitude: number;
+  longitude: number;
   price: number;
-  priceRangeLow: number;
-  priceRangeHigh: number;
+  price75: number;
+  price95: number;
   priceRangeExtended: {
     lower: number;
     upper: number;
   };
-  price75: number;
-  price95: number;
-  confidence: number;
-  latitude: number;
-  longitude: number;
-  bedrooms: number;
-  bathrooms: number;
-  squareFootage: number;
+  priceRangeHigh: number;
+  priceRangeLow: number;
   propertyType: string;
+  squareFootage: number;
   yearBuilt: number;
-  comparables: RentcastComparable[];
 }
 
 export interface RentcastRentEstimate {
+  bathrooms: number;
+  bedrooms: number;
+  comparables: RentcastRentalComparable[];
+  confidence: number;
+  latitude: number;
+  longitude: number;
+  propertyType: string;
   rent: number;
-  rentRangeLow: number;
-  rentRangeHigh: number;
   rentRange75: {
     lower: number;
     upper: number;
@@ -49,52 +54,47 @@ export interface RentcastRentEstimate {
     lower: number;
     upper: number;
   };
-  confidence: number;
-  latitude: number;
-  longitude: number;
-  bedrooms: number;
-  bathrooms: number;
+  rentRangeHigh: number;
+  rentRangeLow: number;
   squareFootage: number;
-  propertyType: string;
-  comparables: RentcastRentalComparable[];
 }
 
 export interface RentcastComparable {
-  id: string;
   address: {
     address: string;
     city: string;
     state: string;
     zipCode: string;
   };
-  distance: number;
-  price: number;
-  lastSaleDate: string;
-  bedrooms: number;
   bathrooms: number;
-  squareFootage: number;
-  pricePerSquareFoot: number;
+  bedrooms: number;
+  distance: number;
+  id: string;
+  lastSaleDate: string;
   latitude: number;
   longitude: number;
+  price: number;
+  pricePerSquareFoot: number;
+  squareFootage: number;
 }
 
 export interface RentcastRentalComparable {
-  id: string;
   address: {
     address: string;
     city: string;
     state: string;
     zipCode: string;
   };
-  distance: number;
-  monthlyRent: number;
-  listedDate: string;
-  bedrooms: number;
   bathrooms: number;
-  squareFootage: number;
-  rentPerSquareFoot: number;
+  bedrooms: number;
+  distance: number;
+  id: string;
   latitude: number;
+  listedDate: string;
   longitude: number;
+  monthlyRent: number;
+  rentPerSquareFoot: number;
+  squareFootage: number;
 }
 
 /**
@@ -115,8 +115,8 @@ export async function getValueEstimate(
     `${RENTCAST_API_BASE}/avm/value?${params.toString()}`,
     {
       headers: {
-        'X-Api-Key': apiKey,
         'Accept': 'application/json',
+        'X-Api-Key': apiKey,
       },
     }
   );
@@ -147,8 +147,8 @@ export async function getRentEstimate(
     `${RENTCAST_API_BASE}/avm/rent/long-term?${params.toString()}`,
     {
       headers: {
-        'X-Api-Key': apiKey,
         'Accept': 'application/json',
+        'X-Api-Key': apiKey,
       },
     }
   );
@@ -172,15 +172,15 @@ export async function getValuationViaWordPress(
   const nonce = (window as any).frsPortalConfig?.restNonce;
 
   const response = await fetch('/wp-json/frs/v1/rentcast/valuation', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(nonce && { 'X-WP-Nonce': nonce }),
-    },
     body: JSON.stringify({
       ...propertyData,
       valuationType,
     }),
+    headers: {
+      'Content-Type': 'application/json',
+      ...(nonce && { 'X-WP-Nonce': nonce }),
+    },
+    method: 'POST',
   });
 
   if (!response.ok) {

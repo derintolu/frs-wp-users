@@ -31,7 +31,10 @@ class ProfilesPage {
 	 * @return void
 	 */
 	public function init() {
+		// Add menu to both site admin and network admin
 		add_action( 'admin_menu', array( $this, 'add_menu_pages' ) );
+		add_action( 'network_admin_menu', array( $this, 'add_network_menu_pages' ) );
+
 		add_action( 'admin_post_frs_delete_profile', array( $this, 'handle_delete' ) );
 		add_action( 'admin_post_frs_archive_profile', array( $this, 'handle_archive' ) );
 		add_action( 'admin_post_frs_unarchive_profile', array( $this, 'handle_unarchive' ) );
@@ -39,6 +42,55 @@ class ProfilesPage {
 
 		// Process bulk actions early, before any output
 		add_action( 'admin_init', array( $this, 'handle_bulk_actions' ) );
+	}
+
+	/**
+	 * Add network admin menu pages
+	 *
+	 * In multisite, profiles are managed network-wide from Network Admin.
+	 *
+	 * @return void
+	 */
+	public function add_network_menu_pages() {
+		// Main network menu under Users
+		add_submenu_page(
+			'users.php',
+			__( 'FRS Profiles', 'frs-users' ),
+			__( 'FRS Profiles', 'frs-users' ),
+			'manage_network_users',
+			'frs-profiles',
+			array( $this, 'render_list_page' )
+		);
+
+		// Also add as top-level menu for visibility
+		add_menu_page(
+			__( 'FRS Profiles', 'frs-users' ),
+			__( 'FRS Profiles', 'frs-users' ),
+			'manage_network_users',
+			'frs-network-profiles',
+			array( $this, 'render_list_page' ),
+			'dashicons-groups',
+			6
+		);
+
+		// Submenus under top-level
+		add_submenu_page(
+			'frs-network-profiles',
+			__( 'All Profiles', 'frs-users' ),
+			__( 'All Profiles', 'frs-users' ),
+			'manage_network_users',
+			'frs-network-profiles',
+			array( $this, 'render_list_page' )
+		);
+
+		add_submenu_page(
+			'frs-network-profiles',
+			__( 'Add New Profile', 'frs-users' ),
+			__( 'Add New', 'frs-users' ),
+			'manage_network_users',
+			'frs-network-profile-edit',
+			array( $this, 'render_edit_page' )
+		);
 	}
 
 	/**

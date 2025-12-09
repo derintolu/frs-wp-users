@@ -36,7 +36,8 @@ class ProfileTypes implements Migration {
 	public static function up() {
 		global $wpdb;
 
-		$table_name      = $wpdb->prefix . self::$table;
+		// Use base_prefix for network-wide table
+		$table_name      = $wpdb->base_prefix . self::$table;
 		$charset_collate = $wpdb->get_charset_collate();
 
 		// Check if table already exists
@@ -70,7 +71,7 @@ class ProfileTypes implements Migration {
 	public static function down() {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . self::$table;
+		$table_name = $wpdb->base_prefix . self::$table;
 		$wpdb->query( "DROP TABLE IF EXISTS {$table_name}" );
 	}
 }

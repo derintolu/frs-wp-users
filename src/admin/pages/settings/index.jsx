@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Separator } from "@/components/ui/separator";
 import { ProfileForm } from "@/admin/pages/settings/profile-form";
 import { SyncSettings } from "@/admin/pages/settings/SyncSettings";
@@ -17,17 +16,17 @@ export default function Settings() {
         </div>
         <Separator />
 
-        <Tabs defaultValue="sync" className="space-y-4">
+        <Tabs className="space-y-4" defaultValue="sync">
           <TabsList>
             <TabsTrigger value="sync">API Sync</TabsTrigger>
             <TabsTrigger value="profile">Profile</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="sync" className="space-y-4">
+          <TabsContent className="space-y-4" value="sync">
             <SyncSettings />
           </TabsContent>
 
-          <TabsContent value="profile" className="space-y-4">
+          <TabsContent className="space-y-4" value="profile">
             <div>
               <h3 className="text-lg font-medium">Profile</h3>
               <p className="text-sm text-muted-foreground">

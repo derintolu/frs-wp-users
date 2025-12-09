@@ -28,7 +28,7 @@ class AddProfileSlug {
 	public static function up() {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'frs_profiles';
+		$table_name = $wpdb->base_prefix . 'frs_profiles';
 
 		// Check if column already exists
 		$column_exists = $wpdb->get_results(
@@ -60,7 +60,7 @@ class AddProfileSlug {
 	public static function down() {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'frs_profiles';
+		$table_name = $wpdb->base_prefix . 'frs_profiles';
 
 		$wpdb->query(
 			"ALTER TABLE `{$table_name}`

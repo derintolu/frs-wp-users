@@ -7,5 +7,5 @@ interface ProfileEditorProps {
 }
 
 export default function ProfileEditor({ profileId, userId }: ProfileEditorProps) {
-	return <ProfileDashboard profileId={profileId} userId={userId} autoEdit={false} />;
+	return <ProfileDashboard autoEdit={false} profileId={profileId} userId={userId} />;
 }

@@ -9,12 +9,12 @@ export default function MailPage() {
   return (
     <>
      
-      <div className="hidden dark:bg-gray-900 flex-col md:flex">
+      <div className="hidden flex-col dark:bg-gray-900 md:flex">
         <MailComp
           accounts={accounts}
-          mails={mails}
-          defaultLayout={[265, 440, 655]}
           defaultCollapsed={false}
+          defaultLayout={[265, 440, 655]}
+          mails={mails}
           navCollapsedSize={4}
         />
       </div>

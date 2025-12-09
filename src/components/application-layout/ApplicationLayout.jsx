@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Logo from "../Icons/Logo";
 import { useLocation } from "react-router-dom";
 import { Icons } from "../Icons/icons";
@@ -13,31 +13,31 @@ import { ModeToggle } from "../mode-toggle";
 const _startcase = (str) => {
   return str
     .toLowerCase() // Convert the whole string to lowercase
-    .replace(/_/g, " ") // Replace underscores with spaces
-    .replace(/-/g, " ") // Replace hyphens with spaces
+    .replaceAll('_', " ") // Replace underscores with spaces
+    .replaceAll('-', " ") // Replace hyphens with spaces
     .split(" ") // Split the string into words
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize the first letter of each word
     .join(" "); // Join the words back into a string
 };
 const navigation = [
   {
-    name: "Dashboard",
+    current: true,
     href: "dashboard",
     icon: Icons.DashboardIcon,
-    current: true,
+    name: "Dashboard",
   },
   {
-    name: "Inbox",
+    current: false,
     href: "inbox",
     icon: Icons.CommonInboxIcon,
-    current: false,
+    name: "Inbox",
   },
   
   {
-    name: "Settings",
+    current: false,
     href: "settings",
     icon: Icons.SettingsIcon,
-    current: false,
+    name: "Settings",
   },
 ];
 
@@ -45,26 +45,26 @@ const ApplicationLayout = () => {
   // const showApplicationLayout = true;
   const showApplicationLayout = !wordpressPluginBoilerplate.isAdmin;
   const navigate = useNavigate();
-  let location = useLocation();
+  const location = useLocation();
   const pageTitle = location.pathname.split("/")[1];
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentHoverMenu, setCurrentHoverMenu] = useState(navigation[0].href);
 
-  useEffect(() => {
+  const initialNavigate = useCallback(() => {
     if (pageTitle) {
       navigate(pageTitle);
     } else {
       navigate(navigation[0].href);
     }
-  }, []);
+  }, [navigate, pageTitle]);
 
   useEffect(() => {
-    if (pageTitle) {
-      window.document.title = _startcase(pageTitle);
-    } else {
-      window.document.title = _startcase(navigation[0].href);
-    }
+    initialNavigate();
+  }, [initialNavigate]);
+
+  useEffect(() => {
+    window.document.title = pageTitle ? _startcase(pageTitle) : _startcase(navigation[0].href);
   }, [pageTitle]);
 
   const handleLogout = (item) => {
@@ -74,13 +74,13 @@ const ApplicationLayout = () => {
   return (
     <div className="dark:bg-gray-900">
       {showApplicationLayout ? (
-        <div className="h-[calc(100vh-32px)] w-full absolute bg-white dark:bg-gray-900 !font-sans">
-          <div className="flex flex-row  h-full w-full">
-            <div className="w-60 border-r border-border-default">
-              <div className="flex grow flex-col gap-y-5 overflow-y-auto  dark:bg-gray-900 bg-white pb-4">
-                <div style={{marginBottom:'3px'}} className="flex h-10 shrink-0 items-center pt-4 px-6">
+        <div className="absolute h-[calc(100vh-32px)] w-full bg-white !font-sans dark:bg-gray-900">
+          <div className="flex size-full  flex-row">
+            <div className="border-border-default w-60 border-r">
+              <div className="flex grow flex-col gap-y-5 overflow-y-auto  bg-white pb-4 dark:bg-gray-900">
+                <div className="flex h-10 shrink-0 items-center px-6 pt-4" style={{marginBottom:'3px'}}>
                   <Logo />
-                  <p className="pl-2 font-semibold text-lg font-sans">
+                  <p className="pl-2 font-sans text-lg font-semibold">
                     Plugin Name
                   </p>
                 </div>
@@ -90,28 +90,28 @@ const ApplicationLayout = () => {
                     <li>
                       <ul className="space-y-1">
                         {navigation.map((item) => (
-                          <li key={item.name} className="flex flex-row">
+                          <li className="flex flex-row" key={item.name}>
                             <span
                               className={clsx(
-                                "w-2 bg-transparen",
+                                "bg-transparen w-2",
                                 item.href === pageTitle && "bg-gray-800",
                               )}></span>
 
                             <NavLink
-                              to={item.href}
                               className={clsx(
-                                "focus:shadow-none w-full group flex gap-x-3 leading-6  pl-4 py-2 pb-2  border-b  border-t text-sm focus:text-gray-700",
+                                "group flex w-full gap-x-3 border-y py-2  pl-4 text-sm leading-6  focus:text-gray-700  focus:shadow-none",
                                 item.href === pageTitle
-                                  ? "text-gray-800 !border-border-default !shadow-border font-medium"
+                                  ? "!border-border-default font-medium text-gray-800 !shadow-border"
                                   : "border-transparent font-normal",
-                              )}>
+                              )}
+                              to={item.href}>
                               <item.icon
+                                aria-hidden="true"
                                 className={clsx(
                                   item.href === pageTitle
                                     ? "stroke-blue-700 font-medium"
                                     : "stroke-gray-600 font-normal",
                                 )}
-                                aria-hidden="true"
                               />
                               {item.name}
                             </NavLink>
@@ -123,29 +123,29 @@ const ApplicationLayout = () => {
                 </nav>
               </div>
             </div>
-            <div className="w-full  flex flex-col">
-              <div className="sticky flex justify-between h-16  items-center gap-x-4 border-b dark:bg-gray-900 bg-white border-border-default px-4 shadow-border sm:gap-x-6 sm:px-6">
-                <div className="font-medium text-xl">
+            <div className="flex  w-full flex-col">
+              <div className="border-border-default sticky flex h-16  items-center justify-between gap-x-4 border-b bg-white px-4 shadow-border dark:bg-gray-900 sm:gap-x-6 sm:px-6">
+                <div className="text-xl font-medium">
                   {_startcase(pageTitle)}
                 </div>
-                <div className="flex flex-row gap-2 items-center justify-center">
+                <div className="flex flex-row items-center justify-center gap-2">
                   <MenuTrigger>
                     <Button intent="icon">
-                      <div className="flex flex-row gap-2 items-center justify-center">
+                      <div className="flex flex-row items-center justify-center gap-2">
                         <div className="flex gap-4">
                         <ModeToggle />
                           <Avatar>
                             <AvatarImage
-                              src={wordpressPluginBoilerplate.userInfo.avatar}
                               alt={wordpressPluginBoilerplate.userInfo.username}
+                              src={wordpressPluginBoilerplate.userInfo.avatar}
                             />
                             <AvatarFallback>CN</AvatarFallback>
                           </Avatar>
                         </div>
-                        <div className="text-neutral-600 text-xs font-medium leading-none">
+                        <div className="text-xs font-medium leading-none text-neutral-600">
                           {wordpressPluginBoilerplate.userInfo.username}
                         </div>
-                        <div className="text-neutral-600 text-xs font-medium leading-none">
+                        <div className="text-xs font-medium leading-none text-neutral-600">
                           <Icons.DownIcon />
                         </div>
                       </div>
@@ -153,9 +153,9 @@ const ApplicationLayout = () => {
 
                     <Popover className={menuPopoverClass()}>
                       <Menu
-                        selectionMode="single"
+                        className={menuContentClass()}
                         onSelectionChange={(key) => handleLogout("helo")}
-                        className={menuContentClass()}>
+                        selectionMode="single">
                         <MenuItem id="logout">Log out</MenuItem>
                       </Menu>
                     </Popover>
@@ -163,7 +163,7 @@ const ApplicationLayout = () => {
                 </div>
               </div>
               <div>
-                <main className="dark:bg-gray-900 bg-white  top-0 b-0 ">
+                <main className="b-0 top-0  bg-white dark:bg-gray-900 ">
                   <Outlet />
                 </main>
               </div>
@@ -172,18 +172,18 @@ const ApplicationLayout = () => {
         </div>
       ) : (
         <div className="w-full">
-          <main className="bg-white dark:bg-gray-900 w-full  h-[calc(100vh-32px)] absolute">
+          <main className="absolute h-[calc(100vh-32px)] w-full  bg-white dark:bg-gray-900">
       
-              <div className="sticky flex justify-between h-16  items-center gap-x-4 border-b dark:bg-gray-900 bg-white border-border-default px-4 shadow-border sm:gap-x-6 sm:px-6">
-                <div className="font-medium text-xl">
+              <div className="border-border-default sticky flex h-16  items-center justify-between gap-x-4 border-b bg-white px-4 shadow-border dark:bg-gray-900 sm:gap-x-6 sm:px-6">
+                <div className="text-xl font-medium">
                   {_startcase(pageTitle)}
                 </div>
-                <div className="flex flex-row gap-2 items-center justify-center">
+                <div className="flex flex-row items-center justify-center gap-2">
                 <ModeToggle />
                 </div>
               </div>
               <div>
-                <main className=" bg-white  top-0 b-0 ">
+                <main className=" b-0  top-0 bg-white ">
                   <Outlet />
                 </main>
               </div>

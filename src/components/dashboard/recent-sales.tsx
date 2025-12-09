@@ -8,8 +8,8 @@ import {
     return (
       <div className="space-y-8">
         <div className="flex items-center">
-          <Avatar className="h-9 w-9">
-            <AvatarImage src="https://i.pravatar.cc/150?img=3" alt="Avatar" />
+          <Avatar className="size-9">
+            <AvatarImage alt="Avatar" src="https://i.pravatar.cc/150?img=3" />
             <AvatarFallback>OM</AvatarFallback>
           </Avatar>
           <div className="ml-4 space-y-1">
@@ -21,8 +21,8 @@ import {
           <div className="ml-auto font-medium">+$1,999.00</div>
         </div>
         <div className="flex items-center">
-          <Avatar className="flex h-9 w-9 items-center justify-center space-y-0 border">
-            <AvatarImage src="https://i.pravatar.cc/150?img=1" alt="Avatar" />
+          <Avatar className="flex size-9 items-center justify-center space-y-0 border">
+            <AvatarImage alt="Avatar" src="https://i.pravatar.cc/150?img=1" />
             <AvatarFallback>JL</AvatarFallback>
           </Avatar>
           <div className="ml-4 space-y-1">
@@ -32,8 +32,8 @@ import {
           <div className="ml-auto font-medium">+$39.00</div>
         </div>
         <div className="flex items-center">
-          <Avatar className="h-9 w-9">
-            <AvatarImage src="https://i.pravatar.cc/150?img=5" alt="Avatar" />
+          <Avatar className="size-9">
+            <AvatarImage alt="Avatar" src="https://i.pravatar.cc/150?img=5" />
             <AvatarFallback>IN</AvatarFallback>
           </Avatar>
           <div className="ml-4 space-y-1">
@@ -45,8 +45,8 @@ import {
           <div className="ml-auto font-medium">+$299.00</div>
         </div>
         <div className="flex items-center">
-          <Avatar className="h-9 w-9">
-            <AvatarImage src="https://i.pravatar.cc/150?img=6" alt="Avatar" />
+          <Avatar className="size-9">
+            <AvatarImage alt="Avatar" src="https://i.pravatar.cc/150?img=6" />
             <AvatarFallback>WK</AvatarFallback>
           </Avatar>
           <div className="ml-4 space-y-1">
@@ -56,8 +56,8 @@ import {
           <div className="ml-auto font-medium">+$99.00</div>
         </div>
         <div className="flex items-center">
-          <Avatar className="h-9 w-9">
-            <AvatarImage src="https://i.pravatar.cc/150?img=9" alt="Avatar" />
+          <Avatar className="size-9">
+            <AvatarImage alt="Avatar" src="https://i.pravatar.cc/150?img=9" />
             <AvatarFallback>SD</AvatarFallback>
           </Avatar>
           <div className="ml-4 space-y-1">

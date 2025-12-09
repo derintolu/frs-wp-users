@@ -54,17 +54,13 @@ export default function Charts() {
             <ChartContainer
               config={{
                 steps: {
-                  label: "Steps",
                   color: "hsl(var(--chart-1))",
+                  label: "Steps",
                 },
               }}
             >
               <BarChart
                 accessibilityLayer
-                margin={{
-                  left: -4,
-                  right: -4,
-                }}
                 data={[
                   {
                     date: "2024-01-01",
@@ -95,27 +91,30 @@ export default function Charts() {
                     steps: 1600,
                   },
                 ]}
+                margin={{
+                  left: -4,
+                  right: -4,
+                }}
               >
                 <Bar
+                  activeBar={<Rectangle fillOpacity={0.8} />}
                   dataKey="steps"
                   fill="var(--color-steps)"
-                  radius={5}
                   fillOpacity={0.6}
-                  activeBar={<Rectangle fillOpacity={0.8} />}
+                  radius={5}
                 />
                 <XAxis
-                  dataKey="date"
-                  tickLine={false}
                   axisLine={false}
-                  tickMargin={4}
+                  dataKey="date"
                   tickFormatter={(value) => {
                     return new Date(value).toLocaleDateString("en-US", {
                       weekday: "short",
                     })
                   }}
+                  tickLine={false}
+                  tickMargin={4}
                 />
                 <ChartTooltip
-                  defaultIndex={2}
                   content={
                     <ChartTooltipContent
                       hideIndicator
@@ -129,26 +128,27 @@ export default function Charts() {
                     />
                   }
                   cursor={false}
+                  defaultIndex={2}
                 />
                 <ReferenceLine
-                  y={1200}
                   stroke="hsl(var(--muted-foreground))"
                   strokeDasharray="3 3"
                   strokeWidth={1}
+                  y={1200}
                 >
                   <Label
+                    fill="hsl(var(--foreground))"
+                    offset={10}
                     position="insideBottomLeft"
                     value="Average Steps"
-                    offset={10}
-                    fill="hsl(var(--foreground))"
                   />
                   <Label
-                    position="insideTopLeft"
-                    value="12,343"
                     className="text-lg"
                     fill="hsl(var(--foreground))"
                     offset={10}
+                    position="insideTopLeft"
                     startOffset={100}
+                    value="12,343"
                   />
                 </ReferenceLine>
               </BarChart>
@@ -191,21 +191,16 @@ export default function Charts() {
           </CardHeader>
           <CardContent className="flex flex-1 items-center">
             <ChartContainer
+              className="w-full"
               config={{
                 resting: {
-                  label: "Resting",
                   color: "hsl(var(--chart-1))",
+                  label: "Resting",
                 },
               }}
-              className="w-full"
             >
               <LineChart
                 accessibilityLayer
-                margin={{
-                  left: 14,
-                  right: 14,
-                  top: 10,
-                }}
                 data={[
                   {
                     date: "2024-01-01",
@@ -236,37 +231,42 @@ export default function Charts() {
                     resting: 70,
                   },
                 ]}
+                margin={{
+                  left: 14,
+                  right: 14,
+                  top: 10,
+                }}
               >
                 <CartesianGrid
-                  strokeDasharray="4 4"
-                  vertical={false}
                   stroke="hsl(var(--muted-foreground))"
+                  strokeDasharray="4 4"
                   strokeOpacity={0.5}
+                  vertical={false}
                 />
-                <YAxis hide domain={["dataMin - 10", "dataMax + 10"]} />
+                <YAxis domain={["dataMin - 10", "dataMax + 10"]} hide />
                 <XAxis
-                  dataKey="date"
-                  tickLine={false}
                   axisLine={false}
-                  tickMargin={8}
+                  dataKey="date"
                   tickFormatter={(value) => {
                     return new Date(value).toLocaleDateString("en-US", {
                       weekday: "short",
                     })
                   }}
+                  tickLine={false}
+                  tickMargin={8}
                 />
                 <Line
+                  activeDot={{
+                    fill: "var(--color-resting)",
+                    r: 4,
+                    stroke: "var(--color-resting)",
+                  }}
                   dataKey="resting"
-                  type="natural"
+                  dot={false}
                   fill="var(--color-resting)"
                   stroke="var(--color-resting)"
                   strokeWidth={2}
-                  dot={false}
-                  activeDot={{
-                    fill: "var(--color-resting)",
-                    stroke: "var(--color-resting)",
-                    r: 4,
-                  }}
+                  type="natural"
                 />
                 <ChartTooltip
                   content={
@@ -295,7 +295,7 @@ export default function Charts() {
           <CardHeader>
             <CardTitle>Progress</CardTitle>
             <CardDescription>
-              You're average more steps a day this year than last year.
+              You&apos;re average more steps a day this year than last year.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
@@ -307,46 +307,46 @@ export default function Charts() {
                 </span>
               </div>
               <ChartContainer
+                className="aspect-auto h-[32px] w-full"
                 config={{
                   steps: {
-                    label: "Steps",
                     color: "hsl(var(--chart-1))",
+                    label: "Steps",
                   },
                 }}
-                className="aspect-auto h-[32px] w-full"
               >
                 <BarChart
                   accessibilityLayer
-                  layout="vertical"
-                  margin={{
-                    left: 0,
-                    top: 0,
-                    right: 0,
-                    bottom: 0,
-                  }}
                   data={[
                     {
                       date: "2024",
-                      steps: 12435,
+                      steps: 12_435,
                     },
                   ]}
+                  layout="vertical"
+                  margin={{
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                  }}
                 >
                   <Bar
+                    barSize={32}
                     dataKey="steps"
                     fill="var(--color-steps)"
                     radius={4}
-                    barSize={32}
                   >
                     <LabelList
-                      position="insideLeft"
                       dataKey="date"
-                      offset={8}
-                      fontSize={12}
                       fill="white"
+                      fontSize={12}
+                      offset={8}
+                      position="insideLeft"
                     />
                   </Bar>
-                  <YAxis dataKey="date" type="category" tickCount={1} hide />
-                  <XAxis dataKey="steps" type="number" hide />
+                  <YAxis dataKey="date" hide tickCount={1} type="category" />
+                  <XAxis dataKey="steps" hide type="number" />
                 </BarChart>
               </ChartContainer>
             </div>
@@ -358,46 +358,46 @@ export default function Charts() {
                 </span>
               </div>
               <ChartContainer
+                className="aspect-auto h-[32px] w-full"
                 config={{
                   steps: {
-                    label: "Steps",
                     color: "hsl(var(--muted))",
+                    label: "Steps",
                   },
                 }}
-                className="aspect-auto h-[32px] w-full"
               >
                 <BarChart
                   accessibilityLayer
-                  layout="vertical"
-                  margin={{
-                    left: 0,
-                    top: 0,
-                    right: 0,
-                    bottom: 0,
-                  }}
                   data={[
                     {
                       date: "2023",
-                      steps: 10103,
+                      steps: 10_103,
                     },
                   ]}
+                  layout="vertical"
+                  margin={{
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                  }}
                 >
                   <Bar
+                    barSize={32}
                     dataKey="steps"
                     fill="var(--color-steps)"
                     radius={4}
-                    barSize={32}
                   >
                     <LabelList
-                      position="insideLeft"
                       dataKey="date"
-                      offset={8}
-                      fontSize={12}
                       fill="hsl(var(--muted-foreground))"
+                      fontSize={12}
+                      offset={8}
+                      position="insideLeft"
                     />
                   </Bar>
-                  <YAxis dataKey="date" type="category" tickCount={1} hide />
-                  <XAxis dataKey="steps" type="number" hide />
+                  <YAxis dataKey="date" hide tickCount={1} type="category" />
+                  <XAxis dataKey="steps" hide type="number" />
                 </BarChart>
               </ChartContainer>
             </div>
@@ -421,22 +421,16 @@ export default function Charts() {
               </span>
             </div>
             <ChartContainer
+              className="ml-auto w-[72px]"
               config={{
                 steps: {
-                  label: "Steps",
                   color: "hsl(var(--chart-1))",
+                  label: "Steps",
                 },
               }}
-              className="ml-auto w-[72px]"
             >
               <BarChart
                 accessibilityLayer
-                margin={{
-                  left: 0,
-                  right: 0,
-                  top: 0,
-                  bottom: 0,
-                }}
                 data={[
                   {
                     date: "2024-01-01",
@@ -467,21 +461,27 @@ export default function Charts() {
                     steps: 1600,
                   },
                 ]}
+                margin={{
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                }}
               >
                 <Bar
+                  activeBar={<Rectangle fillOpacity={0.8} />}
+                  activeIndex={6}
                   dataKey="steps"
                   fill="var(--color-steps)"
-                  radius={2}
                   fillOpacity={0.2}
-                  activeIndex={6}
-                  activeBar={<Rectangle fillOpacity={0.8} />}
+                  radius={2}
                 />
                 <XAxis
-                  dataKey="date"
-                  tickLine={false}
                   axisLine={false}
-                  tickMargin={4}
+                  dataKey="date"
                   hide
+                  tickLine={false}
+                  tickMargin={4}
                 />
               </BarChart>
             </ChartContainer>
@@ -492,69 +492,69 @@ export default function Charts() {
         >
           <CardContent className="flex gap-4 p-4 pb-2">
             <ChartContainer
+              className="h-[140px] w-full"
               config={{
+                exercise: {
+                  color: "hsl(var(--chart-3))",
+                  label: "Exercise",
+                },
                 move: {
-                  label: "Move",
                   color: "hsl(var(--chart-1))",
+                  label: "Move",
                 },
                 stand: {
-                  label: "Stand",
                   color: "hsl(var(--chart-2))",
-                },
-                exercise: {
-                  label: "Exercise",
-                  color: "hsl(var(--chart-3))",
+                  label: "Stand",
                 },
               }}
-              className="h-[140px] w-full"
             >
               <BarChart
-                margin={{
-                  left: 0,
-                  right: 0,
-                  top: 0,
-                  bottom: 10,
-                }}
+                barGap={2}
+                barSize={32}
                 data={[
                   {
                     activity: "stand",
-                    value: (8 / 12) * 100,
-                    label: "8/12 hr",
                     fill: "var(--color-stand)",
+                    label: "8/12 hr",
+                    value: (8 / 12) * 100,
                   },
                   {
                     activity: "exercise",
-                    value: (46 / 60) * 100,
-                    label: "46/60 min",
                     fill: "var(--color-exercise)",
+                    label: "46/60 min",
+                    value: (46 / 60) * 100,
                   },
                   {
                     activity: "move",
-                    value: (245 / 360) * 100,
-                    label: "245/360 kcal",
                     fill: "var(--color-move)",
+                    label: "245/360 kcal",
+                    value: (245 / 360) * 100,
                   },
                 ]}
                 layout="vertical"
-                barSize={32}
-                barGap={2}
+                margin={{
+                  bottom: 10,
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                }}
               >
-                <XAxis type="number" dataKey="value" hide />
+                <XAxis dataKey="value" hide type="number" />
                 <YAxis
-                  dataKey="activity"
-                  type="category"
-                  tickLine={false}
-                  tickMargin={4}
                   axisLine={false}
                   className="capitalize"
+                  dataKey="activity"
+                  tickLine={false}
+                  tickMargin={4}
+                  type="category"
                 />
                 <Bar dataKey="value" radius={5}>
                   <LabelList
-                    position="insideLeft"
                     dataKey="label"
                     fill="white"
-                    offset={8}
                     fontSize={12}
+                    offset={8}
+                    position="insideLeft"
                   />
                 </Bar>
               </BarChart>
@@ -571,7 +571,7 @@ export default function Charts() {
                   </span>
                 </div>
               </div>
-              <Separator orientation="vertical" className="mx-2 h-10 w-px" />
+              <Separator className="mx-2 h-10 w-px" orientation="vertical" />
               <div className="grid flex-1 auto-rows-min gap-0.5">
                 <div className="text-xs text-muted-foreground">Exercise</div>
                 <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
@@ -581,7 +581,7 @@ export default function Charts() {
                   </span>
                 </div>
               </div>
-              <Separator orientation="vertical" className="mx-2 h-10 w-px" />
+              <Separator className="mx-2 h-10 w-px" orientation="vertical" />
               <div className="grid flex-1 auto-rows-min gap-0.5">
                 <div className="text-xs text-muted-foreground">Stand</div>
                 <div className="flex items-baseline gap-1 text-2xl font-bold tabular-nums leading-none">
@@ -630,58 +630,58 @@ export default function Charts() {
               </div>
             </div>
             <ChartContainer
+              className="mx-auto aspect-square w-full max-w-[80%]"
               config={{
-                move: {
-                  label: "Move",
-                  color: "hsl(var(--chart-1))",
-                },
                 exercise: {
-                  label: "Exercise",
                   color: "hsl(var(--chart-2))",
+                  label: "Exercise",
+                },
+                move: {
+                  color: "hsl(var(--chart-1))",
+                  label: "Move",
                 },
                 stand: {
-                  label: "Stand",
                   color: "hsl(var(--chart-3))",
+                  label: "Stand",
                 },
               }}
-              className="mx-auto aspect-square w-full max-w-[80%]"
             >
               <RadialBarChart
-                margin={{
-                  left: -10,
-                  right: -10,
-                  top: -10,
-                  bottom: -10,
-                }}
+                barSize={24}
                 data={[
                   {
                     activity: "stand",
-                    value: (8 / 12) * 100,
                     fill: "var(--color-stand)",
+                    value: (8 / 12) * 100,
                   },
                   {
                     activity: "exercise",
-                    value: (46 / 60) * 100,
                     fill: "var(--color-exercise)",
+                    value: (46 / 60) * 100,
                   },
                   {
                     activity: "move",
-                    value: (245 / 360) * 100,
                     fill: "var(--color-move)",
+                    value: (245 / 360) * 100,
                   },
                 ]}
-                innerRadius="20%"
-                barSize={24}
-                startAngle={90}
                 endAngle={450}
+                innerRadius="20%"
+                margin={{
+                  bottom: -10,
+                  left: -10,
+                  right: -10,
+                  top: -10,
+                }}
+                startAngle={90}
               >
                 <PolarAngleAxis
-                  type="number"
-                  domain={[0, 100]}
                   dataKey="value"
+                  domain={[0, 100]}
                   tick={false}
+                  type="number"
                 />
-                <RadialBar dataKey="value" background cornerRadius={5} />
+                <RadialBar background cornerRadius={5} dataKey="value" />
               </RadialBarChart>
             </ChartContainer>
           </CardContent>
@@ -692,7 +692,7 @@ export default function Charts() {
           <CardHeader className="p-4 pb-0">
             <CardTitle>Active Energy</CardTitle>
             <CardDescription>
-              You're burning an average of 754 calories per day. Good job!
+              You&apos;re burning an average of 754 calories per day. Good job!
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-row items-baseline gap-4 p-4 pt-2">
@@ -703,67 +703,67 @@ export default function Charts() {
               </span>
             </div>
             <ChartContainer
+              className="ml-auto w-[64px]"
               config={{
                 calories: {
-                  label: "Calories",
                   color: "hsl(var(--chart-1))",
+                  label: "Calories",
                 },
               }}
-              className="ml-auto w-[64px]"
             >
               <BarChart
                 accessibilityLayer
+                data={[
+                  {
+                    calories: 354,
+                    date: "2024-01-01",
+                  },
+                  {
+                    calories: 514,
+                    date: "2024-01-02",
+                  },
+                  {
+                    calories: 345,
+                    date: "2024-01-03",
+                  },
+                  {
+                    calories: 734,
+                    date: "2024-01-04",
+                  },
+                  {
+                    calories: 645,
+                    date: "2024-01-05",
+                  },
+                  {
+                    calories: 456,
+                    date: "2024-01-06",
+                  },
+                  {
+                    calories: 345,
+                    date: "2024-01-07",
+                  },
+                ]}
                 margin={{
+                  bottom: 0,
                   left: 0,
                   right: 0,
                   top: 0,
-                  bottom: 0,
                 }}
-                data={[
-                  {
-                    date: "2024-01-01",
-                    calories: 354,
-                  },
-                  {
-                    date: "2024-01-02",
-                    calories: 514,
-                  },
-                  {
-                    date: "2024-01-03",
-                    calories: 345,
-                  },
-                  {
-                    date: "2024-01-04",
-                    calories: 734,
-                  },
-                  {
-                    date: "2024-01-05",
-                    calories: 645,
-                  },
-                  {
-                    date: "2024-01-06",
-                    calories: 456,
-                  },
-                  {
-                    date: "2024-01-07",
-                    calories: 345,
-                  },
-                ]}
               >
                 <Bar
+                  activeBar={<Rectangle fillOpacity={0.8} />}
+                  activeIndex={6}
                   dataKey="calories"
                   fill="var(--color-calories)"
-                  radius={2}
                   fillOpacity={0.2}
-                  activeIndex={6}
-                  activeBar={<Rectangle fillOpacity={0.8} />}
+                  radius={2}
                 />
                 <XAxis
-                  dataKey="date"
-                  tickLine={false}
                   axisLine={false}
-                  tickMargin={4}
+                  dataKey="date"
                   hide
+                  tickLine={false}
+                  tickMargin={4}
                 />
               </BarChart>
             </ChartContainer>
@@ -789,8 +789,8 @@ export default function Charts() {
             <ChartContainer
               config={{
                 time: {
-                  label: "Time",
                   color: "hsl(var(--chart-2))",
+                  label: "Time",
                 },
               }}
             >
@@ -827,16 +827,16 @@ export default function Charts() {
                   },
                 ]}
                 margin={{
+                  bottom: 0,
                   left: 0,
                   right: 0,
                   top: 0,
-                  bottom: 0,
                 }}
               >
                 <XAxis dataKey="date" hide />
                 <YAxis domain={["dataMin - 5", "dataMax + 2"]} hide />
                 <defs>
-                  <linearGradient id="fillTime" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id="fillTime" x1="0" x2="0" y1="0" y2="1">
                     <stop
                       offset="5%"
                       stopColor="var(--color-time)"
@@ -851,14 +851,14 @@ export default function Charts() {
                 </defs>
                 <Area
                   dataKey="time"
-                  type="natural"
                   fill="url(#fillTime)"
                   fillOpacity={0.4}
                   stroke="var(--color-time)"
+                  type="natural"
                 />
                 <ChartTooltip
-                  cursor={false}
                   content={<ChartTooltipContent hideLabel />}
+                  cursor={false}
                   formatter={(value) => (
                     <div className="flex min-w-[120px] items-center text-xs text-muted-foreground">
                       Time in bed

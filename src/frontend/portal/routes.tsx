@@ -14,22 +14,22 @@ export const createRouter = (config: RouteConfig) => {
 
   return createBrowserRouter([
     {
-      path: '/',
-      element: <ProfileCustomizerLayout currentUser={currentUser} userId={userId} />,
       children: [
         {
+          element: <Navigate replace to="profile" />,
           index: true,
-          element: <Navigate to="profile" replace />,
         },
         {
+          element: <MyProfile autoEdit={false} userId={userId} />,
           path: 'profile',
-          element: <MyProfile userId={userId} autoEdit={false} />,
         },
         {
+          element: <Navigate replace to="profile" />,
           path: '*',
-          element: <Navigate to="profile" replace />,
         },
       ],
+      element: <ProfileCustomizerLayout currentUser={currentUser} userId={userId} />,
+      path: '/',
     },
   ]);
 };

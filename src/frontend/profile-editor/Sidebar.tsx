@@ -19,42 +19,42 @@ interface SidebarProps {
 }
 
 interface SectionItem {
+	description: string;
+	icon: React.ReactNode;
 	id: string;
 	label: string;
-	icon: React.ReactNode;
-	description: string;
 }
 
 const sections: SectionItem[] = [
 	{
+		description: 'Basic information and biography',
+		icon: <User className="size-5" />,
 		id: 'about',
 		label: 'About',
-		icon: <User className="w-5 h-5" />,
-		description: 'Basic information and biography',
 	},
 	{
+		description: 'Your social media profiles',
+		icon: <Share2 className="size-5" />,
 		id: 'social',
 		label: 'Social Media',
-		icon: <Share2 className="w-5 h-5" />,
-		description: 'Your social media profiles',
 	},
 	{
+		description: 'Add custom links to your profile',
+		icon: <Link className="size-5" />,
 		id: 'links',
 		label: 'Custom Links',
-		icon: <Link className="w-5 h-5" />,
-		description: 'Add custom links to your profile',
 	},
 	{
+		description: 'Where you serve clients',
+		icon: <MapPin className="size-5" />,
 		id: 'service-areas',
 		label: 'Service Areas',
-		icon: <MapPin className="w-5 h-5" />,
-		description: 'Where you serve clients',
 	},
 	{
+		description: 'Your areas of expertise',
+		icon: <Award className="size-5" />,
 		id: 'specialties',
 		label: 'Specialties',
-		icon: <Award className="w-5 h-5" />,
-		description: 'Your areas of expertise',
 	},
 ];
 
@@ -64,22 +64,22 @@ export default function Sidebar({
 	profile,
 }: SidebarProps) {
 	return (
-		<Card className="p-4 sticky top-4">
+		<Card className="sticky top-4 p-4">
 			<div className="mb-6">
-				<div className="flex items-center gap-3 mb-2">
+				<div className="mb-2 flex items-center gap-3">
 					{profile?.headshot_url ? (
 						<img
-							src={profile.headshot_url}
 							alt={`${profile.first_name} ${profile.last_name}`}
-							className="w-16 h-16 rounded-full object-cover"
+							className="size-16 rounded-full object-cover"
+							src={profile.headshot_url}
 						/>
 					) : (
-						<div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
-							<User className="w-8 h-8 text-gray-400" />
+						<div className="flex size-16 items-center justify-center rounded-full bg-gray-200">
+							<User className="size-8 text-gray-400" />
 						</div>
 					)}
 					<div>
-						<h3 className="font-semibold text-lg">
+						<h3 className="text-lg font-semibold">
 							{profile?.first_name} {profile?.last_name}
 						</h3>
 						<p className="text-sm text-gray-600">{profile?.job_title}</p>
@@ -90,14 +90,14 @@ export default function Sidebar({
 			<nav className="space-y-1">
 				{sections.map((section) => (
 					<button
+						className={cn(
+							'flex w-full items-start gap-3 rounded-lg p-3 text-left transition-colors',
+							activeSection === section.id
+								? 'border border-blue-200 bg-blue-50 text-blue-700'
+								: 'text-gray-700 hover:bg-gray-50'
+						)}
 						key={section.id}
 						onClick={() => onSectionChange(section.id)}
-						className={cn(
-							'w-full flex items-start gap-3 p-3 rounded-lg transition-colors text-left',
-							activeSection === section.id
-								? 'bg-blue-50 text-blue-700 border border-blue-200'
-								: 'hover:bg-gray-50 text-gray-700'
-						)}
 					>
 						<span
 							className={cn(
@@ -108,10 +108,10 @@ export default function Sidebar({
 							{section.icon}
 						</span>
 						<div className="flex-1">
-							<div className="font-medium text-sm">{section.label}</div>
+							<div className="text-sm font-medium">{section.label}</div>
 							<div
 								className={cn(
-									'text-xs mt-0.5',
+									'mt-0.5 text-xs',
 									activeSection === section.id
 										? 'text-blue-600'
 										: 'text-gray-500'
@@ -125,55 +125,55 @@ export default function Sidebar({
 			</nav>
 
 			{/* Profile Completion Widget */}
-			<div className="mt-4 px-4 py-3 border-b border-gray-200 bg-white rounded-lg">
-				<div className="flex items-center justify-between mb-2">
-					<div className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+			<div className="mt-4 rounded-lg border-b border-gray-200 bg-white px-4 py-3">
+				<div className="mb-2 flex items-center justify-between">
+					<div className="text-xs font-semibold uppercase tracking-wider text-gray-500">
 						Profile Completion
 					</div>
 					<div className="text-sm font-semibold text-gray-700">50%</div>
 				</div>
-				<div className="w-full bg-gray-200 rounded-full h-2">
+				<div className="h-2 w-full rounded-full bg-gray-200">
 					<div
 						className="h-2 rounded-full"
 						style={{
-							width: '50%',
 							background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
+							width: '50%',
 						}}
 					/>
 				</div>
 			</div>
 
 			{/* Profile Link Widget */}
-			<div className="mt-4 px-4 py-3 border-t border-gray-200 bg-white rounded-lg">
-				<div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+			<div className="mt-4 rounded-lg border-t border-gray-200 bg-white px-4 py-3">
+				<div className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
 					Profile Link
 				</div>
-				<div className="text-sm text-gray-700 mb-2 p-2 bg-gray-50 rounded border border-gray-300 truncate">
+				<div className="mb-2 truncate rounded border border-gray-300 bg-gray-50 p-2 text-sm text-gray-700">
 					{profile?.profile_slug ? `${window.location.origin}/member/${profile.profile_slug}` : 'No profile slug'}
 				</div>
 				<div className="flex gap-2">
 					<Button
-						variant="outline"
-						size="sm"
+						className="flex-1"
 						onClick={() => {
 							const url = profile?.profile_slug ? `${window.location.origin}/member/${profile.profile_slug}` : '';
-							if (url) navigator.clipboard.writeText(url);
+							if (url) {navigator.clipboard.writeText(url);}
 						}}
-						className="flex-1"
+						size="sm"
+						variant="outline"
 					>
-						<Copy className="h-3 w-3 mr-1" />
+						<Copy className="mr-1 size-3" />
 						Copy
 					</Button>
 					<Button
-						variant="outline"
-						size="sm"
+						className="flex-1"
 						onClick={() => {
 							const url = profile?.profile_slug ? `${window.location.origin}/member/${profile.profile_slug}` : '';
-							if (url) window.open(url, '_blank');
+							if (url) {window.open(url, '_blank');}
 						}}
-						className="flex-1"
+						size="sm"
+						variant="outline"
 					>
-						<ExternalLink className="h-3 w-3 mr-1" />
+						<ExternalLink className="mr-1 size-3" />
 						Open
 					</Button>
 				</div>

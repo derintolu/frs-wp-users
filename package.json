@@ -1,7 +1,6 @@
-
 {
-  "name": "wordpress-plugin-boilerplate",
-  "version": "1.0.0",
+  "name": "frs-wp-users",
+  "version": "2.1.0",
   "type": "module",
   "scripts": {
     "dev": "concurrently \"vite -c vite.frontend.config.js --port 5173\" \"vite -c vite.admin.config.js --port 5174\"",

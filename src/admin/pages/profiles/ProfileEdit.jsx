@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,8 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
   SelectContent,
@@ -27,69 +25,69 @@ export default function ProfileEdit() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState({
-    first_name: "",
-    last_name: "",
+    arrive: "",
+    biography: "",
+    brand: "",
+    canva_folder_link: "",
+    city_state: "",
+    date_of_birth: "",
+    dre_license: "",
     email: "",
-    phone_number: "",
-    mobile_number: "",
-    office: "",
+    facebook_url: "",
+    first_name: "",
     headshot_id: null,
     headshot_url: null,
+    instagram_url: "",
     job_title: "",
-    biography: "",
-    date_of_birth: "",
-    select_person_type: "",
-    profile_slug: "",
+    last_name: "",
+    license_number: "",
+    linkedin_url: "",
+    mobile_number: "",
+    niche_bio_content: "",
     nmls: "",
     nmls_number: "",
-    license_number: "",
-    dre_license: "",
-    brand: "",
-    status: "active",
-    city_state: "",
+    office: "",
+    phone_number: "",
+    profile_slug: "",
     region: "",
-    facebook_url: "",
-    instagram_url: "",
-    linkedin_url: "",
+    select_person_type: "",
+    status: "active",
+    tiktok_url: "",
     twitter_url: "",
     youtube_url: "",
-    tiktok_url: "",
-    arrive: "",
-    canva_folder_link: "",
-    niche_bio_content: "",
   });
+
+  const fetchProfile = useCallback(async () => {
+    try {
+      const response = await fetch(`${wordpressPluginBoilerplate.apiUrl}frs-users/v1/profiles/${id}`, {
+        headers: { 'X-WP-Nonce': wordpressPluginBoilerplate.nonce }
+      });
+      if (!response.ok) {throw new Error('Failed to fetch profile');}
+      const data = await response.json();
+
+      // Remove computed fields that shouldn't be in state
+      const {
+        created_at,
+        full_name,
+        headshot_url,
+        is_guest,
+        roles,
+        synced_to_fluentcrm_at,
+        updated_at,
+        ...editableProfile
+      } = data.data;
+
+      setProfile(editableProfile);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  }, [id]);
 
   useEffect(() => {
     if (id && id !== 'new') {
       fetchProfile();
     }
-  }, [id]);
-
-  const fetchProfile = async () => {
-    try {
-      const response = await fetch(`${wordpressPluginBoilerplate.apiUrl}frs-users/v1/profiles/${id}`, {
-        headers: { 'X-WP-Nonce': wordpressPluginBoilerplate.nonce }
-      });
-      if (!response.ok) throw new Error('Failed to fetch profile');
-      const data = await response.json();
-
-      // Remove computed fields that shouldn't be in state
-      const {
-        full_name,
-        headshot_url,
-        is_guest,
-        roles,
-        created_at,
-        updated_at,
-        synced_to_fluentcrm_at,
-        ...editableProfile
-      } = data.data;
-
-      setProfile(editableProfile);
-    } catch (err) {
-      toast.error(err.message);
-    }
-  };
+  }, [id, fetchProfile]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -125,7 +123,7 @@ export default function ProfileEdit() {
     // Check each field size
     Object.keys(dataToSave).forEach(key => {
       const fieldSize = new Blob([JSON.stringify(dataToSave[key] || '')]).size;
-      if (fieldSize > 10000) { // Show fields over 10KB
+      if (fieldSize > 10_000) { // Show fields over 10KB
         console.log(`Large field: ${key} = ${(fieldSize / 1024).toFixed(2)} KB`);
       }
     });
@@ -138,21 +136,21 @@ export default function ProfileEdit() {
       const method = id === 'new' ? 'POST' : 'PUT';
 
       const response = await fetch(url, {
-        method,
+        body: JSON.stringify(dataToSave),
         headers: {
-          'X-WP-Nonce': wordpressPluginBoilerplate.nonce,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-WP-Nonce': wordpressPluginBoilerplate.nonce
         },
-        body: JSON.stringify(dataToSave)
+        method
       });
 
-      if (!response.ok) throw new Error('Failed to save profile');
+      if (!response.ok) {throw new Error('Failed to save profile');}
 
       const data = await response.json();
       toast.success(id === 'new' ? 'Profile created successfully' : 'Profile updated successfully');
       navigate(`/profiles/${data.data.id}`);
-    } catch (err) {
-      toast.error(err.message);
+    } catch (error) {
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -170,7 +168,7 @@ export default function ProfileEdit() {
             {id === 'new' ? 'Add New Profile' : 'Edit Profile'}
           </h1>
         </div>
-        <Button variant="outline" onClick={() => navigate(id === 'new' ? '/profiles' : `/profiles/${id}`)}>
+        <Button onClick={() => navigate(id === 'new' ? '/profiles' : `/profiles/${id}`)} variant="outline">
           Cancel
         </Button>
       </div>
@@ -182,7 +180,9 @@ export default function ProfileEdit() {
         </CardHeader>
         <CardContent>
           <MediaUploader
-            value={profile.headshot_id}
+            avatarSize="h-32 w-32"
+            buttonText={profile.headshot_url ? "Change Photo" : "Upload Photo"}
+            fallbackText={getInitials(profile.first_name, profile.last_name)}
             imageUrl={profile.headshot_url}
             onChange={(attachmentId, imageUrl) => {
               setProfile(prev => ({
@@ -191,15 +191,13 @@ export default function ProfileEdit() {
                 headshot_url: imageUrl
               }));
             }}
-            buttonText={profile.headshot_url ? "Change Photo" : "Upload Photo"}
-            avatarSize="h-32 w-32"
-            fallbackText={getInitials(profile.first_name, profile.last_name)}
+            value={profile.headshot_id}
           />
         </CardContent>
       </Card>
 
       <form onSubmit={handleSubmit}>
-        <Tabs defaultValue="contact" className="space-y-4">
+        <Tabs className="space-y-4" defaultValue="contact">
           <TabsList>
             <TabsTrigger value="contact">Contact Info</TabsTrigger>
             <TabsTrigger value="professional">Professional</TabsTrigger>
@@ -217,30 +215,30 @@ export default function ProfileEdit() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>First Name *</Label>
-                    <Input required value={profile.first_name} onChange={(e) => handleChange('first_name', e.target.value)} />
+                    <Input onChange={(e) => handleChange('first_name', e.target.value)} required value={profile.first_name} />
                   </div>
                   <div>
                     <Label>Last Name *</Label>
-                    <Input required value={profile.last_name} onChange={(e) => handleChange('last_name', e.target.value)} />
+                    <Input onChange={(e) => handleChange('last_name', e.target.value)} required value={profile.last_name} />
                   </div>
                 </div>
                 <div>
                   <Label>Email *</Label>
-                  <Input type="email" required value={profile.email} onChange={(e) => handleChange('email', e.target.value)} />
+                  <Input onChange={(e) => handleChange('email', e.target.value)} required type="email" value={profile.email} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Phone Number</Label>
-                    <Input value={profile.phone_number} onChange={(e) => handleChange('phone_number', e.target.value)} />
+                    <Input onChange={(e) => handleChange('phone_number', e.target.value)} value={profile.phone_number} />
                   </div>
                   <div>
                     <Label>Mobile Number</Label>
-                    <Input value={profile.mobile_number} onChange={(e) => handleChange('mobile_number', e.target.value)} />
+                    <Input onChange={(e) => handleChange('mobile_number', e.target.value)} value={profile.mobile_number} />
                   </div>
                 </div>
                 <div>
                   <Label>Office</Label>
-                  <Input value={profile.office} onChange={(e) => handleChange('office', e.target.value)} />
+                  <Input onChange={(e) => handleChange('office', e.target.value)} value={profile.office} />
                 </div>
               </CardContent>
             </Card>
@@ -254,19 +252,19 @@ export default function ProfileEdit() {
               <CardContent className="space-y-4">
                 <div>
                   <Label>Job Title</Label>
-                  <Input value={profile.job_title} onChange={(e) => handleChange('job_title', e.target.value)} />
+                  <Input onChange={(e) => handleChange('job_title', e.target.value)} value={profile.job_title} />
                 </div>
                 <div>
                   <Label>Biography</Label>
-                  <Textarea rows={5} value={profile.biography} onChange={(e) => handleChange('biography', e.target.value)} />
+                  <Textarea onChange={(e) => handleChange('biography', e.target.value)} rows={5} value={profile.biography} />
                 </div>
                 <div>
                   <Label>Date of Birth</Label>
-                  <Input type="date" value={profile.date_of_birth} onChange={(e) => handleChange('date_of_birth', e.target.value)} />
+                  <Input onChange={(e) => handleChange('date_of_birth', e.target.value)} type="date" value={profile.date_of_birth} />
                 </div>
                 <div>
                   <Label>Person Type</Label>
-                  <Select value={profile.select_person_type} onValueChange={(value) => handleChange('select_person_type', value)}>
+                  <Select onValueChange={(value) => handleChange('select_person_type', value)} value={profile.select_person_type}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select Type" />
                     </SelectTrigger>
@@ -282,30 +280,30 @@ export default function ProfileEdit() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>NMLS</Label>
-                    <Input value={profile.nmls} onChange={(e) => handleChange('nmls', e.target.value)} />
+                    <Input onChange={(e) => handleChange('nmls', e.target.value)} value={profile.nmls} />
                   </div>
                   <div>
                     <Label>NMLS Number</Label>
-                    <Input value={profile.nmls_number} onChange={(e) => handleChange('nmls_number', e.target.value)} />
+                    <Input onChange={(e) => handleChange('nmls_number', e.target.value)} value={profile.nmls_number} />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>License Number</Label>
-                    <Input value={profile.license_number} onChange={(e) => handleChange('license_number', e.target.value)} />
+                    <Input onChange={(e) => handleChange('license_number', e.target.value)} value={profile.license_number} />
                   </div>
                   <div>
                     <Label>DRE License</Label>
-                    <Input value={profile.dre_license} onChange={(e) => handleChange('dre_license', e.target.value)} />
+                    <Input onChange={(e) => handleChange('dre_license', e.target.value)} value={profile.dre_license} />
                   </div>
                 </div>
                 <div>
                   <Label>Brand</Label>
-                  <Input value={profile.brand} onChange={(e) => handleChange('brand', e.target.value)} />
+                  <Input onChange={(e) => handleChange('brand', e.target.value)} value={profile.brand} />
                 </div>
                 <div>
                   <Label>Status</Label>
-                  <Select value={profile.status} onValueChange={(value) => handleChange('status', value)}>
+                  <Select onValueChange={(value) => handleChange('status', value)} value={profile.status}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select Status" />
                     </SelectTrigger>
@@ -318,11 +316,11 @@ export default function ProfileEdit() {
                 <div>
                   <Label>Public Profile Slug</Label>
                   <Input
-                    value={profile.profile_slug}
-                    onChange={(e) => handleChange('profile_slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                    onChange={(e) => handleChange('profile_slug', e.target.value.toLowerCase().replaceAll(/[^\da-z-]/g, ''))}
                     placeholder="john-doe"
+                    value={profile.profile_slug}
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     URL: {window.location.origin}/profile/{profile.profile_slug || 'your-slug'}
                   </p>
                 </div>
@@ -338,11 +336,11 @@ export default function ProfileEdit() {
               <CardContent className="space-y-4">
                 <div>
                   <Label>City, State</Label>
-                  <Input value={profile.city_state} onChange={(e) => handleChange('city_state', e.target.value)} />
+                  <Input onChange={(e) => handleChange('city_state', e.target.value)} value={profile.city_state} />
                 </div>
                 <div>
                   <Label>Region</Label>
-                  <Input value={profile.region} onChange={(e) => handleChange('region', e.target.value)} />
+                  <Input onChange={(e) => handleChange('region', e.target.value)} value={profile.region} />
                 </div>
               </CardContent>
             </Card>
@@ -356,27 +354,27 @@ export default function ProfileEdit() {
               <CardContent className="space-y-4">
                 <div>
                   <Label>Facebook URL</Label>
-                  <Input type="url" value={profile.facebook_url} onChange={(e) => handleChange('facebook_url', e.target.value)} />
+                  <Input onChange={(e) => handleChange('facebook_url', e.target.value)} type="url" value={profile.facebook_url} />
                 </div>
                 <div>
                   <Label>Instagram URL</Label>
-                  <Input type="url" value={profile.instagram_url} onChange={(e) => handleChange('instagram_url', e.target.value)} />
+                  <Input onChange={(e) => handleChange('instagram_url', e.target.value)} type="url" value={profile.instagram_url} />
                 </div>
                 <div>
                   <Label>LinkedIn URL</Label>
-                  <Input type="url" value={profile.linkedin_url} onChange={(e) => handleChange('linkedin_url', e.target.value)} />
+                  <Input onChange={(e) => handleChange('linkedin_url', e.target.value)} type="url" value={profile.linkedin_url} />
                 </div>
                 <div>
                   <Label>Twitter URL</Label>
-                  <Input type="url" value={profile.twitter_url} onChange={(e) => handleChange('twitter_url', e.target.value)} />
+                  <Input onChange={(e) => handleChange('twitter_url', e.target.value)} type="url" value={profile.twitter_url} />
                 </div>
                 <div>
                   <Label>YouTube URL</Label>
-                  <Input type="url" value={profile.youtube_url} onChange={(e) => handleChange('youtube_url', e.target.value)} />
+                  <Input onChange={(e) => handleChange('youtube_url', e.target.value)} type="url" value={profile.youtube_url} />
                 </div>
                 <div>
                   <Label>TikTok URL</Label>
-                  <Input type="url" value={profile.tiktok_url} onChange={(e) => handleChange('tiktok_url', e.target.value)} />
+                  <Input onChange={(e) => handleChange('tiktok_url', e.target.value)} type="url" value={profile.tiktok_url} />
                 </div>
               </CardContent>
             </Card>
@@ -390,26 +388,26 @@ export default function ProfileEdit() {
               <CardContent className="space-y-4">
                 <div>
                   <Label>ARRIVE URL</Label>
-                  <Input type="url" value={profile.arrive} onChange={(e) => handleChange('arrive', e.target.value)} />
+                  <Input onChange={(e) => handleChange('arrive', e.target.value)} type="url" value={profile.arrive} />
                 </div>
                 <div>
                   <Label>Canva Folder Link</Label>
-                  <Input type="url" value={profile.canva_folder_link} onChange={(e) => handleChange('canva_folder_link', e.target.value)} />
+                  <Input onChange={(e) => handleChange('canva_folder_link', e.target.value)} type="url" value={profile.canva_folder_link} />
                 </div>
                 <div>
                   <Label>Niche Bio Content</Label>
-                  <Textarea rows={5} value={profile.niche_bio_content} onChange={(e) => handleChange('niche_bio_content', e.target.value)} />
+                  <Textarea onChange={(e) => handleChange('niche_bio_content', e.target.value)} rows={5} value={profile.niche_bio_content} />
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
 
-        <div className="flex gap-2 mt-6">
-          <Button type="submit" disabled={loading}>
+        <div className="mt-6 flex gap-2">
+          <Button disabled={loading} type="submit">
             {loading ? 'Saving...' : (id === 'new' ? 'Create Profile' : 'Update Profile')}
           </Button>
-          <Button type="button" variant="outline" onClick={() => navigate(id === 'new' ? '/profiles' : `/profiles/${id}`)}>
+          <Button onClick={() => navigate(id === 'new' ? '/profiles' : `/profiles/${id}`)} type="button" variant="outline">
             Cancel
           </Button>
         </div>

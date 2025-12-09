@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { CollapsibleSidebar, MenuItem } from '@/components/ui/CollapsibleSidebar';
+import { MenuItem } from '@/components/ui/CollapsibleSidebar';
 import {
   User,
   Users,
@@ -30,28 +30,28 @@ import { useProfileEdit } from '@/frontend/portal/contexts/ProfileEditContext';
 import { Button } from '@/components/ui/button';
 
 interface BuddyPressLayoutProps {
+  children: React.ReactNode;
   currentUser: {
+    avatar?: string;
+    email: string;
     id?: string;
-    name: string;
-    email: string;
-    avatar?: string;
-    profile_slug?: string;
     job_title?: string;
-  };
-  viewedUser?: {
     name: string;
-    email: string;
-    avatar?: string;
     profile_slug?: string;
-    job_title?: string;
   };
   isOwnProfile: boolean;
-  children: React.ReactNode;
   onActiveTabChange?: (tabId: string) => void;
+  viewedUser?: {
+    avatar?: string;
+    email: string;
+    job_title?: string;
+    name: string;
+    profile_slug?: string;
+  };
 }
 
-export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, children, onActiveTabChange }: BuddyPressLayoutProps) {
-  const { activeSection, setActiveSection, handleCancel } = useProfileEdit();
+export function BuddyPressLayout({ children, currentUser, isOwnProfile, onActiveTabChange, viewedUser }: BuddyPressLayoutProps) {
+  const { activeSection, handleCancel, setActiveSection } = useProfileEdit();
   const [headerHeight, setHeaderHeight] = useState<string>('0px');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     return typeof window !== 'undefined' && window.innerWidth < 768;
@@ -122,28 +122,28 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
   const normalMenuItems: MenuItem[] = isOwnProfile
     ? [
         // Own profile - full access
-        { id: 'profile', label: 'Profile', icon: User },
-        { id: 'experience', label: 'Experience', icon: Calendar },
-        { id: 'organization', label: 'Organization', icon: Users },
-        { id: 'connections', label: 'Connections', icon: UserCheck },
-        { id: 'messages', label: 'Messages', icon: MessageSquare },
-        { id: 'settings', label: 'Settings', icon: SettingsIcon },
-        { id: 'notifications', label: 'Notifications', icon: Bell },
+        { icon: User, id: 'profile', label: 'Profile' },
+        { icon: Calendar, id: 'experience', label: 'Experience' },
+        { icon: Users, id: 'organization', label: 'Organization' },
+        { icon: UserCheck, id: 'connections', label: 'Connections' },
+        { icon: MessageSquare, id: 'messages', label: 'Messages' },
+        { icon: SettingsIcon, id: 'settings', label: 'Settings' },
+        { icon: Bell, id: 'notifications', label: 'Notifications' },
       ]
     : [
         // Viewing someone else - public tabs only
-        { id: 'profile', label: 'Profile', icon: User },
-        { id: 'experience', label: 'Experience', icon: Calendar },
-        { id: 'organization', label: 'Organization', icon: Users },
-        { id: 'connections', label: 'Connections', icon: UserCheck },
-        { id: 'send-message', label: 'Send Message', icon: MessageSquare },
+        { icon: User, id: 'profile', label: 'Profile' },
+        { icon: Calendar, id: 'experience', label: 'Experience' },
+        { icon: Users, id: 'organization', label: 'Organization' },
+        { icon: UserCheck, id: 'connections', label: 'Connections' },
+        { icon: MessageSquare, id: 'send-message', label: 'Send Message' },
       ];
 
   // Edit mode menu items
   const editMenuItems: MenuItem[] = [
-    { id: 'edit-personal', label: 'Personal Information', icon: UserCircle },
-    { id: 'edit-professional', label: 'Professional Details', icon: Briefcase },
-    { id: 'edit-social', label: 'Links & Social', icon: Share2 },
+    { icon: UserCircle, id: 'edit-personal', label: 'Personal Information' },
+    { icon: Briefcase, id: 'edit-professional', label: 'Professional Details' },
+    { icon: Share2, id: 'edit-social', label: 'Links & Social' },
   ];
 
   const menuItems = isEditMode ? editMenuItems : normalMenuItems;
@@ -164,10 +164,10 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
           <>
             <video
               autoPlay
-              muted
+              className="absolute inset-0 size-full object-cover"
               loop
+              muted
               playsInline
-              className="absolute inset-0 w-full h-full object-cover"
               style={{ zIndex: 0 }}
             >
               <source src={gradientUrl} type="video/mp4" />
@@ -181,43 +181,44 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
 
         {/* Avatar and Name - Horizontal Layout */}
         <div
-          className="relative w-full px-4 py-4 flex items-center gap-3"
+          className="relative flex w-full items-center gap-3 p-4"
           style={{ zIndex: 10 }}
         >
           {/* Avatar with gradient border */}
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <div
-              className="size-14 rounded-full overflow-hidden shadow-lg"
+              className="size-14 overflow-hidden rounded-full shadow-lg"
               style={{
-                border: '2px solid transparent',
+                backgroundClip: 'padding-box, border-box',
                 backgroundImage: 'linear-gradient(white, white), linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                 backgroundOrigin: 'padding-box, border-box',
-                backgroundClip: 'padding-box, border-box',
+                border: '2px solid transparent',
               }}
             >
               <img
-                src={displayUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayUser.name || 'User')}&background=2DD4DA&color=fff`}
                 alt={displayUser.name || 'User'}
-                className="w-full h-full object-cover"
+                className="size-full object-cover"
                 onError={(e) => {
                   e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayUser.name || 'User')}&background=2DD4DA&color=fff`;
                 }}
+                src={displayUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayUser.name || 'User')}&background=2DD4DA&color=fff`}
               />
             </div>
           </div>
 
           {/* Name and Title */}
-          <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-white text-base mb-0.5 drop-shadow-md truncate">{displayUser.name}</h3>
-            <p className="font-normal text-white text-sm drop-shadow-md truncate">{displayUser.job_title || 'Member'}</p>
+          <div className="min-w-0 flex-1">
+            <h3 className="mb-0.5 truncate text-base font-bold text-white drop-shadow-md">{displayUser.name}</h3>
+            <p className="truncate text-sm font-normal text-white drop-shadow-md">{displayUser.job_title || 'Member'}</p>
           </div>
         </div>
       </div>
 
       {/* Edit Profile / Exit Customizer Button - Only show on own profile */}
       {isOwnProfile && (
-        <div className="px-4 py-3 border-b border-gray-200 bg-white">
+        <div className="border-b border-gray-200 bg-white px-4 py-3">
           <button
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
             onClick={() => {
               const newEditMode = !isEditMode;
               setIsEditMode(newEditMode);
@@ -235,16 +236,15 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
                 }
               }
             }}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-300 hover:border-blue-400 hover:bg-blue-50 transition-all text-sm font-medium text-gray-700 hover:text-blue-600"
           >
             {isEditMode ? (
               <>
-                <X className="h-4 w-4" />
+                <X className="size-4" />
                 Exit Customizer
               </>
             ) : (
               <>
-                <Edit className="h-4 w-4" />
+                <Edit className="size-4" />
                 Edit Profile
               </>
             )}
@@ -371,6 +371,7 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
       return (
         <div className="p-4">
           <button
+            className="mb-4 flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
             onClick={() => {
               setSidebarView('menu');
               setActiveTab('profile');
@@ -378,20 +379,19 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
                 onActiveTabChange('profile');
               }
             }}
-            className="mb-4 text-sm text-gray-600 hover:text-gray-900 flex items-center gap-2"
           >
             ← Back to Menu
           </button>
 
-          <h2 className="text-lg font-bold mb-4">Edit Profile</h2>
-          <p className="text-sm text-gray-600 mb-6">Choose a section to edit:</p>
+          <h2 className="mb-4 text-lg font-bold">Edit Profile</h2>
+          <p className="mb-6 text-sm text-gray-600">Choose a section to edit:</p>
 
           <div className="space-y-2">
             <button
+              className="flex w-full items-center gap-3 rounded-lg border border-gray-200 p-3 text-left transition-all hover:border-blue-400 hover:bg-blue-50/50"
               onClick={() => handleSettingsSectionClick('personal')}
-              className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all text-left"
             >
-              <UserCircle className="h-5 w-5 text-gray-600" />
+              <UserCircle className="size-5 text-gray-600" />
               <div>
                 <div className="font-medium text-gray-900">Personal Information</div>
                 <div className="text-xs text-gray-500">Name, contact, location, service areas</div>
@@ -399,10 +399,10 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
             </button>
 
             <button
+              className="flex w-full items-center gap-3 rounded-lg border border-gray-200 p-3 text-left transition-all hover:border-blue-400 hover:bg-blue-50/50"
               onClick={() => handleSettingsSectionClick('professional')}
-              className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all text-left"
             >
-              <Briefcase className="h-5 w-5 text-gray-600" />
+              <Briefcase className="size-5 text-gray-600" />
               <div>
                 <div className="font-medium text-gray-900">Professional Details</div>
                 <div className="text-xs text-gray-500">Bio, specialties, credentials</div>
@@ -410,10 +410,10 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
             </button>
 
             <button
+              className="flex w-full items-center gap-3 rounded-lg border border-gray-200 p-3 text-left transition-all hover:border-blue-400 hover:bg-blue-50/50"
               onClick={() => handleSettingsSectionClick('social')}
-              className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all text-left"
             >
-              <Share2 className="h-5 w-5 text-gray-600" />
+              <Share2 className="size-5 text-gray-600" />
               <div>
                 <div className="font-medium text-gray-900">Links & Social</div>
                 <div className="text-xs text-gray-500">Social media, custom links</div>
@@ -427,25 +427,26 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
     // Edit views - show back button, title, and save/cancel
     const sectionInfo = {
       'edit-personal': {
-        title: 'Personal Information',
         description: 'Edit your name, contact details, job title, location, and service areas.',
+        title: 'Personal Information',
       },
       'edit-professional': {
-        title: 'Professional Details',
         description: 'Edit your biography, specialties, and credentials.',
+        title: 'Professional Details',
       },
       'edit-social': {
-        title: 'Links & Social',
         description: 'Edit your social media profiles and custom links.',
+        title: 'Links & Social',
       },
     };
 
     const info = sectionInfo[sidebarView as keyof typeof sectionInfo];
-    if (!info) return null;
+    if (!info) {return null;}
 
     return (
       <div className="p-4">
         <button
+          className="mb-4 flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
           onClick={() => {
             // If editing, cancel changes first
             if (activeSection && handleCancel) {
@@ -458,7 +459,6 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
               onActiveTabChange('settings');
             }
           }}
-          className="mb-4 text-sm text-gray-600 hover:text-gray-900 flex items-center gap-2"
         >
           ← Back to Settings
         </button>
@@ -484,10 +484,10 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
         const toast = document.createElement('div');
         toast.className = 'fixed top-20 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
         toast.textContent = 'Profile link copied!';
-        document.body.appendChild(toast);
+        document.body.append(toast);
         setTimeout(() => toast.remove(), 3000);
-      } catch (err) {
-        console.error('Failed to copy:', err);
+      } catch (error) {
+        console.error('Failed to copy:', error);
       }
     }
   };
@@ -499,32 +499,32 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
   };
 
   const profileLinkWidget = (
-    <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+    <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
+      <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
         Profile Link
       </div>
-      <div className="text-sm text-gray-600 mb-2 p-2 bg-white rounded border border-gray-200 truncate">
+      <div className="mb-2 truncate rounded border border-gray-200 bg-white p-2 text-sm text-gray-600">
         {displayUser?.profile_slug || 'No profile slug'}
       </div>
       <div className="flex gap-2">
         <Button
-          variant="outline"
-          size="sm"
-          onClick={handleCopyProfileLink}
-          disabled={!profileUrl}
           className="flex-1"
+          disabled={!profileUrl}
+          onClick={handleCopyProfileLink}
+          size="sm"
+          variant="outline"
         >
-          <Copy className="h-3 w-3 mr-1" />
+          <Copy className="mr-1 size-3" />
           Copy
         </Button>
         <Button
-          variant="outline"
-          size="sm"
-          onClick={handleOpenProfileLink}
-          disabled={!profileUrl}
           className="flex-1"
+          disabled={!profileUrl}
+          onClick={handleOpenProfileLink}
+          size="sm"
+          variant="outline"
         >
-          <ExternalLink className="h-3 w-3 mr-1" />
+          <ExternalLink className="mr-1 size-3" />
           Open
         </Button>
       </div>
@@ -533,19 +533,19 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
 
   // Profile completion widget (placeholder - would need real data)
   const profileCompletionWidget = (
-    <div className="px-4 py-3 border-b border-gray-200 bg-white">
-      <div className="flex items-center justify-between mb-2">
-        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+    <div className="border-b border-gray-200 bg-white px-4 py-3">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="text-xs font-semibold uppercase tracking-wider text-gray-500">
           Profile Completion
         </div>
         <div className="text-sm font-semibold text-gray-700">50%</div>
       </div>
-      <div className="w-full bg-gray-200 rounded-full h-2">
+      <div className="h-2 w-full rounded-full bg-gray-200">
         <div
           className="h-2 rounded-full"
           style={{
-            width: '50%',
             background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
+            width: '50%',
           }}
         />
       </div>
@@ -554,46 +554,46 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
 
   // Device preview controls widget
   const devicePreviewWidget = (
-    <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+    <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
+      <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
         Preview Size
       </div>
       <div className="flex gap-2">
         <Button
-          variant={viewport === 'desktop' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setViewport('desktop')}
           className="flex-1"
+          onClick={() => setViewport('desktop')}
+          size="sm"
           style={viewport === 'desktop' ? {
             background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
             color: 'white'
           } : {}}
+          variant={viewport === 'desktop' ? 'default' : 'outline'}
         >
-          <Monitor className="h-4 w-4" />
+          <Monitor className="size-4" />
         </Button>
         <Button
-          variant={viewport === 'tablet' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setViewport('tablet')}
           className="flex-1"
+          onClick={() => setViewport('tablet')}
+          size="sm"
           style={viewport === 'tablet' ? {
             background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
             color: 'white'
           } : {}}
+          variant={viewport === 'tablet' ? 'default' : 'outline'}
         >
-          <Tablet className="h-4 w-4" />
+          <Tablet className="size-4" />
         </Button>
         <Button
-          variant={viewport === 'mobile' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setViewport('mobile')}
           className="flex-1"
+          onClick={() => setViewport('mobile')}
+          size="sm"
           style={viewport === 'mobile' ? {
             background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
             color: 'white'
           } : {}}
+          variant={viewport === 'mobile' ? 'default' : 'outline'}
         >
-          <Smartphone className="h-4 w-4" />
+          <Smartphone className="size-4" />
         </Button>
       </div>
     </div>
@@ -608,6 +608,7 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
           {devicePreviewWidget}
           <div className="p-4">
             <button
+              className="mb-4 flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
               onClick={() => {
                 setSidebarView('menu');
                 setActiveTab('profile');
@@ -616,20 +617,19 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
                   onActiveTabChange('profile');
                 }
               }}
-              className="mb-4 text-sm text-gray-600 hover:text-gray-900 flex items-center gap-2"
             >
               ← Back to Menu
             </button>
 
-            <h2 className="text-lg font-bold mb-4">Edit Profile</h2>
-            <p className="text-sm text-gray-600 mb-6">Choose a section to edit:</p>
+            <h2 className="mb-4 text-lg font-bold">Edit Profile</h2>
+            <p className="mb-6 text-sm text-gray-600">Choose a section to edit:</p>
 
             <div className="space-y-2">
               <button
+                className="flex w-full items-center gap-3 rounded-lg border border-gray-200 p-3 text-left transition-all hover:border-blue-400 hover:bg-blue-50/50"
                 onClick={() => handleEditProfileSectionClick('personal')}
-                className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all text-left"
               >
-                <UserCircle className="h-5 w-5 text-gray-600" />
+                <UserCircle className="size-5 text-gray-600" />
                 <div>
                   <div className="font-medium text-gray-900">Personal Information</div>
                   <div className="text-xs text-gray-500">Name, contact, location, service areas</div>
@@ -637,10 +637,10 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
               </button>
 
               <button
+                className="flex w-full items-center gap-3 rounded-lg border border-gray-200 p-3 text-left transition-all hover:border-blue-400 hover:bg-blue-50/50"
                 onClick={() => handleEditProfileSectionClick('professional')}
-                className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all text-left"
               >
-                <Briefcase className="h-5 w-5 text-gray-600" />
+                <Briefcase className="size-5 text-gray-600" />
                 <div>
                   <div className="font-medium text-gray-900">Professional Details</div>
                   <div className="text-xs text-gray-500">Bio, specialties, credentials</div>
@@ -648,10 +648,10 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
               </button>
 
               <button
+                className="flex w-full items-center gap-3 rounded-lg border border-gray-200 p-3 text-left transition-all hover:border-blue-400 hover:bg-blue-50/50"
                 onClick={() => handleEditProfileSectionClick('social')}
-                className="w-full flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all text-left"
               >
-                <Share2 className="h-5 w-5 text-gray-600" />
+                <Share2 className="size-5 text-gray-600" />
                 <div>
                   <div className="font-medium text-gray-900">Links & Social</div>
                   <div className="text-xs text-gray-500">Social media, custom links</div>
@@ -668,27 +668,28 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
     // Edit views - show back button, title, description, and viewport controls
     const sectionInfo = {
       'edit-profile-personal': {
-        title: 'Personal Information',
         description: 'Edit your name, contact details, job title, location, and service areas.',
+        title: 'Personal Information',
       },
       'edit-profile-professional': {
-        title: 'Professional Details',
         description: 'Edit your biography, specialties, and credentials.',
+        title: 'Professional Details',
       },
       'edit-profile-social': {
-        title: 'Links & Social',
         description: 'Edit your social media profiles and custom links.',
+        title: 'Links & Social',
       },
     };
 
     const info = sectionInfo[sidebarView as keyof typeof sectionInfo];
-    if (!info) return null;
+    if (!info) {return null;}
 
     return (
       <>
         {devicePreviewWidget}
         <div className="p-4">
           <button
+            className="mb-4 flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
             onClick={() => {
               // If editing, cancel changes first
               if (activeSection && handleCancel) {
@@ -701,7 +702,6 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
                 onActiveTabChange('edit-profile');
               }
             }}
-            className="mb-4 text-sm text-gray-600 hover:text-gray-900 flex items-center gap-2"
           >
             ← Back to Edit Menu
           </button>
@@ -712,28 +712,28 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
           </div>
 
           {/* Save and Cancel Buttons */}
-          <div className="space-y-3 pt-4 border-t border-gray-200 mt-4">
+          <div className="mt-4 space-y-3 border-t border-gray-200 pt-4">
             <Button
-              onClick={handleSaveProfile}
+              className="h-11 w-full gap-2 font-semibold text-white shadow-lg"
               disabled={isSaving}
-              className="w-full text-white shadow-lg font-semibold h-11 gap-2"
+              onClick={handleSaveProfile}
               style={{ background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)' }}
             >
               {isSaving ? (
                 'Saving...'
               ) : (
                 <>
-                  <Save className="h-4 w-4" />
+                  <Save className="size-4" />
                   Save Changes
                 </>
               )}
             </Button>
             <Button
+              className="h-11 w-full gap-2 border-2 border-gray-300 font-semibold hover:border-red-500 hover:bg-red-50 hover:text-red-700"
               onClick={handleCancelProfile}
               variant="outline"
-              className="w-full border-2 border-gray-300 hover:border-red-500 hover:bg-red-50 hover:text-red-700 font-semibold h-11 gap-2"
             >
-              <X className="h-4 w-4" />
+              <X className="size-4" />
               Cancel
             </Button>
           </div>
@@ -747,25 +747,25 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
       className="min-h-screen"
       style={{
         background: 'white',
+        marginTop: 0,
         position: 'relative',
-        zIndex: 1,
         width: '100%',
-        marginTop: 0
+        zIndex: 1
       }}
     >
       {/* Single sidebar - only show BuddyPress sidebar when NOT in edit mode */}
       {!isEditMode && (
         <div
-          className="fixed left-0 bg-white overflow-hidden scrollbar-hide"
+          className="scrollbar-hide fixed left-0 overflow-hidden bg-white"
           style={{
-            width: '320px',
-            top: headerHeight,
+            WebkitOverflowScrolling: 'touch',
             bottom: 0,
-            zIndex: 40,
             boxShadow: '2px 0 8px rgba(0, 0, 0, 0.1)',
             msOverflowStyle: 'none',
             scrollbarWidth: 'none',
-            WebkitOverflowScrolling: 'touch'
+            top: headerHeight,
+            width: '320px',
+            zIndex: 40
           }}
         >
           {sidebarHeader}
@@ -774,11 +774,11 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
         <div className="relative" style={{ height: 'calc(100% - 100px)' }}>
           {/* Menu view - slides left when edit section opens */}
           <div
-            className="absolute inset-0 overflow-y-auto scrollbar-hide transition-transform duration-300 ease-in-out"
+            className="scrollbar-hide absolute inset-0 overflow-y-auto transition-transform duration-300 ease-in-out"
             style={{
-              transform: sidebarView !== 'menu' ? 'translateX(-100%)' : 'translateX(0)',
               msOverflowStyle: 'none',
-              scrollbarWidth: 'none'
+              scrollbarWidth: 'none',
+              transform: sidebarView !== 'menu' ? 'translateX(-100%)' : 'translateX(0)'
             }}
           >
             {/* Preview Size widget - only in edit mode, at top */}
@@ -788,15 +788,15 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
             <div className="flex flex-col">
               {menuItems.map((item) => (
                 <button
-                  key={item.id}
-                  onClick={() => handleItemClick(item)}
                   className={`flex items-center gap-3 px-4 py-3 transition-colors ${
                     activeTab === item.id || sidebarView === item.id
                       ? 'bg-gradient-to-r from-blue-500/10 to-cyan-500/10 text-gray-900'
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}
+                  key={item.id}
+                  onClick={() => handleItemClick(item)}
                 >
-                  <item.icon className="h-5 w-5" />
+                  <item.icon className="size-5" />
                   <span className="font-medium">{item.label}</span>
                 </button>
               ))}
@@ -813,28 +813,30 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
 
           {/* Edit section - slides in from right */}
           <div
-            className="absolute inset-0 overflow-y-auto scrollbar-hide transition-transform duration-300 ease-in-out bg-white"
+            className="scrollbar-hide absolute inset-0 overflow-y-auto bg-white transition-transform duration-300 ease-in-out"
             style={{
-              transform: sidebarView !== 'menu' ? 'translateX(0)' : 'translateX(100%)',
               msOverflowStyle: 'none',
-              scrollbarWidth: 'none'
+              scrollbarWidth: 'none',
+              transform: sidebarView !== 'menu' ? 'translateX(0)' : 'translateX(100%)'
             }}
           >
             <div className="p-4">
-              <h2 className="text-lg font-bold mb-2">
+              <h2 className="mb-2 text-lg font-bold">
                 {sidebarView === 'edit-personal' && 'Personal Information'}
                 {sidebarView === 'edit-professional' && 'Professional Details'}
                 {sidebarView === 'edit-social' && 'Links & Social'}
               </h2>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="mb-4 text-sm text-gray-600">
                 {sidebarView === 'edit-personal' && 'Edit your name, contact info, and bio.'}
                 {sidebarView === 'edit-professional' && 'Edit your job title, company, and NMLS.'}
                 {sidebarView === 'edit-social' && 'Edit your social media profiles and custom links.'}
               </p>
 
               {/* Save and Cancel Buttons */}
-              <div className="space-y-3 pt-4 border-t border-gray-200">
+              <div className="space-y-3 border-t border-gray-200 pt-4">
                 <Button
+                  className="h-11 w-full font-semibold text-white shadow-lg"
+                  disabled={isSaving}
                   onClick={async () => {
                     setIsSaving(true);
                     try {
@@ -845,25 +847,25 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
                       setIsSaving(false);
                     }
                   }}
-                  disabled={isSaving}
-                  className="w-full text-white shadow-lg font-semibold h-11"
                   style={{
                     background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                   }}
                 >
                   {isSaving ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      <div className="mr-2 size-4 animate-spin rounded-full border-b-2 border-white"></div>
                       Saving...
                     </>
                   ) : (
                     <>
-                      <Save className="h-4 w-4 mr-2" />
+                      <Save className="mr-2 size-4" />
                       Save Changes
                     </>
                   )}
                 </Button>
                 <Button
+                  className="h-11 w-full border-2 border-gray-300 font-semibold transition-all hover:border-red-500 hover:bg-red-50 hover:text-red-700"
+                  disabled={isSaving}
                   onClick={() => {
                     if (handleCancel) {
                       handleCancel();
@@ -871,11 +873,9 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
                     setSidebarView('menu');
                     setActiveSection(null);
                   }}
-                  disabled={isSaving}
                   variant="outline"
-                  className="w-full border-2 border-gray-300 hover:border-red-500 hover:bg-red-50 hover:text-red-700 font-semibold h-11 transition-all"
                 >
-                  <X className="h-4 w-4 mr-2" />
+                  <X className="mr-2 size-4" />
                   Cancel
                 </Button>
               </div>
@@ -887,7 +887,7 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
 
       {/* Main Content with slide animation */}
       <main
-        className={`max-md:p-0 max-md:m-0 md:pt-4 md:pb-8 md:pl-8 md:pr-8 ${!isEditMode ? 'md:ml-[320px]' : ''} md:mr-0`}
+        className={`max-md:m-0 max-md:p-0 md:px-8 md:pb-8 md:pt-4 ${!isEditMode ? 'md:ml-[320px]' : ''} md:mr-0`}
         style={!isEditMode ? {
           transform: 'translateX(0)',
           transition: 'transform 300ms ease-in-out'
@@ -895,7 +895,7 @@ export function BuddyPressLayout({ currentUser, viewedUser, isOwnProfile, childr
       >
         {/* Pass edit mode and viewport to children */}
         {typeof children === 'function'
-          ? children({ isEditMode, viewport, exitEditMode: () => setIsEditMode(false) })
+          ? children({ exitEditMode: () => setIsEditMode(false), isEditMode, viewport })
           : children}
       </main>
     </div>

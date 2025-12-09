@@ -17,15 +17,15 @@ import {
 
 // Simplified type for menu items
 interface SidebarMenuItemType {
-  title: string;
-  url: string;
   icon?: LucideIcon;
   isActive?: boolean;
   items?: Array<{
+    icon?: LucideIcon;
     title: string;
     url: string;
-    icon?: LucideIcon;
   }>;
+  title: string;
+  url: string;
 }
 
 export function NavMain({ items }: { items: SidebarMenuItemType[] }) {
@@ -41,17 +41,17 @@ export function NavMain({ items }: { items: SidebarMenuItemType[] }) {
 
           return (
             <Collapsible
-              key={item.title + index}
               asChild
-              defaultOpen={isActive}
               className="group/collapsible"
+              defaultOpen={isActive}
+              key={item.title + index}
             >
               <SidebarMenuItem>
                 {hasChildren ? (
                   <>
                     <CollapsibleTrigger asChild>
-                      <SidebarMenuButton tooltip={item.title} isActive={isActive}>
-                        {Icon && <Icon className="h-4 w-4" />}
+                      <SidebarMenuButton isActive={isActive} tooltip={item.title}>
+                        {Icon && <Icon className="size-4" />}
                         <span>{item.title}</span>
                         <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                       </SidebarMenuButton>
@@ -66,7 +66,7 @@ export function NavMain({ items }: { items: SidebarMenuItemType[] }) {
                             <SidebarMenuSubItem key={subItem.title + subIndex}>
                               <SidebarMenuSubButton asChild isActive={isSubActive}>
                                 <Link to={subItem.url}>
-                                  {SubIcon && <SubIcon className="h-4 w-4" />}
+                                  {SubIcon && <SubIcon className="size-4" />}
                                   <span>{subItem.title}</span>
                                 </Link>
                               </SidebarMenuSubButton>
@@ -77,9 +77,9 @@ export function NavMain({ items }: { items: SidebarMenuItemType[] }) {
                     </CollapsibleContent>
                   </>
                 ) : (
-                  <SidebarMenuButton asChild tooltip={item.title} isActive={isActive}>
+                  <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
                     <Link to={item.url}>
-                      {Icon && <Icon className="h-4 w-4" />}
+                      {Icon && <Icon className="size-4" />}
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>

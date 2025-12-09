@@ -1,8 +1,8 @@
 import { ProfileEditorView } from './ProfileEditorView';
 
 interface MyProfileProps {
-  userId: string;
   autoEdit?: boolean;
+  userId: string;
 }
 
 export function MyProfile({ userId }: MyProfileProps) {

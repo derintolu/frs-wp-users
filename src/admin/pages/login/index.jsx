@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 
 export default function LoginPage() {
   return (
-    <Card className="mx-auto my-auto max-w-sm">
+    <Card className="m-auto max-w-sm">
       <CardHeader>
         <CardTitle className="text-2xl">Login</CardTitle>
         <CardDescription>
@@ -24,30 +24,30 @@ export default function LoginPage() {
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
-              type="email"
               placeholder="m@example.com"
               required
+              type="email"
             />
           </div>
           <div className="grid gap-2">
             <div className="flex items-center">
               <Label htmlFor="password">Password</Label>
-              <a href="#" className="ml-auto inline-block text-sm underline">
+              <a className="ml-auto inline-block text-sm underline" href="#">
                 Forgot your password?
               </a>
             </div>
-            <Input id="password" type="password" required />
+            <Input id="password" required type="password" />
           </div>
-          <Button type="submit" className="w-full">
+          <Button className="w-full" type="submit">
             Login
           </Button>
-          <Button variant="outline" className="w-full">
+          <Button className="w-full" variant="outline">
             Login with Google
           </Button>
         </div>
         <div className="mt-4 text-center text-sm">
           Don&apos;t have an account?{" "}
-          <a href="#" className="underline">
+          <a className="underline" href="#">
             Sign up
           </a>
         </div>

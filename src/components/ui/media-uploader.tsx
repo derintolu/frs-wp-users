@@ -13,42 +13,45 @@ declare global {
     wp: {
       media: (options: any) => {
         on: (event: string, callback: () => void) => void;
+        open: () => void;
         state: () => {
           get: (key: string) => {
             first: () => {
               toJSON: () => {
-                id: number;
-                url: string;
-                title: string;
                 filename: string;
+                id: number;
+                title: string;
+                url: string;
               };
             };
           };
         };
-        open: () => void;
       };
     };
   }
 }
 
 interface MediaUploaderProps {
-  value?: number | null; // attachment ID
-  imageUrl?: string | null; // image URL
-  onChange: (attachmentId: number | null, imageUrl: string | null) => void;
-  buttonText?: string;
+  avatarSize?: string; 
+  buttonText?: string; 
   className?: string;
-  avatarSize?: string; // Tailwind class like "h-32 w-32"
+  // Tailwind class like "h-32 w-32"
   fallbackText?: string;
+  // attachment ID
+  imageUrl?: string | null;
+  // image URL
+  onChange: (attachmentId: number | null, imageUrl: string | null) => void; 
+  value?: number | null;
 }
 
 export function MediaUploader({
-  value,
-  imageUrl,
-  onChange,
+  avatarSize = 'h-32 w-32',
   buttonText = 'Upload Photo',
   className = '',
-  avatarSize = 'h-32 w-32',
-  fallbackText = 'N/A'
+  fallbackText = 'N/A',
+  imageUrl,
+  onChange,
+  value
 }: MediaUploaderProps) {
   const [currentImageUrl, setCurrentImageUrl] = useState<string | null>(imageUrl || null);
 
@@ -65,14 +68,14 @@ export function MediaUploader({
 
     // Create the media frame
     const frame = window.wp.media({
-      title: 'Select or Upload Photo',
       button: {
         text: 'Use this photo'
       },
-      multiple: false,
       library: {
         type: 'image'
-      }
+      },
+      multiple: false,
+      title: 'Select or Upload Photo'
     });
 
     // When an image is selected
@@ -95,21 +98,21 @@ export function MediaUploader({
     <div className={`flex items-start gap-4 ${className}`}>
       <Avatar className={avatarSize}>
         {currentImageUrl ? (
-          <AvatarImage src={currentImageUrl} alt="Profile photo" className="object-cover" />
+          <AvatarImage alt="Profile photo" className="object-cover" src={currentImageUrl} />
         ) : (
           <AvatarFallback className="text-2xl">{fallbackText}</AvatarFallback>
         )}
       </Avatar>
 
       <div className="flex flex-col gap-2">
-        <Button type="button" onClick={openMediaUploader} variant="outline" size="sm">
-          <Upload className="h-4 w-4 mr-2" />
+        <Button onClick={openMediaUploader} size="sm" type="button" variant="outline">
+          <Upload className="mr-2 size-4" />
           {buttonText}
         </Button>
 
         {currentImageUrl && (
-          <Button type="button" onClick={removeImage} variant="destructive" size="sm">
-            <X className="h-4 w-4 mr-2" />
+          <Button onClick={removeImage} size="sm" type="button" variant="destructive">
+            <X className="mr-2 size-4" />
             Remove Photo
           </Button>
         )}

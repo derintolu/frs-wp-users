@@ -3,41 +3,41 @@ import GmailIcon from "../../icons/gmail-icon";
 import { StepProps } from "../../../../admin/types/account-types";
 
 type FormData = {
+  appPassword: string;
+  email: string;
   firstName: string;
   lastName: string;
-  email: string;
-  appPassword: string;
 };
 
 type FormErrors = {
+  appPassword: string;
+  email: string;
   firstName: string;
   lastName: string;
-  email: string;
-  appPassword: string;
 };
 
 export default function Step3({ stepCount }: StepProps) {
   // State to store form data
   const [formData, setFormData] = useState<FormData>({
+    appPassword: "",
+    email: "",
     firstName: "",
     lastName: "",
-    email: "",
-    appPassword: "",
   });
 
-  const [errorMessage, setErrorMessage] = useState<String>(
+  const [errorMessage, setErrorMessage] = useState<string>(
     "Account already exists.",
   );
   const [errorMessageVisiblity, setErrorMessageVisiblity] =
-    useState<Boolean>(false);
+    useState<boolean>(false);
   const [successMessageVisiblity, setSuccessMessageVisiblity] =
-    useState<Boolean>(false);
+    useState<boolean>(false);
 
   const [formErrors, setFormErrors] = useState<FormErrors>({
+    appPassword: "",
+    email: "",
     firstName: "",
     lastName: "",
-    email: "",
-    appPassword: "",
   });
 
   // Function to validate email format
@@ -48,11 +48,11 @@ export default function Step3({ stepCount }: StepProps) {
 
   // Function to validate form fields
   const validate = () => {
-    let errors: FormErrors = {
+    const errors: FormErrors = {
+      appPassword: "",
+      email: "",
       firstName: "",
       lastName: "",
-      email: "",
-      appPassword: "",
     };
     let isValid = true;
 
@@ -100,17 +100,17 @@ export default function Step3({ stepCount }: StepProps) {
     setErrorMessageVisiblity(false);
 
     // Validate the form
-    if (!validate()) return;
+    if (!validate()) {return;}
 
     try {
       const response = await fetch(
         wordpressPluginBoilerplate.apiUrl + "myplugin/v1/accounts/create",
         {
-          method: "POST",
+          body: JSON.stringify(formData),
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(formData),
+          method: "POST",
         },
       );
 
@@ -139,13 +139,13 @@ export default function Step3({ stepCount }: StepProps) {
 
   return (
     <>
-      <div className="max-w-md mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="mx-auto max-w-md overflow-hidden rounded-lg bg-white shadow-md">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <GmailIcon />
               <div className="ml-4">
-                <div className="text-lg text-gray-900 font-semibold">
+                <div className="text-lg font-semibold text-gray-900">
                   Connect Your Google Account
                 </div>
               </div>
@@ -154,7 +154,7 @@ export default function Step3({ stepCount }: StepProps) {
 
           {successMessageVisiblity && (
             <div
-              className="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400"
+              className="mb-4 rounded-lg bg-green-50 p-4 text-sm text-green-800 dark:bg-gray-800 dark:text-green-400"
               role="alert">
               <span className="font-medium">Success!</span> Accont has been
               created successfully.
@@ -163,7 +163,7 @@ export default function Step3({ stepCount }: StepProps) {
 
           {errorMessageVisiblity && (
             <div
-              className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400"
+              className="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800 dark:bg-gray-800 dark:text-red-400"
               role="alert">
               <span className="font-medium">Error!</span>
               {errorMessage}
@@ -174,12 +174,12 @@ export default function Step3({ stepCount }: StepProps) {
             <div className="flex gap-4">
               <div className="w-1/2">
                 <input
-                  type="text"
-                  className="px-4 w-full py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-                  placeholder="First Name*"
-                  value={formData.firstName}
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
                   name="firstName"
                   onChange={handleChange}
+                  placeholder="First Name*"
+                  type="text"
+                  value={formData.firstName}
                 />
                 {formErrors.firstName && (
                   <p className="text-red-600">{formErrors.firstName}</p>
@@ -187,12 +187,12 @@ export default function Step3({ stepCount }: StepProps) {
               </div>
               <div className="w-1/2">
                 <input
-                  type="text"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-                  placeholder="Last Name*"
-                  value={formData.lastName}
-                  onChange={handleChange}
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
                   name="lastName"
+                  onChange={handleChange}
+                  placeholder="Last Name*"
+                  type="text"
+                  value={formData.lastName}
                 />
                 {formErrors.lastName && (
                   <p className="text-red-600">{formErrors.lastName}</p>
@@ -201,31 +201,31 @@ export default function Step3({ stepCount }: StepProps) {
             </div>
 
             <input
-              type="email"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-              placeholder="Email*"
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
               name="email"
-              value={formData.email}
               onChange={handleChange}
+              placeholder="Email*"
+              type="email"
+              value={formData.email}
             />
             {formErrors.email && (
               <p className="text-red-600">{formErrors.email}</p>
             )}
             <input
-              type="password"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-              placeholder="App Password*"
-              value={formData.appPassword}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
               name="appPassword"
               onChange={handleChange}
+              placeholder="App Password*"
+              type="password"
+              value={formData.appPassword}
             />
             {formErrors.appPassword && (
               <p className="text-red-600">{formErrors.appPassword}</p>
             )}
             <button
+              className="w-full rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300"
               onClick={handleSubmit}
-              type="submit"
-              className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300">
+              type="submit">
               Connect
             </button>
             <button onClick={() => stepCount(2)}>Back</button>

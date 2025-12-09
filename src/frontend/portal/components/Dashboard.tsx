@@ -26,8 +26,8 @@ export function Dashboard() {
       setError(null);
       const data = await profileService.getCurrentUserProfile();
       setProfile(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load profile');
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : 'Failed to load profile');
     } finally {
       setLoading(false);
     }
@@ -35,9 +35,9 @@ export function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="mx-auto mb-4 size-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
           <p className="text-gray-600">Loading dashboard...</p>
         </div>
       </div>
@@ -46,16 +46,16 @@ export function Dashboard() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <Card className="max-w-md w-full">
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-600">
-              <AlertCircle className="h-5 w-5" />
+              <AlertCircle className="size-5" />
               Error Loading Dashboard
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-600 mb-4">{error}</p>
+            <p className="mb-4 text-gray-600">{error}</p>
             <Button onClick={loadProfile} variant="outline">
               Try Again
             </Button>
@@ -68,9 +68,9 @@ export function Dashboard() {
   const profileCompleteness = calculateCompleteness(profile);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="mx-auto max-w-7xl p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="mb-2 text-3xl font-bold text-gray-900">
           Welcome back, {profile?.first_name || 'User'}!
         </h1>
         <p className="text-gray-600">
@@ -86,9 +86,9 @@ export function Dashboard() {
         <CardContent>
           <div className="flex items-center gap-4">
             <div className="flex-1">
-              <div className="w-full bg-gray-200 rounded-full h-3">
+              <div className="h-3 w-full rounded-full bg-gray-200">
                 <div
-                  className="bg-blue-600 h-3 rounded-full transition-all duration-500"
+                  className="h-3 rounded-full bg-blue-600 transition-all duration-500"
                   style={{ width: `${profileCompleteness}%` }}
                 ></div>
               </div>
@@ -99,7 +99,7 @@ export function Dashboard() {
           </div>
           {profileCompleteness < 100 && (
             <div className="mt-4">
-              <p className="text-sm text-gray-600 mb-2">
+              <p className="mb-2 text-sm text-gray-600">
                 Complete your profile to increase your visibility and reach more clients.
               </p>
               <Link to="/profile">
@@ -113,12 +113,12 @@ export function Dashboard() {
       </Card>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <Card className="cursor-pointer transition-shadow hover:shadow-lg">
           <Link to="/profile">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <User className="h-5 w-5 text-blue-600" />
+                <User className="size-5 text-blue-600" />
                 My Profile
               </CardTitle>
             </CardHeader>
@@ -130,11 +130,11 @@ export function Dashboard() {
           </Link>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+        <Card className="cursor-pointer transition-shadow hover:shadow-lg">
           <Link to="/settings">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <Settings className="h-5 w-5 text-blue-600" />
+                <Settings className="size-5 text-blue-600" />
                 Settings
               </CardTitle>
             </CardHeader>
@@ -146,10 +146,10 @@ export function Dashboard() {
           </Link>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="transition-shadow hover:shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <FileText className="h-5 w-5 text-blue-600" />
+              <FileText className="size-5 text-blue-600" />
               Documentation
             </CardTitle>
           </CardHeader>
@@ -168,7 +168,7 @@ export function Dashboard() {
             <CardTitle>Profile Summary</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <p className="text-sm text-gray-500">Name</p>
                 <p className="font-medium">{profile.first_name} {profile.last_name}</p>
@@ -197,7 +197,7 @@ export function Dashboard() {
  * Calculate profile completeness percentage
  */
 function calculateCompleteness(profile: ProfileData | null): number {
-  if (!profile) return 0;
+  if (!profile) {return 0;}
 
   const fields = [
     profile.first_name,

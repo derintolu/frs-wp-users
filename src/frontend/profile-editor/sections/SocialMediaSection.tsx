@@ -14,72 +14,72 @@ interface Profile {
 	facebook_url?: string;
 	instagram_url?: string;
 	linkedin_url?: string;
+	tiktok_url?: string;
 	twitter_url?: string;
 	youtube_url?: string;
-	tiktok_url?: string;
 }
 
 interface SocialMediaSectionProps {
-	profile: Profile;
 	onChange: (updates: Partial<Profile>) => void;
+	profile: Profile;
 }
 
 interface SocialPlatform {
+	color: string;
+	icon: React.ReactNode;
 	id: keyof Profile;
 	label: string;
-	icon: React.ReactNode;
 	placeholder: string;
-	color: string;
 }
 
 const platforms: SocialPlatform[] = [
 	{
+		color: 'text-blue-600',
+		icon: <Facebook className="size-5" />,
 		id: 'facebook_url',
 		label: 'Facebook',
-		icon: <Facebook className="w-5 h-5" />,
 		placeholder: 'https://facebook.com/yourprofile',
-		color: 'text-blue-600',
 	},
 	{
+		color: 'text-pink-600',
+		icon: <Instagram className="size-5" />,
 		id: 'instagram_url',
 		label: 'Instagram',
-		icon: <Instagram className="w-5 h-5" />,
 		placeholder: 'https://instagram.com/yourprofile',
-		color: 'text-pink-600',
 	},
 	{
+		color: 'text-blue-700',
+		icon: <Linkedin className="size-5" />,
 		id: 'linkedin_url',
 		label: 'LinkedIn',
-		icon: <Linkedin className="w-5 h-5" />,
 		placeholder: 'https://linkedin.com/in/yourprofile',
-		color: 'text-blue-700',
 	},
 	{
+		color: 'text-sky-500',
+		icon: <Twitter className="size-5" />,
 		id: 'twitter_url',
 		label: 'Twitter / X',
-		icon: <Twitter className="w-5 h-5" />,
 		placeholder: 'https://twitter.com/yourprofile',
-		color: 'text-sky-500',
 	},
 	{
+		color: 'text-red-600',
+		icon: <Youtube className="size-5" />,
 		id: 'youtube_url',
 		label: 'YouTube',
-		icon: <Youtube className="w-5 h-5" />,
 		placeholder: 'https://youtube.com/@yourprofile',
-		color: 'text-red-600',
 	},
 	{
+		color: 'text-black',
+		icon: <Music className="size-5" />,
 		id: 'tiktok_url',
 		label: 'TikTok',
-		icon: <Music className="w-5 h-5" />,
 		placeholder: 'https://tiktok.com/@yourprofile',
-		color: 'text-black',
 	},
 ];
 
 export default function SocialMediaSection({
-	profile,
 	onChange,
+	profile,
 }: SocialMediaSectionProps) {
 	const handleChange = (field: keyof Profile, value: string) => {
 		onChange({ [field]: value });
@@ -88,7 +88,7 @@ export default function SocialMediaSection({
 	return (
 		<div className="space-y-6">
 			<div>
-				<h2 className="text-2xl font-bold mb-2">Social Media</h2>
+				<h2 className="mb-2 text-2xl font-bold">Social Media</h2>
 				<p className="text-gray-600">
 					Connect your social media profiles. These will appear as links on your
 					public profile and biolink page.
@@ -97,31 +97,31 @@ export default function SocialMediaSection({
 
 			<div className="space-y-4">
 				{platforms.map((platform) => (
-					<div key={platform.id} className="flex items-start gap-3">
+					<div className="flex items-start gap-3" key={platform.id}>
 						<div
-							className={`mt-2 flex-shrink-0 ${platform.color}`}
 							aria-hidden="true"
+							className={`mt-2 shrink-0 ${platform.color}`}
 						>
 							{platform.icon}
 						</div>
 						<div className="flex-1">
 							<Label htmlFor={platform.id}>{platform.label}</Label>
 							<Input
+								className="mt-1"
 								id={platform.id}
-								type="url"
-								value={(profile[platform.id] as string) || ''}
 								onChange={(e) => handleChange(platform.id, e.target.value)}
 								placeholder={platform.placeholder}
-								className="mt-1"
+								type="url"
+								value={(profile[platform.id] as string) || ''}
 							/>
 						</div>
 					</div>
 				))}
 			</div>
 
-			<div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
-				<h4 className="font-semibold text-blue-900 mb-2">Tips for Social Media</h4>
-				<ul className="text-sm text-blue-800 space-y-1">
+			<div className="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
+				<h4 className="mb-2 font-semibold text-blue-900">Tips for Social Media</h4>
+				<ul className="space-y-1 text-sm text-blue-800">
 					<li>• Use complete URLs including https://</li>
 					<li>• Make sure your profiles are set to public</li>
 					<li>

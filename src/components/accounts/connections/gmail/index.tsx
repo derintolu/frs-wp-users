@@ -10,7 +10,7 @@ export default function GmailAccount({ setProvider }: StepProps) {
 
   return (
     <div>
-      {steps === 1 && <Step1 stepCount={setSteps} setProvider={setProvider} />}
+      {steps === 1 && <Step1 setProvider={setProvider} stepCount={setSteps} />}
       {steps === 2 && <Step2 stepCount={setSteps} />}
       {steps === 3 && <Step3 stepCount={setSteps} />}
     </div>

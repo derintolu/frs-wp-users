@@ -4,43 +4,43 @@ import { useEffect, useState } from '@wordpress/element';
 import { ProfileCardCompact } from '../../components/ProfileCardCompact';
 
 interface BlockAttributes {
-	personType: string;
-	region: string;
+	audience: 'internal' | 'external';
 	cardSize: 'small' | 'medium' | 'large';
 	detailLevel: 'minimal' | 'standard' | 'full';
-	audience: 'internal' | 'external';
-	showFilters: boolean;
-	showContactButtons: boolean;
 	perPage: number;
+	personType: string;
+	region: string;
+	showContactButtons: boolean;
+	showFilters: boolean;
 }
 
 interface Profile {
-	id: number;
-	first_name: string;
-	last_name: string;
-	full_name: string;
-	email: string;
-	phone_number?: string;
-	mobile_number?: string;
-	job_title?: string;
-	headshot_url?: string;
-	nmls_number?: string;
+	biography?: string;
 	city_state?: string;
+	email: string;
+	facebook_url?: string;
+	first_name: string;
+	full_name: string;
+	headshot_url?: string;
+	id: number;
+	instagram_url?: string;
+	job_title?: string;
+	last_name: string;
+	linkedin_url?: string;
+	mobile_number?: string;
+	nmls_number?: string;
+	office?: string;
+	phone_number?: string;
 	region?: string;
 	select_person_type?: string;
 	specialties_lo?: string[];
-	biography?: string;
-	facebook_url?: string;
-	instagram_url?: string;
-	linkedin_url?: string;
+	tiktok_url?: string;
 	twitter_url?: string;
 	youtube_url?: string;
-	tiktok_url?: string;
-	office?: string;
 }
 
 function LoanOfficerDirectoryView({ attributes }: { attributes: BlockAttributes }) {
-	const { personType, region, cardSize, detailLevel, audience, showFilters, showContactButtons, perPage } = attributes;
+	const { audience, cardSize, detailLevel, perPage, personType, region, showContactButtons, showFilters } = attributes;
 	const [profiles, setProfiles] = useState<Profile[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -74,8 +74,8 @@ function LoanOfficerDirectoryView({ attributes }: { attributes: BlockAttributes 
 				setProfiles(filteredProfiles);
 				setLoading(false);
 			})
-			.catch((err: Error) => {
-				setError(err.message);
+			.catch((error_: Error) => {
+				setError(error_.message);
 				setLoading(false);
 			});
 	}, [activePersonType, activeRegion, perPage]);
@@ -85,21 +85,21 @@ function LoanOfficerDirectoryView({ attributes }: { attributes: BlockAttributes 
 	};
 
 	const cardSizeClass = {
-		small: 'max-w-xs',
-		medium: 'max-w-md',
 		large: 'max-w-2xl',
+		medium: 'max-w-md',
+		small: 'max-w-xs',
 	}[cardSize];
 
 	const avatarSizeClass = {
-		small: 'h-12 w-12 text-sm',
-		medium: 'h-16 w-16 text-base',
 		large: 'h-20 w-20 text-lg',
+		medium: 'h-16 w-16 text-base',
+		small: 'h-12 w-12 text-sm',
 	}[cardSize];
 
 	const gridColsClass = {
-		small: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
-		medium: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
 		large: 'grid-cols-1 lg:grid-cols-2',
+		medium: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+		small: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
 	}[cardSize];
 
 	return (
@@ -107,14 +107,14 @@ function LoanOfficerDirectoryView({ attributes }: { attributes: BlockAttributes 
 
 			{/* Filters */}
 			{showFilters && (
-				<div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+				<div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-2">Person Type</label>
+							<label className="mb-2 block text-sm font-medium text-gray-700">Person Type</label>
 							<select
-								className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-								value={activePersonType}
+								className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
 								onChange={(e) => setActivePersonType(e.target.value)}
+								value={activePersonType}
 							>
 								<option value="">All Types</option>
 								<option value="loan_officer">Loan Officer</option>
@@ -122,11 +122,11 @@ function LoanOfficerDirectoryView({ attributes }: { attributes: BlockAttributes 
 							</select>
 						</div>
 						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-2">Region</label>
+							<label className="mb-2 block text-sm font-medium text-gray-700">Region</label>
 							<select
-								className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-								value={activeRegion}
+								className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
 								onChange={(e) => setActiveRegion(e.target.value)}
+								value={activeRegion}
 							>
 								<option value="">All Regions</option>
 								<option value="pacific">Pacific</option>
@@ -141,24 +141,24 @@ function LoanOfficerDirectoryView({ attributes }: { attributes: BlockAttributes 
 			{/* Loading State */}
 			{loading && (
 				<div className="flex items-center justify-center p-12">
-					<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+					<div className="size-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
 					<span className="ml-3 text-gray-600">Loading profiles...</span>
 				</div>
 			)}
 
 			{/* Error State */}
 			{error && (
-				<div className="p-6 border-2 border-red-300 bg-red-50 rounded-lg text-center">
-					<p className="text-red-700 font-semibold">Error loading profiles</p>
-					<p className="text-sm text-red-600 mt-2">{error}</p>
+				<div className="rounded-lg border-2 border-red-300 bg-red-50 p-6 text-center">
+					<p className="font-semibold text-red-700">Error loading profiles</p>
+					<p className="mt-2 text-sm text-red-600">{error}</p>
 				</div>
 			)}
 
 			{/* Empty State */}
 			{!loading && !error && profiles.length === 0 && (
-				<div className="p-12 border-2 border-dashed border-gray-300 rounded-lg text-center">
-					<p className="text-gray-600 font-semibold">No loan officers found</p>
-					<p className="text-sm text-gray-500 mt-2">Try adjusting the filters above</p>
+				<div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
+					<p className="font-semibold text-gray-600">No loan officers found</p>
+					<p className="mt-2 text-sm text-gray-500">Try adjusting the filters above</p>
 				</div>
 			)}
 
@@ -169,9 +169,9 @@ function LoanOfficerDirectoryView({ attributes }: { attributes: BlockAttributes 
 						<ProfileCardCompact
 							key={profile.id}
 							profile={profile}
-							size={cardSize}
-							showContactButtons={showContactButtons}
 							showBio={detailLevel === 'full'}
+							showContactButtons={showContactButtons}
+							size={cardSize}
 						/>
 					))}
 				</div>

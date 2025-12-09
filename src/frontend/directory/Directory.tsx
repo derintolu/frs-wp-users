@@ -12,28 +12,29 @@ import { DirectoryProfileCard } from '@/components/DirectoryProfileCard';
 import { DirectorySidebar } from './components/DirectorySidebar';
 
 interface ProfileCardData {
-  id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone_number?: string;
-  mobile_number?: string;
-  job_title?: string;
-  headshot_url?: string;
+  arrive?: string;
   city_state?: string;
-  zip?: string;
-  nmls_number: string; // Required - it's illegal not to have NMLS
+  directory_button_type?: 'schedule' | 'call' | 'contact';
+  email: string;
+  facebook_url?: string;
+  first_name: string;
+  headshot_url?: string;
+  id: number;
+  instagram_url?: string;
+  job_title?: string;
+  last_name: string; 
+  linkedin_url?: string;
+  mobile_number?: string;
+  // Required - it's illegal not to have NMLS
   nmls?: string;
+  nmls_number: string;
+  phone_number?: string;
   profile_slug?: string;
   select_person_type?: 'loan_officer' | 'agent' | 'staff' | 'leadership' | 'assistant';
-  linkedin_url?: string;
-  facebook_url?: string;
-  instagram_url?: string;
   twitter_url?: string;
-  youtube_url?: string;
   website?: string;
-  arrive?: string;
-  directory_button_type?: 'schedule' | 'call' | 'contact';
+  youtube_url?: string;
+  zip?: string;
 }
 
 export default function Directory() {
@@ -63,8 +64,8 @@ export default function Directory() {
         } else {
           setError('Failed to load profiles');
         }
-      } catch (err) {
-        console.error('Error fetching profiles:', err);
+      } catch (error_) {
+        console.error('Error fetching profiles:', error_);
         setError('Failed to load profiles');
       } finally {
         setLoading(false);
@@ -76,7 +77,7 @@ export default function Directory() {
 
   // Filter profiles based on search query
   const filteredProfiles = useMemo(() => {
-    if (!searchQuery.trim()) return profiles;
+    if (!searchQuery.trim()) {return profiles;}
 
     const query = searchQuery.toLowerCase();
     return profiles.filter((profile) => {
@@ -150,9 +151,9 @@ export default function Directory() {
     return (
       <div className="min-h-screen">
         <DirectorySidebar
-          searchQuery=""
           onSearchChange={() => {}}
           profileCount={0}
+          searchQuery=""
         />
 
         {/* Main Content */}
@@ -160,20 +161,20 @@ export default function Directory() {
           <div className="grid grid-cols-3 gap-4">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
               <div
+                className="relative w-full animate-pulse overflow-hidden rounded bg-gray-100"
                 key={i}
-                className="relative overflow-hidden w-full animate-pulse bg-gray-100 rounded"
               >
                 <div className="h-[115px] bg-gradient-to-r from-blue-400 to-cyan-400 opacity-30"></div>
-                <div className="-mt-[74px] mx-auto w-[148px] h-[148px] bg-gray-300 rounded-full"></div>
-                <div className="text-center px-4 mt-4 space-y-2">
-                  <div className="h-7 bg-gray-300 rounded w-3/4 mx-auto"></div>
-                  <div className="h-4 bg-gray-300 rounded w-2/3 mx-auto"></div>
-                  <div className="h-4 bg-gray-300 rounded w-full"></div>
-                  <div className="h-4 bg-gray-300 rounded w-3/4 mx-auto"></div>
+                <div className="mx-auto -mt-[74px] size-[148px] rounded-full bg-gray-300"></div>
+                <div className="mt-4 space-y-2 px-4 text-center">
+                  <div className="mx-auto h-7 w-3/4 rounded bg-gray-300"></div>
+                  <div className="mx-auto h-4 w-2/3 rounded bg-gray-300"></div>
+                  <div className="h-4 w-full rounded bg-gray-300"></div>
+                  <div className="mx-auto h-4 w-3/4 rounded bg-gray-300"></div>
                 </div>
-                <div className="px-8 pb-5 mt-[10px] flex gap-2">
-                  <div className="h-10 bg-gray-300 rounded flex-1"></div>
-                  <div className="h-10 bg-gray-300 rounded flex-1"></div>
+                <div className="mt-[10px] flex gap-2 px-8 pb-5">
+                  <div className="h-10 flex-1 rounded bg-gray-300"></div>
+                  <div className="h-10 flex-1 rounded bg-gray-300"></div>
                 </div>
               </div>
             ))}
@@ -187,14 +188,14 @@ export default function Directory() {
     return (
       <div className="min-h-screen">
         <DirectorySidebar
-          searchQuery=""
           onSearchChange={() => {}}
           profileCount={0}
+          searchQuery=""
         />
 
         {/* Main Content */}
         <div style={{ marginLeft: '320px', padding: '15px' }}>
-          <div className="bg-red-50 border border-red-200 rounded p-4 text-red-700">
+          <div className="rounded border border-red-200 bg-red-50 p-4 text-red-700">
             {error}
           </div>
         </div>
@@ -205,10 +206,10 @@ export default function Directory() {
   return (
     <div className="min-h-screen">
       <DirectorySidebar
-        searchQuery={searchQuery}
+        currentPage={currentPage}
         onSearchChange={setSearchQuery}
         profileCount={filteredProfiles.length}
-        currentPage={currentPage}
+        searchQuery={searchQuery}
         totalPages={totalPages}
       />
 
@@ -217,8 +218,8 @@ export default function Directory() {
         <div className="grid grid-cols-3 gap-4">
           {displayedProfiles.map((profile, index) => (
             <div
-              key={profile.id}
               className="transition-all duration-500 ease-out"
+              key={profile.id}
               style={{
                 animation: `fadeInUp 0.5s ease-out ${index * 0.05}s both`,
               }}
@@ -229,27 +230,27 @@ export default function Directory() {
 
           {/* No Results Message */}
           {filteredProfiles.length === 0 && (
-            <div className="text-center py-12 col-span-3">
-              <p className="text-gray-500 text-lg">No profiles found matching "{searchQuery}"</p>
+            <div className="col-span-3 py-12 text-center">
+              <p className="text-lg text-gray-500">No profiles found matching &quot;{searchQuery}&quot;</p>
             </div>
           )}
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="mt-8 flex justify-center col-span-3">
+            <div className="col-span-3 mt-8 flex justify-center">
               <Pagination>
               <PaginationContent>
                 <PaginationItem>
                   <PaginationPrevious
+                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                     href="#"
                     onClick={(e) => {
                       e.preventDefault();
                       if (currentPage > 1) {
                         setCurrentPage(currentPage - 1);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        window.scrollTo({ behavior: 'smooth', top: 0 });
                       }
                     }}
-                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                   />
                 </PaginationItem>
 
@@ -259,14 +260,14 @@ export default function Directory() {
                       <PaginationEllipsis />
                     ) : (
                       <PaginationLink
+                        className="cursor-pointer"
                         href="#"
+                        isActive={currentPage === page}
                         onClick={(e) => {
                           e.preventDefault();
                           setCurrentPage(page as number);
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                          window.scrollTo({ behavior: 'smooth', top: 0 });
                         }}
-                        isActive={currentPage === page}
-                        className="cursor-pointer"
                       >
                         {page}
                       </PaginationLink>
@@ -276,15 +277,15 @@ export default function Directory() {
 
                 <PaginationItem>
                   <PaginationNext
+                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                     href="#"
                     onClick={(e) => {
                       e.preventDefault();
                       if (currentPage < totalPages) {
                         setCurrentPage(currentPage + 1);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        window.scrollTo({ behavior: 'smooth', top: 0 });
                       }
                     }}
-                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                   />
                 </PaginationItem>
               </PaginationContent>

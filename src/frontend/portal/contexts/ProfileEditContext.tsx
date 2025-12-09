@@ -4,13 +4,13 @@ type EditSection = 'personal' | 'professional' | 'social' | 'links' | 'directory
 
 interface ProfileEditContextType {
   activeSection: EditSection;
-  setActiveSection: (section: EditSection) => void;
-  isSaving: boolean;
-  setIsSaving: (saving: boolean) => void;
-  handleSave: (() => Promise<void>) | null;
-  setHandleSave: (handler: (() => Promise<void>) | null) => void;
   handleCancel: (() => void) | null;
+  handleSave: (() => Promise<void>) | null;
+  isSaving: boolean;
+  setActiveSection: (section: EditSection) => void;
   setHandleCancel: (handler: (() => void) | null) => void;
+  setHandleSave: (handler: (() => Promise<void>) | null) => void;
+  setIsSaving: (saving: boolean) => void;
 }
 
 const ProfileEditContext = createContext<ProfileEditContextType | undefined>(undefined);
@@ -60,13 +60,13 @@ export function ProfileEditProvider({ children }: { children: ReactNode }) {
     <ProfileEditContext.Provider
       value={{
         activeSection,
-        setActiveSection,
-        isSaving,
-        setIsSaving,
-        handleSave,
-        setHandleSave,
         handleCancel,
+        handleSave,
+        isSaving,
+        setActiveSection,
         setHandleCancel,
+        setHandleSave,
+        setIsSaving,
       }}
     >
       {children}

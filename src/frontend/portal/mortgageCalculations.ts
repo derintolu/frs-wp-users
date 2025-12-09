@@ -3,85 +3,80 @@
  */
 
 export interface ConventionalInputs {
-  homePrice: number;
   downPayment: number;
+  hoa?: number;
+  homePrice: number;
+  insurance?: number;
   interestRate: number;
   loanTerm: number;
   propertyTax?: number;
-  insurance?: number;
-  hoa?: number;
 }
 
 export interface VAInputs {
-  homePrice: number;
   downPayment: number;
+  homePrice: number;
+  insurance?: number;
   interestRate: number;
   loanTerm: number;
-  vaFundingFeePercent?: number;
   propertyTax?: number;
-  insurance?: number;
+  vaFundingFeePercent?: number;
 }
 
 export interface FHAInputs {
-  homePrice: number;
+  annualMIP?: number;
   downPayment: number;
+  homePrice: number;
+  insurance?: number;
   interestRate: number;
   loanTerm: number;
-  upfrontMIP?: number;
-  annualMIP?: number;
   propertyTax?: number;
-  insurance?: number;
+  upfrontMIP?: number;
 }
 
 export interface RefinanceInputs {
-  currentLoanBalance: number;
+  closingCosts: number;
   currentInterestRate: number;
+  currentLoanBalance: number;
   currentPayment: number;
   newInterestRate: number;
   newLoanTerm: number;
-  closingCosts: number;
 }
 
 export interface AffordabilityInputs {
-  monthlyIncome: number;
-  monthlyDebts: number;
   downPayment: number;
+  insurance?: number;
   interestRate: number;
   loanTerm: number;
+  monthlyDebts: number;
+  monthlyIncome: number;
   propertyTax?: number;
-  insurance?: number;
 }
 
 export interface CalculationResults {
+  downPaymentPercent?: number;
+  loanAmount?: number;
+  monthlyHOA?: number;
+  monthlyInsurance?: number;
+  monthlyPMI?: number;
   monthlyPayment: number;
+  monthlyTax?: number;
   principalAndInterest: number;
   totalInterest: number;
   totalPayment: number;
-  loanAmount?: number;
-  monthlyTax?: number;
-  monthlyInsurance?: number;
-  monthlyHOA?: number;
-  monthlyPMI?: number;
-  downPaymentPercent?: number;
 }
 
 /**
  * Calculate conventional mortgage
  */
 export function calculateConventional(inputs: ConventionalInputs): CalculationResults {
-  const { homePrice, downPayment, interestRate, loanTerm, propertyTax = 0, insurance = 0, hoa = 0 } = inputs;
+  const { downPayment, hoa = 0, homePrice, insurance = 0, interestRate, loanTerm, propertyTax = 0 } = inputs;
 
   const principal = homePrice - downPayment;
   const monthlyRate = interestRate / 100 / 12;
   const numberOfPayments = loanTerm * 12;
 
-  let monthlyPI: number;
-  if (monthlyRate === 0) {
-    monthlyPI = principal / numberOfPayments;
-  } else {
-    monthlyPI = (principal * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
+  const monthlyPI = monthlyRate === 0 ? principal / numberOfPayments : (principal * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
                 (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
-  }
 
   const totalInterest = (monthlyPI * numberOfPayments) - principal;
   const totalPayment = monthlyPI * numberOfPayments;
@@ -96,16 +91,16 @@ export function calculateConventional(inputs: ConventionalInputs): CalculationRe
   const totalMonthly = monthlyPI + monthlyTax + monthlyInsurance + hoa + monthlyPMI;
 
   return {
+    downPaymentPercent,
+    loanAmount: principal,
+    monthlyHOA: hoa,
+    monthlyInsurance,
+    monthlyPMI,
     monthlyPayment: totalMonthly,
+    monthlyTax,
     principalAndInterest: monthlyPI,
     totalInterest,
-    totalPayment,
-    loanAmount: principal,
-    monthlyTax,
-    monthlyInsurance,
-    monthlyHOA: hoa,
-    monthlyPMI,
-    downPaymentPercent
+    totalPayment
   };
 }
 
@@ -114,13 +109,13 @@ export function calculateConventional(inputs: ConventionalInputs): CalculationRe
  */
 export function calculateVA(inputs: VAInputs): CalculationResults {
   const {
-    homePrice,
     downPayment = 0,
+    homePrice,
+    insurance = 0,
     interestRate,
     loanTerm,
-    vaFundingFeePercent = 2.3,
     propertyTax = 0,
-    insurance = 0
+    vaFundingFeePercent = 2.3
   } = inputs;
 
   const principal = homePrice - downPayment;
@@ -130,13 +125,8 @@ export function calculateVA(inputs: VAInputs): CalculationResults {
   const monthlyRate = interestRate / 100 / 12;
   const numberOfPayments = loanTerm * 12;
 
-  let monthlyPI: number;
-  if (monthlyRate === 0) {
-    monthlyPI = totalLoanAmount / numberOfPayments;
-  } else {
-    monthlyPI = (totalLoanAmount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
+  const monthlyPI = monthlyRate === 0 ? totalLoanAmount / numberOfPayments : (totalLoanAmount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
                 (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
-  }
 
   const totalInterest = (monthlyPI * numberOfPayments) - totalLoanAmount;
   const totalPayment = monthlyPI * numberOfPayments;
@@ -147,15 +137,23 @@ export function calculateVA(inputs: VAInputs): CalculationResults {
   const totalMonthly = monthlyPI + monthlyTax + monthlyInsurance;
 
   return {
-    monthlyPayment: totalMonthly,
-    principalAndInterest: monthlyPI,
-    totalInterest,
-    totalPayment,
-    loanAmount: totalLoanAmount,
-    monthlyTax,
-    monthlyInsurance,
-    monthlyPMI: 0, // VA loans don't have PMI
-    downPaymentPercent: (downPayment / homePrice) * 100
+    // VA loans don't have PMI
+downPaymentPercent: (downPayment / homePrice) * 100,
+    
+loanAmount: totalLoanAmount,
+    
+monthlyInsurance,
+    
+monthlyPMI: 0,
+    
+monthlyPayment: totalMonthly,
+    
+monthlyTax,
+    
+principalAndInterest: monthlyPI,
+    
+totalInterest, 
+    totalPayment
   };
 }
 
@@ -164,14 +162,14 @@ export function calculateVA(inputs: VAInputs): CalculationResults {
  */
 export function calculateFHA(inputs: FHAInputs): CalculationResults {
   const {
-    homePrice,
+    annualMIP = 0.85,
     downPayment,
+    homePrice,
+    insurance = 0,
     interestRate,
     loanTerm,
-    upfrontMIP = 1.75,
-    annualMIP = 0.85,
     propertyTax = 0,
-    insurance = 0
+    upfrontMIP = 1.75
   } = inputs;
 
   const principal = homePrice - downPayment;
@@ -181,13 +179,8 @@ export function calculateFHA(inputs: FHAInputs): CalculationResults {
   const monthlyRate = interestRate / 100 / 12;
   const numberOfPayments = loanTerm * 12;
 
-  let monthlyPI: number;
-  if (monthlyRate === 0) {
-    monthlyPI = totalLoanAmount / numberOfPayments;
-  } else {
-    monthlyPI = (totalLoanAmount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
+  const monthlyPI = monthlyRate === 0 ? totalLoanAmount / numberOfPayments : (totalLoanAmount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
                 (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
-  }
 
   const monthlyMIP = (principal * (annualMIP / 100)) / 12;
 
@@ -200,15 +193,23 @@ export function calculateFHA(inputs: FHAInputs): CalculationResults {
   const totalMonthly = monthlyPI + monthlyMIP + monthlyTax + monthlyInsurance;
 
   return {
-    monthlyPayment: totalMonthly,
-    principalAndInterest: monthlyPI,
-    totalInterest,
-    totalPayment,
-    loanAmount: totalLoanAmount,
-    monthlyTax,
-    monthlyInsurance,
-    monthlyPMI: monthlyMIP, // FHA uses MIP instead of PMI
-    downPaymentPercent: (downPayment / homePrice) * 100
+    // FHA uses MIP instead of PMI
+downPaymentPercent: (downPayment / homePrice) * 100,
+    
+loanAmount: totalLoanAmount,
+    
+monthlyInsurance,
+    
+monthlyPMI: monthlyMIP,
+    
+monthlyPayment: totalMonthly,
+    
+monthlyTax,
+    
+principalAndInterest: monthlyPI,
+    
+totalInterest, 
+    totalPayment
   };
 }
 
@@ -216,29 +217,24 @@ export function calculateFHA(inputs: FHAInputs): CalculationResults {
  * Calculate refinance savings
  */
 export function calculateRefinance(inputs: RefinanceInputs): CalculationResults & {
-  monthlySavings: number;
   breakEvenMonths: number;
   lifetimeSavings: number;
+  monthlySavings: number;
 } {
   const {
-    currentLoanBalance,
+    closingCosts,
     currentInterestRate,
+    currentLoanBalance,
     currentPayment,
     newInterestRate,
-    newLoanTerm,
-    closingCosts
+    newLoanTerm
   } = inputs;
 
   const monthlyRate = newInterestRate / 100 / 12;
   const numberOfPayments = newLoanTerm * 12;
 
-  let newMonthlyPI: number;
-  if (monthlyRate === 0) {
-    newMonthlyPI = currentLoanBalance / numberOfPayments;
-  } else {
-    newMonthlyPI = (currentLoanBalance * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
+  const newMonthlyPI = monthlyRate === 0 ? currentLoanBalance / numberOfPayments : (currentLoanBalance * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
                    (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
-  }
 
   const totalInterest = (newMonthlyPI * numberOfPayments) - currentLoanBalance;
   const totalPayment = newMonthlyPI * numberOfPayments;
@@ -248,14 +244,14 @@ export function calculateRefinance(inputs: RefinanceInputs): CalculationResults 
   const lifetimeSavings = (monthlySavings * numberOfPayments) - closingCosts;
 
   return {
+    breakEvenMonths,
+    lifetimeSavings,
+    loanAmount: currentLoanBalance,
     monthlyPayment: newMonthlyPI,
+    monthlySavings,
     principalAndInterest: newMonthlyPI,
     totalInterest,
-    totalPayment,
-    loanAmount: currentLoanBalance,
-    monthlySavings,
-    breakEvenMonths,
-    lifetimeSavings
+    totalPayment
   };
 }
 
@@ -267,13 +263,13 @@ export function calculateAffordability(inputs: AffordabilityInputs): Calculation
   maxLoanAmount: number;
 } {
   const {
-    monthlyIncome,
-    monthlyDebts,
     downPayment,
+    insurance = 0,
     interestRate,
     loanTerm,
-    propertyTax = 0,
-    insurance = 0
+    monthlyDebts,
+    monthlyIncome,
+    propertyTax = 0
   } = inputs;
 
   // Use 28% front-end ratio (housing) and 36% back-end ratio (total debt)
@@ -290,13 +286,8 @@ export function calculateAffordability(inputs: AffordabilityInputs): Calculation
   const numberOfPayments = loanTerm * 12;
 
   // Calculate max loan amount
-  let maxLoanAmount: number;
-  if (monthlyRate === 0) {
-    maxLoanAmount = availableForPI * numberOfPayments;
-  } else {
-    maxLoanAmount = availableForPI * (Math.pow(1 + monthlyRate, numberOfPayments) - 1) /
+  const maxLoanAmount = monthlyRate === 0 ? availableForPI * numberOfPayments : availableForPI * (Math.pow(1 + monthlyRate, numberOfPayments) - 1) /
                     (monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments));
-  }
 
   const maxHomePrice = maxLoanAmount + downPayment;
 
@@ -304,16 +295,16 @@ export function calculateAffordability(inputs: AffordabilityInputs): Calculation
   const totalPayment = availableForPI * numberOfPayments;
 
   return {
-    monthlyPayment: availableForPI + monthlyTax + monthlyIns,
-    principalAndInterest: availableForPI,
-    totalInterest,
-    totalPayment,
+    downPaymentPercent: (downPayment / maxHomePrice) * 100,
     loanAmount: maxLoanAmount,
-    monthlyTax,
-    monthlyInsurance: monthlyIns,
     maxHomePrice,
     maxLoanAmount,
-    downPaymentPercent: (downPayment / maxHomePrice) * 100
+    monthlyInsurance: monthlyIns,
+    monthlyPayment: availableForPI + monthlyTax + monthlyIns,
+    monthlyTax,
+    principalAndInterest: availableForPI,
+    totalInterest,
+    totalPayment
   };
 }
 
@@ -321,12 +312,12 @@ export function calculateAffordability(inputs: AffordabilityInputs): Calculation
  * Format currency
  */
 export function formatCurrency(amount: number): string {
-  if (isNaN(amount) || !isFinite(amount)) return '$0';
+  if (isNaN(amount) || !isFinite(amount)) {return '$0';}
   return new Intl.NumberFormat('en-US', {
-    style: 'currency',
     currency: 'USD',
-    minimumFractionDigits: 0,
     maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+    style: 'currency',
   }).format(amount);
 }
 
@@ -334,12 +325,12 @@ export function formatCurrency(amount: number): string {
  * Format currency with cents
  */
 export function formatCurrencyWithCents(amount: number): string {
-  if (isNaN(amount) || !isFinite(amount)) return '$0.00';
+  if (isNaN(amount) || !isFinite(amount)) {return '$0.00';}
   return new Intl.NumberFormat('en-US', {
-    style: 'currency',
     currency: 'USD',
-    minimumFractionDigits: 2,
     maximumFractionDigits: 2,
+    minimumFractionDigits: 2,
+    style: 'currency',
   }).format(amount);
 }
 
@@ -347,6 +338,6 @@ export function formatCurrencyWithCents(amount: number): string {
  * Format percentage
  */
 export function formatPercent(value: number, decimals: number = 1): string {
-  if (isNaN(value) || !isFinite(value)) return '0%';
+  if (isNaN(value) || !isFinite(value)) {return '0%';}
   return `${value.toFixed(decimals)}%`;
 }

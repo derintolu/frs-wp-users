@@ -1,16 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Card } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import {
   Users,
   Wrench,
-  Eye,
   Edit,
   Link,
   Calculator,
-  Home,
   Save,
   X,
   Monitor,
@@ -21,7 +17,6 @@ import {
 } from 'lucide-react';
 import type { User as UserType } from '@/frontend/portal/utils/dataService';
 import { CollapsibleSidebar, MenuItem } from '@/components/ui/CollapsibleSidebar';
-import { ProfileCompletionCard } from './ProfileCompletionCard';
 import { calculateProfileCompletion } from '@/frontend/portal/utils/profileCompletion';
 import { CustomizerPreview, type Breakpoint } from './CustomizerPreview';
 import { useProfileEdit } from '@/frontend/portal/contexts/ProfileEditContext';
@@ -36,7 +31,7 @@ type SidebarView = 'menu' | 'edit-personal' | 'edit-professional' | 'edit-social
 export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomizerLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { activeSection, setActiveSection, isSaving, handleSave, handleCancel } = useProfileEdit();
+  const { activeSection, handleCancel, handleSave, isSaving, setActiveSection } = useProfileEdit();
   const [headerHeight, setHeaderHeight] = useState<string>('0px');
 
   // Check if running in content-only mode (no sidebar)
@@ -125,17 +120,17 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
 
   // Map currentUser to the format expected by ProfileCompletionCard
   const [profileMetadata, setProfileMetadata] = useState({
-    first_name: '',
-    last_name: '',
-    email: '',
-    phone: '',
-    job_title: '',
-    company: '',
-    nmls_id: '',
     bio: '',
-    linkedin_url: '',
+    company: '',
+    email: '',
     facebook_url: '',
+    first_name: '',
     instagram_url: '',
+    job_title: '',
+    last_name: '',
+    linkedin_url: '',
+    nmls_id: '',
+    phone: '',
   });
 
   // Profile completion card state
@@ -164,35 +159,35 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
           // Fallback to basic user data if profile not found
           const nameParts = (currentUser.name || '').split(' ');
           setProfileMetadata({
-            first_name: nameParts[0] || '',
-            last_name: nameParts.slice(1).join(' ') || '',
-            email: currentUser.email || '',
-            phone: '',
-            job_title: '',
-            company: '21st Century Lending',
-            nmls_id: '',
             bio: '',
-            linkedin_url: '',
+            company: '21st Century Lending',
+            email: currentUser.email || '',
             facebook_url: '',
+            first_name: nameParts[0] || '',
             instagram_url: '',
+            job_title: '',
+            last_name: nameParts.slice(1).join(' ') || '',
+            linkedin_url: '',
+            nmls_id: '',
+            phone: '',
           });
         }
-      } catch (err) {
-        console.error('Failed to load profile metadata:', err);
+      } catch (error) {
+        console.error('Failed to load profile metadata:', error);
         // Fallback to basic user data
         const nameParts = (currentUser.name || '').split(' ');
         setProfileMetadata({
-          first_name: nameParts[0] || '',
-          last_name: nameParts.slice(1).join(' ') || '',
-          email: currentUser.email || '',
-          phone: '',
-          job_title: '',
-          company: '21st Century Lending',
-          nmls_id: '',
           bio: '',
-          linkedin_url: '',
+          company: '21st Century Lending',
+          email: currentUser.email || '',
           facebook_url: '',
+          first_name: nameParts[0] || '',
           instagram_url: '',
+          job_title: '',
+          last_name: nameParts.slice(1).join(' ') || '',
+          linkedin_url: '',
+          nmls_id: '',
+          phone: '',
         });
       }
     };
@@ -216,8 +211,8 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
           const reached100 = userData.meta?.profile_completion_reached_100 === '1';
           setHasReached100Percent(reached100);
         }
-      } catch (err) {
-        console.error('Failed to check completion status:', err);
+      } catch (error) {
+        console.error('Failed to check completion status:', error);
       }
     };
 
@@ -234,25 +229,25 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
       if (completion.percentage >= 100 && !hasReached100Percent) {
         try {
           const response = await fetch(`/wp-json/wp/v2/users/me`, {
-            method: 'POST',
+            body: JSON.stringify({
+              meta: {
+                profile_completion_reached_100: '1'
+              }
+            }),
             credentials: 'include',
             headers: {
               'Content-Type': 'application/json',
               'X-WP-Nonce': (window as any).wpApiSettings?.nonce || (window as any).frsPortalConfig?.restNonce || ''
             },
-            body: JSON.stringify({
-              meta: {
-                profile_completion_reached_100: '1'
-              }
-            })
+            method: 'POST'
           });
 
           if (response.ok) {
             setHasReached100Percent(true);
             console.log('Profile completion 100% status saved');
           }
-        } catch (err) {
-          console.error('Failed to update completion status:', err);
+        } catch (error) {
+          console.error('Failed to update completion status:', error);
         }
       }
     };
@@ -285,10 +280,10 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
         const toast = document.createElement('div');
         toast.className = 'fixed top-20 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
         toast.textContent = 'Profile link copied!';
-        document.body.appendChild(toast);
+        document.body.append(toast);
         setTimeout(() => toast.remove(), 3000);
-      } catch (err) {
-        console.error('Failed to copy:', err);
+      } catch (error) {
+        console.error('Failed to copy:', error);
       }
     }
   };
@@ -300,32 +295,32 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
   };
 
   const profileLinkWidget = (
-    <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+    <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
+      <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
         Profile Link
       </div>
-      <div className="bg-white rounded-md border border-gray-200 p-2 mb-2">
-        <div className="text-xs text-gray-600 truncate" title={profileUrl}>
+      <div className="mb-2 rounded-md border border-gray-200 bg-white p-2">
+        <div className="truncate text-xs text-gray-600" title={profileUrl}>
           {currentUser?.profile_slug || 'No profile slug'}
         </div>
       </div>
       <div className="flex gap-2">
         <Button
-          variant="outline"
-          size="sm"
+          className="flex flex-1 items-center justify-center gap-1.5"
           onClick={handleCopyProfileLink}
-          className="flex-1 flex items-center justify-center gap-1.5"
+          size="sm"
+          variant="outline"
         >
-          <Copy className="h-3.5 w-3.5" />
+          <Copy className="size-3.5" />
           <span className="text-xs">Copy</span>
         </Button>
         <Button
-          variant="outline"
-          size="sm"
+          className="flex flex-1 items-center justify-center gap-1.5"
           onClick={handleOpenProfileLink}
-          className="flex-1 flex items-center justify-center gap-1.5"
+          size="sm"
+          variant="outline"
         >
-          <ExternalLink className="h-3.5 w-3.5" />
+          <ExternalLink className="size-3.5" />
           <span className="text-xs">Open</span>
         </Button>
       </div>
@@ -334,46 +329,46 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
 
   // Device preview controls widget
   const devicePreviewWidget = (
-    <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+    <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
+      <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
         Preview Size
       </div>
       <div className="flex gap-2">
         <Button
-          variant={viewport === 'desktop' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setViewport('desktop')}
           className="flex-1"
+          onClick={() => setViewport('desktop')}
+          size="sm"
           style={viewport === 'desktop' ? {
             background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
             color: 'white'
           } : {}}
+          variant={viewport === 'desktop' ? 'default' : 'outline'}
         >
-          <Monitor className="h-4 w-4" />
+          <Monitor className="size-4" />
         </Button>
         <Button
-          variant={viewport === 'tablet' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setViewport('tablet')}
           className="flex-1"
+          onClick={() => setViewport('tablet')}
+          size="sm"
           style={viewport === 'tablet' ? {
             background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
             color: 'white'
           } : {}}
+          variant={viewport === 'tablet' ? 'default' : 'outline'}
         >
-          <Tablet className="h-4 w-4" />
+          <Tablet className="size-4" />
         </Button>
         <Button
-          variant={viewport === 'mobile' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setViewport('mobile')}
           className="flex-1"
+          onClick={() => setViewport('mobile')}
+          size="sm"
           style={viewport === 'mobile' ? {
             background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
             color: 'white'
           } : {}}
+          variant={viewport === 'mobile' ? 'default' : 'outline'}
         >
-          <Smartphone className="h-4 w-4" />
+          <Smartphone className="size-4" />
         </Button>
       </div>
     </div>
@@ -385,21 +380,21 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
 
   // Thin horizontal progress bar widget
   const profileProgressWidget = (
-    <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-      <div className="flex items-center justify-between mb-2">
-        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+    <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="text-xs font-semibold uppercase tracking-wider text-gray-500">
           Profile Completion
         </div>
         <div className="text-xs font-semibold text-gray-700">
           {completionPercentage}%
         </div>
       </div>
-      <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
         <div
           className="h-full rounded-full transition-all duration-500"
           style={{
-            width: `${completionPercentage}%`,
             background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
+            width: `${completionPercentage}%`,
           }}
         />
       </div>
@@ -409,34 +404,34 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
   const menuItems: MenuItem[] = [
     // Device preview controls - only show on profile page
     ...(isProfilePage ? [{
+      customWidget: devicePreviewWidget,
       id: 'device-preview-widget',
-      label: '',
-      customWidget: devicePreviewWidget
+      label: ''
     }] : []),
-    { id: 'edit-personal', label: 'Personal Information', icon: Users },
-    { id: 'edit-professional', label: 'Professional Details', icon: Edit },
-    { id: 'edit-social', label: 'Links & Social', icon: Link },
+    { icon: Users, id: 'edit-personal', label: 'Personal Information' },
+    { icon: Edit, id: 'edit-professional', label: 'Professional Details' },
+    { icon: Link, id: 'edit-social', label: 'Links & Social' },
     {
-      id: 'tools',
-      label: 'Tools',
-      icon: Calculator,
       children: [
         { id: 'tool-calculator', label: 'Mortgage Calculator' },
         { id: 'tool-valuation', label: 'Property Valuation' },
-      ]
+      ],
+      icon: Calculator,
+      id: 'tools',
+      label: 'Tools'
     },
-    { id: 'settings', label: 'Settings', icon: Wrench },
+    { icon: Wrench, id: 'settings', label: 'Settings' },
     // Profile link viewer - below settings, only show on profile page
     ...(isProfilePage ? [{
+      customWidget: profileLinkWidget,
       id: 'profile-link-widget',
-      label: '',
-      customWidget: profileLinkWidget
+      label: ''
     }] : []),
     // Thin progress bar - only show if not at 100% and not dismissed
     ...(shouldShowProfileCard ? [{
+      customWidget: profileProgressWidget,
       id: 'profile-progress-widget',
-      label: '',
-      customWidget: profileProgressWidget
+      label: ''
     }] : []),
   ];
 
@@ -459,10 +454,10 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
           <>
             <video
               autoPlay
-              muted
+              className="absolute inset-0 size-full object-cover"
               loop
+              muted
               playsInline
-              className="absolute inset-0 w-full h-full object-cover"
               style={{ zIndex: 0 }}
             >
               <source src={gradientUrl} type="video/mp4" />
@@ -477,35 +472,35 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
 
         {/* Avatar and Name - Horizontal Layout */}
         <div
-          className="relative w-full px-4 py-4 flex items-center gap-3"
+          className="relative flex w-full items-center gap-3 p-4"
           style={{ zIndex: 10 }}
         >
           {/* Avatar with gradient border */}
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <div
-              className="size-14 rounded-full overflow-hidden shadow-lg"
+              className="size-14 overflow-hidden rounded-full shadow-lg"
               style={{
-                border: '2px solid transparent',
+                backgroundClip: 'padding-box, border-box',
                 backgroundImage: 'linear-gradient(white, white), linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                 backgroundOrigin: 'padding-box, border-box',
-                backgroundClip: 'padding-box, border-box',
+                border: '2px solid transparent',
               }}
             >
               <img
-                src={currentUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name || 'User')}&background=2DD4DA&color=fff`}
                 alt={currentUser.name || 'User'}
-                className="w-full h-full object-cover"
+                className="size-full object-cover"
                 onError={(e) => {
                   e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name || 'User')}&background=2DD4DA&color=fff`;
                 }}
+                src={currentUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name || 'User')}&background=2DD4DA&color=fff`}
               />
             </div>
           </div>
 
           {/* Name and Title */}
-          <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-white text-base mb-0.5 drop-shadow-md truncate">{currentUser.name}</h3>
-            <p className="font-normal text-white text-sm drop-shadow-md truncate">{profileMetadata.job_title || 'Loan Officer'}</p>
+          <div className="min-w-0 flex-1">
+            <h3 className="mb-0.5 truncate text-base font-bold text-white drop-shadow-md">{currentUser.name}</h3>
+            <p className="truncate text-sm font-normal text-white drop-shadow-md">{profileMetadata.job_title || 'Loan Officer'}</p>
           </div>
         </div>
       </div>
@@ -521,9 +516,9 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
       'edit-personal': 'edit-personal',
       'edit-professional': 'edit-professional',
       'edit-social': 'edit-social',
+      'settings': 'settings',
       'tool-calculator': 'tool-calculator',
       'tool-valuation': 'tool-valuation',
-      'settings': 'settings',
     };
 
     if (viewMap[item.id]) {
@@ -553,6 +548,7 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
     return (
       <div className="p-4">
         <button
+          className="mb-4 flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
           onClick={() => {
             // If editing, cancel changes first
             if (activeSection && handleCancel) {
@@ -561,7 +557,6 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
             setSidebarView('menu');
             setActiveSection(null);
           }}
-          className="mb-4 text-sm text-gray-600 hover:text-gray-900 flex items-center gap-2"
         >
           ← Back to Menu
         </button>
@@ -572,33 +567,35 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
             <p className="text-sm text-gray-600">Edit your name, contact details, job title, and location.</p>
 
             {/* Save and Cancel Buttons */}
-            <div className="space-y-3 pt-4 border-t border-gray-200">
+            <div className="space-y-3 border-t border-gray-200 pt-4">
               <Button
+                className="h-11 w-full font-semibold text-white shadow-lg"
+                disabled={isSaving || !handleSave}
                 onClick={async () => {
                   if (handleSave) {
                     await handleSave();
                     // Sidebar will return to menu automatically via useEffect when activeSection becomes null
                   }
                 }}
-                disabled={isSaving || !handleSave}
-                className="w-full text-white shadow-lg font-semibold h-11"
                 style={{
                   background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                 }}
               >
                 {isSaving ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <div className="mr-2 size-4 animate-spin rounded-full border-b-2 border-white"></div>
                     Saving...
                   </>
                 ) : (
                   <>
-                    <Save className="h-4 w-4 mr-2" />
+                    <Save className="mr-2 size-4" />
                     Save Changes
                   </>
                 )}
               </Button>
               <Button
+                className="h-11 w-full border-2 border-gray-300 font-semibold transition-all hover:border-red-500 hover:bg-red-50 hover:text-red-700"
+                disabled={isSaving}
                 onClick={() => {
                   if (handleCancel) {
                     handleCancel();
@@ -606,11 +603,9 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
                   setSidebarView('menu');
                   setActiveSection(null);
                 }}
-                disabled={isSaving}
                 variant="outline"
-                className="w-full border-2 border-gray-300 hover:border-red-500 hover:bg-red-50 hover:text-red-700 font-semibold h-11 transition-all"
               >
-                <X className="h-4 w-4 mr-2" />
+                <X className="mr-2 size-4" />
                 Cancel
               </Button>
             </div>
@@ -623,32 +618,34 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
             <p className="text-sm text-gray-600">Edit your biography, specialties, credentials, and service areas.</p>
 
             {/* Save and Cancel Buttons */}
-            <div className="space-y-3 pt-4 border-t border-gray-200">
+            <div className="space-y-3 border-t border-gray-200 pt-4">
               <Button
+                className="h-11 w-full font-semibold text-white shadow-lg"
+                disabled={isSaving || !handleSave}
                 onClick={async () => {
                   if (handleSave) {
                     await handleSave();
                   }
                 }}
-                disabled={isSaving || !handleSave}
-                className="w-full text-white shadow-lg font-semibold h-11"
                 style={{
                   background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                 }}
               >
                 {isSaving ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <div className="mr-2 size-4 animate-spin rounded-full border-b-2 border-white"></div>
                     Saving...
                   </>
                 ) : (
                   <>
-                    <Save className="h-4 w-4 mr-2" />
+                    <Save className="mr-2 size-4" />
                     Save Changes
                   </>
                 )}
               </Button>
               <Button
+                className="h-11 w-full border-2 border-gray-300 font-semibold transition-all hover:border-red-500 hover:bg-red-50 hover:text-red-700"
+                disabled={isSaving}
                 onClick={() => {
                   if (handleCancel) {
                     handleCancel();
@@ -656,11 +653,9 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
                   setSidebarView('menu');
                   setActiveSection(null);
                 }}
-                disabled={isSaving}
                 variant="outline"
-                className="w-full border-2 border-gray-300 hover:border-red-500 hover:bg-red-50 hover:text-red-700 font-semibold h-11 transition-all"
               >
-                <X className="h-4 w-4 mr-2" />
+                <X className="mr-2 size-4" />
                 Cancel
               </Button>
             </div>
@@ -673,32 +668,34 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
             <p className="text-sm text-gray-600">Edit your social media profiles and custom links.</p>
 
             {/* Save and Cancel Buttons */}
-            <div className="space-y-3 pt-4 border-t border-gray-200">
+            <div className="space-y-3 border-t border-gray-200 pt-4">
               <Button
+                className="h-11 w-full font-semibold text-white shadow-lg"
+                disabled={isSaving || !handleSave}
                 onClick={async () => {
                   if (handleSave) {
                     await handleSave();
                   }
                 }}
-                disabled={isSaving || !handleSave}
-                className="w-full text-white shadow-lg font-semibold h-11"
                 style={{
                   background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                 }}
               >
                 {isSaving ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <div className="mr-2 size-4 animate-spin rounded-full border-b-2 border-white"></div>
                     Saving...
                   </>
                 ) : (
                   <>
-                    <Save className="h-4 w-4 mr-2" />
+                    <Save className="mr-2 size-4" />
                     Save Changes
                   </>
                 )}
               </Button>
               <Button
+                className="h-11 w-full border-2 border-gray-300 font-semibold transition-all hover:border-red-500 hover:bg-red-50 hover:text-red-700"
+                disabled={isSaving}
                 onClick={() => {
                   if (handleCancel) {
                     handleCancel();
@@ -706,11 +703,9 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
                   setSidebarView('menu');
                   setActiveSection(null);
                 }}
-                disabled={isSaving}
                 variant="outline"
-                className="w-full border-2 border-gray-300 hover:border-red-500 hover:bg-red-50 hover:text-red-700 font-semibold h-11 transition-all"
               >
-                <X className="h-4 w-4 mr-2" />
+                <X className="mr-2 size-4" />
                 Cancel
               </Button>
             </div>
@@ -719,21 +714,21 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
 
         {sidebarView === 'tool-calculator' && (
           <div>
-            <h2 className="text-lg font-bold mb-4">Mortgage Calculator</h2>
+            <h2 className="mb-4 text-lg font-bold">Mortgage Calculator</h2>
             <p className="text-sm text-gray-600">Calculator coming soon...</p>
           </div>
         )}
 
         {sidebarView === 'tool-valuation' && (
           <div>
-            <h2 className="text-lg font-bold mb-4">Property Valuation</h2>
+            <h2 className="mb-4 text-lg font-bold">Property Valuation</h2>
             <p className="text-sm text-gray-600">Tool coming soon...</p>
           </div>
         )}
 
         {sidebarView === 'settings' && (
           <div>
-            <h2 className="text-lg font-bold mb-4">Settings</h2>
+            <h2 className="mb-4 text-lg font-bold">Settings</h2>
             <p className="text-sm text-gray-600">Settings coming soon...</p>
           </div>
         )}
@@ -746,38 +741,38 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
       className="min-h-screen"
       style={{
         background: 'white',
+        marginTop: 0,
         position: 'relative',
-        zIndex: 1,
         width: '100%',
-        marginTop: 0
+        zIndex: 1
       }}
     >
       {/* Conditionally render sidebar based on view and contentOnly mode */}
       {!contentOnly && (sidebarView === 'menu' ? (
         <CollapsibleSidebar
-          menuItems={menuItems}
-          activeItemId={location.pathname}
-          onItemClick={handleItemClick}
-          header={sidebarHeader}
-          footer={sidebarFooter}
-          width="320px"
-          collapsedWidth="4rem"
-          backgroundColor="hsl(var(--sidebar-background))"
-          textColor="hsl(var(--sidebar-foreground))"
-          activeItemColor="hsl(var(--sidebar-foreground))"
           activeItemBackground="linear-gradient(to right, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1))"
-          position="left"
-          topOffset={headerHeight}
+          activeItemColor="hsl(var(--sidebar-foreground))"
+          activeItemId={location.pathname}
+          backgroundColor="hsl(var(--sidebar-background))"
+          collapsedWidth="4rem"
           defaultCollapsed={sidebarCollapsed}
+          footer={sidebarFooter}
+          header={sidebarHeader}
+          menuItems={menuItems}
           onCollapsedChange={setSidebarCollapsed}
+          onItemClick={handleItemClick}
+          position="left"
+          textColor="hsl(var(--sidebar-foreground))"
+          topOffset={headerHeight}
+          width="320px"
         />
       ) : (
         <div
-          className="fixed left-0 bg-white border-r shadow-sm overflow-y-auto"
+          className="fixed left-0 overflow-y-auto border-r bg-white shadow-sm"
           style={{
-            width: '320px',
-            top: headerHeight,
             bottom: 0,
+            top: headerHeight,
+            width: '320px',
             zIndex: 40
           }}
         >
@@ -787,7 +782,7 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
       ))}
 
       {/* Main Content - ALWAYS shows profile preview in customizer style */}
-      <main className={contentOnly ? "p-0 m-0 flex items-center justify-center min-h-screen" : "max-md:p-0 max-md:m-0 md:pt-8 md:pb-8 md:pl-8 md:pr-8 md:ml-[320px] md:mr-0"}>
+      <main className={contentOnly ? "m-0 flex min-h-screen items-center justify-center p-0" : "max-md:m-0 max-md:p-0 md:ml-[320px] md:mr-0 md:p-8"}>
         <CustomizerPreview viewport={viewport}>
           <Outlet />
         </CustomizerPreview>

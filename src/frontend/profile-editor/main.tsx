@@ -16,8 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
 			root.render(
 				<React.StrictMode>
 					<ProfileEditor
-						profileId={parseInt(profileId)}
-						userId={parseInt(userId)}
+						profileId={Number.parseInt(profileId)}
+						userId={Number.parseInt(userId)}
 					/>
 				</React.StrictMode>
 			);

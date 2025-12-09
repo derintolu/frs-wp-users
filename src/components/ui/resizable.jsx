@@ -9,7 +9,7 @@ const ResizablePanelGroup = ({
 }) => (
   <ResizablePrimitive.PanelGroup
     className={cn(
-      "flex h-full w-full data-[panel-group-direction=vertical]:flex-col",
+      "flex size-full data-[panel-group-direction=vertical]:flex-col",
       className
     )}
     {...props} />
@@ -18,8 +18,8 @@ const ResizablePanelGroup = ({
 const ResizablePanel = ResizablePrimitive.Panel
 
 const ResizableHandle = ({
-  withHandle,
   className,
+  withHandle,
   ...props
 }) => (
   <ResizablePrimitive.PanelResizeHandle
@@ -31,7 +31,7 @@ const ResizableHandle = ({
     {withHandle && (
       <div
         className="z-10 flex h-4 w-3 items-center justify-center rounded-sm border bg-border">
-        <DragHandleDots2Icon className="h-2.5 w-2.5" />
+        <DragHandleDots2Icon className="size-2.5" />
       </div>
     )}
   </ResizablePrimitive.PanelResizeHandle>

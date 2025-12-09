@@ -3,31 +3,31 @@ import { StepProps } from "../../../../admin/types/account-types";
 
 export default function Step2({ stepCount }: StepProps) {
   return (
-    <div className="max-w-xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="mx-auto max-w-xl overflow-hidden rounded-lg bg-white shadow-md">
       <div className="px-6 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex justify-center w-full items-center">
+          <div className="flex w-full items-center justify-center">
             <GmailIcon />
 
             <div className="ml-4">
-              <div className="text-lg text-gray-900 font-semibold">
+              <div className="text-lg font-semibold text-gray-900">
                 Connect Your Google Account
               </div>
             </div>
           </div>
         </div>
 
-        <h3 className="mt-4 text-gray-800 font-semibold text-center">
+        <h3 className="mt-4 text-center font-semibold text-gray-800">
           Select a connection option
         </h3>
 
         <div className="mt-6">
           <div
-            onClick={() => stepCount?.(3)}
-            className="mb-4 cursor-pointer p-4 bg-gray-50 rounded-lg shadow">
+            className="mb-4 cursor-pointer rounded-lg bg-gray-50 p-4 shadow"
+            onClick={() => stepCount?.(3)}>
             <div className="flex justify-between">
-              <h4 className="text-gray-900 font-semibold">Option 1: OAuth</h4>
-              <span className="text-xs font-semibold text-green-500 bg-green-100 rounded-full px-3 py-1">
+              <h4 className="font-semibold text-gray-900">Option 1: OAuth</h4>
+              <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-500">
                 RECOMMENDED
               </span>
             </div>
@@ -53,8 +53,8 @@ export default function Step2({ stepCount }: StepProps) {
             </ul>
           </div>
 
-          <div className="p-4 bg-gray-50 rounded-lg shadow">
-            <h4 className="text-gray-900 font-semibold">
+          <div className="rounded-lg bg-gray-50 p-4 shadow">
+            <h4 className="font-semibold text-gray-900">
               Option 2: App Password
             </h4>
             <ul className="mt-2">

@@ -48,6 +48,15 @@ class SSOProvider extends Model {
 	protected $table = 'frs_sso_providers';
 
 	/**
+	 * Get the table name - always uses network-wide table.
+	 *
+	 * @return string
+	 */
+	public function getTable() {
+		return 'frs_sso_providers';
+	}
+
+	/**
 	 * The primary key for the model.
 	 *
 	 * @var string

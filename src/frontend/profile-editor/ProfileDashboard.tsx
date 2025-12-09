@@ -22,39 +22,39 @@ import {
 } from 'lucide-react';
 
 interface ProfileData {
-  id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone_number: string;
-  mobile_number: string;
-  job_title: string;
   biography: string;
   city_state: string;
-  office: string;
-  headshot_url?: string;
+  dre_license: string;
+  email: string;
+  facebook_url?: string;
+  first_name: string;
   headshot_id?: number;
+  headshot_url?: string;
+  id: number;
+  instagram_url?: string;
+  job_title: string;
+  last_name: string;
+  license_number: string;
+  linkedin_url?: string;
+  mobile_number: string;
   nmls: string;
   nmls_number: string;
-  license_number: string;
-  dre_license: string;
-  specialties_lo?: string[];
+  office: string;
+  phone_number: string;
   specialties?: string[];
-  facebook_url?: string;
-  instagram_url?: string;
-  linkedin_url?: string;
+  specialties_lo?: string[];
+  tiktok_url?: string;
   twitter_url?: string;
   youtube_url?: string;
-  tiktok_url?: string;
 }
 
 interface ProfileDashboardProps {
+  autoEdit?: boolean;
   profileId: number;
   userId: number;
-  autoEdit?: boolean;
 }
 
-export function ProfileDashboard({ profileId, userId, autoEdit = false }: ProfileDashboardProps) {
+export function ProfileDashboard({ autoEdit = false, profileId, userId }: ProfileDashboardProps) {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(autoEdit);
@@ -109,12 +109,12 @@ export function ProfileDashboard({ profileId, userId, autoEdit = false }: Profil
 
       const nonce = (window as any).wpApiSettings?.nonce || '';
       const response = await fetch(`/wp-json/frs-users/v1/profiles/${profileId}`, {
-        method: 'PUT',
+        body: JSON.stringify(formData),
         headers: {
           'Content-Type': 'application/json',
           'X-WP-Nonce': nonce
         },
-        body: JSON.stringify(formData)
+        method: 'PUT'
       });
 
       if (!response.ok) {
@@ -166,7 +166,7 @@ export function ProfileDashboard({ profileId, userId, autoEdit = false }: Profil
 
   if (!profile) {
     return (
-      <div className="text-center p-12">
+      <div className="p-12 text-center">
         <p className="text-muted-foreground">No profile data available</p>
       </div>
     );
@@ -180,54 +180,54 @@ export function ProfileDashboard({ profileId, userId, autoEdit = false }: Profil
   const biolink_url = `${window.location.origin}/${profile.first_name?.toLowerCase() || 'user'}`;
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="space-y-4 p-4">
       {/* Header with gradient background - similar to biolink header */}
       <div
-        className="rounded-2xl p-8 text-center relative overflow-hidden"
+        className="relative overflow-hidden rounded-2xl p-8 text-center"
         style={gradientStyle}
       >
         {/* Avatar */}
-        <div className="flex justify-center mb-4">
+        <div className="mb-4 flex justify-center">
           <Avatar className="size-32 border-4 border-white shadow-xl">
-            <AvatarImage src={profile.headshot_url} alt={display_name} />
-            <AvatarFallback className="bg-white text-blue-600 text-3xl font-semibold">
+            <AvatarImage alt={display_name} src={profile.headshot_url} />
+            <AvatarFallback className="bg-white text-3xl font-semibold text-blue-600">
               {profile.first_name?.[0]}{profile.last_name?.[0]}
             </AvatarFallback>
           </Avatar>
         </div>
 
         {/* Name */}
-        <h1 className="text-3xl font-bold text-white mb-2">
+        <h1 className="mb-2 text-3xl font-bold text-white">
           {display_name}
         </h1>
 
         {/* Email */}
-        <div className="flex items-center justify-center gap-2 text-white/90 mb-2">
+        <div className="mb-2 flex items-center justify-center gap-2 text-white/90">
           <Mail className="size-4" />
           <span className="text-sm">{profile.email}</span>
         </div>
 
         {/* NMLS if available */}
         {(profile.nmls || profile.nmls_number) && (
-          <div className="flex items-center justify-center gap-2 text-white/90 mb-4">
+          <div className="mb-4 flex items-center justify-center gap-2 text-white/90">
             <Briefcase className="size-4" />
             <span className="text-sm">NMLS #{profile.nmls || profile.nmls_number}</span>
           </div>
         )}
 
         {/* Job Title */}
-        <p className="text-white/80 text-lg">
+        <p className="text-lg text-white/80">
           {profile.job_title || 'Loan Officer'}
         </p>
 
         {/* Edit Button */}
         {!isEditing && (
           <Button
-            onClick={() => setIsEditing(true)}
             className="mt-6 bg-white text-blue-600 hover:bg-white/90"
+            onClick={() => setIsEditing(true)}
             size="lg"
           >
-            <Edit className="size-4 mr-2" />
+            <Edit className="mr-2 size-4" />
             Edit Profile
           </Button>
         )}
@@ -235,35 +235,35 @@ export function ProfileDashboard({ profileId, userId, autoEdit = false }: Profil
 
       {/* Success Message */}
       {saveSuccess && (
-        <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
-          <p className="text-green-800 text-sm font-medium">Profile updated successfully!</p>
+        <div className="rounded-xl border border-green-200 bg-green-50 p-4">
+          <p className="text-sm font-medium text-green-800">Profile updated successfully!</p>
         </div>
       )}
 
       {/* Error Message */}
       {saveError && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
-          <p className="text-red-800 text-sm font-medium">{saveError}</p>
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+          <p className="text-sm font-medium text-red-800">{saveError}</p>
         </div>
       )}
 
       {/* Bento Grid Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {/* Job Title Card */}
-        <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border border-gray-200 shadow-sm transition-shadow hover:shadow-md">
           <CardContent className="p-6">
             <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-gray-100">
+              <div className="rounded-lg bg-gray-100 p-2">
                 <User className="size-5 text-gray-700" />
               </div>
               <div className="flex-1">
-                <h3 className="text-sm font-semibold text-gray-900 mb-1">Job Title</h3>
+                <h3 className="mb-1 text-sm font-semibold text-gray-900">Job Title</h3>
                 {isEditing ? (
                   <Input
-                    value={formData.job_title || ''}
+                    className="mt-1"
                     onChange={(e) => handleInputChange('job_title', e.target.value)}
                     placeholder="e.g., Director of Lending"
-                    className="mt-1"
+                    value={formData.job_title || ''}
                   />
                 ) : (
                   <p className="text-2xl font-bold text-gray-800">
@@ -276,20 +276,20 @@ export function ProfileDashboard({ profileId, userId, autoEdit = false }: Profil
         </Card>
 
         {/* Phone Number Card */}
-        <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border border-gray-200 shadow-sm transition-shadow hover:shadow-md">
           <CardContent className="p-6">
             <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-gray-100">
+              <div className="rounded-lg bg-gray-100 p-2">
                 <Phone className="size-5 text-gray-700" />
               </div>
               <div className="flex-1">
-                <h3 className="text-sm font-semibold text-gray-900 mb-1">Phone Number</h3>
+                <h3 className="mb-1 text-sm font-semibold text-gray-900">Phone Number</h3>
                 {isEditing ? (
                   <Input
-                    value={formData.phone_number || ''}
+                    className="mt-1"
                     onChange={(e) => handleInputChange('phone_number', e.target.value)}
                     placeholder="(555) 123-4567"
-                    className="mt-1"
+                    value={formData.phone_number || ''}
                   />
                 ) : (
                   <p className="text-2xl font-bold text-gray-800">
@@ -302,20 +302,20 @@ export function ProfileDashboard({ profileId, userId, autoEdit = false }: Profil
         </Card>
 
         {/* Location Card */}
-        <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border border-gray-200 shadow-sm transition-shadow hover:shadow-md">
           <CardContent className="p-6">
             <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-gray-100">
+              <div className="rounded-lg bg-gray-100 p-2">
                 <MapPin className="size-5 text-gray-700" />
               </div>
               <div className="flex-1">
-                <h3 className="text-sm font-semibold text-gray-900 mb-1">Location</h3>
+                <h3 className="mb-1 text-sm font-semibold text-gray-900">Location</h3>
                 {isEditing ? (
                   <Input
-                    value={formData.city_state || ''}
+                    className="mt-1"
                     onChange={(e) => handleInputChange('city_state', e.target.value)}
                     placeholder="e.g., Murrietta, CA"
-                    className="mt-1"
+                    value={formData.city_state || ''}
                   />
                 ) : (
                   <p className="text-2xl font-bold text-gray-800">
@@ -328,20 +328,20 @@ export function ProfileDashboard({ profileId, userId, autoEdit = false }: Profil
         </Card>
 
         {/* Company Card */}
-        <Card className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border border-gray-200 shadow-sm transition-shadow hover:shadow-md">
           <CardContent className="p-6">
             <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-gray-100">
+              <div className="rounded-lg bg-gray-100 p-2">
                 <Building className="size-5 text-gray-700" />
               </div>
               <div className="flex-1">
-                <h3 className="text-sm font-semibold text-gray-900 mb-1">Company</h3>
+                <h3 className="mb-1 text-sm font-semibold text-gray-900">Company</h3>
                 {isEditing ? (
                   <Input
-                    value={formData.office || ''}
+                    className="mt-1"
                     onChange={(e) => handleInputChange('office', e.target.value)}
                     placeholder="Company name"
-                    className="mt-1"
+                    value={formData.office || ''}
                   />
                 ) : (
                   <p className="text-2xl font-bold text-gray-800">
@@ -354,40 +354,40 @@ export function ProfileDashboard({ profileId, userId, autoEdit = false }: Profil
         </Card>
 
         {/* Biolink URL Card - Full Width */}
-        <Card className="md:col-span-2 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border border-gray-200 shadow-sm transition-shadow hover:shadow-md md:col-span-2">
           <CardContent className="p-6">
             <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-blue-100">
+              <div className="rounded-lg bg-blue-100 p-2">
                 <Globe className="size-5 text-blue-600" />
               </div>
               <div className="flex-1">
-                <div className="flex items-center justify-between mb-2">
+                <div className="mb-2 flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-gray-900">Biolink URL</h3>
                   <ExternalLink className="size-4 text-gray-400" />
                 </div>
-                <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <Globe className="size-4 text-blue-600 flex-shrink-0" />
+                <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 p-3">
+                  <Globe className="size-4 shrink-0 text-blue-600" />
                   <a
+                    className="flex-1 truncate text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
                     href={biolink_url}
-                    target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex-1 truncate font-medium"
+                    target="_blank"
                   >
                     {biolink_url}
                   </a>
                   <Button
+                    className="h-8 shrink-0 px-3 text-blue-600 hover:bg-blue-100"
+                    onClick={copyBiolinkUrl}
                     size="sm"
                     variant="ghost"
-                    onClick={copyBiolinkUrl}
-                    className="flex-shrink-0 h-8 px-3 text-blue-600 hover:bg-blue-100"
                   >
-                    <Copy className="size-4 mr-1" />
+                    <Copy className="mr-1 size-4" />
                     Copy
                   </Button>
                   <Button
-                    size="sm"
+                    className="h-8 shrink-0 bg-blue-600 px-3 text-white hover:bg-blue-700"
                     onClick={() => window.open(biolink_url, '_blank')}
-                    className="flex-shrink-0 h-8 px-3 bg-blue-600 hover:bg-blue-700 text-white"
+                    size="sm"
                   >
                     Open
                   </Button>
@@ -398,23 +398,23 @@ export function ProfileDashboard({ profileId, userId, autoEdit = false }: Profil
         </Card>
 
         {/* Biography Card - Full Width */}
-        <Card className="md:col-span-2 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border border-gray-200 shadow-sm transition-shadow hover:shadow-md md:col-span-2">
           <CardContent className="p-6">
             <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-gray-100">
+              <div className="rounded-lg bg-gray-100 p-2">
                 <Briefcase className="size-5 text-gray-700" />
               </div>
               <div className="flex-1">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">Professional Biography</h3>
+                <h3 className="mb-3 text-sm font-semibold text-gray-900">Professional Biography</h3>
                 {isEditing ? (
                   <Textarea
-                    value={formData.biography || ''}
+                    className="min-h-[120px]"
                     onChange={(e) => handleInputChange('biography', e.target.value)}
                     placeholder="Tell us about your experience and expertise..."
-                    className="min-h-[120px]"
+                    value={formData.biography || ''}
                   />
                 ) : (
-                  <p className="text-gray-700 leading-relaxed">
+                  <p className="leading-relaxed text-gray-700">
                     {profile.biography || 'No biography provided.'}
                   </p>
                 )}
@@ -424,20 +424,20 @@ export function ProfileDashboard({ profileId, userId, autoEdit = false }: Profil
         </Card>
 
         {/* Specialties Card - Full Width */}
-        <Card className="md:col-span-2 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="border border-gray-200 shadow-sm transition-shadow hover:shadow-md md:col-span-2">
           <CardContent className="p-6">
             <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-gray-100">
+              <div className="rounded-lg bg-gray-100 p-2">
                 <Briefcase className="size-5 text-gray-700" />
               </div>
               <div className="flex-1">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">Specialties</h3>
+                <h3 className="mb-3 text-sm font-semibold text-gray-900">Specialties</h3>
                 <div className="flex flex-wrap gap-2">
                   {profile.specialties_lo && profile.specialties_lo.length > 0 ? (
                     profile.specialties_lo.map((specialty: string, index: number) => (
                       <Badge
-                        key={index}
                         className="px-4 py-2 text-sm font-medium"
+                        key={index}
                         style={gradientStyle}
                       >
                         {specialty}
@@ -457,30 +457,30 @@ export function ProfileDashboard({ profileId, userId, autoEdit = false }: Profil
       {isEditing && (
         <div className="flex justify-end gap-3 pt-4">
           <Button
-            variant="outline"
-            onClick={handleCancel}
-            disabled={isSaving}
-            size="lg"
             className="px-6"
+            disabled={isSaving}
+            onClick={handleCancel}
+            size="lg"
+            variant="outline"
           >
-            <X className="size-4 mr-2" />
+            <X className="mr-2 size-4" />
             Cancel
           </Button>
           <Button
-            onClick={handleSave}
-            disabled={isSaving}
-            size="lg"
             className="px-6 text-white"
+            disabled={isSaving}
+            onClick={handleSave}
+            size="lg"
             style={gradientStyle}
           >
             {isSaving ? (
               <>
-                <Loader2 className="size-4 mr-2 animate-spin" />
+                <Loader2 className="mr-2 size-4 animate-spin" />
                 Saving...
               </>
             ) : (
               <>
-                <Save className="size-4 mr-2" />
+                <Save className="mr-2 size-4" />
                 Save Changes
               </>
             )}

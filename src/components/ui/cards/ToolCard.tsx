@@ -19,53 +19,53 @@ import { Card } from '../card';
 import { ExternalLink } from 'lucide-react';
 
 export interface ToolCardProps {
-  /** Icon to display (React element) */
-  icon: React.ReactNode;
-  /** Tool name */
-  title: string;
-  /** Optional description */
-  description?: string;
-  /** External link URL */
-  href?: string;
-  /** Click handler (alternative to href) */
-  onClick?: () => void;
   /** Badge text (e.g., "New", "Beta") */
   badge?: string;
   /** Badge variant */
   badgeVariant?: 'default' | 'new' | 'popular' | 'premium';
-  /** Whether to show external link indicator */
-  showExternalIcon?: boolean;
+  /** Additional className */
+  className?: string;
+  /** Optional description */
+  description?: string;
+  /** Card is disabled */
+  disabled?: boolean;
+  /** External link URL */
+  href?: string;
+  /** Icon to display (React element) */
+  icon: React.ReactNode;
   /** Icon background color */
   iconBgColor?: string;
   /** Icon color */
   iconColor?: string;
-  /** Card is disabled */
-  disabled?: boolean;
-  /** Additional className */
-  className?: string;
+  /** Click handler (alternative to href) */
+  onClick?: () => void;
+  /** Whether to show external link indicator */
+  showExternalIcon?: boolean;
   /** Size variant */
   size?: 'sm' | 'md' | 'lg';
+  /** Tool name */
+  title: string;
 }
 
 export function ToolCard({
-  icon,
-  title,
-  description,
-  href,
-  onClick,
   badge,
   badgeVariant = 'default',
-  showExternalIcon = true,
+  className,
+  description,
+  disabled = false,
+  href,
+  icon,
   iconBgColor,
   iconColor,
-  disabled = false,
-  className,
+  onClick,
+  showExternalIcon = true,
   size = 'md',
+  title,
 }: ToolCardProps) {
   const sizeClasses = {
-    sm: { card: 'p-3', icon: 'w-10 h-10', title: 'text-sm', desc: 'text-xs' },
-    md: { card: 'p-4', icon: 'w-12 h-12', title: 'text-base', desc: 'text-sm' },
-    lg: { card: 'p-5', icon: 'w-14 h-14', title: 'text-lg', desc: 'text-sm' },
+    lg: { card: 'p-5', desc: 'text-sm', icon: 'w-14 h-14', title: 'text-lg' },
+    md: { card: 'p-4', desc: 'text-sm', icon: 'w-12 h-12', title: 'text-base' },
+    sm: { card: 'p-3', desc: 'text-xs', icon: 'w-10 h-10', title: 'text-sm' },
   };
 
   const badgeStyles: Record<string, React.CSSProperties> = {
@@ -76,7 +76,7 @@ export function ToolCard({
   };
 
   const handleClick = () => {
-    if (disabled) return;
+    if (disabled) {return;}
     if (href) {
       window.open(href, '_blank', 'noopener,noreferrer');
     } else if (onClick) {
@@ -93,24 +93,24 @@ export function ToolCard({
         'border-[var(--brand-powder-blue)] bg-white',
         sizeClasses[size].card,
         disabled
-          ? 'opacity-50 cursor-not-allowed'
-          : 'cursor-pointer hover:shadow-lg hover:scale-[1.02] hover:border-[var(--brand-electric-blue)]',
+          ? 'cursor-not-allowed opacity-50'
+          : 'cursor-pointer hover:scale-[1.02] hover:border-[var(--brand-electric-blue)] hover:shadow-lg',
         className
       )}
       onClick={handleClick}
-      role={href ? 'link' : 'button'}
-      tabIndex={disabled ? -1 : 0}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           handleClick();
         }
       }}
+      role={href ? 'link' : 'button'}
+      tabIndex={disabled ? -1 : 0}
     >
       {/* Badge */}
       {badge && (
         <span
-          className="absolute -top-2 -right-2 px-2 py-0.5 text-xs font-medium rounded-full"
+          className="absolute -right-2 -top-2 rounded-full px-2 py-0.5 text-xs font-medium"
           style={badgeStyles[badgeVariant]}
         >
           {badge}
@@ -121,7 +121,7 @@ export function ToolCard({
       <div
         className={cn(
           sizeClasses[size].icon,
-          'rounded-xl flex items-center justify-center mb-3 transition-transform group-hover:scale-110'
+          'mb-3 flex items-center justify-center rounded-xl transition-transform group-hover:scale-110'
         )}
         style={{
           backgroundColor: iconBgColor || 'var(--brand-pale-blue)',
@@ -140,18 +140,18 @@ export function ToolCard({
       <h4
         className={cn(
           sizeClasses[size].title,
-          'font-medium text-[var(--brand-dark-navy)] flex items-center gap-1'
+          'flex items-center gap-1 font-medium text-[var(--brand-dark-navy)]'
         )}
       >
         {title}
         {isExternal && showExternalIcon && (
-          <ExternalLink className="h-3 w-3 text-[var(--brand-slate)] opacity-0 group-hover:opacity-100 transition-opacity" />
+          <ExternalLink className="size-3 text-[var(--brand-slate)] opacity-0 transition-opacity group-hover:opacity-100" />
         )}
       </h4>
 
       {/* Description */}
       {description && (
-        <p className={cn(sizeClasses[size].desc, 'text-[var(--brand-slate)] mt-1')}>
+        <p className={cn(sizeClasses[size].desc, 'mt-1 text-[var(--brand-slate)]')}>
           {description}
         </p>
       )}
@@ -166,16 +166,16 @@ export function ToolCard({
  */
 export interface ToolCardGridProps {
   children: React.ReactNode;
+  className?: string;
   columns?: 2 | 3 | 4 | 5 | 6;
   gap?: 'sm' | 'md' | 'lg';
-  className?: string;
 }
 
 export function ToolCardGrid({
   children,
+  className,
   columns = 4,
   gap = 'md',
-  className,
 }: ToolCardGridProps) {
   const columnClasses = {
     2: 'grid-cols-2',
@@ -186,9 +186,9 @@ export function ToolCardGrid({
   };
 
   const gapClasses = {
-    sm: 'gap-2',
-    md: 'gap-4',
     lg: 'gap-6',
+    md: 'gap-4',
+    sm: 'gap-2',
   };
 
   return (

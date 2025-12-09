@@ -1,14 +1,14 @@
 // Inspired by react-hot-toast library
-import * as React from "react"
+import { useState, useEffect } from "react"
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+const TOAST_REMOVE_DELAY = 1_000_000
 
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
-  UPDATE_TOAST: "UPDATE_TOAST",
   DISMISS_TOAST: "DISMISS_TOAST",
-  REMOVE_TOAST: "REMOVE_TOAST"
+  REMOVE_TOAST: "REMOVE_TOAST",
+  UPDATE_TOAST: "UPDATE_TOAST"
 }
 
 let count = 0
@@ -28,8 +28,8 @@ const addToRemoveQueue = (toastId) => {
   const timeout = setTimeout(() => {
     toastTimeouts.delete(toastId)
     dispatch({
+      toastId,
       type: "REMOVE_TOAST",
-      toastId: toastId,
     })
   }, TOAST_REMOVE_DELAY)
 
@@ -107,34 +107,34 @@ function toast({
 
   const update = (props) =>
     dispatch({
-      type: "UPDATE_TOAST",
       toast: { ...props, id },
+      type: "UPDATE_TOAST",
     })
-  const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id })
+  const dismiss = () => dispatch({ toastId: id, type: "DISMISS_TOAST" })
 
   dispatch({
-    type: "ADD_TOAST",
     toast: {
       ...props,
       id,
-      open: true,
       onOpenChange: (open) => {
-        if (!open) dismiss()
+        if (!open) {dismiss()}
       },
+      open: true,
     },
+    type: "ADD_TOAST",
   })
 
   return {
-    id: id,
     dismiss,
+    id,
     update,
   }
 }
 
 function useToast() {
-  const [state, setState] = React.useState(memoryState)
+  const [state, setState] = useState(memoryState)
 
-  React.useEffect(() => {
+  useEffect(() => {
     listeners.push(setState)
     return () => {
       const index = listeners.indexOf(setState)
@@ -146,8 +146,8 @@ function useToast() {
 
   return {
     ...state,
+    dismiss: (toastId) => dispatch({ toastId, type: "DISMISS_TOAST" }),
     toast,
-    dismiss: (toastId) => dispatch({ type: "DISMISS_TOAST", toastId }),
   };
 }
 

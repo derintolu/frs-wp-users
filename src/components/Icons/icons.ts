@@ -12,15 +12,15 @@ import DashboardIcon from "./DashboardIcon";
 export const Icons = Object.assign(
   {},
   {
+    AnalyticsIcon,
     CampaignsIcon,
     CommonInboxIcon,
-    AnalyticsIcon,
-    EmailIcon,
-    CrmIcon,
     ContactBookIcon,
-    SettingsIcon,
-    NotificationIcon,
+    CrmIcon,
+    DashboardIcon,
     DownIcon,
-    DashboardIcon
+    EmailIcon,
+    NotificationIcon,
+    SettingsIcon
   },
 );

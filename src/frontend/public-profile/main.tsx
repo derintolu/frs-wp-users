@@ -14,19 +14,22 @@ import { ProfileEditProvider } from "./contexts/ProfileEditContext";
 import "./index.css";
 
 // Wrapper component to manage viewed user state
-function ProfileWrapper({ userId, slug }: { userId?: string; slug?: string }) {
+function ProfileWrapper({ slug, userId }: { slug?: string, userId?: string; }) {
   const [viewedUser, setViewedUser] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<string>('profile');
 
   // Get current user info from WordPress (logged-in user)
   const config = (window as any).frsBPConfig || {};
   const currentUser = {
-    id: config.userId || '', // Logged-in user's ID
-    name: config.userName || 'User',
+    avatar: config.userAvatar || '', 
     email: config.userEmail || '',
-    avatar: config.userAvatar || '',
+    
+id: config.userId || '',
+    
+job_title: config.userJobTitle || '',
+    // Logged-in user's ID
+name: config.userName || 'User',
     profile_slug: config.userSlug || '',
-    job_title: config.userJobTitle || '',
   };
 
   // Determine if viewing own profile
@@ -37,11 +40,11 @@ function ProfileWrapper({ userId, slug }: { userId?: string; slug?: string }) {
   const handleProfileLoaded = (profile: any) => {
     if (profile) {
       setViewedUser({
-        name: `${profile.first_name} ${profile.last_name}`,
-        email: profile.email,
         avatar: profile.headshot_url,
-        profile_slug: profile.profile_slug,
+        email: profile.email,
         job_title: profile.job_title,
+        name: `${profile.first_name} ${profile.last_name}`,
+        profile_slug: profile.profile_slug,
       });
     }
   };
@@ -51,36 +54,36 @@ function ProfileWrapper({ userId, slug }: { userId?: string; slug?: string }) {
       <ProfileEditProvider>
         <BuddyPressLayout
           currentUser={currentUser}
-          viewedUser={viewedUser}
           isOwnProfile={isOwnProfile}
           onActiveTabChange={setActiveTab}
+          viewedUser={viewedUser}
         >
-        {({ isEditMode, viewport, exitEditMode }: any) =>
+        {({ exitEditMode, isEditMode, viewport }: any) =>
           isEditMode ? (
             <ProfileCustomizerLayout
               currentUser={currentUser}
-              userId={userId || currentUser.id}
               onExitEditMode={exitEditMode}
+              userId={userId || currentUser.id}
             >
               <HybridProfile
-                userId={userId}
-                slug={slug}
                 activeTab={activeTab}
-                onProfileLoaded={handleProfileLoaded}
                 isEditMode={isEditMode}
-                viewport={viewport}
                 isOwnProfile={isOwnProfile}
+                onProfileLoaded={handleProfileLoaded}
+                slug={slug}
+                userId={userId}
+                viewport={viewport}
               />
             </ProfileCustomizerLayout>
           ) : (
             <HybridProfile
-              userId={userId}
-              slug={slug}
               activeTab={activeTab}
-              onProfileLoaded={handleProfileLoaded}
               isEditMode={isEditMode}
-              viewport={viewport}
               isOwnProfile={isOwnProfile}
+              onProfileLoaded={handleProfileLoaded}
+              slug={slug}
+              userId={userId}
+              viewport={viewport}
             />
           )
         }
@@ -105,7 +108,7 @@ function mountProfiles() {
 
     try {
       createRoot(container).render(
-        <ProfileWrapper userId={userId} slug={slug} />
+        <ProfileWrapper slug={slug} userId={userId} />
       );
       container.setAttribute('data-mounted', 'true');
     } catch (error) {

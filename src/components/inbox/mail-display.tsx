@@ -57,8 +57,8 @@ export function MailDisplay({ mail }: MailDisplayProps) {
         <div className="flex items-center gap-2">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!mail}>
-                <Archive className="h-4 w-4" />
+              <Button disabled={!mail} size="icon" variant="ghost">
+                <Archive className="size-4" />
                 <span className="sr-only">Archive</span>
               </Button>
             </TooltipTrigger>
@@ -66,8 +66,8 @@ export function MailDisplay({ mail }: MailDisplayProps) {
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!mail}>
-                <ArchiveX className="h-4 w-4" />
+              <Button disabled={!mail} size="icon" variant="ghost">
+                <ArchiveX className="size-4" />
                 <span className="sr-only">Move to junk</span>
               </Button>
             </TooltipTrigger>
@@ -75,20 +75,20 @@ export function MailDisplay({ mail }: MailDisplayProps) {
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!mail}>
-                <Trash2 className="h-4 w-4" />
+              <Button disabled={!mail} size="icon" variant="ghost">
+                <Trash2 className="size-4" />
                 <span className="sr-only">Move to trash</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent>Move to trash</TooltipContent>
           </Tooltip>
-          <Separator orientation="vertical" className="mx-1 h-6" />
+          <Separator className="mx-1 h-6" orientation="vertical" />
           <Tooltip>
             <Popover>
               <PopoverTrigger asChild>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" disabled={!mail}>
-                    <Clock className="h-4 w-4" />
+                  <Button disabled={!mail} size="icon" variant="ghost">
+                    <Clock className="size-4" />
                     <span className="sr-only">Snooze</span>
                   </Button>
                 </TooltipTrigger>
@@ -98,8 +98,8 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                   <div className="px-4 text-sm font-medium">Snooze until</div>
                   <div className="grid min-w-[250px] gap-1">
                     <Button
-                      variant="ghost"
                       className="justify-start font-normal"
+                      variant="ghost"
                     >
                       Later today{" "}
                       <span className="ml-auto text-muted-foreground">
@@ -107,8 +107,8 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                       </span>
                     </Button>
                     <Button
-                      variant="ghost"
                       className="justify-start font-normal"
+                      variant="ghost"
                     >
                       Tomorrow
                       <span className="ml-auto text-muted-foreground">
@@ -116,8 +116,8 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                       </span>
                     </Button>
                     <Button
-                      variant="ghost"
                       className="justify-start font-normal"
+                      variant="ghost"
                     >
                       This weekend
                       <span className="ml-auto text-muted-foreground">
@@ -125,8 +125,8 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                       </span>
                     </Button>
                     <Button
-                      variant="ghost"
                       className="justify-start font-normal"
+                      variant="ghost"
                     >
                       Next week
                       <span className="ml-auto text-muted-foreground">
@@ -146,8 +146,8 @@ export function MailDisplay({ mail }: MailDisplayProps) {
         <div className="ml-auto flex items-center gap-2">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!mail}>
-                <Reply className="h-4 w-4" />
+              <Button disabled={!mail} size="icon" variant="ghost">
+                <Reply className="size-4" />
                 <span className="sr-only">Reply</span>
               </Button>
             </TooltipTrigger>
@@ -155,8 +155,8 @@ export function MailDisplay({ mail }: MailDisplayProps) {
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!mail}>
-                <ReplyAll className="h-4 w-4" />
+              <Button disabled={!mail} size="icon" variant="ghost">
+                <ReplyAll className="size-4" />
                 <span className="sr-only">Reply all</span>
               </Button>
             </TooltipTrigger>
@@ -164,19 +164,19 @@ export function MailDisplay({ mail }: MailDisplayProps) {
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!mail}>
-                <Forward className="h-4 w-4" />
+              <Button disabled={!mail} size="icon" variant="ghost">
+                <Forward className="size-4" />
                 <span className="sr-only">Forward</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent>Forward</TooltipContent>
           </Tooltip>
         </div>
-        <Separator orientation="vertical" className="mx-2 h-6" />
+        <Separator className="mx-2 h-6" orientation="vertical" />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" disabled={!mail}>
-              <MoreVertical className="h-4 w-4" />
+            <Button disabled={!mail} size="icon" variant="ghost">
+              <MoreVertical className="size-4" />
               <span className="sr-only">More</span>
             </Button>
           </DropdownMenuTrigger>
@@ -230,16 +230,16 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                 />
                 <div className="flex items-center">
                   <Label
-                    htmlFor="mute"
                     className="flex items-center gap-2 text-xs font-normal"
+                    htmlFor="mute"
                   >
-                    <Switch id="mute" aria-label="Mute thread" /> Mute this
+                    <Switch aria-label="Mute thread" id="mute" /> Mute this
                     thread
                   </Label>
                   <Button
+                    className="ml-auto"
                     onClick={(e) => e.preventDefault()}
                     size="sm"
-                    className="ml-auto"
                   >
                     Send
                   </Button>

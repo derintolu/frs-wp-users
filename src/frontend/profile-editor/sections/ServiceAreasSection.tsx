@@ -11,13 +11,13 @@ interface Profile {
 }
 
 interface ServiceAreasSectionProps {
-	profile: Profile;
 	onChange: (updates: Partial<Profile>) => void;
+	profile: Profile;
 }
 
 export default function ServiceAreasSection({
-	profile,
 	onChange,
+	profile,
 }: ServiceAreasSectionProps) {
 	const [newArea, setNewArea] = useState('');
 	const areas = profile.service_areas || [];
@@ -47,7 +47,7 @@ export default function ServiceAreasSection({
 	return (
 		<div className="space-y-6">
 			<div>
-				<h2 className="text-2xl font-bold mb-2">Service Areas</h2>
+				<h2 className="mb-2 text-2xl font-bold">Service Areas</h2>
 				<p className="text-gray-600">
 					Add the cities and regions where you provide services. This helps
 					potential clients find you when searching by location.
@@ -57,30 +57,30 @@ export default function ServiceAreasSection({
 			{/* Add New Area */}
 			<Card className="p-4">
 				<Label htmlFor="new-area">Add Service Area</Label>
-				<div className="flex gap-2 mt-2">
+				<div className="mt-2 flex gap-2">
 					<Input
 						id="new-area"
-						value={newArea}
 						onChange={(e) => setNewArea(e.target.value)}
 						onKeyPress={handleKeyPress}
 						placeholder="e.g., Los Angeles, Orange County, San Diego"
+						value={newArea}
 					/>
-					<Button onClick={addArea} disabled={!newArea.trim()}>
-						<Plus className="w-4 h-4 mr-2" />
+					<Button disabled={!newArea.trim()} onClick={addArea}>
+						<Plus className="mr-2 size-4" />
 						Add
 					</Button>
 				</div>
-				<p className="text-sm text-gray-500 mt-2">
+				<p className="mt-2 text-sm text-gray-500">
 					Press Enter or click Add to add a service area
 				</p>
 			</Card>
 
 			{/* Current Service Areas */}
 			<div>
-				<h3 className="text-lg font-semibold mb-3">Your Service Areas</h3>
+				<h3 className="mb-3 text-lg font-semibold">Your Service Areas</h3>
 				{areas.length === 0 ? (
-					<Card className="p-8 text-center border-dashed">
-						<MapPin className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+					<Card className="border-dashed p-8 text-center">
+						<MapPin className="mx-auto mb-3 size-12 text-gray-400" />
 						<p className="text-gray-600">
 							No service areas added yet. Add the cities and regions where you
 							serve clients.
@@ -90,18 +90,18 @@ export default function ServiceAreasSection({
 					<div className="flex flex-wrap gap-2">
 						{areas.map((area, index) => (
 							<Badge
+								className="flex items-center gap-2 px-3 py-2 text-sm"
 								key={index}
 								variant="secondary"
-								className="px-3 py-2 text-sm flex items-center gap-2"
 							>
-								<MapPin className="w-3 h-3" />
+								<MapPin className="size-3" />
 								<span>{area}</span>
 								<button
-									onClick={() => removeArea(area)}
 									className="ml-1 hover:text-red-600"
+									onClick={() => removeArea(area)}
 									title="Remove"
 								>
-									<X className="w-3 h-3" />
+									<X className="size-3" />
 								</button>
 							</Badge>
 						))}
@@ -109,12 +109,12 @@ export default function ServiceAreasSection({
 				)}
 			</div>
 
-			<div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-				<h4 className="font-semibold text-blue-900 mb-2">
+			<div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+				<h4 className="mb-2 font-semibold text-blue-900">
 					Tips for Service Areas
 				</h4>
-				<ul className="text-sm text-blue-800 space-y-1">
-					<li>• Include both cities and broader regions (e.g., "Orange County")</li>
+				<ul className="space-y-1 text-sm text-blue-800">
+					<li>• Include both cities and broader regions (e.g., &quot;Orange County&quot;)</li>
 					<li>• Use well-known location names that clients would search for</li>
 					<li>
 						• Service areas appear in your profile and help with local search

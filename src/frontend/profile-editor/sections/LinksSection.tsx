@@ -15,11 +15,11 @@ interface Profile {
 }
 
 interface LinksSectionProps {
-	profile: Profile;
 	onChange: (updates: Partial<Profile>) => void;
+	profile: Profile;
 }
 
-export default function LinksSection({ profile, onChange }: LinksSectionProps) {
+export default function LinksSection({ onChange, profile }: LinksSectionProps) {
 	const links = profile.custom_links || [];
 
 	const addLink = () => {
@@ -60,7 +60,7 @@ export default function LinksSection({ profile, onChange }: LinksSectionProps) {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h2 className="text-2xl font-bold mb-2">Custom Links</h2>
+				<h2 className="mb-2 text-2xl font-bold">Custom Links</h2>
 				<p className="text-gray-600">
 					Add custom links to important resources, tools, or pages. These will
 					appear on your profile and biolink page.
@@ -69,30 +69,30 @@ export default function LinksSection({ profile, onChange }: LinksSectionProps) {
 
 			<div className="space-y-3">
 				{links.length === 0 ? (
-					<Card className="p-8 text-center border-dashed">
-						<ExternalLink className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-						<p className="text-gray-600 mb-4">
+					<Card className="border-dashed p-8 text-center">
+						<ExternalLink className="mx-auto mb-3 size-12 text-gray-400" />
+						<p className="mb-4 text-gray-600">
 							No custom links yet. Add links to your resources, tools, or important
 							pages.
 						</p>
 						<Button onClick={addLink} variant="outline">
-							<Plus className="w-4 h-4 mr-2" />
+							<Plus className="mr-2 size-4" />
 							Add Your First Link
 						</Button>
 					</Card>
 				) : (
 					<>
 						{links.map((link, index) => (
-							<Card key={index} className="p-4">
+							<Card className="p-4" key={index}>
 								<div className="flex items-start gap-3">
-									<div className="flex flex-col gap-1 mt-2">
+									<div className="mt-2 flex flex-col gap-1">
 										<button
-											onClick={() => moveLink(index, 'up')}
+											className="text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-30"
 											disabled={index === 0}
-											className="text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
+											onClick={() => moveLink(index, 'up')}
 											title="Move up"
 										>
-											<GripVertical className="w-4 h-4" />
+											<GripVertical className="size-4" />
 										</button>
 									</div>
 
@@ -101,49 +101,49 @@ export default function LinksSection({ profile, onChange }: LinksSectionProps) {
 											<Label htmlFor={`link-title-${index}`}>Link Title</Label>
 											<Input
 												id={`link-title-${index}`}
-												value={link.title}
 												onChange={(e) =>
 													updateLink(index, 'title', e.target.value)
 												}
 												placeholder="e.g., Mortgage Calculator, Apply Now, Resources"
+												value={link.title}
 											/>
 										</div>
 										<div>
 											<Label htmlFor={`link-url-${index}`}>URL</Label>
 											<Input
 												id={`link-url-${index}`}
-												type="url"
-												value={link.url}
 												onChange={(e) => updateLink(index, 'url', e.target.value)}
 												placeholder="https://example.com"
+												type="url"
+												value={link.url}
 											/>
 										</div>
 									</div>
 
 									<button
+										className="mt-2 p-2 text-red-500 hover:text-red-700"
 										onClick={() => removeLink(index)}
-										className="text-red-500 hover:text-red-700 p-2 mt-2"
 										title="Remove link"
 									>
-										<X className="w-5 h-5" />
+										<X className="size-5" />
 									</button>
 								</div>
 							</Card>
 						))}
 
-						<Button onClick={addLink} variant="outline" className="w-full">
-							<Plus className="w-4 h-4 mr-2" />
+						<Button className="w-full" onClick={addLink} variant="outline">
+							<Plus className="mr-2 size-4" />
 							Add Another Link
 						</Button>
 					</>
 				)}
 			</div>
 
-			<div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-				<h4 className="font-semibold text-blue-900 mb-2">
+			<div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+				<h4 className="mb-2 font-semibold text-blue-900">
 					Examples of Custom Links
 				</h4>
-				<ul className="text-sm text-blue-800 space-y-1">
+				<ul className="space-y-1 text-sm text-blue-800">
 					<li>• Mortgage calculator or rate sheets</li>
 					<li>• Online application portal</li>
 					<li>• Client resources or guides</li>

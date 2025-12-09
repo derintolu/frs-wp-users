@@ -1,24 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { FloatingInput } from '@/components/ui/floating-input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 // Avatar components removed - using simple div implementations
 import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
 import QRCodeStyling from 'qr-code-styling';
 import {
   User,
   Mail,
   Phone,
   MapPin,
-  Building,
   Camera,
-  Upload,
   Edit,
   Save,
   X,
@@ -29,45 +23,41 @@ import {
   Shield,
   Bell,
   FileText,
-  ExternalLink,
   CheckSquare,
-  Link,
   Smartphone,
   QrCode
 } from 'lucide-react';
-import { ImageWithFallback } from './figma/ImageWithFallback';
 import { LoadingSpinner } from '@/components/ui/loading';
 import { DataService } from '../utils/dataService';
-import { ProfileTour, TourTrigger } from './ProfileTour';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 
 // Read-only field display component
-const ReadOnlyField = ({ icon: Icon, value, label }: { icon: any, value: string, label?: string }) => (
-  <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-md border">
-    <Icon className="h-4 w-4 text-[var(--brand-slate)] flex-shrink-0" />
+const ReadOnlyField = ({ icon: Icon, label, value }: { icon: any, label?: string, value: string }) => (
+  <div className="flex items-center space-x-3 rounded-md border bg-gray-50 p-3">
+    <Icon className="size-4 shrink-0 text-[var(--brand-slate)]" />
     <span className="text-[var(--brand-dark-navy)]">{value}</span>
   </div>
 );
 
 const ReadOnlyTextarea = ({ icon: Icon, value }: { icon: any, value: string }) => (
   <div className="flex items-start space-x-3 py-2">
-    <Icon className="h-4 w-4 text-blue-600 flex-shrink-0 mt-1" />
-    <div className="text-gray-900 whitespace-pre-wrap leading-relaxed">{value}</div>
+    <Icon className="mt-1 size-4 shrink-0 text-blue-600" />
+    <div className="whitespace-pre-wrap leading-relaxed text-gray-900">{value}</div>
   </div>
 );
 
 interface ProfileSectionProps {
-  userRole: 'loan-officer' | 'realtor';
-  userId: string;
   activeTab?: 'welcome' | 'personal' | 'settings';
   autoEdit?: boolean;
   tourAttributes?: {
     announcements?: string;
     profileSummary?: string;
   };
+  userId: string;
+  userRole: 'loan-officer' | 'realtor';
 }
 
-export function ProfileSection({ userRole, userId, activeTab: externalActiveTab, autoEdit = false, tourAttributes }: ProfileSectionProps) {
+export function ProfileSection({ activeTab: externalActiveTab, autoEdit = false, tourAttributes, userId, userRole }: ProfileSectionProps) {
   const [activeTab, setActiveTab] = useState(externalActiveTab || 'welcome');
   const [isEditing, setIsEditing] = useState(autoEdit);
   const [isSaving, setIsSaving] = useState(false);
@@ -87,39 +77,39 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
 
   // User profile data - initialize with empty values, load from WordPress
   const [profileData, setProfileData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    mobileNumber: '',
-    title: '',
-    company: '',
-    nmls: '',
-    nmls_number: '',
-    license_number: '',
-    dre_license: '',
-    location: '',
-    bio: '',
-    website: '',
-    linkedin: '',
-    facebook: '',
-    instagram: '',
-    twitter: '',
-    youtube: '',
-    tiktok: '',
-    profileImage: '',
-    specialtiesLo: [] as string[],
-    specialties: [] as string[],
-    languages: [] as string[],
+    arrive: '',
     awards: [] as string[],
+    bio: '',
+    brand: '',
+    canvaFolderLink: '',
+    company: '',
+    dre_license: '',
+    email: '',
+    facebook: '',
+    firstName: '',
+    instagram: '',
+    languages: [] as string[],
+    lastName: '',
+    license_number: '',
+    linkedin: '',
+    location: '',
+    mobileNumber: '',
     nambCertifications: [] as string[],
     narDesignations: [] as string[],
-    serviceAreas: [] as string[],
-    brand: '',
-    arrive: '',
-    canvaFolderLink: '',
     nicheBioContent: '',
-    username: ''
+    nmls: '',
+    nmls_number: '',
+    phone: '',
+    profileImage: '',
+    serviceAreas: [] as string[],
+    specialties: [] as string[],
+    specialtiesLo: [] as string[],
+    tiktok: '',
+    title: '',
+    twitter: '',
+    username: '',
+    website: '',
+    youtube: ''
   });
 
   // Person CPT data
@@ -165,18 +155,20 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
               const nameParts = personData.name?.split(' ') || [];
               setProfileData(prev => ({
                 ...prev,
+                bio: personData.biography || prev.bio,
+                company: '21st Century Lending',
+                email: personData.primary_business_email || prev.email,
+                facebook: personData.facebook_url || prev.facebook,
                 firstName: nameParts[0] || prev.firstName,
                 lastName: nameParts.slice(1).join(' ') || prev.lastName,
-                email: personData.primary_business_email || prev.email,
-                phone: personData.phone_number || prev.phone,
-                title: personData.job_title || prev.title,
-                bio: personData.biography || prev.bio,
                 linkedin: personData.linkedin_url || prev.linkedin,
-                facebook: personData.facebook_url || prev.facebook,
-                profileImage: personData.headshot || prev.profileImage,
-                company: '21st Century Lending', // Fixed company for all users
-                specialtiesLo: Array.isArray(personData.specialties_lo) ? personData.specialties_lo : [],
-                nambCertifications: Array.isArray(personData.namb_certifications) ? personData.namb_certifications : []
+                nambCertifications: Array.isArray(personData.namb_certifications) ? personData.namb_certifications : [],
+                phone: personData.phone_number || prev.phone,
+                profileImage: personData.headshot || prev.profileImage, 
+                // Fixed company for all users
+specialtiesLo: Array.isArray(personData.specialties_lo) ? personData.specialties_lo : [],
+                
+title: personData.job_title || prev.title
               }));
             }
           }
@@ -189,38 +181,38 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
           const nameParts = user.name?.split(' ') || [];
           setProfileData(prev => ({
             ...prev,
-            firstName: prev.firstName || nameParts[0] || '',
-            lastName: prev.lastName || nameParts.slice(1).join(' ') || '',
-            email: prev.email || user.email || '',
-            phone: prev.phone || user.phone || '',
-            mobileNumber: prev.mobileNumber || user.mobile_number || '',
-            title: prev.title || user.title || user.job_title || '',
-            company: user.company || user.office || '21st Century Lending',
-            nmls: user.nmls || user.nmls_number || '',
-            nmls_number: user.nmls_number || user.nmls || '',
-            license_number: user.license_number || '',
-            dre_license: user.dre_license || '',
-            location: prev.location || user.location || user.city_state || '',
-            bio: prev.bio || user.biography || '',
-            website: user.website || '',
-            linkedin: prev.linkedin || user.linkedin_url || '',
-            facebook: prev.facebook || user.facebook_url || '',
-            instagram: prev.instagram || user.instagram_url || '',
-            twitter: prev.twitter || user.twitter_url || '',
-            youtube: prev.youtube || user.youtube_url || '',
-            tiktok: prev.tiktok || user.tiktok_url || '',
-            profileImage: prev.profileImage || user.avatar || user.headshot_url || '',
-            specialtiesLo: user.specialties_lo || prev.specialtiesLo || [],
-            specialties: user.specialties || prev.specialties || [],
-            languages: user.languages || prev.languages || [],
+            arrive: user.arrive || prev.arrive || '',
             awards: user.awards || prev.awards || [],
+            bio: prev.bio || user.biography || '',
+            brand: user.brand || prev.brand || '',
+            canvaFolderLink: user.canva_folder_link || prev.canvaFolderLink || '',
+            company: user.company || user.office || '21st Century Lending',
+            dre_license: user.dre_license || '',
+            email: prev.email || user.email || '',
+            facebook: prev.facebook || user.facebook_url || '',
+            firstName: prev.firstName || nameParts[0] || '',
+            instagram: prev.instagram || user.instagram_url || '',
+            languages: user.languages || prev.languages || [],
+            lastName: prev.lastName || nameParts.slice(1).join(' ') || '',
+            license_number: user.license_number || '',
+            linkedin: prev.linkedin || user.linkedin_url || '',
+            location: prev.location || user.location || user.city_state || '',
+            mobileNumber: prev.mobileNumber || user.mobile_number || '',
             nambCertifications: user.namb_certifications || prev.nambCertifications || [],
             narDesignations: user.nar_designations || prev.narDesignations || [],
-            brand: user.brand || prev.brand || '',
-            arrive: user.arrive || prev.arrive || '',
-            canvaFolderLink: user.canva_folder_link || prev.canvaFolderLink || '',
             nicheBioContent: user.niche_bio_content || prev.nicheBioContent || '',
-            username: user.username || user.user_nicename || ''
+            nmls: user.nmls || user.nmls_number || '',
+            nmls_number: user.nmls_number || user.nmls || '',
+            phone: prev.phone || user.phone || '',
+            profileImage: prev.profileImage || user.avatar || user.headshot_url || '',
+            specialties: user.specialties || prev.specialties || [],
+            specialtiesLo: user.specialties_lo || prev.specialtiesLo || [],
+            tiktok: prev.tiktok || user.tiktok_url || '',
+            title: prev.title || user.title || user.job_title || '',
+            twitter: prev.twitter || user.twitter_url || '',
+            username: user.username || user.user_nicename || '',
+            website: user.website || '',
+            youtube: prev.youtube || user.youtube_url || ''
           }));
         }
       } catch (error) {
@@ -282,54 +274,54 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
 
       try {
         const qrCode = new QRCodeStyling({
-          type: 'canvas',
-          shape: 'square',
-          width: qrSize,
-          height: qrSize,
-          data: biolinkUrl,
-          margin: 0,
-          qrOptions: {
-            typeNumber: 0,
-            mode: 'Byte',
-            errorCorrectionLevel: 'L'
-          },
-          dotsOptions: {
-            type: 'extra-rounded',
-            roundSize: true,
-            gradient: {
-              type: 'linear',
-              rotation: 0,
-              colorStops: [
-                { offset: 0, color: '#2563eb' },
-                { offset: 1, color: '#2dd4da' }
-              ]
-            }
-          },
           backgroundOptions: {
             color: '#ffffff'
           },
-          cornersSquareOptions: {
-            type: 'extra-rounded',
-            gradient: {
-              type: 'linear',
-              rotation: 0,
-              colorStops: [
-                { offset: 0, color: '#2563ea' },
-                { offset: 1, color: '#2dd4da' }
-              ]
-            }
-          },
           cornersDotOptions: {
-            type: '',
             gradient: {
-              type: 'linear',
-              rotation: 0,
               colorStops: [
-                { offset: 0, color: '#2dd4da' },
-                { offset: 1, color: '#2563e9' }
-              ]
-            }
-          }
+                { color: '#2dd4da', offset: 0 },
+                { color: '#2563e9', offset: 1 }
+              ],
+              rotation: 0,
+              type: 'linear'
+            },
+            type: ''
+          },
+          cornersSquareOptions: {
+            gradient: {
+              colorStops: [
+                { color: '#2563ea', offset: 0 },
+                { color: '#2dd4da', offset: 1 }
+              ],
+              rotation: 0,
+              type: 'linear'
+            },
+            type: 'extra-rounded'
+          },
+          data: biolinkUrl,
+          dotsOptions: {
+            gradient: {
+              colorStops: [
+                { color: '#2563eb', offset: 0 },
+                { color: '#2dd4da', offset: 1 }
+              ],
+              rotation: 0,
+              type: 'linear'
+            },
+            roundSize: true,
+            type: 'extra-rounded'
+          },
+          height: qrSize,
+          margin: 0,
+          qrOptions: {
+            errorCorrectionLevel: 'L',
+            mode: 'Byte',
+            typeNumber: 0
+          },
+          shape: 'square',
+          type: 'canvas',
+          width: qrSize
         });
 
         qrCode.append(qrCodeRef.current);
@@ -363,7 +355,7 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
         const successMsg = document.createElement('div');
         successMsg.className = 'fixed top-20 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
         successMsg.textContent = 'Profile saved successfully!';
-        document.body.appendChild(successMsg);
+        document.body.append(successMsg);
         setTimeout(() => successMsg.remove(), 3000);
 
         // Reload the page to fetch latest data from server
@@ -393,7 +385,7 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex min-h-[400px] items-center justify-center">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -401,8 +393,8 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
 
   if (error) {
     return (
-      <div className="text-center py-8">
-        <p className="text-red-600 mb-4">{error}</p>
+      <div className="py-8 text-center">
+        <p className="mb-4 text-red-600">{error}</p>
         <Button onClick={() => window.location.reload()}>
           Try Again
         </Button>
@@ -419,50 +411,50 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
 
   // Map profileData to the format expected by ProfileCompletionSection
   const completionData = {
-    first_name: profileData.firstName,
-    last_name: profileData.lastName,
-    email: profileData.email,
-    phone: profileData.phone,
-    job_title: profileData.title,
-    company: profileData.company,
-    nmls_id: profileData.nmls,
     bio: profileData.bio,
-    linkedin_url: profileData.linkedin,
+    company: profileData.company,
+    email: profileData.email,
     facebook_url: profileData.facebook,
+    first_name: profileData.firstName,
     instagram_url: profileData.instagram,
+    job_title: profileData.title,
+    last_name: profileData.lastName,
+    linkedin_url: profileData.linkedin,
+    nmls_id: profileData.nmls,
+    phone: profileData.phone,
   };
 
   return (
     <div className="space-y-4" style={{ marginTop: '-30px' }}>
       {/* Tab Content - Show based on currentTab */}
       {currentTab === 'welcome' && (
-        <div className="space-y-4 mt-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="mt-4 space-y-4">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {/* Profile Details Card */}
             <Card className="border-[var(--brand-powder-blue)] max-md:rounded-none md:rounded" data-tour={tourAttributes?.profileSummary}>
               <CardContent className="p-6">
                 <div className="space-y-6">
                   {/* Profile Header */}
                   <div className="flex items-start space-x-4">
-                    <div className="w-20 h-20 rounded-full flex items-center justify-center flex-shrink-0" style={{
+                    <div className="flex size-20 shrink-0 items-center justify-center rounded-full" style={{
                       background: 'linear-gradient(135deg, #5ce1e6, #3851DD)',
                       padding: '2px'
                     }}>
-                      <div className="w-full h-full rounded-full overflow-hidden bg-[var(--brand-pale-blue)] flex items-center justify-center">
+                      <div className="flex size-full items-center justify-center overflow-hidden rounded-full bg-[var(--brand-pale-blue)]">
                         {profileData.profileImage ? (
-                          <img src={profileData.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                          <img alt="Profile" className="size-full object-cover" src={profileData.profileImage} />
                         ) : (
-                          <span className="text-xl text-[var(--brand-dark-navy)] font-semibold">
+                          <span className="text-xl font-semibold text-[var(--brand-dark-navy)]">
                             {(profileData.firstName?.[0] || '?')}{(profileData.lastName?.[0] || '')}
                           </span>
                         )}
                       </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-semibold text-[var(--brand-dark-navy)] mb-1">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="mb-1 text-lg font-semibold text-[var(--brand-dark-navy)]">
                         {profileData.firstName} {profileData.lastName}
                       </h3>
-                      <p className="text-[var(--brand-slate)] mb-1">{profileData.title}</p>
+                      <p className="mb-1 text-[var(--brand-slate)]">{profileData.title}</p>
                       <p className="text-sm text-[var(--brand-slate)]">
                         {profileData.company}
                         {profileData.nmls && <span className="ml-2">• NMLS #{profileData.nmls}</span>}
@@ -472,17 +464,17 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
 
                   {/* Contact Info Grid */}
                   <div className="grid grid-cols-1 gap-3">
-                    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                      <Mail className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                      <span className="text-sm font-medium truncate">{profileData.email}</span>
+                    <div className="flex items-center space-x-3 rounded-lg bg-gray-50 p-3">
+                      <Mail className="size-4 shrink-0 text-blue-600" />
+                      <span className="truncate text-sm font-medium">{profileData.email}</span>
                     </div>
-                    <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                      <Phone className="h-4 w-4 text-green-600 flex-shrink-0" />
+                    <div className="flex items-center space-x-3 rounded-lg bg-gray-50 p-3">
+                      <Phone className="size-4 shrink-0 text-green-600" />
                       <span className="text-sm font-medium">{profileData.phone || 'Not provided'}</span>
                     </div>
                     {profileData.location && (
-                      <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                        <MapPin className="h-4 w-4 text-red-600 flex-shrink-0" />
+                      <div className="flex items-center space-x-3 rounded-lg bg-gray-50 p-3">
+                        <MapPin className="size-4 shrink-0 text-red-600" />
                         <span className="text-sm font-medium">{profileData.location}</span>
                       </div>
                     )}
@@ -490,12 +482,12 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
 
                   {/* Arrive Link as text */}
                   {personCPTData?.arrive && (
-                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <Globe className="h-4 w-4 text-blue-600" />
+                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+                      <div className="mb-1 flex items-center space-x-2">
+                        <Globe className="size-4 text-blue-600" />
                         <span className="text-sm font-medium text-blue-900">Arrive Registration</span>
                       </div>
-                      <p className="text-xs text-blue-700 break-all ml-6">{personCPTData.arrive}</p>
+                      <p className="ml-6 break-all text-xs text-blue-700">{personCPTData.arrive}</p>
                     </div>
                   )}
 
@@ -503,18 +495,18 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
                   {(profileData.linkedin || profileData.facebook || profileData.website) && (
                     <div className="flex space-x-2">
                       {profileData.linkedin && (
-                        <Button size="sm" variant="outline" onClick={() => window.open(profileData.linkedin, '_blank')}>
-                          <Linkedin className="h-4 w-4" />
+                        <Button onClick={() => window.open(profileData.linkedin, '_blank')} size="sm" variant="outline">
+                          <Linkedin className="size-4" />
                         </Button>
                       )}
                       {profileData.facebook && (
-                        <Button size="sm" variant="outline" onClick={() => window.open(profileData.facebook, '_blank')}>
-                          <Facebook className="h-4 w-4" />
+                        <Button onClick={() => window.open(profileData.facebook, '_blank')} size="sm" variant="outline">
+                          <Facebook className="size-4" />
                         </Button>
                       )}
                       {profileData.website && (
-                        <Button size="sm" variant="outline" onClick={() => window.open(profileData.website, '_blank')}>
-                          <Globe className="h-4 w-4" />
+                        <Button onClick={() => window.open(profileData.website, '_blank')} size="sm" variant="outline">
+                          <Globe className="size-4" />
                         </Button>
                       )}
                     </div>
@@ -525,9 +517,9 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
 
             {/* Announcements Card */}
             <Card className="border-[var(--brand-powder-blue)] max-md:rounded-none md:rounded" data-tour={tourAttributes?.announcements}>
-              <CardHeader className="h-12 flex items-center px-4 max-md:rounded-t-none md:rounded-t" style={{ backgroundColor: '#B6C7D9' }}>
-                <CardTitle className="flex items-center gap-1 text-gray-700 text-sm">
-                  <Bell className="h-3 w-3" />
+              <CardHeader className="flex h-12 items-center px-4 max-md:rounded-t-none md:rounded-t" style={{ backgroundColor: '#B6C7D9' }}>
+                <CardTitle className="flex items-center gap-1 text-sm text-gray-700">
+                  <Bell className="size-3" />
                   Announcements
                 </CardTitle>
               </CardHeader>
@@ -536,8 +528,8 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
                   <div className="space-y-3">
                     {announcements.slice(0, 3).map((announcement) => (
                       <div
+                        className="cursor-pointer rounded-lg border-l-4 border-l-blue-500 bg-gray-50 p-4 transition-all hover:bg-gray-100 hover:shadow-md"
                         key={announcement.id}
-                        className="p-4 rounded-lg cursor-pointer transition-all hover:shadow-md border-l-4 bg-gray-50 border-l-blue-500 hover:bg-gray-100"
                         onClick={() => {
                           setSelectedAnnouncement(announcement);
                           setIsAnnouncementModalOpen(true);
@@ -545,24 +537,24 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <h4 className="font-medium text-[var(--brand-dark-navy)] text-sm">
+                            <div className="mb-2 flex items-center space-x-2">
+                              <h4 className="text-sm font-medium text-[var(--brand-dark-navy)]">
                                 {announcement.title}
                               </h4>
                               {announcement.priority === 'high' && (
-                                <Badge variant="destructive" className="text-xs px-2 py-1">
+                                <Badge className="px-2 py-1 text-xs" variant="destructive">
                                   Priority
                                 </Badge>
                               )}
                             </div>
-                            <p className="text-xs text-[var(--brand-slate)] mb-2 line-clamp-2">
+                            <p className="mb-2 line-clamp-2 text-xs text-[var(--brand-slate)]">
                               {announcement.excerpt}
                             </p>
                             <div className="flex items-center justify-between">
                               <p className="text-xs text-[var(--brand-slate)]">
                                 {new Date(announcement.date).toLocaleDateString()}
                               </p>
-                              <div className={`w-2 h-2 rounded-full ${
+                              <div className={`size-2 rounded-full ${
                                 announcement.priority === 'high' ? 'bg-red-500' : 'bg-blue-500'
                               }`}></div>
                             </div>
@@ -571,7 +563,7 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
                       </div>
                     ))}
                     {announcements.length > 3 && (
-                      <div className="text-center pt-2">
+                      <div className="pt-2 text-center">
                         <p className="text-xs text-[var(--brand-slate)]">
                           +{announcements.length - 3} more announcements
                         </p>
@@ -579,8 +571,8 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
                     )}
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <Bell className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                  <div className="py-8 text-center">
+                    <Bell className="mx-auto mb-2 size-8 text-gray-300" />
                     <p className="text-sm text-[var(--brand-slate)]">
                       No announcements at this time
                     </p>
@@ -593,33 +585,33 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
           {/* Custom Links Section */}
           {customLinks.length > 0 && (
             <Card className="border-[var(--brand-powder-blue)] max-md:rounded-none md:rounded">
-              <CardHeader className="h-12 flex items-center px-4 max-md:rounded-t-none md:rounded-t" style={{ backgroundColor: '#B6C7D9' }}>
-                <CardTitle className="flex items-center gap-1 text-gray-700 text-sm">
-                  <Globe className="h-3 w-3" />
+              <CardHeader className="flex h-12 items-center px-4 max-md:rounded-t-none md:rounded-t" style={{ backgroundColor: '#B6C7D9' }}>
+                <CardTitle className="flex items-center gap-1 text-sm text-gray-700">
+                  <Globe className="size-3" />
                   Quick Links
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {customLinks.map((link) => (
                     <div
+                      className="group cursor-pointer rounded-lg border p-4 transition-shadow hover:shadow-md"
                       key={link.id}
-                      className="p-4 border rounded-lg cursor-pointer hover:shadow-md transition-shadow group"
                       onClick={() => window.open(link.url, '_blank')}
-                      style={{ borderColor: link.color + '20', backgroundColor: link.color + '05' }}
+                      style={{ backgroundColor: link.color + '05', borderColor: link.color + '20' }}
                     >
                       <div className="flex items-start space-x-3">
                         <div
-                          className="w-10 h-10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform"
+                          className="flex size-10 items-center justify-center rounded-lg transition-transform group-hover:scale-110"
                           style={{ backgroundColor: link.color + '15' }}
                         >
                           <span style={{ color: link.color }}>🔗</span>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-[var(--brand-dark-navy)] text-sm truncate">
+                        <div className="min-w-0 flex-1">
+                          <h4 className="truncate text-sm font-medium text-[var(--brand-dark-navy)]">
                             {link.title}
                           </h4>
-                          <p className="text-xs text-[var(--brand-slate)] mt-1 line-clamp-2">
+                          <p className="mt-1 line-clamp-2 text-xs text-[var(--brand-slate)]">
                             {link.description}
                           </p>
                         </div>
@@ -638,23 +630,23 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
         <div className="space-y-4" style={{ paddingTop: '30px' }}>
 
           {/* Two Column Layout: Profile Card + Links & Social */}
-          <div className="grid grid-cols-1 md:grid-cols-[1fr,1fr] gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr,1fr]">
             {/* Profile Card */}
-            <Card className="shadow-lg max-md:rounded-none md:rounded border border-gray-200 h-full">
+            <Card className="h-full border border-gray-200 shadow-lg max-md:rounded-none md:rounded">
               <div
-                className="p-8 relative overflow-hidden"
+                className="relative overflow-hidden p-8"
                 style={{
                   background: '#F4F4F5',
                 }}
               >
                 {/* Gradient Video Background - Blurred */}
-                <div className="absolute top-0 left-0 right-0 w-full overflow-hidden" style={{ height: '149px' }}>
+                <div className="absolute inset-x-0 top-0 w-full overflow-hidden" style={{ height: '149px' }}>
                   <video
                     autoPlay
+                    className="size-full object-cover"
                     loop
                     muted
                     playsInline
-                    className="w-full h-full object-cover"
                     style={{
                       filter: 'blur(30px)',
                       transform: 'scale(1.2)'
@@ -665,37 +657,37 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
                 </div>
 
                 {/* Avatar with Gradient Border - Flip Card */}
-                <div className="mb-4 relative z-10" style={{ perspective: '1000px', width: '156px' }}>
+                <div className="relative z-10 mb-4" style={{ perspective: '1000px', width: '156px' }}>
                   <div
                     className="relative transition-transform duration-700"
                     style={{
-                      width: '156px',
                       height: '156px',
+                      transform: showQRCode ? 'rotateY(180deg)' : 'rotateY(0deg)',
                       transformStyle: 'preserve-3d',
-                      transform: showQRCode ? 'rotateY(180deg)' : 'rotateY(0deg)'
+                      width: '156px'
                     }}
                   >
                     {/* Front Side - Avatar */}
                     <div
-                      className="absolute inset-0 rounded-full overflow-visible"
+                      className="absolute inset-0 overflow-visible rounded-full"
                       style={{
                         backfaceVisibility: 'hidden'
                       }}
                     >
                       <div
-                        className="w-full h-full rounded-full overflow-hidden"
+                        className="size-full overflow-hidden rounded-full"
                         style={{
-                          border: '3px solid transparent',
+                          backgroundClip: 'padding-box, border-box',
                           backgroundImage: 'linear-gradient(white, white), linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                           backgroundOrigin: 'padding-box, border-box',
-                          backgroundClip: 'padding-box, border-box',
+                          border: '3px solid transparent',
                         }}
                       >
                         {profileData.profileImage ? (
-                          <img src={profileData.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                          <img alt="Profile" className="size-full object-cover" src={profileData.profileImage} />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                            <span className="text-3xl text-gray-600 font-semibold">
+                          <div className="flex size-full items-center justify-center bg-gray-100">
+                            <span className="text-3xl font-semibold text-gray-600">
                               {(profileData.firstName?.[0] || '?')}{(profileData.lastName?.[0] || '')}
                             </span>
                           </div>
@@ -704,42 +696,42 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
 
                       {/* QR Code button - flips with avatar, shows QR icon */}
                       <Button
-                        size="sm"
-                        className="absolute rounded-full w-10 h-10 p-0 bg-black text-white hover:bg-gray-900 shadow-lg z-20"
-                        style={{ top: '10px', right: '-5px' }}
+                        className="absolute z-20 size-10 rounded-full bg-black p-0 text-white shadow-lg hover:bg-gray-900"
                         onClick={() => setShowQRCode(!showQRCode)}
+                        size="sm"
+                        style={{ right: '-5px', top: '10px' }}
                         type="button"
                       >
-                        <QrCode className="h-5 w-5" />
+                        <QrCode className="size-5" />
                       </Button>
                     </div>
 
                     {/* Back Side - QR Code */}
                     <div
-                      className="absolute inset-0 rounded-full overflow-visible"
+                      className="absolute inset-0 overflow-visible rounded-full"
                       style={{
                         backfaceVisibility: 'hidden',
                         transform: 'rotateY(180deg)'
                       }}
                     >
                       <div
-                        className="w-full h-full rounded-full overflow-hidden"
+                        className="size-full overflow-hidden rounded-full"
                         style={{
-                          border: '3px solid transparent',
+                          backgroundClip: 'padding-box, border-box',
                           backgroundImage: 'linear-gradient(white, white), linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                           backgroundOrigin: 'padding-box, border-box',
-                          backgroundClip: 'padding-box, border-box',
+                          border: '3px solid transparent',
                         }}
                       >
-                        <div className="w-full h-full flex items-center justify-center bg-white p-5">
+                        <div className="flex size-full items-center justify-center bg-white p-5">
                           <div
                             ref={qrCodeRef}
                             style={{
-                              width: '130px',
-                              height: '130px',
-                              display: 'flex',
                               alignItems: 'center',
-                              justifyContent: 'center'
+                              display: 'flex',
+                              height: '130px',
+                              justifyContent: 'center',
+                              width: '130px'
                             }}
                           />
                         </div>
@@ -747,17 +739,17 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
 
                       {/* Avatar button - flips with QR code, shows User icon */}
                       <Button
+                        className="absolute z-20 size-10 rounded-full bg-black p-0 text-white shadow-lg hover:bg-gray-900"
+                        onClick={() => setShowQRCode(!showQRCode)}
                         size="sm"
-                        className="absolute rounded-full w-10 h-10 p-0 bg-black text-white hover:bg-gray-900 shadow-lg z-20"
                         style={{
-                          top: '10px',
                           right: '-5px',
+                          top: '10px',
                           transform: 'scaleX(-1)' // Flip button content back so icon is readable
                         }}
-                        onClick={() => setShowQRCode(!showQRCode)}
                         type="button"
                       >
-                        <User className="h-5 w-5" style={{ transform: 'scaleX(-1)' }} />
+                        <User className="size-5" style={{ transform: 'scaleX(-1)' }} />
                       </Button>
                     </div>
 
@@ -765,25 +757,25 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
                     {isEditing && (
                       <>
                         <input
-                          type="file"
-                          id="avatar-upload"
                           accept="image/*"
                           className="hidden"
+                          id="avatar-upload"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
                               handleAvatarUpload(file);
                             }
                           }}
+                          type="file"
                         />
                         <Button
-                          size="sm"
-                          className="absolute rounded-full w-10 h-10 p-0 bg-black text-white hover:bg-gray-900 shadow-lg z-20"
-                          style={{ top: '10px', left: '-5px' }}
+                          className="absolute z-20 size-10 rounded-full bg-black p-0 text-white shadow-lg hover:bg-gray-900"
                           onClick={() => document.getElementById('avatar-upload')?.click()}
+                          size="sm"
+                          style={{ left: '-5px', top: '10px' }}
                           type="button"
                         >
-                          <Camera className="h-5 w-5" />
+                          <Camera className="size-5" />
                         </Button>
                       </>
                     )}
@@ -792,30 +784,30 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
 
                 {/* Save/Cancel Buttons - Only show when editing */}
                 {isEditing && (
-                  <div className="flex items-center gap-2 mb-4 relative z-10">
+                  <div className="relative z-10 mb-4 flex items-center gap-2">
                     <Button
-                      variant="outline"
-                      onClick={() => setIsEditing(false)}
                       disabled={isSaving}
+                      onClick={() => setIsEditing(false)}
                       size="sm"
+                      variant="outline"
                     >
-                      <X className="h-4 w-4 mr-2" />
+                      <X className="mr-2 size-4" />
                       Cancel
                     </Button>
                     <Button
-                      onClick={handleSave}
-                      className="bg-[var(--brand-electric-blue)] hover:bg-[var(--brand-electric-blue)]/90 text-white"
+                      className="hover:bg-[var(--brand-electric-blue)]/90 bg-[var(--brand-electric-blue)] text-white"
                       disabled={isSaving}
+                      onClick={handleSave}
                       size="sm"
                     >
                       {isSaving ? (
                         <>
-                          <LoadingSpinner size="sm" className="mr-2" />
+                          <LoadingSpinner className="mr-2" size="sm" />
                           Saving...
                         </>
                       ) : (
                         <>
-                          <Save className="h-4 w-4 mr-2" />
+                          <Save className="mr-2 size-4" />
                           Save
                         </>
                       )}
@@ -825,37 +817,37 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
 
                 {/* Name */}
                 {isEditing ? (
-                  <div className="grid grid-cols-2 gap-2 mb-4 relative z-10">
+                  <div className="relative z-10 mb-4 grid grid-cols-2 gap-2">
                     <FloatingInput
+                      className="bg-white/90"
                       id="firstName-profile"
                       label="First Name"
-                      value={profileData.firstName}
                       onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
-                      className="bg-white/90"
+                      value={profileData.firstName}
                     />
                     <FloatingInput
+                      className="bg-white/90"
                       id="lastName-profile"
                       label="Last Name"
-                      value={profileData.lastName}
                       onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
-                      className="bg-white/90"
+                      value={profileData.lastName}
                     />
                   </div>
                 ) : (
-                  <div className="flex items-center justify-between mb-2 relative z-10">
+                  <div className="relative z-10 mb-2 flex items-center justify-between">
                     <h3 className="text-[34px] font-bold text-[#1A1A1A]" style={{ fontFamily: 'Mona Sans Extended, sans-serif' }}>
                       {profileData.firstName} {profileData.lastName}
                     </h3>
 
                     <Button
+                      className="text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl"
                       onClick={() => setIsEditing(true)}
-                      className="text-white shadow-lg hover:shadow-xl transition-all hover:scale-105"
                       size="sm"
                       style={{
                         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                       }}
                     >
-                      <Edit className="h-4 w-4 mr-2" />
+                      <Edit className="mr-2 size-4" />
                       Edit Profile
                     </Button>
                   </div>
@@ -863,15 +855,15 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
 
                 {/* Job Title, NMLS, and Location */}
                 {!isEditing && (
-                  <div className="mb-4 relative z-10">
-                    <p className="text-base text-[#1D4FC4] flex items-center gap-6" style={{ fontFamily: 'Roboto, sans-serif' }}>
+                  <div className="relative z-10 mb-4">
+                    <p className="flex items-center gap-6 text-base text-[#1D4FC4]" style={{ fontFamily: 'Roboto, sans-serif' }}>
                       <span>
                         {profileData.title || (userRole === 'loan-officer' ? 'Loan Officer' : 'Realtor Partner')}
                         {(profileData.nmls || profileData.nmls_number) && <span> | NMLS {profileData.nmls || profileData.nmls_number}</span>}
                       </span>
                       {profileData.location && (
                         <span className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4" />
+                          <MapPin className="size-4" />
                           {profileData.location}
                         </span>
                       )}
@@ -881,35 +873,35 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
 
                 {/* Social Media Icons Row */}
                 {!isEditing && (profileData.linkedin || profileData.facebook || profileData.instagram || profileData.twitter || profileData.youtube || profileData.website) && (
-                  <div className="flex items-center gap-3 mb-4 relative z-10">
+                  <div className="relative z-10 mb-4 flex items-center gap-3">
                     {profileData.linkedin && (
-                      <a href={profileData.linkedin} target="_blank" rel="noopener noreferrer">
-                        <Linkedin className="h-6 w-6 text-[#1A1A1A] hover:text-[#2563eb] transition-colors" />
+                      <a href={profileData.linkedin} rel="noopener noreferrer" target="_blank">
+                        <Linkedin className="size-6 text-[#1A1A1A] transition-colors hover:text-[#2563eb]" />
                       </a>
                     )}
                     {profileData.facebook && (
-                      <a href={profileData.facebook} target="_blank" rel="noopener noreferrer">
-                        <Facebook className="h-6 w-6 text-[#1A1A1A] hover:text-[#2563eb] transition-colors" />
+                      <a href={profileData.facebook} rel="noopener noreferrer" target="_blank">
+                        <Facebook className="size-6 text-[#1A1A1A] transition-colors hover:text-[#2563eb]" />
                       </a>
                     )}
                     {profileData.instagram && (
-                      <a href={profileData.instagram} target="_blank" rel="noopener noreferrer">
-                        <Smartphone className="h-6 w-6 text-[#1A1A1A] hover:text-[#2563eb] transition-colors" />
+                      <a href={profileData.instagram} rel="noopener noreferrer" target="_blank">
+                        <Smartphone className="size-6 text-[#1A1A1A] transition-colors hover:text-[#2563eb]" />
                       </a>
                     )}
                     {profileData.twitter && (
-                      <a href={profileData.twitter} target="_blank" rel="noopener noreferrer">
-                        <Globe className="h-6 w-6 text-[#1A1A1A] hover:text-[#2563eb] transition-colors" />
+                      <a href={profileData.twitter} rel="noopener noreferrer" target="_blank">
+                        <Globe className="size-6 text-[#1A1A1A] transition-colors hover:text-[#2563eb]" />
                       </a>
                     )}
                     {profileData.youtube && (
-                      <a href={profileData.youtube} target="_blank" rel="noopener noreferrer">
-                        <Globe className="h-6 w-6 text-[#1A1A1A] hover:text-[#2563eb] transition-colors" />
+                      <a href={profileData.youtube} rel="noopener noreferrer" target="_blank">
+                        <Globe className="size-6 text-[#1A1A1A] transition-colors hover:text-[#2563eb]" />
                       </a>
                     )}
                     {profileData.website && (
-                      <a href={profileData.website} target="_blank" rel="noopener noreferrer">
-                        <Globe className="h-6 w-6 text-[#1A1A1A] hover:text-[#2563eb] transition-colors" />
+                      <a href={profileData.website} rel="noopener noreferrer" target="_blank">
+                        <Globe className="size-6 text-[#1A1A1A] transition-colors hover:text-[#2563eb]" />
                       </a>
                     )}
                   </div>
@@ -917,7 +909,7 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
 
                 {/* Bio Preview - Only show if bio exists */}
                 {!isEditing && profileData.bio && (
-                  <div className="mb-4 relative z-10">
+                  <div className="relative z-10 mb-4">
                     <p
                       className="text-base text-[#1E1E1E]"
                       style={{
@@ -932,19 +924,19 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
 
                 {/* Contact Information - Always visible */}
                 {!isEditing && (
-                  <div className="flex items-center gap-6 relative z-10">
+                  <div className="relative z-10 flex items-center gap-6">
                     {profileData.email && (
                       <div className="flex items-center gap-2 text-sm text-gray-700">
-                        <Mail className="h-4 w-4 text-gray-500" />
-                        <a href={`mailto:${profileData.email}`} className="hover:text-[#1D4FC4] transition-colors">
+                        <Mail className="size-4 text-gray-500" />
+                        <a className="transition-colors hover:text-[#1D4FC4]" href={`mailto:${profileData.email}`}>
                           {profileData.email}
                         </a>
                       </div>
                     )}
                     {profileData.phone && (
                       <div className="flex items-center gap-2 text-sm text-gray-700">
-                        <Phone className="h-4 w-4 text-gray-500" />
-                        <a href={`tel:${profileData.phone}`} className="hover:text-[#1D4FC4] transition-colors">
+                        <Phone className="size-4 text-gray-500" />
+                        <a className="transition-colors hover:text-[#1D4FC4]" href={`tel:${profileData.phone}`}>
                           {profileData.phone}
                         </a>
                       </div>
@@ -954,36 +946,36 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
 
                 {/* Edit Mode Fields */}
                 {isEditing && (
-                  <div className="space-y-3 relative z-10">
+                  <div className="relative z-10 space-y-3">
                     <FloatingInput
+                      className="bg-white/90"
                       id="email-profile"
                       label="Email"
+                      onChange={(e) => setProfileData({...profileData, email: e.target.value})}
                       type="email"
                       value={profileData.email}
-                      onChange={(e) => setProfileData({...profileData, email: e.target.value})}
-                      className="bg-white/90"
                     />
                     <FloatingInput
+                      className="bg-white/90"
                       id="phone-profile"
                       label="Phone"
+                      onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
                       type="tel"
                       value={profileData.phone}
-                      onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
-                      className="bg-white/90"
                     />
                     <FloatingInput
+                      className="bg-white/90"
                       id="title-edit"
                       label="Job Title"
-                      value={profileData.title}
                       onChange={(e) => setProfileData({...profileData, title: e.target.value})}
-                      className="bg-white/90"
+                      value={profileData.title}
                     />
                     <FloatingInput
+                      className="bg-white/90"
                       id="location-edit"
                       label="Location"
-                      value={profileData.location}
                       onChange={(e) => setProfileData({...profileData, location: e.target.value})}
-                      className="bg-white/90"
+                      value={profileData.location}
                     />
                   </div>
                 )}
@@ -991,12 +983,12 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
             </Card>
 
             {/* Right Column: Links & Social + Service Areas */}
-            <div className="space-y-4 h-full flex flex-col">
+            <div className="flex h-full flex-col space-y-4">
               {/* Links & Social Card */}
-              <Card className="shadow-lg max-md:rounded-none md:rounded border border-gray-200">
+              <Card className="border border-gray-200 shadow-lg max-md:rounded-none md:rounded">
                 <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
-                    <Globe className="h-5 w-5" />
+                  <CardTitle className="flex items-center gap-2 text-base font-semibold text-gray-900">
+                    <Globe className="size-5" />
                     Links & Social
                   </CardTitle>
                 </CardHeader>
@@ -1007,64 +999,64 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
                         <FloatingInput
                           id="website"
                           label="Website"
+                          onChange={(e) => setProfileData({...profileData, website: e.target.value})}
                           type="url"
                           value={profileData.website}
-                          onChange={(e) => setProfileData({...profileData, website: e.target.value})}
                         />
                         <FloatingInput
                           id="linkedin"
                           label="LinkedIn"
+                          onChange={(e) => setProfileData({...profileData, linkedin: e.target.value})}
                           type="url"
                           value={profileData.linkedin}
-                          onChange={(e) => setProfileData({...profileData, linkedin: e.target.value})}
                         />
                         <FloatingInput
                           id="facebook"
                           label="Facebook"
+                          onChange={(e) => setProfileData({...profileData, facebook: e.target.value})}
                           type="url"
                           value={profileData.facebook}
-                          onChange={(e) => setProfileData({...profileData, facebook: e.target.value})}
                         />
                         <FloatingInput
                           id="instagram"
                           label="Instagram"
+                          onChange={(e) => setProfileData({...profileData, instagram: e.target.value})}
                           type="url"
                           value={profileData.instagram}
-                          onChange={(e) => setProfileData({...profileData, instagram: e.target.value})}
                         />
                         <FloatingInput
+                          className="col-span-2"
                           id="arrive"
                           label="Arrive (Scheduling)"
+                          onChange={(e) => setProfileData({...profileData, arrive: e.target.value})}
                           type="url"
                           value={profileData.arrive}
-                          onChange={(e) => setProfileData({...profileData, arrive: e.target.value})}
-                          className="col-span-2"
                         />
                       </>
                     ) : (
                       <>
-                        <div className="flex items-center gap-2 p-2 rounded border">
-                          <Globe className="h-4 w-4 text-gray-600" />
-                          <span className="text-xs truncate">{profileData.website || 'Website'}</span>
+                        <div className="flex items-center gap-2 rounded border p-2">
+                          <Globe className="size-4 text-gray-600" />
+                          <span className="truncate text-xs">{profileData.website || 'Website'}</span>
                         </div>
-                        <div className="flex items-center gap-2 p-2 rounded border">
-                          <Linkedin className="h-4 w-4 text-gray-600" />
-                          <span className="text-xs truncate">{profileData.linkedin || 'LinkedIn'}</span>
+                        <div className="flex items-center gap-2 rounded border p-2">
+                          <Linkedin className="size-4 text-gray-600" />
+                          <span className="truncate text-xs">{profileData.linkedin || 'LinkedIn'}</span>
                         </div>
-                        <div className="flex items-center gap-2 p-2 rounded border">
-                          <Facebook className="h-4 w-4 text-gray-600" />
-                          <span className="text-xs truncate">{profileData.facebook || 'Facebook'}</span>
+                        <div className="flex items-center gap-2 rounded border p-2">
+                          <Facebook className="size-4 text-gray-600" />
+                          <span className="truncate text-xs">{profileData.facebook || 'Facebook'}</span>
                         </div>
-                        <div className="flex items-center gap-2 p-2 rounded border">
-                          <Smartphone className="h-4 w-4 text-gray-600" />
-                          <span className="text-xs truncate">{profileData.instagram || 'Instagram'}</span>
+                        <div className="flex items-center gap-2 rounded border p-2">
+                          <Smartphone className="size-4 text-gray-600" />
+                          <span className="truncate text-xs">{profileData.instagram || 'Instagram'}</span>
                         </div>
                         {profileData.arrive && (
-                          <div className="flex items-center gap-2 p-2 rounded border col-span-2">
-                            <svg className="h-4 w-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          <div className="col-span-2 flex items-center gap-2 rounded border p-2">
+                            <svg className="size-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
                             </svg>
-                            <span className="text-xs truncate">{profileData.arrive}</span>
+                            <span className="truncate text-xs">{profileData.arrive}</span>
                           </div>
                         )}
                       </>
@@ -1074,10 +1066,10 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
               </Card>
 
               {/* Service Areas Card */}
-              <Card className="shadow-lg rounded-sm border border-gray-200 flex-1">
+              <Card className="flex-1 rounded-sm border border-gray-200 shadow-lg">
                 <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
-                    <MapPin className="h-5 w-5" />
+                  <CardTitle className="flex items-center gap-2 text-base font-semibold text-gray-900">
+                    <MapPin className="size-5" />
                     Service Areas
                   </CardTitle>
                 </CardHeader>
@@ -1087,32 +1079,29 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
                       <p className="text-sm text-gray-600">Add service areas by entering city, state, zip code, or any combination.</p>
                       <div className="grid grid-cols-3 gap-2">
                         <FloatingInput
+                          className="bg-white"
                           id="service-city"
                           label="City (Optional)"
-                          value={serviceAreaInput.city}
                           onChange={(e) => setServiceAreaInput({...serviceAreaInput, city: e.target.value})}
-                          className="bg-white"
+                          value={serviceAreaInput.city}
                         />
                         <FloatingInput
+                          className="bg-white"
                           id="service-state"
                           label="State (Optional)"
-                          value={serviceAreaInput.state}
                           onChange={(e) => setServiceAreaInput({...serviceAreaInput, state: e.target.value})}
-                          className="bg-white"
+                          value={serviceAreaInput.state}
                         />
                         <FloatingInput
+                          className="bg-white"
                           id="service-zip"
                           label="Zip Code (Optional)"
-                          value={serviceAreaInput.zip}
                           onChange={(e) => setServiceAreaInput({...serviceAreaInput, zip: e.target.value})}
-                          className="bg-white"
+                          value={serviceAreaInput.zip}
                         />
                       </div>
                       <Button
-                        variant="outline"
-                        size="sm"
                         className="w-full"
-                        type="button"
                         onClick={() => {
                           // Build the service area string from non-empty inputs
                           const parts = [
@@ -1131,6 +1120,9 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
                             setServiceAreaInput({ city: '', state: '', zip: '' });
                           }
                         }}
+                        size="sm"
+                        type="button"
+                        variant="outline"
                       >
                         <span className="mr-2">+</span> Add Service Area
                       </Button>
@@ -1139,16 +1131,16 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
                           <Label className="text-sm font-medium">Current Service Areas</Label>
                           <div className="flex flex-wrap gap-2">
                             {profileData.serviceAreas.map((area: string, index: number) => (
-                              <Badge key={index} variant="secondary" className="text-xs flex items-center gap-1">
+                              <Badge className="flex items-center gap-1 text-xs" key={index} variant="secondary">
                                 {area}
                                 <button
+                                  className="ml-1 hover:text-red-600"
                                   onClick={() => {
                                     setProfileData({
                                       ...profileData,
                                       serviceAreas: profileData.serviceAreas.filter((_: string, i: number) => i !== index)
                                     });
                                   }}
-                                  className="ml-1 hover:text-red-600"
                                 >
                                   ×
                                 </button>
@@ -1162,12 +1154,12 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
                     <div className="flex flex-wrap gap-2">
                       {profileData.serviceAreas && profileData.serviceAreas.length > 0 ? (
                         profileData.serviceAreas.map((area: string, index: number) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
+                          <Badge className="text-xs" key={index} variant="secondary">
                             {area}
                           </Badge>
                         ))
                       ) : (
-                        <p className="text-sm text-gray-500 italic">No service areas specified.</p>
+                        <p className="text-sm italic text-gray-500">No service areas specified.</p>
                       )}
                     </div>
                   )}
@@ -1177,23 +1169,23 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
           </div>
 
           {/* Biography Card - Full Width Below */}
-          <Card className="shadow-lg rounded-sm border border-gray-200">
+          <Card className="rounded-sm border border-gray-200 shadow-lg">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
-                <FileText className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2 text-base font-semibold text-gray-900">
+                <FileText className="size-5" />
                 Professional Biography
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {isEditing ? (
                 <RichTextEditor
-                  value={profileData.bio}
                   onChange={(value) => setProfileData({...profileData, bio: value})}
                   placeholder="Share your professional background..."
+                  value={profileData.bio}
                 />
               ) : (
                 <div
-                  className="text-sm text-gray-700 prose prose-sm max-w-none"
+                  className="prose prose-sm max-w-none text-sm text-gray-700"
                   dangerouslySetInnerHTML={{ __html: profileData.bio || '<p class="text-gray-500 italic">No biography provided.</p>' }}
                 />
               )}
@@ -1201,19 +1193,19 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
           </Card>
 
           {/* Specialties Card */}
-          <Card className="shadow-lg rounded-sm border border-gray-200">
+          <Card className="rounded-sm border border-gray-200 shadow-lg">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
-                <CheckSquare className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2 text-base font-semibold text-gray-900">
+                <CheckSquare className="size-5" />
                 Specialties & Credentials
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Loan Officer Specialties */}
               <div>
-                <Label className="text-sm font-medium mb-2 block">Loan Officer Specialties</Label>
+                <Label className="mb-2 block text-sm font-medium">Loan Officer Specialties</Label>
                 {isEditing ? (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
                     {[
                       'Residential Mortgages',
                       'Consumer Loans',
@@ -1226,10 +1218,10 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
                       'USDA Rural Loans',
                       'Bridge Loans'
                     ].map((specialty) => (
-                      <label key={specialty} className="flex items-center space-x-2 cursor-pointer">
+                      <label className="flex cursor-pointer items-center space-x-2" key={specialty}>
                         <input
-                          type="checkbox"
                           checked={profileData.specialtiesLo.includes(specialty)}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                           onChange={(e) => {
                             if (e.target.checked) {
                               setProfileData({
@@ -1243,7 +1235,7 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
                               });
                             }
                           }}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          type="checkbox"
                         />
                         <span className="text-sm text-gray-700">{specialty}</span>
                       </label>
@@ -1253,12 +1245,12 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
                   <div className="flex flex-wrap gap-2">
                     {profileData.specialtiesLo.length > 0 ? (
                       profileData.specialtiesLo.map((specialty) => (
-                        <Badge key={specialty} variant="secondary" className="text-xs">
+                        <Badge className="text-xs" key={specialty} variant="secondary">
                           {specialty}
                         </Badge>
                       ))
                     ) : (
-                      <p className="text-xs text-gray-500 italic">No specialties selected</p>
+                      <p className="text-xs italic text-gray-500">No specialties selected</p>
                     )}
                   </div>
                 )}
@@ -1266,19 +1258,19 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
 
               {/* NAMB Certifications */}
               <div>
-                <Label className="text-sm font-medium mb-2 block">NAMB Certifications</Label>
+                <Label className="mb-2 block text-sm font-medium">NAMB Certifications</Label>
                 {isEditing ? (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
                     {[
                       'CMC - Certified Mortgage Consultant',
                       'CRMS - Certified Residential Mortgage Specialist',
                       'GMA - General Mortgage Associate',
                       'CVLS - Certified Veterans Lending Specialist'
                     ].map((cert) => (
-                      <label key={cert} className="flex items-center space-x-2 cursor-pointer">
+                      <label className="flex cursor-pointer items-center space-x-2" key={cert}>
                         <input
-                          type="checkbox"
                           checked={profileData.nambCertifications.includes(cert)}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                           onChange={(e) => {
                             if (e.target.checked) {
                               setProfileData({
@@ -1292,7 +1284,7 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
                               });
                             }
                           }}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          type="checkbox"
                         />
                         <span className="text-sm text-gray-700">{cert}</span>
                       </label>
@@ -1302,12 +1294,12 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
                   <div className="flex flex-wrap gap-2">
                     {profileData.nambCertifications.length > 0 ? (
                       profileData.nambCertifications.map((cert) => (
-                        <Badge key={cert} variant="secondary" className="text-xs bg-purple-100 text-purple-800">
+                        <Badge className="bg-purple-100 text-xs text-purple-800" key={cert} variant="secondary">
                           {cert}
                         </Badge>
                       ))
                     ) : (
-                      <p className="text-xs text-gray-500 italic">No certifications selected</p>
+                      <p className="text-xs italic text-gray-500">No certifications selected</p>
                     )}
                   </div>
                 )}
@@ -1323,13 +1315,13 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
         <div className="space-y-4">
           <Card className="border-[var(--brand-powder-blue)] max-md:rounded-none md:rounded">
             <CardHeader>
-              <CardTitle className="text-[var(--brand-dark-navy)] flex items-center">
-                <Settings className="h-5 w-5 mr-2" />
+              <CardTitle className="flex items-center text-[var(--brand-dark-navy)]">
+                <Settings className="mr-2 size-5" />
                 Account Settings
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-1">
                   <h4 className="text-sm font-medium text-[var(--brand-dark-navy)]">Email Notifications</h4>
                   <p className="text-sm text-[var(--brand-slate)]">Receive notifications for new leads and partnerships</p>
@@ -1337,7 +1329,7 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
                 <Switch defaultChecked />
               </div>
 
-              <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-1">
                   <h4 className="text-sm font-medium text-[var(--brand-dark-navy)]">SMS Notifications</h4>
                   <p className="text-sm text-[var(--brand-slate)]">Get text messages for urgent updates</p>
@@ -1345,7 +1337,7 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
                 <Switch />
               </div>
 
-              <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-1">
                   <h4 className="text-sm font-medium text-[var(--brand-dark-navy)]">Profile Visibility</h4>
                   <p className="text-sm text-[var(--brand-slate)]">Make your profile visible to potential partners</p>
@@ -1357,27 +1349,27 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
 
           <Card className="border-[var(--brand-powder-blue)] max-md:rounded-none md:rounded">
             <CardHeader>
-              <CardTitle className="text-[var(--brand-dark-navy)] flex items-center">
-                <Shield className="h-5 w-5 mr-2" />
+              <CardTitle className="flex items-center text-[var(--brand-dark-navy)]">
+                <Shield className="mr-2 size-5" />
                 Privacy & Security
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Button variant="outline" className="w-full justify-start">
-                <Bell className="h-4 w-4 mr-2" />
+              <Button className="w-full justify-start" variant="outline">
+                <Bell className="mr-2 size-4" />
                 Change Password
               </Button>
 
-              <Button variant="outline" className="w-full justify-start">
-                <FileText className="h-4 w-4 mr-2" />
+              <Button className="w-full justify-start" variant="outline">
+                <FileText className="mr-2 size-4" />
                 Download My Data
               </Button>
 
-              <div className="pt-4 border-t">
-                <Button variant="destructive" className="w-full">
+              <div className="border-t pt-4">
+                <Button className="w-full" variant="destructive">
                   Delete Account
                 </Button>
-                <p className="text-xs text-[var(--brand-slate)] mt-2 text-center">
+                <p className="mt-2 text-center text-xs text-[var(--brand-slate)]">
                   This action cannot be undone. All your data will be permanently removed.
                 </p>
               </div>
@@ -1388,19 +1380,19 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
 
       {/* Announcement Modal */}
       {isAnnouncementModalOpen && selectedAnnouncement && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="max-h-[80vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white">
             <div className="p-6">
-              <div className="flex items-start justify-between mb-4">
+              <div className="mb-4 flex items-start justify-between">
                 <h2 className="text-xl font-semibold text-[var(--brand-dark-navy)]">
                   {selectedAnnouncement.title}
                 </h2>
                 <Button
-                  variant="ghost"
-                  size="sm"
                   onClick={() => setIsAnnouncementModalOpen(false)}
+                  size="sm"
+                  variant="ghost"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="size-4" />
                 </Button>
               </div>
 
@@ -1411,9 +1403,9 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
 
                 {selectedAnnouncement.thumbnail && (
                   <img
-                    src={selectedAnnouncement.thumbnail}
                     alt={selectedAnnouncement.title}
-                    className="w-full h-48 object-cover rounded-lg"
+                    className="h-48 w-full rounded-lg object-cover"
+                    src={selectedAnnouncement.thumbnail}
                   />
                 )}
 
@@ -1423,10 +1415,10 @@ export function ProfileSection({ userRole, userId, activeTab: externalActiveTab,
                 />
               </div>
 
-              <div className="mt-6 pt-4 border-t flex justify-end">
+              <div className="mt-6 flex justify-end border-t pt-4">
                 <Button
+                  className="hover:bg-[var(--brand-electric-blue)]/90 bg-[var(--brand-electric-blue)] text-white"
                   onClick={() => setIsAnnouncementModalOpen(false)}
-                  className="bg-[var(--brand-electric-blue)] hover:bg-[var(--brand-electric-blue)]/90 text-white"
                 >
                   Close
                 </Button>

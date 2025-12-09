@@ -2,15 +2,14 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 
 export function SyncSettings() {
   const [settings, setSettings] = useState({
+    sync_assistants: false,
+    sync_leadership: false,
     sync_loan_officers: true,
     sync_realtors: false,
-    sync_staff: false,
-    sync_leadership: false,
-    sync_assistants: false
+    sync_staff: false
   });
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -59,12 +58,12 @@ export function SyncSettings() {
     setLoading(true);
     try {
       const response = await fetch(`${wordpressPluginBoilerplate.apiUrl}frs-users/v1/sync-settings`, {
-        method: 'POST',
+        body: JSON.stringify(settings),
         headers: {
-          'X-WP-Nonce': wordpressPluginBoilerplate.nonce,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-WP-Nonce': wordpressPluginBoilerplate.nonce
         },
-        body: JSON.stringify(settings)
+        method: 'POST'
       });
 
       if (response.ok) {
@@ -83,10 +82,10 @@ export function SyncSettings() {
     setSyncing(true);
     try {
       const response = await fetch(`${wordpressPluginBoilerplate.apiUrl}frs-users/v1/trigger-sync`, {
-        method: 'POST',
         headers: {
           'X-WP-Nonce': wordpressPluginBoilerplate.nonce
-        }
+        },
+        method: 'POST'
       });
 
       if (response.ok) {
@@ -121,12 +120,12 @@ export function SyncSettings() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-3">
-            <label className="flex items-center gap-3 cursor-pointer">
+            <label className="flex cursor-pointer items-center gap-3">
               <input
-                type="checkbox"
                 checked={settings.sync_loan_officers}
-                onChange={() => handleCheckboxChange('sync_loan_officers')}
                 className="rounded"
+                onChange={() => handleCheckboxChange('sync_loan_officers')}
+                type="checkbox"
               />
               <div>
                 <div className="font-medium">Loan Officers</div>
@@ -134,12 +133,12 @@ export function SyncSettings() {
               </div>
             </label>
 
-            <label className="flex items-center gap-3 cursor-pointer">
+            <label className="flex cursor-pointer items-center gap-3">
               <input
-                type="checkbox"
                 checked={settings.sync_realtors}
-                onChange={() => handleCheckboxChange('sync_realtors')}
                 className="rounded"
+                onChange={() => handleCheckboxChange('sync_realtors')}
+                type="checkbox"
               />
               <div>
                 <div className="font-medium">Real Estate Partners</div>
@@ -147,12 +146,12 @@ export function SyncSettings() {
               </div>
             </label>
 
-            <label className="flex items-center gap-3 cursor-pointer">
+            <label className="flex cursor-pointer items-center gap-3">
               <input
-                type="checkbox"
                 checked={settings.sync_staff}
-                onChange={() => handleCheckboxChange('sync_staff')}
                 className="rounded"
+                onChange={() => handleCheckboxChange('sync_staff')}
+                type="checkbox"
               />
               <div>
                 <div className="font-medium">Staff</div>
@@ -160,12 +159,12 @@ export function SyncSettings() {
               </div>
             </label>
 
-            <label className="flex items-center gap-3 cursor-pointer">
+            <label className="flex cursor-pointer items-center gap-3">
               <input
-                type="checkbox"
                 checked={settings.sync_leadership}
-                onChange={() => handleCheckboxChange('sync_leadership')}
                 className="rounded"
+                onChange={() => handleCheckboxChange('sync_leadership')}
+                type="checkbox"
               />
               <div>
                 <div className="font-medium">Leadership</div>
@@ -173,12 +172,12 @@ export function SyncSettings() {
               </div>
             </label>
 
-            <label className="flex items-center gap-3 cursor-pointer">
+            <label className="flex cursor-pointer items-center gap-3">
               <input
-                type="checkbox"
                 checked={settings.sync_assistants}
-                onChange={() => handleCheckboxChange('sync_assistants')}
                 className="rounded"
+                onChange={() => handleCheckboxChange('sync_assistants')}
+                type="checkbox"
               />
               <div>
                 <div className="font-medium">Assistants</div>
@@ -188,10 +187,10 @@ export function SyncSettings() {
           </div>
 
           <div className="flex gap-2">
-            <Button onClick={saveSettings} disabled={loading}>
+            <Button disabled={loading} onClick={saveSettings}>
               {loading ? 'Saving...' : 'Save Settings'}
             </Button>
-            <Button onClick={triggerSync} disabled={syncing} variant="outline">
+            <Button disabled={syncing} onClick={triggerSync} variant="outline">
               {syncing ? 'Syncing...' : 'Trigger Manual Sync'}
             </Button>
           </div>

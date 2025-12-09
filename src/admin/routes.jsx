@@ -13,55 +13,55 @@ import ImportExport from "./pages/profiles/ImportExport";
 
 export const router = createHashRouter([
   {
-    path: "/",
-    element: <ApplicationLayout />,
-    errorElement: <ErrorPage />,
     children: [
       {
+        element: <Dashboard />,
         path: "/",
-        element: <Dashboard />,
       },
       {
+        element: <Dashboard />,
         path: "dashboard",
-        element: <Dashboard />,
       },
       {
-        path: "inbox",
         element: <Inbox />,
+        path: "inbox",
       },
 
       {
-        path: "settings",
         element: <Settings />,
+        path: "settings",
       },
       {
-        path: "login",
         element: <LoginPage />,
+        path: "login",
       },
       {
-        path: "charts",
         element: <Charts />,
+        path: "charts",
       },
       {
-        path: "profiles",
         element: <ProfileList />,
+        path: "profiles",
       },
       {
+        element: <ProfileEdit />,
         path: "profiles/new",
-        element: <ProfileEdit />,
       },
       {
-        path: "profiles/:id",
         element: <ProfileView />,
+        path: "profiles/:id",
       },
       {
-        path: "profiles/:id/edit",
         element: <ProfileEdit />,
+        path: "profiles/:id/edit",
       },
       {
-        path: "profiles/import-export",
         element: <ImportExport />,
+        path: "profiles/import-export",
       }
     ],
+    element: <ApplicationLayout />,
+    errorElement: <ErrorPage />,
+    path: "/",
   },
 ]);

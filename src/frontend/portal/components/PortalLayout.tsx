@@ -4,7 +4,7 @@
  */
 
 import * as React from "react";
-import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useParams } from "react-router-dom";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -52,21 +52,21 @@ function ContentRenderer({ userName, userRole }: { userName?: string; userRole?:
 }
 
 interface PortalLayoutProps {
-  userRole: 'loan_officer' | 'realtor_partner' | 'manager' | 'frs_admin';
-  userName?: string;
-  userEmail?: string;
-  userAvatar?: string;
-  siteName?: string;
   siteLogo?: string;
+  siteName?: string;
+  userAvatar?: string;
+  userEmail?: string;
+  userName?: string;
+  userRole: 'loan_officer' | 'realtor_partner' | 'manager' | 'frs_admin';
 }
 
 export function PortalLayout({
-  userRole,
-  userName,
-  userEmail,
-  userAvatar,
-  siteName,
   siteLogo,
+  siteName,
+  userAvatar,
+  userEmail,
+  userName,
+  userRole,
 }: PortalLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = React.useState(true);
 
@@ -74,19 +74,19 @@ export function PortalLayout({
 
   return (
     <BrowserRouter basename="/hub">
-      <SidebarProvider open={sidebarOpen} onOpenChange={setSidebarOpen}>
+      <SidebarProvider onOpenChange={setSidebarOpen} open={sidebarOpen}>
         <PortalSidebar
-          userRole={userRole}
-          userName={userName}
-          userEmail={userEmail}
-          userAvatar={userAvatar}
-          siteName={siteName}
           siteLogo={siteLogo}
+          siteName={siteName}
+          userAvatar={userAvatar}
+          userEmail={userEmail}
+          userName={userName}
+          userRole={userRole}
         />
         <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background">
-            <SidebarTrigger className="-ml-1 h-8 w-8" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
+            <SidebarTrigger className="-ml-1 size-8" />
+            <Separator className="mr-2 h-4" orientation="vertical" />
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
@@ -103,26 +103,26 @@ export function PortalLayout({
           <div className="flex flex-1 flex-col gap-4 p-4">
             <Routes>
               {/* Default route - show dashboard */}
-              <Route path="/" element={<ContentRenderer userName={userName} userRole={userRole} />} />
+              <Route element={<ContentRenderer userName={userName} userRole={userRole} />} path="/" />
 
               {/* Dynamic content routes (React components or WordPress pages) */}
-              <Route path="/:slug" element={<ContentRenderer userName={userName} userRole={userRole} />} />
+              <Route element={<ContentRenderer userName={userName} userRole={userRole} />} path="/:slug" />
 
               {/* Catch-all route */}
               <Route
-                path="*"
                 element={
-                  <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm p-8">
+                  <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed p-8 shadow-sm">
                     <div className="flex flex-col items-center gap-1 text-center">
                       <h3 className="text-2xl font-bold tracking-tight">
                         Page Not Found
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        The page you're looking for doesn't exist.
+                        The page you&apos;re looking for doesn&apos;t exist.
                       </p>
                     </div>
                   </div>
                 }
+                path="*"
               />
             </Routes>
           </div>

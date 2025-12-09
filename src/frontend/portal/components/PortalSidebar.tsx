@@ -21,21 +21,21 @@ import { fetchPortalMenuCached, getMenuLocationForRole } from "@/services/menuSe
 import type { SidebarMenuItem } from "@/types/menu";
 
 interface PortalSidebarProps extends React.ComponentProps<typeof Sidebar> {
-  userRole: 'loan_officer' | 'realtor_partner' | 'manager' | 'frs_admin';
-  userName?: string;
-  userEmail?: string;
-  userAvatar?: string;
-  siteName?: string;
   siteLogo?: string;
+  siteName?: string;
+  userAvatar?: string;
+  userEmail?: string;
+  userName?: string;
+  userRole: 'loan_officer' | 'realtor_partner' | 'manager' | 'frs_admin';
 }
 
 export function PortalSidebar({
-  userRole,
-  userName = 'User',
-  userEmail = '',
-  userAvatar = '',
-  siteName = 'Portal',
   siteLogo = '',
+  siteName = 'Portal',
+  userAvatar = '',
+  userEmail = '',
+  userName = 'User',
+  userRole,
   ...props
 }: PortalSidebarProps) {
   const [menuItems, setMenuItems] = useState<SidebarMenuItem[]>([]);
@@ -56,10 +56,10 @@ export function PortalSidebar({
 
         console.log('Menu items loaded:', items);
         setMenuItems(items);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load menu';
+      } catch (error_) {
+        const errorMessage = error_ instanceof Error ? error_.message : 'Failed to load menu';
         setError(errorMessage);
-        console.error('Menu loading error:', err);
+        console.error('Menu loading error:', error_);
       } finally {
         setLoading(false);
       }
@@ -70,15 +70,15 @@ export function PortalSidebar({
 
   // User data for footer
   const userData = {
-    name: userName,
-    email: userEmail,
     avatar: userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=0D8ABC&color=fff`,
+    email: userEmail,
+    name: userName,
   };
 
   // Site/company data for team switcher
   // If we have a logo URL, create a custom component to render it
   const SiteLogo = siteLogo
-    ? () => <img src={siteLogo} alt={siteName} className="size-8 object-contain" />
+    ? () => <img alt={siteName} className="size-8 object-contain" src={siteLogo} />
     : Building2;
 
   // Simplify role names
@@ -99,8 +99,8 @@ export function PortalSidebar({
 
   const sites = [
     {
-      name: siteName,
       logo: SiteLogo,
+      name: siteName,
       plan: getRoleName(userRole),
     },
   ];
@@ -115,10 +115,10 @@ export function PortalSidebar({
         {/* Always show Dashboard link at top */}
         <nav className="grid gap-0.5 p-2">
           <Link
+            className="ring-sidebar-ring hover:bg-sidebar-accent hover:text-sidebar-accent-foreground active:bg-sidebar-accent active:text-sidebar-accent-foreground data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group flex w-full items-center gap-2 overflow-hidden rounded-md px-2 py-1.5 text-left text-sm outline-none transition-[width,height,padding] focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium"
             to="/"
-            className="group flex w-full items-center gap-2 overflow-hidden rounded-md px-2 py-1.5 text-left text-sm outline-none ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground"
           >
-            <LayoutDashboard className="h-4 w-4" />
+            <LayoutDashboard className="size-4" />
             <span>Dashboard</span>
           </Link>
         </nav>
@@ -131,7 +131,7 @@ export function PortalSidebar({
 
         {error && (
           <div className="flex flex-col items-center justify-center p-4 text-center">
-            <div className="text-sm text-destructive mb-2">Failed to load menu</div>
+            <div className="mb-2 text-sm text-destructive">Failed to load menu</div>
             <div className="text-xs text-muted-foreground">{error}</div>
           </div>
         )}
@@ -142,9 +142,9 @@ export function PortalSidebar({
 
         {!loading && !error && menuItems.length === 0 && (
           <div className="flex flex-col items-center justify-center p-4 text-center">
-            <div className="text-sm text-muted-foreground mb-2">No menu configured</div>
+            <div className="mb-2 text-sm text-muted-foreground">No menu configured</div>
             <div className="text-xs text-muted-foreground">
-              Go to Appearance → Menus in WordPress admin to create a menu and assign it to "Portal - {userRole === 'loan_officer' ? 'Loan Officer' : 'Realtor Partner'}"
+              Go to Appearance → Menus in WordPress admin to create a menu and assign it to &quot;Portal - {userRole === 'loan_officer' ? 'Loan Officer' : 'Realtor Partner'}&quot;
             </div>
           </div>
         )}

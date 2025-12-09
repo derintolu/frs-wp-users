@@ -28,25 +28,25 @@ export type DirectoryLayout = 'grid' | 'list';
  * Filter options
  */
 export interface DirectoryFilters {
-	search?: string;
-	region?: string;
-	specialty?: string;
 	language?: string;
 	personType?: string;
+	region?: string;
+	search?: string;
+	specialty?: string;
 }
 
 /**
  * Props for LoanOfficerDirectory component
  */
 export interface LoanOfficerDirectoryProps extends React.HTMLAttributes<HTMLDivElement> {
-	profiles: LoanOfficerProfile[];
 	audience?: 'internal' | 'external';
-	showFilters?: boolean;
+	detailLevel?: DetailLevel;
 	initialCardSize?: CardSize;
 	initialLayout?: DirectoryLayout;
-	detailLevel?: DetailLevel;
-	onProfileClick?: (profile: LoanOfficerProfile) => void;
 	onContactClick?: (profile: LoanOfficerProfile, method: 'phone' | 'email') => void;
+	onProfileClick?: (profile: LoanOfficerProfile) => void;
+	profiles: LoanOfficerProfile[];
+	showFilters?: boolean;
 }
 
 /**
@@ -64,15 +64,15 @@ export interface LoanOfficerDirectoryProps extends React.HTMLAttributes<HTMLDivE
  * @param onContactClick - Callback when contact button is clicked
  */
 export const LoanOfficerDirectory: React.FC<LoanOfficerDirectoryProps> = ({
-	profiles: initialProfiles,
 	audience = 'external',
-	showFilters = true,
+	className,
+	detailLevel = 'standard',
 	initialCardSize = 'medium',
 	initialLayout = 'grid',
-	detailLevel = 'standard',
-	onProfileClick,
 	onContactClick,
-	className,
+	onProfileClick,
+	profiles: initialProfiles,
+	showFilters = true,
 	...props
 }) => {
 	const [cardSize, setCardSize] = React.useState<CardSize>(initialCardSize);
@@ -183,16 +183,16 @@ export const LoanOfficerDirectory: React.FC<LoanOfficerDirectoryProps> = ({
 				{/* View Controls */}
 				<div className="flex items-center gap-2">
 					{/* Card Size Toggle */}
-					<Tabs value={cardSize} onValueChange={(v) => setCardSize(v as CardSize)}>
+					<Tabs onValueChange={(v) => setCardSize(v as CardSize)} value={cardSize}>
 						<TabsList>
-							<TabsTrigger value="small" className="px-3">
-								<Grid3x3 className="h-4 w-4" />
+							<TabsTrigger className="px-3" value="small">
+								<Grid3x3 className="size-4" />
 							</TabsTrigger>
-							<TabsTrigger value="medium" className="px-3">
-								<LayoutGrid className="h-4 w-4" />
+							<TabsTrigger className="px-3" value="medium">
+								<LayoutGrid className="size-4" />
 							</TabsTrigger>
-							<TabsTrigger value="large" className="px-3">
-								<LayoutList className="h-4 w-4" />
+							<TabsTrigger className="px-3" value="large">
+								<LayoutList className="size-4" />
 							</TabsTrigger>
 						</TabsList>
 					</Tabs>
@@ -201,20 +201,20 @@ export const LoanOfficerDirectory: React.FC<LoanOfficerDirectoryProps> = ({
 
 			{/* Filters */}
 			{showFilters && (
-				<div className="space-y-4 rounded-lg border p-4 bg-muted/30">
+				<div className="space-y-4 rounded-lg border bg-muted/30 p-4">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-2">
-							<Filter className="h-4 w-4 text-muted-foreground" />
+							<Filter className="size-4 text-muted-foreground" />
 							<h3 className="font-semibold">Filters</h3>
 						</div>
 						{hasActiveFilters && (
 							<Button
-								variant="ghost"
-								size="sm"
-								onClick={clearFilters}
 								className="h-8 px-2"
+								onClick={clearFilters}
+								size="sm"
+								variant="ghost"
 							>
-								<X className="mr-1 h-3 w-3" />
+								<X className="mr-1 size-3" />
 								Clear all
 							</Button>
 						)}
@@ -223,18 +223,18 @@ export const LoanOfficerDirectory: React.FC<LoanOfficerDirectoryProps> = ({
 					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 						{/* Search */}
 						<div className="relative md:col-span-2">
-							<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+							<Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 							<Input
+								className="pl-9"
+								onChange={e => updateFilter('search', e.target.value)}
 								placeholder="Search by name, email, NMLS..."
 								value={filters.search || ''}
-								onChange={e => updateFilter('search', e.target.value)}
-								className="pl-9"
 							/>
 						</div>
 
 						{/* Region Filter */}
 						{regions.length > 0 && (
-							<Select value={filters.region || ''} onValueChange={v => updateFilter('region', v)}>
+							<Select onValueChange={v => updateFilter('region', v)} value={filters.region || ''}>
 								<SelectTrigger>
 									<SelectValue placeholder="Region" />
 								</SelectTrigger>
@@ -251,7 +251,7 @@ export const LoanOfficerDirectory: React.FC<LoanOfficerDirectoryProps> = ({
 
 						{/* Specialty Filter */}
 						{specialties.length > 0 && (
-							<Select value={filters.specialty || ''} onValueChange={v => updateFilter('specialty', v)}>
+							<Select onValueChange={v => updateFilter('specialty', v)} value={filters.specialty || ''}>
 								<SelectTrigger>
 									<SelectValue placeholder="Specialty" />
 								</SelectTrigger>
@@ -268,7 +268,7 @@ export const LoanOfficerDirectory: React.FC<LoanOfficerDirectoryProps> = ({
 
 						{/* Language Filter */}
 						{languages.length > 0 && (
-							<Select value={filters.language || ''} onValueChange={v => updateFilter('language', v)}>
+							<Select onValueChange={v => updateFilter('language', v)} value={filters.language || ''}>
 								<SelectTrigger>
 									<SelectValue placeholder="Language" />
 								</SelectTrigger>
@@ -285,7 +285,7 @@ export const LoanOfficerDirectory: React.FC<LoanOfficerDirectoryProps> = ({
 
 						{/* Person Type Filter (Internal Only) */}
 						{audience === 'internal' && personTypes.length > 0 && (
-							<Select value={filters.personType || ''} onValueChange={v => updateFilter('personType', v)}>
+							<Select onValueChange={v => updateFilter('personType', v)} value={filters.personType || ''}>
 								<SelectTrigger>
 									<SelectValue placeholder="Type" />
 								</SelectTrigger>
@@ -305,46 +305,46 @@ export const LoanOfficerDirectory: React.FC<LoanOfficerDirectoryProps> = ({
 					{hasActiveFilters && (
 						<div className="flex flex-wrap gap-2">
 							{filters.search && (
-								<Badge variant="secondary" className="gap-1">
+								<Badge className="gap-1" variant="secondary">
 									Search: {filters.search}
 									<X
-										className="h-3 w-3 cursor-pointer hover:text-destructive"
+										className="size-3 cursor-pointer hover:text-destructive"
 										onClick={() => updateFilter('search', undefined)}
 									/>
 								</Badge>
 							)}
 							{filters.region && (
-								<Badge variant="secondary" className="gap-1">
+								<Badge className="gap-1" variant="secondary">
 									Region: {filters.region}
 									<X
-										className="h-3 w-3 cursor-pointer hover:text-destructive"
+										className="size-3 cursor-pointer hover:text-destructive"
 										onClick={() => updateFilter('region', undefined)}
 									/>
 								</Badge>
 							)}
 							{filters.specialty && (
-								<Badge variant="secondary" className="gap-1">
+								<Badge className="gap-1" variant="secondary">
 									Specialty: {filters.specialty}
 									<X
-										className="h-3 w-3 cursor-pointer hover:text-destructive"
+										className="size-3 cursor-pointer hover:text-destructive"
 										onClick={() => updateFilter('specialty', undefined)}
 									/>
 								</Badge>
 							)}
 							{filters.language && (
-								<Badge variant="secondary" className="gap-1">
+								<Badge className="gap-1" variant="secondary">
 									Language: {filters.language}
 									<X
-										className="h-3 w-3 cursor-pointer hover:text-destructive"
+										className="size-3 cursor-pointer hover:text-destructive"
 										onClick={() => updateFilter('language', undefined)}
 									/>
 								</Badge>
 							)}
 							{filters.personType && (
-								<Badge variant="secondary" className="gap-1">
+								<Badge className="gap-1" variant="secondary">
 									Type: {filters.personType}
 									<X
-										className="h-3 w-3 cursor-pointer hover:text-destructive"
+										className="size-3 cursor-pointer hover:text-destructive"
 										onClick={() => updateFilter('personType', undefined)}
 									/>
 								</Badge>
@@ -369,25 +369,25 @@ export const LoanOfficerDirectory: React.FC<LoanOfficerDirectoryProps> = ({
 					{profiles.map(profile => (
 						<div key={profile.id} onClick={() => onProfileClick?.(profile)}>
 							<LoanOfficerCard
-								profile={profile}
-								size={cardSize}
 								audience={audience}
+								className={onProfileClick ? 'cursor-pointer' : ''}
 								detailLevel={detailLevel}
 								onContactClick={onContactClick}
-								className={onProfileClick ? 'cursor-pointer' : ''}
+								profile={profile}
+								size={cardSize}
 							/>
 						</div>
 					))}
 				</div>
 			) : (
 				<div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
-					<Search className="h-12 w-12 text-muted-foreground/50 mb-4" />
-					<h3 className="text-lg font-semibold mb-2">No loan officers found</h3>
-					<p className="text-sm text-muted-foreground mb-4">
+					<Search className="mb-4 size-12 text-muted-foreground/50" />
+					<h3 className="mb-2 text-lg font-semibold">No loan officers found</h3>
+					<p className="mb-4 text-sm text-muted-foreground">
 						Try adjusting your filters or search terms
 					</p>
 					{hasActiveFilters && (
-						<Button onClick={clearFilters} variant="outline" size="sm">
+						<Button onClick={clearFilters} size="sm" variant="outline">
 							Clear Filters
 						</Button>
 					)}

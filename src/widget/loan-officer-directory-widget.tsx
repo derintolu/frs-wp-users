@@ -18,42 +18,42 @@ import './widget.css';
 
 interface WidgetConfig {
 	apiUrl: string;
-	personType?: string;
-	region?: string;
 	cardSize: 'small' | 'medium' | 'large';
 	detailLevel: 'minimal' | 'standard' | 'full';
-	showFilters: boolean;
-	showContactButtons: boolean;
 	perPage: number;
+	personType?: string;
+	region?: string;
+	showContactButtons: boolean;
+	showFilters: boolean;
 }
 
 interface Profile {
-	id: number;
-	first_name: string;
-	last_name: string;
-	full_name: string;
-	email: string;
-	phone_number?: string;
-	mobile_number?: string;
-	job_title?: string;
-	headshot_url?: string;
-	nmls_number?: string;
+	biography?: string;
 	city_state?: string;
+	email: string;
+	facebook_url?: string;
+	first_name: string;
+	full_name: string;
+	headshot_url?: string;
+	id: number;
+	instagram_url?: string;
+	job_title?: string;
+	last_name: string;
+	linkedin_url?: string;
+	mobile_number?: string;
+	nmls_number?: string;
+	office?: string;
+	phone_number?: string;
 	region?: string;
 	select_person_type?: string;
 	specialties_lo?: string[];
-	biography?: string;
-	facebook_url?: string;
-	instagram_url?: string;
-	linkedin_url?: string;
+	tiktok_url?: string;
 	twitter_url?: string;
 	youtube_url?: string;
-	tiktok_url?: string;
-	office?: string;
 }
 
 function LoanOfficerDirectoryWidget({ config }: { config: WidgetConfig }) {
-	const { apiUrl, personType, region, cardSize, detailLevel, showFilters, showContactButtons, perPage } = config;
+	const { apiUrl, cardSize, detailLevel, perPage, personType, region, showContactButtons, showFilters } = config;
 	const [profiles, setProfiles] = useState<Profile[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -91,8 +91,8 @@ function LoanOfficerDirectoryWidget({ config }: { config: WidgetConfig }) {
 				setProfiles(filteredProfiles);
 				setLoading(false);
 			})
-			.catch((err: Error) => {
-				setError(err.message);
+			.catch((error_: Error) => {
+				setError(error_.message);
 				setLoading(false);
 			});
 	}, [activePersonType, activeRegion, perPage, apiUrl]);
@@ -102,21 +102,21 @@ function LoanOfficerDirectoryWidget({ config }: { config: WidgetConfig }) {
 	};
 
 	const cardSizeClass = {
-		small: 'frs-lo-max-w-xs',
-		medium: 'frs-lo-max-w-md',
 		large: 'frs-lo-max-w-2xl',
+		medium: 'frs-lo-max-w-md',
+		small: 'frs-lo-max-w-xs',
 	}[cardSize];
 
 	const avatarSizeClass = {
-		small: 'frs-lo-h-12 frs-lo-w-12 frs-lo-text-sm',
-		medium: 'frs-lo-h-16 frs-lo-w-16 frs-lo-text-base',
 		large: 'frs-lo-h-20 frs-lo-w-20 frs-lo-text-lg',
+		medium: 'frs-lo-h-16 frs-lo-w-16 frs-lo-text-base',
+		small: 'frs-lo-h-12 frs-lo-w-12 frs-lo-text-sm',
 	}[cardSize];
 
 	const gridColsClass = {
-		small: 'frs-lo-grid-cols-1 sm:frs-lo-grid-cols-2 lg:frs-lo-grid-cols-3 xl:frs-lo-grid-cols-4',
-		medium: 'frs-lo-grid-cols-1 md:frs-lo-grid-cols-2 lg:frs-lo-grid-cols-3',
 		large: 'frs-lo-grid-cols-1 lg:frs-lo-grid-cols-2',
+		medium: 'frs-lo-grid-cols-1 md:frs-lo-grid-cols-2 lg:frs-lo-grid-cols-3',
+		small: 'frs-lo-grid-cols-1 sm:frs-lo-grid-cols-2 lg:frs-lo-grid-cols-3 xl:frs-lo-grid-cols-4',
 	}[cardSize];
 
 	return (
@@ -140,8 +140,8 @@ function LoanOfficerDirectoryWidget({ config }: { config: WidgetConfig }) {
 							<label className="frs-lo-block frs-lo-text-sm frs-lo-font-medium frs-lo-text-gray-700 frs-lo-mb-2">Person Type</label>
 							<select
 								className="frs-lo-w-full frs-lo-px-3 frs-lo-py-2 frs-lo-border frs-lo-border-gray-300 frs-lo-rounded-md focus:frs-lo-outline-none focus:frs-lo-ring-2 focus:frs-lo-ring-blue-500"
-								value={activePersonType}
 								onChange={(e) => setActivePersonType(e.target.value)}
+								value={activePersonType}
 							>
 								<option value="">All Types</option>
 								<option value="loan_officer">Loan Officer</option>
@@ -152,8 +152,8 @@ function LoanOfficerDirectoryWidget({ config }: { config: WidgetConfig }) {
 							<label className="frs-lo-block frs-lo-text-sm frs-lo-font-medium frs-lo-text-gray-700 frs-lo-mb-2">Region</label>
 							<select
 								className="frs-lo-w-full frs-lo-px-3 frs-lo-py-2 frs-lo-border frs-lo-border-gray-300 frs-lo-rounded-md focus:frs-lo-outline-none focus:frs-lo-ring-2 focus:frs-lo-ring-blue-500"
-								value={activeRegion}
 								onChange={(e) => setActiveRegion(e.target.value)}
+								value={activeRegion}
 							>
 								<option value="">All Regions</option>
 								<option value="pacific">Pacific</option>
@@ -193,18 +193,18 @@ function LoanOfficerDirectoryWidget({ config }: { config: WidgetConfig }) {
 			{!loading && !error && profiles.length > 0 && (
 				<div className={`frs-lo-grid frs-lo-gap-6 ${gridColsClass}`}>
 					{profiles.map((profile) => (
-						<div key={profile.id} className={`${cardSizeClass} frs-lo-border frs-lo-rounded-xl frs-lo-shadow-md hover:frs-lo-shadow-lg frs-lo-transition-shadow frs-lo-duration-300 frs-lo-border-gray-200 frs-lo-bg-white frs-lo-overflow-hidden`}>
+						<div className={`${cardSizeClass} frs-lo-border frs-lo-rounded-xl frs-lo-shadow-md hover:frs-lo-shadow-lg frs-lo-transition-shadow frs-lo-duration-300 frs-lo-border-gray-200 frs-lo-bg-white frs-lo-overflow-hidden`} key={profile.id}>
 							<div className="frs-lo-p-4">
 								<div className={`frs-lo-flex ${cardSize === 'large' ? 'frs-lo-flex-row' : 'frs-lo-flex-col'} frs-lo-gap-3 frs-lo-items-center`}>
 									{/* Avatar */}
 									{profile.headshot_url ? (
 										<img
-											src={profile.headshot_url}
 											alt={profile.full_name}
-											className={`${avatarSizeClass} frs-lo-rounded-full frs-lo-object-cover frs-lo-border-2 frs-lo-border-blue-100 frs-lo-flex-shrink-0`}
+											className={`${avatarSizeClass} frs-lo-rounded-full frs-lo-object-cover frs-lo-border-2 frs-lo-border-blue-100 frs-lo-shrink-0`}
+											src={profile.headshot_url}
 										/>
 									) : (
-										<div className={`${avatarSizeClass} frs-lo-rounded-full frs-lo-bg-gradient-to-br frs-lo-from-blue-500 frs-lo-to-cyan-500 frs-lo-flex frs-lo-items-center frs-lo-justify-center frs-lo-text-white frs-lo-font-bold frs-lo-flex-shrink-0`}>
+										<div className={`${avatarSizeClass} frs-lo-rounded-full frs-lo-bg-gradient-to-br frs-lo-from-blue-500 frs-lo-to-cyan-500 frs-lo-flex frs-lo-items-center frs-lo-justify-center frs-lo-text-white frs-lo-font-bold frs-lo-shrink-0`}>
 											{getInitials(profile.first_name, profile.last_name)}
 										</div>
 									)}
@@ -236,8 +236,8 @@ function LoanOfficerDirectoryWidget({ config }: { config: WidgetConfig }) {
 								{detailLevel !== 'minimal' && profile.city_state && (
 									<div className="frs-lo-flex frs-lo-items-center frs-lo-gap-1 frs-lo-text-xs frs-lo-text-gray-600 frs-lo-mt-2">
 										<svg className="frs-lo-w-3 frs-lo-h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+											<path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
+											<path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
 										</svg>
 										<span>{profile.city_state}</span>
 									</div>
@@ -247,35 +247,35 @@ function LoanOfficerDirectoryWidget({ config }: { config: WidgetConfig }) {
 								{detailLevel !== 'minimal' && (
 									<div className="frs-lo-flex frs-lo-items-center frs-lo-gap-2 frs-lo-mt-3">
 										{profile.linkedin_url && (
-											<a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" className="frs-lo-text-gray-600 hover:frs-lo-text-blue-600 frs-lo-transition-colors">
+											<a className="frs-lo-text-gray-600 hover:frs-lo-text-blue-600 frs-lo-transition-colors" href={profile.linkedin_url} rel="noopener noreferrer" target="_blank">
 												<svg className="frs-lo-w-4 frs-lo-h-4" fill="currentColor" viewBox="0 0 24 24">
 													<path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
 												</svg>
 											</a>
 										)}
 										{profile.facebook_url && (
-											<a href={profile.facebook_url} target="_blank" rel="noopener noreferrer" className="frs-lo-text-gray-600 hover:frs-lo-text-blue-600 frs-lo-transition-colors">
+											<a className="frs-lo-text-gray-600 hover:frs-lo-text-blue-600 frs-lo-transition-colors" href={profile.facebook_url} rel="noopener noreferrer" target="_blank">
 												<svg className="frs-lo-w-4 frs-lo-h-4" fill="currentColor" viewBox="0 0 24 24">
 													<path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
 												</svg>
 											</a>
 										)}
 										{profile.instagram_url && (
-											<a href={profile.instagram_url} target="_blank" rel="noopener noreferrer" className="frs-lo-text-gray-600 hover:frs-lo-text-pink-600 frs-lo-transition-colors">
+											<a className="frs-lo-text-gray-600 hover:frs-lo-text-pink-600 frs-lo-transition-colors" href={profile.instagram_url} rel="noopener noreferrer" target="_blank">
 												<svg className="frs-lo-w-4 frs-lo-h-4" fill="currentColor" viewBox="0 0 24 24">
 													<path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
 												</svg>
 											</a>
 										)}
 										{profile.twitter_url && (
-											<a href={profile.twitter_url} target="_blank" rel="noopener noreferrer" className="frs-lo-text-gray-600 hover:frs-lo-text-blue-400 frs-lo-transition-colors">
+											<a className="frs-lo-text-gray-600 hover:frs-lo-text-blue-400 frs-lo-transition-colors" href={profile.twitter_url} rel="noopener noreferrer" target="_blank">
 												<svg className="frs-lo-w-4 frs-lo-h-4" fill="currentColor" viewBox="0 0 24 24">
 													<path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
 												</svg>
 											</a>
 										)}
 										{profile.youtube_url && (
-											<a href={profile.youtube_url} target="_blank" rel="noopener noreferrer" className="frs-lo-text-gray-600 hover:frs-lo-text-red-600 frs-lo-transition-colors">
+											<a className="frs-lo-text-gray-600 hover:frs-lo-text-red-600 frs-lo-transition-colors" href={profile.youtube_url} rel="noopener noreferrer" target="_blank">
 												<svg className="frs-lo-w-4 frs-lo-h-4" fill="currentColor" viewBox="0 0 24 24">
 													<path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
 												</svg>
@@ -298,16 +298,16 @@ function LoanOfficerDirectoryWidget({ config }: { config: WidgetConfig }) {
 									<div className="frs-lo-mt-4 frs-lo-flex frs-lo-gap-2">
 										{profile.phone_number && (
 											<a
-												href={`tel:${profile.phone_number}`}
 												className="frs-lo-flex-1 frs-lo-bg-blue-600 frs-lo-text-white frs-lo-px-3 frs-lo-py-2 frs-lo-rounded-lg frs-lo-text-xs frs-lo-font-medium hover:frs-lo-bg-blue-700 frs-lo-transition-colors frs-lo-text-center"
+												href={`tel:${profile.phone_number}`}
 											>
 												Call
 											</a>
 										)}
 										{profile.email && (
 											<a
-												href={`mailto:${profile.email}`}
 												className="frs-lo-flex-1 frs-lo-bg-gray-100 frs-lo-text-gray-700 frs-lo-px-3 frs-lo-py-2 frs-lo-rounded-lg frs-lo-text-xs frs-lo-font-medium hover:frs-lo-bg-gray-200 frs-lo-transition-colors frs-lo-text-center"
+												href={`mailto:${profile.email}`}
 											>
 												Email
 											</a>
@@ -334,13 +334,13 @@ function LoanOfficerDirectoryWidget({ config }: { config: WidgetConfig }) {
 			// Parse configuration from data attributes
 			const config: WidgetConfig = {
 				apiUrl: htmlElement.dataset.apiUrl || window.location.origin + '/wp-json',
-				personType: htmlElement.dataset.personType,
-				region: htmlElement.dataset.region,
 				cardSize: (htmlElement.dataset.cardSize as any) || 'medium',
 				detailLevel: (htmlElement.dataset.detailLevel as any) || 'standard',
-				showFilters: htmlElement.dataset.showFilters !== 'false',
+				perPage: Number.parseInt(htmlElement.dataset.perPage || '12', 10),
+				personType: htmlElement.dataset.personType,
+				region: htmlElement.dataset.region,
 				showContactButtons: htmlElement.dataset.showContactButtons !== 'false',
-				perPage: parseInt(htmlElement.dataset.perPage || '12', 10),
+				showFilters: htmlElement.dataset.showFilters !== 'false',
 			};
 
 			const root = createRoot(htmlElement);

@@ -7,24 +7,24 @@ import { SidebarNav } from "@/components/settings/sidebar-nav"
 
 const sidebarNavItems = [
   {
-    title: "Profile",
     href: "#/settings",
+    title: "Profile",
   },
   {
-    title: "Account",
     href: "#/account",
+    title: "Account",
   },
   {
-    title: "Appearance",
     href: "#/appearance",
+    title: "Appearance",
   },
   {
-    title: "Notifications",
     href: "#/notifications",
+    title: "Notifications",
   },
   {
-    title: "Display",
     href: "#/display",
+    title: "Display",
   },
 ]
 
@@ -36,7 +36,7 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
   return (
     <>
       
-      <div className="hidden space-y-6 p-10 pb-16 md:block dark:bg-gray-900">
+      <div className="hidden space-y-6 p-10 pb-16 dark:bg-gray-900 md:block">
         <div className="space-y-0.5">
           <h2 className="text-2xl font-bold tracking-tight dark:text-white">Settings</h2>
           <p className="text-muted-foreground">

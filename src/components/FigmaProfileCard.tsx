@@ -3,21 +3,21 @@ import { Button } from '@/components/ui/button';
 import QRCodeStyling from 'qr-code-styling';
 
 interface FigmaProfileCardProps {
-  id?: number;
-  first_name: string;
-  last_name: string;
-  job_title?: string;
-  nmls_number?: string;
-  email: string;
-  phone_number?: string;
-  mobile_number?: string;
   city_state?: string;
+  email: string;
+  first_name: string;
   headshot_url?: string;
-  profile_slug?: string;
-  select_person_type?: 'loan_officer' | 'agent' | 'staff' | 'leadership' | 'assistant';
-  onScheduleMeeting?: () => void;
+  id?: number;
+  job_title?: string;
+  last_name: string;
+  mobile_number?: string;
+  nmls_number?: string;
   onApplyNow?: () => void;
   onMenuClick?: () => void;
+  onScheduleMeeting?: () => void;
+  phone_number?: string;
+  profile_slug?: string;
+  select_person_type?: 'loan_officer' | 'agent' | 'staff' | 'leadership' | 'assistant';
 }
 
 /**
@@ -33,21 +33,21 @@ interface FigmaProfileCardProps {
  * - 3-dot menu in top right corner
  */
 export function FigmaProfileCard({
-  first_name,
-  last_name,
-  job_title = 'Digital Director',
-  nmls_number,
-  email,
-  phone_number,
-  mobile_number,
   city_state = 'San Francisco, CA',
+  email,
+  first_name,
   headshot_url,
-  profile_slug,
-  select_person_type = 'loan_officer',
   id,
-  onScheduleMeeting,
+  job_title = 'Digital Director',
+  last_name,
+  mobile_number,
+  nmls_number,
   onApplyNow,
-  onMenuClick
+  onMenuClick,
+  onScheduleMeeting,
+  phone_number,
+  profile_slug,
+  select_person_type = 'loan_officer'
 }: FigmaProfileCardProps) {
   const [showQRCode, setShowQRCode] = useState(false);
   const qrCodeRef = useRef<HTMLDivElement>(null);
@@ -87,54 +87,54 @@ export function FigmaProfileCard({
       qrCodeRef.current.innerHTML = '';
 
       const qrCode = new QRCodeStyling({
-        type: 'canvas',
-        shape: 'square',
-        width: 96,
-        height: 96,
-        data: qrProfileUrl,
-        margin: 0,
-        qrOptions: {
-          typeNumber: 0,
-          mode: 'Byte',
-          errorCorrectionLevel: 'L'
-        },
-        dotsOptions: {
-          type: 'extra-rounded',
-          roundSize: true,
-          gradient: {
-            type: 'linear',
-            rotation: 0,
-            colorStops: [
-              { offset: 0, color: '#2563eb' },
-              { offset: 1, color: '#2dd4da' }
-            ]
-          }
-        },
         backgroundOptions: {
           color: '#ffffff'
         },
-        cornersSquareOptions: {
-          type: 'extra-rounded',
-          gradient: {
-            type: 'linear',
-            rotation: 0,
-            colorStops: [
-              { offset: 0, color: '#2563ea' },
-              { offset: 1, color: '#2dd4da' }
-            ]
-          }
-        },
         cornersDotOptions: {
-          type: '',
           gradient: {
-            type: 'linear',
-            rotation: 0,
             colorStops: [
-              { offset: 0, color: '#2dd4da' },
-              { offset: 1, color: '#2563e9' }
-            ]
-          }
-        }
+              { color: '#2dd4da', offset: 0 },
+              { color: '#2563e9', offset: 1 }
+            ],
+            rotation: 0,
+            type: 'linear'
+          },
+          type: ''
+        },
+        cornersSquareOptions: {
+          gradient: {
+            colorStops: [
+              { color: '#2563ea', offset: 0 },
+              { color: '#2dd4da', offset: 1 }
+            ],
+            rotation: 0,
+            type: 'linear'
+          },
+          type: 'extra-rounded'
+        },
+        data: qrProfileUrl,
+        dotsOptions: {
+          gradient: {
+            colorStops: [
+              { color: '#2563eb', offset: 0 },
+              { color: '#2dd4da', offset: 1 }
+            ],
+            rotation: 0,
+            type: 'linear'
+          },
+          roundSize: true,
+          type: 'extra-rounded'
+        },
+        height: 96,
+        margin: 0,
+        qrOptions: {
+          errorCorrectionLevel: 'L',
+          mode: 'Byte',
+          typeNumber: 0
+        },
+        shape: 'square',
+        type: 'canvas',
+        width: 96
       });
 
       qrCode.append(qrCodeRef.current);
@@ -143,21 +143,21 @@ export function FigmaProfileCard({
 
   return (
     <div
-      className="relative w-[437px] h-[431px] bg-white border border-blue-600 rounded overflow-hidden"
+      className="relative h-[431px] w-[437px] overflow-hidden rounded border border-blue-600 bg-white"
       style={{ fontFamily: 'Mona Sans, sans-serif' }}
     >
       {/* Gradient Background Header - Blurred */}
-      <div className="absolute top-0 left-0 right-0 h-[139px] overflow-hidden">
+      <div className="absolute inset-x-0 top-0 h-[139px] overflow-hidden">
         <div
-          className="absolute w-full h-[227px] top-0 left-0 right-0"
+          className="absolute inset-x-0 top-0 h-[227px] w-full"
           style={{ filter: 'blur(30px)' }}
         >
           <video
             autoPlay
+            className="size-full object-cover"
             loop
             muted
             playsInline
-            className="w-full h-full object-cover"
           >
             <source src={gradientUrl} type="video/mp4" />
           </video>
@@ -167,28 +167,28 @@ export function FigmaProfileCard({
 
       {/* 3-Dot Menu Button - Top Right */}
       <button
-        onClick={onMenuClick}
-        className="absolute top-[10px] right-[10px] w-8 h-8 bg-white border-2 border-[#2dd4da] rounded-full flex items-center justify-center z-20 hover:bg-gray-50 transition-colors"
         aria-label="Menu"
+        className="absolute right-[10px] top-[10px] z-20 flex size-8 items-center justify-center rounded-full border-2 border-[#2dd4da] bg-white transition-colors hover:bg-gray-50"
+        onClick={onMenuClick}
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="12" cy="5" r="1.5" fill="currentColor" stroke="none"/>
-          <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>
-          <circle cx="12" cy="19" r="1.5" fill="currentColor" stroke="none"/>
+        <svg fill="none" height="18" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" width="18">
+          <circle cx="12" cy="5" fill="currentColor" r="1.5" stroke="none"/>
+          <circle cx="12" cy="12" fill="currentColor" r="1.5" stroke="none"/>
+          <circle cx="12" cy="19" fill="currentColor" r="1.5" stroke="none"/>
         </svg>
       </button>
 
       {/* Avatar with QR Code Flip */}
-      <div className="absolute left-[145px] top-[44px] w-[148px] z-10">
+      <div className="absolute left-[145px] top-[44px] z-10 w-[148px]">
         <div
-          className="relative w-[148px] h-[148px]"
+          className="relative size-[148px]"
           style={{ perspective: '1000px' }}
         >
           <div
-            className="relative w-full h-full transition-transform duration-700"
+            className="relative size-full transition-transform duration-700"
             style={{
-              transformStyle: 'preserve-3d',
-              transform: showQRCode ? 'rotateY(180deg)' : 'rotateY(0deg)'
+              transform: showQRCode ? 'rotateY(180deg)' : 'rotateY(0deg)',
+              transformStyle: 'preserve-3d'
             }}
           >
             {/* Front - Avatar */}
@@ -197,41 +197,41 @@ export function FigmaProfileCard({
               style={{ backfaceVisibility: 'hidden' }}
             >
               <div
-                className="w-full h-full rounded-full overflow-hidden border-4"
+                className="size-full overflow-hidden rounded-full border-4"
                 style={{ borderColor: '#5ce1e6' }}
               >
                 <img
-                  src={headshot_url || 'https://via.placeholder.com/148'}
                   alt={fullName}
-                  className="w-full h-full object-cover"
+                  className="size-full object-cover"
+                  src={headshot_url || 'https://via.placeholder.com/148'}
                 />
               </div>
             </div>
 
             {/* Back - QR Code */}
             <div
-              className="absolute inset-0 rounded-full bg-white border border-gray-800"
+              className="absolute inset-0 rounded-full border border-gray-800 bg-white"
               style={{
                 backfaceVisibility: 'hidden',
                 transform: 'rotateY(180deg)'
               }}
             >
-              <div className="w-full h-full flex items-center justify-center p-[26px]">
-                <div ref={qrCodeRef} className="w-[96px] h-[96px]" />
+              <div className="flex size-full items-center justify-center p-[26px]">
+                <div className="size-[96px]" ref={qrCodeRef} />
               </div>
             </div>
           </div>
 
           {/* QR Code Toggle Button */}
           <button
-            onClick={() => setShowQRCode(!showQRCode)}
-            className="absolute top-0 right-0 w-[35px] h-[35px] bg-[#f3f3f3] border border-[#2dd4da] rounded-full flex items-center justify-center z-20 hover:bg-gray-100 transition-colors"
             aria-label="Toggle QR Code"
+            className="absolute right-0 top-0 z-20 flex size-[35px] items-center justify-center rounded-full border border-[#2dd4da] bg-[#f3f3f3] transition-colors hover:bg-gray-100"
+            onClick={() => setShowQRCode(!showQRCode)}
           >
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="3" width="7" height="7" rx="1.5"/>
-              <rect x="14" y="3" width="7" height="7" rx="1.5"/>
-              <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+            <svg fill="none" height="26" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" width="26">
+              <rect height="7" rx="1.5" width="7" x="3" y="3"/>
+              <rect height="7" rx="1.5" width="7" x="14" y="3"/>
+              <rect height="7" rx="1.5" width="7" x="3" y="14"/>
               <path d="M21 16h-3a2 2 0 0 0-2 2v3"/>
               <path d="M21 21v.01"/>
               <path d="M12 7v3a2 2 0 0 1-2 2H7"/>
@@ -247,25 +247,25 @@ export function FigmaProfileCard({
       </div>
 
       {/* Content Area - Name, Title, Contact */}
-      <div className="absolute left-1 right-1 top-[216px] flex flex-col items-center gap-[9px] px-0 pb-0 pt-4">
+      <div className="absolute inset-x-1 top-[216px] flex flex-col items-center gap-[9px] px-0 pb-0 pt-4">
         {/* Name */}
         <h3
-          className="text-[30px] font-bold text-[#020817] leading-[36px]"
+          className="text-[30px] font-bold leading-[36px] text-[#020817]"
           style={{ fontFamily: 'Mona Sans, sans-serif' }}
         >
           {fullName}
         </h3>
 
         {/* Title and NMLS - Gradient Text */}
-        <div className="flex flex-wrap gap-1 items-center justify-center h-6">
+        <div className="flex h-6 flex-wrap items-center justify-center gap-1">
           <p
             className="text-base leading-6"
             style={{
-              fontFamily: 'Roboto, sans-serif',
-              background: 'linear-gradient(90deg, #2dd4da 0%, #2563eb 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
+              background: 'linear-gradient(90deg, #2dd4da 0%, #2563eb 100%)',
+              backgroundClip: 'text',
+              fontFamily: 'Roboto, sans-serif'
             }}
           >
             {job_title}
@@ -274,15 +274,15 @@ export function FigmaProfileCard({
         </div>
 
         {/* Email */}
-        <div className="flex items-center gap-2 h-[26px]">
-          <div className="w-[25px] h-[25px] bg-[#f3f3f3] border border-[#2dd4da] rounded-full flex items-center justify-center">
-            <svg width="18" height="16" viewBox="0 0 24 24" fill="none" stroke="#2dd4da" strokeWidth="2">
+        <div className="flex h-[26px] items-center gap-2">
+          <div className="flex size-[25px] items-center justify-center rounded-full border border-[#2dd4da] bg-[#f3f3f3]">
+            <svg fill="none" height="16" stroke="#2dd4da" strokeWidth="2" viewBox="0 0 24 24" width="18">
               <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
             </svg>
           </div>
           <a
+            className="text-[15.8px] leading-6 text-blue-600 hover:underline"
             href={`mailto:${email}`}
-            className="text-[15.8px] text-blue-600 leading-6 hover:underline"
             style={{ fontFamily: 'Mona Sans, sans-serif', letterSpacing: '-0.32px' }}
           >
             {email}
@@ -293,14 +293,14 @@ export function FigmaProfileCard({
         <div className="flex items-center gap-1.5">
           {/* Phone */}
           <div className="flex items-center gap-2">
-            <div className="w-[25px] h-[25px] bg-[#f3f3f3] border border-[#2dd4da] rounded-full flex items-center justify-center">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2dd4da" strokeWidth="2">
+            <div className="flex size-[25px] items-center justify-center rounded-full border border-[#2dd4da] bg-[#f3f3f3]">
+              <svg fill="none" height="18" stroke="#2dd4da" strokeWidth="2" viewBox="0 0 24 24" width="18">
                 <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
               </svg>
             </div>
             <a
-              href={`tel:${phoneNumber.replace(/[^0-9+]/g, '')}`}
-              className="text-[15.8px] text-blue-600 leading-6 hover:underline"
+              className="text-[15.8px] leading-6 text-blue-600 hover:underline"
+              href={`tel:${phoneNumber.replaceAll(/[^\d+]/g, '')}`}
               style={{ fontFamily: 'Mona Sans, sans-serif', letterSpacing: '-0.32px' }}
             >
               {phoneNumber}
@@ -309,21 +309,21 @@ export function FigmaProfileCard({
 
           {/* Location */}
           <div className="flex items-center gap-2">
-            <div className="w-[25px] h-[25px] bg-[#f3f3f3] border border-[#2dd4da] rounded-full flex items-center justify-center">
+            <div className="flex size-[25px] items-center justify-center rounded-full border border-[#2dd4da] bg-[#f3f3f3]">
               <svg
-                width="24"
+                className="rotate-[282.794deg]"
+                fill="none"
                 height="24"
                 viewBox="0 0 24 24"
-                fill="none"
-                className="rotate-[282.794deg]"
+                width="24"
               >
                 <circle cx="12" cy="12" r="10" stroke="#2dd4da" strokeWidth="2"/>
-                <circle cx="12" cy="12" r="3" fill="#2dd4da"/>
-                <path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="#2dd4da" strokeWidth="2" strokeLinecap="round"/>
+                <circle cx="12" cy="12" fill="#2dd4da" r="3"/>
+                <path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="#2dd4da" strokeLinecap="round" strokeWidth="2"/>
               </svg>
             </div>
             <span
-              className="text-[15.8px] text-[#1d4fc4] leading-6"
+              className="text-[15.8px] leading-6 text-[#1d4fc4]"
               style={{ fontFamily: 'Mona Sans, sans-serif', letterSpacing: '-0.32px' }}
             >
               {city_state}
@@ -333,23 +333,23 @@ export function FigmaProfileCard({
       </div>
 
       {/* Action Buttons */}
-      <div className="absolute left-10 right-10 top-[364px] flex gap-4">
+      <div className="absolute inset-x-10 top-[364px] flex gap-4">
         <Button
-          variant="outline"
+          className="h-[42px] flex-1 rounded border border-blue-600 bg-white text-[#4678eb] hover:bg-blue-50"
           onClick={onScheduleMeeting}
-          className="flex-1 h-[42px] border border-blue-600 text-[#4678eb] bg-white hover:bg-blue-50 rounded"
           style={{ fontFamily: 'Mona Sans, sans-serif' }}
+          variant="outline"
         >
           <span className="text-[15.8px] leading-6" style={{ letterSpacing: '-0.32px' }}>
             Schedule a Meeting
           </span>
         </Button>
         <Button
+          className="h-[42px] flex-1 rounded border-0 text-white"
           onClick={onApplyNow}
-          className="flex-1 h-[42px] text-white border-0 rounded"
           style={{
-            fontFamily: 'Mona Sans, sans-serif',
-            background: 'linear-gradient(90deg, #2dd4da 0%, #2563eb 100%)'
+            background: 'linear-gradient(90deg, #2dd4da 0%, #2563eb 100%)',
+            fontFamily: 'Mona Sans, sans-serif'
           }}
         >
           <span className="text-[15.8px] font-bold leading-6" style={{ letterSpacing: '-0.32px' }}>

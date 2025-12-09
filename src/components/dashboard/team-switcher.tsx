@@ -76,7 +76,7 @@ type Team = (typeof groups)[number]["teams"][number]
 
 type PopoverTriggerProps = React.ComponentPropsWithoutRef<typeof PopoverTrigger>
 
-interface TeamSwitcherProps extends PopoverTriggerProps { }
+type TeamSwitcherProps = PopoverTriggerProps
 
 export default function TeamSwitcher({ className }: TeamSwitcherProps) {
     const [open, setOpen] = React.useState(false)
@@ -86,26 +86,26 @@ export default function TeamSwitcher({ className }: TeamSwitcherProps) {
     )
 
     return (
-        <Dialog open={showNewTeamDialog} onOpenChange={setShowNewTeamDialog}>
-            <Popover open={open} onOpenChange={setOpen}>
+        <Dialog onOpenChange={setShowNewTeamDialog} open={showNewTeamDialog}>
+            <Popover onOpenChange={setOpen} open={open}>
                 <PopoverTrigger asChild>
                     <Button
-                        variant="outline"
-                        role="combobox"
                         aria-expanded={open}
                         aria-label="Select a team"
                         className={cn("w-[200px] justify-between", className)}
+                        role="combobox"
+                        variant="outline"
                     >
-                        <Avatar className="mr-2 h-5 w-5">
+                        <Avatar className="mr-2 size-5">
                             <AvatarImage
-                                src={`https://avatar.vercel.sh/${selectedTeam.value}.png`}
                                 alt={selectedTeam.label}
                                 className="grayscale"
+                                src={`https://avatar.vercel.sh/${selectedTeam.value}.png`}
                             />
                             <AvatarFallback>SC</AvatarFallback>
                         </Avatar>
                         {selectedTeam.label}
-                        <CaretSortIcon className="ml-auto h-4 w-4 shrink-0 opacity-50" />
+                        <CaretSortIcon className="ml-auto size-4 shrink-0 opacity-50" />
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[200px] p-0">
@@ -114,28 +114,28 @@ export default function TeamSwitcher({ className }: TeamSwitcherProps) {
                             <CommandInput placeholder="Search team..." />
                             <CommandEmpty>No team found.</CommandEmpty>
                             {groups.map((group) => (
-                                <CommandGroup key={group.label} heading={group.label}>
+                                <CommandGroup heading={group.label} key={group.label}>
                                     {group.teams.map((team) => (
                                         <CommandItem
+                                            className="text-sm"
                                             key={team.value}
                                             onSelect={() => {
                                                 setSelectedTeam(team)
                                                 setOpen(false)
                                             }}
-                                            className="text-sm"
                                         >
-                                            <Avatar className="mr-2 h-5 w-5">
+                                            <Avatar className="mr-2 size-5">
                                                 <AvatarImage
-                                                    src={`https://avatar.vercel.sh/${team.value}.png`}
                                                     alt={team.label}
                                                     className="grayscale"
+                                                    src={`https://avatar.vercel.sh/${team.value}.png`}
                                                 />
                                                 <AvatarFallback>SC</AvatarFallback>
                                             </Avatar>
                                             {team.label}
                                             <CheckIcon
                                                 className={cn(
-                                                    "ml-auto h-4 w-4",
+                                                    "ml-auto size-4",
                                                     selectedTeam.value === team.value
                                                         ? "opacity-100"
                                                         : "opacity-0"
@@ -156,7 +156,7 @@ export default function TeamSwitcher({ className }: TeamSwitcherProps) {
                                             setShowNewTeamDialog(true)
                                         }}
                                     >
-                                        <PlusCircledIcon className="mr-2 h-5 w-5" />
+                                        <PlusCircledIcon className="mr-2 size-5" />
                                         Create Team
                                     </CommandItem>
                                 </DialogTrigger>
@@ -203,7 +203,7 @@ export default function TeamSwitcher({ className }: TeamSwitcherProps) {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => setShowNewTeamDialog(false)}>
+                    <Button onClick={() => setShowNewTeamDialog(false)} variant="outline">
                         Cancel
                     </Button>
                     <Button type="submit">Continue</Button>

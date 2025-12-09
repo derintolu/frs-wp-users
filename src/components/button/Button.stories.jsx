@@ -1,9 +1,9 @@
 import { Button } from "./Button";
 
 export default {
-  title: "Components/Button",
   component: Button,
   tags: ["autodocs"],
+  title: "Components/Button",
 };
 
 export const DefaultButton = () => {

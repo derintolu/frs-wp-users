@@ -35,7 +35,7 @@ class SSOConnections implements Migration {
 		$charset_collate = $wpdb->get_charset_collate();
 
 		// Table for OAuth clients (sites that use hub21 as identity provider)
-		$clients_table = $wpdb->prefix . 'frs_sso_clients';
+		$clients_table = $wpdb->base_prefix . 'frs_sso_clients';
 		$clients_sql   = "CREATE TABLE IF NOT EXISTS {$clients_table} (
 			id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 			name varchar(255) NOT NULL,
@@ -58,7 +58,7 @@ class SSOConnections implements Migration {
 		) {$charset_collate};";
 
 		// Table for OAuth providers (external services we can authenticate against)
-		$providers_table = $wpdb->prefix . 'frs_sso_providers';
+		$providers_table = $wpdb->base_prefix . 'frs_sso_providers';
 		$providers_sql   = "CREATE TABLE IF NOT EXISTS {$providers_table} (
 			id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 			name varchar(255) NOT NULL,
@@ -84,7 +84,7 @@ class SSOConnections implements Migration {
 		) {$charset_collate};";
 
 		// Table for SSO sessions/activity log
-		$sessions_table = $wpdb->prefix . 'frs_sso_sessions';
+		$sessions_table = $wpdb->base_prefix . 'frs_sso_sessions';
 		$sessions_sql   = "CREATE TABLE IF NOT EXISTS {$sessions_table} (
 			id bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 			user_id bigint(20) UNSIGNED NOT NULL,
@@ -118,8 +118,8 @@ class SSOConnections implements Migration {
 	 */
 	public static function down(): void {
 		global $wpdb;
-		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}frs_sso_clients" );
-		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}frs_sso_providers" );
-		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}frs_sso_sessions" );
+		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->base_prefix}frs_sso_clients" );
+		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->base_prefix}frs_sso_providers" );
+		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->base_prefix}frs_sso_sessions" );
 	}
 }

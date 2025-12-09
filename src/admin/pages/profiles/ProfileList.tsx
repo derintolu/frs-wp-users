@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,14 +34,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { UserPlus, MoreHorizontal, Eye, Edit, Trash2, Archive, ArchiveRestore, Merge, ExternalLink } from "lucide-react";
+import { MoreHorizontal, Eye, Edit, Trash2, Archive, ArchiveRestore, Merge, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import type { Profile, ProfilesApiResponse } from "@/admin/types/profile";
 
 // Utility function to safely parse service areas
 function parseServiceAreas(serviceAreas: string[] | string | null | undefined): string[] {
-  if (!serviceAreas) return [];
-  if (Array.isArray(serviceAreas)) return serviceAreas;
+  if (!serviceAreas) {return [];}
+  if (Array.isArray(serviceAreas)) {return serviceAreas;}
   if (typeof serviceAreas === 'string') {
     try {
       const parsed = JSON.parse(serviceAreas);
@@ -70,24 +70,20 @@ export default function ProfileList() {
   const [sortBy, setSortBy] = useState<string>("first_name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
-  useEffect(() => {
-    fetchProfiles();
-  }, [filterType, guestsOnly, showArchived, page, sortBy, sortOrder]);
-
-  const fetchProfiles = async (): Promise<void> => {
+  const fetchProfiles = useCallback(async (): Promise<void> => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
-        page: page.toString(),
-        per_page: '20',
+        order: sortOrder,
         orderby: sortBy,
-        order: sortOrder
+        page: page.toString(),
+        per_page: '20'
       });
 
-      if (filterType) params.append('type', filterType);
-      if (guestsOnly) params.append('guests_only', 'true');
-      if (showArchived) params.append('show_archived', 'true');
-      if (searchTerm) params.append('search', searchTerm);
+      if (filterType) {params.append('type', filterType);}
+      if (guestsOnly) {params.append('guests_only', 'true');}
+      if (showArchived) {params.append('show_archived', 'true');}
+      if (searchTerm) {params.append('search', searchTerm);}
 
       const response = await fetch(
         `${wordpressPluginBoilerplate.apiUrl}frs-users/v1/profiles?${params}`,
@@ -103,14 +99,18 @@ export default function ProfileList() {
       const data: ProfilesApiResponse = await response.json();
       setProfiles(data.data || []);
       setTotalPages(data.pages || 1);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+    } catch (error_) {
+      const errorMessage = error_ instanceof Error ? error_.message : 'An error occurred';
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterType, guestsOnly, showArchived, page, sortBy, sortOrder, searchTerm]);
+
+  useEffect(() => {
+    fetchProfiles();
+  }, [fetchProfiles]);
 
   const getInitials = (firstName: string | null, lastName: string | null): string => {
     return `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
@@ -118,11 +118,11 @@ export default function ProfileList() {
 
   const getProfileTypeBadgeColor = (type: string): string => {
     const colors: Record<string, string> = {
+      assistant: 'bg-yellow-500',
+      leadership: 'bg-red-500',
       loan_officer: 'bg-blue-500',
       realtor_partner: 'bg-green-500',
       staff: 'bg-purple-500',
-      leadership: 'bg-red-500',
-      assistant: 'bg-yellow-500',
     };
     return colors[type] || 'bg-gray-500';
   };
@@ -149,12 +149,12 @@ export default function ProfileList() {
       const response = await fetch(
         `${wordpressPluginBoilerplate.apiUrl}frs-users/v1/profiles/${profileId}/create-user`,
         {
-          method: 'POST',
+          body: JSON.stringify({ send_email: true }),
           headers: {
-            'X-WP-Nonce': wordpressPluginBoilerplate.nonce,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-WP-Nonce': wordpressPluginBoilerplate.nonce
           },
-          body: JSON.stringify({ send_email: true })
+          method: 'POST'
         }
       );
 
@@ -165,8 +165,8 @@ export default function ProfileList() {
       const data = await response.json();
       toast.success(`User account created: ${data.data.username}`);
       fetchProfiles(); // Refresh list
-    } catch (err) {
-      toast.error(err.message);
+    } catch (error_) {
+      toast.error(error_.message);
     } finally {
       setCreatingUser(null);
     }
@@ -183,15 +183,15 @@ export default function ProfileList() {
       const response = await fetch(
         `${wordpressPluginBoilerplate.apiUrl}frs-users/v1/profiles/bulk-create-users`,
         {
-          method: 'POST',
-          headers: {
-            'X-WP-Nonce': wordpressPluginBoilerplate.nonce,
-            'Content-Type': 'application/json'
-          },
           body: JSON.stringify({
             profile_ids: selectedProfiles,
             send_email: true
-          })
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+            'X-WP-Nonce': wordpressPluginBoilerplate.nonce
+          },
+          method: 'POST'
         }
       );
 
@@ -203,33 +203,33 @@ export default function ProfileList() {
       toast.success(data.message);
       setSelectedProfiles([]);
       fetchProfiles(); // Refresh list
-    } catch (err) {
-      toast.error(err.message);
+    } catch (error_) {
+      toast.error(error_.message);
     } finally {
       setLoading(false);
     }
   };
 
   const deleteProfile = async (profileId: number): Promise<void> => {
-    if (!confirm('Are you sure you want to delete this profile?')) return;
+    if (!confirm('Are you sure you want to delete this profile?')) {return;}
 
     try {
       const response = await fetch(
         `${wordpressPluginBoilerplate.apiUrl}frs-users/v1/profiles/${profileId}`,
         {
-          method: 'DELETE',
           headers: {
             'X-WP-Nonce': wordpressPluginBoilerplate.nonce
-          }
+          },
+          method: 'DELETE'
         }
       );
 
-      if (!response.ok) throw new Error('Failed to delete profile');
+      if (!response.ok) {throw new Error('Failed to delete profile');}
 
       toast.success('Profile deleted successfully');
       fetchProfiles();
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete profile';
+    } catch (error_) {
+      const errorMessage = error_ instanceof Error ? error_.message : 'Failed to delete profile';
       toast.error(errorMessage);
     }
   };
@@ -239,21 +239,21 @@ export default function ProfileList() {
       const response = await fetch(
         `${wordpressPluginBoilerplate.apiUrl}frs-users/v1/profiles/${profileId}`,
         {
-          method: 'PUT',
+          body: JSON.stringify({ is_active: 0 }),
           headers: {
-            'X-WP-Nonce': wordpressPluginBoilerplate.nonce,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-WP-Nonce': wordpressPluginBoilerplate.nonce
           },
-          body: JSON.stringify({ is_active: 0 })
+          method: 'PUT'
         }
       );
 
-      if (!response.ok) throw new Error('Failed to archive profile');
+      if (!response.ok) {throw new Error('Failed to archive profile');}
 
       toast.success('Profile archived');
       fetchProfiles();
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to archive profile';
+    } catch (error_) {
+      const errorMessage = error_ instanceof Error ? error_.message : 'Failed to archive profile';
       toast.error(errorMessage);
     }
   };
@@ -263,21 +263,21 @@ export default function ProfileList() {
       const response = await fetch(
         `${wordpressPluginBoilerplate.apiUrl}frs-users/v1/profiles/${profileId}`,
         {
-          method: 'PUT',
+          body: JSON.stringify({ is_active: 1 }),
           headers: {
-            'X-WP-Nonce': wordpressPluginBoilerplate.nonce,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-WP-Nonce': wordpressPluginBoilerplate.nonce
           },
-          body: JSON.stringify({ is_active: 1 })
+          method: 'PUT'
         }
       );
 
-      if (!response.ok) throw new Error('Failed to unarchive profile');
+      if (!response.ok) {throw new Error('Failed to unarchive profile');}
 
       toast.success('Profile unarchived');
       fetchProfiles();
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to unarchive profile';
+    } catch (error_) {
+      const errorMessage = error_ instanceof Error ? error_.message : 'Failed to unarchive profile';
       toast.error(errorMessage);
     }
   };
@@ -318,8 +318,8 @@ export default function ProfileList() {
       setSelectedProfiles([]);
       setBulkAction("");
       fetchProfiles();
-    } catch (err) {
-      toast.error(err.message);
+    } catch (error_) {
+      toast.error(error_.message);
     } finally {
       setLoading(false);
     }
@@ -335,8 +335,8 @@ export default function ProfileList() {
       setSelectedProfiles([]);
       setBulkAction("");
       fetchProfiles();
-    } catch (err) {
-      toast.error(err.message);
+    } catch (error_) {
+      toast.error(error_.message);
     } finally {
       setLoading(false);
     }
@@ -344,7 +344,7 @@ export default function ProfileList() {
 
   const filteredProfiles = profiles
     .filter(profile => {
-      if (!searchTerm) return true;
+      if (!searchTerm) {return true;}
       const search = searchTerm.toLowerCase();
       return (
         profile.first_name?.toLowerCase().includes(search) ||
@@ -379,17 +379,17 @@ export default function ProfileList() {
               </CardDescription>
             </div>
             <Input
+              className="max-w-sm"
+              onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search profiles..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
             />
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Filters and Bulk Actions */}
-          <div className="flex items-center gap-4 flex-wrap">
-            <Select value={filterType || "all"} onValueChange={(value) => setFilterType(value === "all" ? "" : value)}>
+          <div className="flex flex-wrap items-center gap-4">
+            <Select onValueChange={(value) => setFilterType(value === "all" ? "" : value)} value={filterType || "all"}>
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="All Profile Types" />
               </SelectTrigger>
@@ -403,7 +403,7 @@ export default function ProfileList() {
               </SelectContent>
             </Select>
 
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex cursor-pointer items-center gap-2">
               <Checkbox
                 checked={guestsOnly}
                 onCheckedChange={setGuestsOnly}
@@ -411,7 +411,7 @@ export default function ProfileList() {
               <span className="text-sm">Guest Profiles Only</span>
             </label>
 
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex cursor-pointer items-center gap-2">
               <Checkbox
                 checked={showArchived}
                 onCheckedChange={setShowArchived}
@@ -421,7 +421,7 @@ export default function ProfileList() {
 
             {selectedProfiles.length > 0 && (
               <div className="flex items-center gap-2">
-                <Select value={bulkAction} onValueChange={setBulkAction}>
+                <Select onValueChange={setBulkAction} value={bulkAction}>
                   <SelectTrigger className="w-48">
                     <SelectValue placeholder="Bulk Actions" />
                   </SelectTrigger>
@@ -447,18 +447,18 @@ export default function ProfileList() {
               </div>
               <div className="flex gap-2">
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  size="sm"
+                  variant="outline"
                 >
                   Previous
                 </Button>
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  size="sm"
+                  variant="outline"
                 >
                   Next
                 </Button>
@@ -493,7 +493,7 @@ export default function ProfileList() {
             <TableBody>
               {filteredProfiles.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={11} className="text-center">
+                  <TableCell className="text-center" colSpan={11}>
                     No profiles found
                   </TableCell>
                 </TableRow>
@@ -507,12 +507,12 @@ export default function ProfileList() {
                       />
                     </TableCell>
                     <TableCell>
-                      <Avatar className="h-16 w-16">
+                      <Avatar className="size-16">
                         {profile.headshot_url ? (
                           <AvatarImage
-                            src={profile.headshot_url}
                             alt={`${profile.first_name} ${profile.last_name}`}
                             className="object-cover"
+                            src={profile.headshot_url}
                           />
                         ) : (
                           <AvatarFallback className="text-lg">
@@ -522,18 +522,18 @@ export default function ProfileList() {
                       </Avatar>
                     </TableCell>
                     <TableCell className="font-medium">
-                      <Link to={`/profiles/${profile.id}`} className="hover:underline text-primary">
+                      <Link className="text-primary hover:underline" to={`/profiles/${profile.id}`}>
                         {profile.first_name} {profile.last_name}
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <a href={`mailto:${profile.email}`} className="hover:underline">
+                      <a className="hover:underline" href={`mailto:${profile.email}`}>
                         {profile.email}
                       </a>
                     </TableCell>
                     <TableCell>
                       {profile.phone_number ? (
-                        <a href={`tel:${profile.phone_number}`} className="hover:underline">
+                        <a className="hover:underline" href={`tel:${profile.phone_number}`}>
                           {profile.phone_number}
                         </a>
                       ) : (
@@ -542,7 +542,7 @@ export default function ProfileList() {
                     </TableCell>
                     <TableCell>
                       {profile.nmls || profile.nmls_number ? (
-                        <code className="text-xs bg-muted px-2 py-1 rounded">
+                        <code className="rounded bg-muted px-2 py-1 text-xs">
                           {profile.nmls || profile.nmls_number}
                         </code>
                       ) : (
@@ -552,17 +552,17 @@ export default function ProfileList() {
                     <TableCell>
                       {(() => {
                         const areas = parseServiceAreas(profile.service_areas);
-                        if (areas.length === 0) return '—';
+                        if (areas.length === 0) {return '—';}
 
                         return (
                           <div className="flex flex-wrap gap-1">
                             {areas.slice(0, 2).map((area, idx) => (
-                              <Badge key={idx} variant="outline" className="text-xs">
+                              <Badge className="text-xs" key={idx} variant="outline">
                                 {area}
                               </Badge>
                             ))}
                             {areas.length > 2 && (
-                              <Badge variant="secondary" className="text-xs">
+                              <Badge className="text-xs" variant="secondary">
                                 +{areas.length - 2}
                               </Badge>
                             )}
@@ -583,7 +583,7 @@ export default function ProfileList() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         {!profile.is_active ? (
-                          <Badge variant="outline" className="bg-gray-100">Archived</Badge>
+                          <Badge className="bg-gray-100" variant="outline">Archived</Badge>
                         ) : profile.user_id ? (
                           <Badge variant="default">Profile+</Badge>
                         ) : (
@@ -594,16 +594,16 @@ export default function ProfileList() {
                     <TableCell className="text-center">
                       {profile.profile_slug ? (
                         <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
+                          className="size-8"
                           onClick={() => {
                             const publicUrl = `${window.location.origin}/profile/${profile.profile_slug}`;
                             window.open(publicUrl, '_blank');
                           }}
+                          size="icon"
                           title="View Public Profile"
+                          variant="ghost"
                         >
-                          <ExternalLink className="h-4 w-4 text-blue-600" />
+                          <ExternalLink className="size-4 text-blue-600" />
                         </Button>
                       ) : (
                         <span className="text-xs text-muted-foreground">—</span>
@@ -612,31 +612,31 @@ export default function ProfileList() {
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
+                          <Button className="size-8" size="icon" variant="ghost">
+                            <MoreHorizontal className="size-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem asChild>
-                            <Link to={`/profiles/${profile.id}`} className="flex items-center cursor-pointer">
-                              <Eye className="mr-2 h-4 w-4" />
+                            <Link className="flex cursor-pointer items-center" to={`/profiles/${profile.id}`}>
+                              <Eye className="mr-2 size-4" />
                               View
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
-                            <Link to={`/profiles/${profile.id}/edit`} className="flex items-center cursor-pointer">
-                              <Edit className="mr-2 h-4 w-4" />
+                            <Link className="flex cursor-pointer items-center" to={`/profiles/${profile.id}/edit`}>
+                              <Edit className="mr-2 size-4" />
                               Edit
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => {
-                              const slug = profile.profile_slug || `${profile.first_name}-${profile.last_name}`.toLowerCase().replace(/\s+/g, '-');
+                              const slug = profile.profile_slug || `${profile.first_name}-${profile.last_name}`.toLowerCase().replaceAll(/\s+/g, '-');
                               const publicUrl = `${window.location.origin}/profile/${slug}`;
                               window.open(publicUrl, '_blank');
                             }}
                           >
-                            <ExternalLink className="mr-2 h-4 w-4" />
+                            <ExternalLink className="mr-2 size-4" />
                             View Public Profile
                           </DropdownMenuItem>
                           <DropdownMenuItem
@@ -645,18 +645,18 @@ export default function ProfileList() {
                               window.open(fluentUrl, '_blank');
                             }}
                           >
-                            <ExternalLink className="mr-2 h-4 w-4" />
+                            <ExternalLink className="mr-2 size-4" />
                             View FluentCRM Profile
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           {profile.is_active ? (
                             <DropdownMenuItem onClick={() => archiveProfile(profile.id)}>
-                              <Archive className="mr-2 h-4 w-4" />
+                              <Archive className="mr-2 size-4" />
                               Archive
                             </DropdownMenuItem>
                           ) : (
                             <DropdownMenuItem onClick={() => unarchiveProfile(profile.id)}>
-                              <ArchiveRestore className="mr-2 h-4 w-4" />
+                              <ArchiveRestore className="mr-2 size-4" />
                               Unarchive
                             </DropdownMenuItem>
                           )}
@@ -665,15 +665,15 @@ export default function ProfileList() {
                               window.location.href = `/wp-admin/admin.php?page=frs-profile-merge-select&source_id=${profile.id}`;
                             }}
                           >
-                            <Merge className="mr-2 h-4 w-4" />
+                            <Merge className="mr-2 size-4" />
                             Merge with...
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            onClick={() => deleteProfile(profile.id)}
                             className="text-red-600"
+                            onClick={() => deleteProfile(profile.id)}
                           >
-                            <Trash2 className="mr-2 h-4 w-4" />
+                            <Trash2 className="mr-2 size-4" />
                             Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -693,18 +693,18 @@ export default function ProfileList() {
               </div>
               <div className="flex gap-2">
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page === 1}
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  size="sm"
+                  variant="outline"
                 >
                   Previous
                 </Button>
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  size="sm"
+                  variant="outline"
                 >
                   Next
                 </Button>

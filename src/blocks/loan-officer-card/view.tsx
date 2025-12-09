@@ -4,41 +4,41 @@ import { useEffect, useState } from '@wordpress/element';
 import { ProfileCard } from '../../components/ProfileCard';
 
 interface BlockAttributes {
-	userId: number;
-	profileId: number;
-	size: 'small' | 'medium' | 'large';
-	detailLevel: 'minimal' | 'standard' | 'full';
 	audience: 'internal' | 'external';
+	detailLevel: 'minimal' | 'standard' | 'full';
+	profileId: number;
 	showContactButtons: boolean;
+	size: 'small' | 'medium' | 'large';
+	userId: number;
 }
 
 interface Profile {
-	id: number;
-	first_name: string;
-	last_name: string;
-	full_name: string;
-	email: string;
-	phone_number?: string;
-	mobile_number?: string;
-	job_title?: string;
-	headshot_url?: string;
 	biography?: string;
-	nmls_number?: string;
 	city_state?: string;
-	region?: string;
-	office?: string;
-	specialties_lo?: string[];
-	languages?: string[];
+	email: string;
 	facebook_url?: string;
+	first_name: string;
+	full_name: string;
+	headshot_url?: string;
+	id: number;
 	instagram_url?: string;
+	job_title?: string;
+	languages?: string[];
+	last_name: string;
 	linkedin_url?: string;
+	mobile_number?: string;
+	nmls_number?: string;
+	office?: string;
+	phone_number?: string;
+	region?: string;
+	specialties_lo?: string[];
+	tiktok_url?: string;
 	twitter_url?: string;
 	youtube_url?: string;
-	tiktok_url?: string;
 }
 
 function LoanOfficerCardView({ attributes }: { attributes: BlockAttributes }) {
-	const { profileId, size, showContactButtons } = attributes;
+	const { profileId, showContactButtons, size } = attributes;
 	const [profile, setProfile] = useState<Profile | null>(null);
 	const [loading, setLoading] = useState(true);
 
@@ -61,8 +61,8 @@ function LoanOfficerCardView({ attributes }: { attributes: BlockAttributes }) {
 	if (loading) {
 		return (
 			<div className="frs-loan-officer-card flex justify-center">
-				<div className="animate-pulse w-full max-w-md">
-					<div className="h-96 bg-gray-200 rounded"></div>
+				<div className="w-full max-w-md animate-pulse">
+					<div className="h-96 rounded bg-gray-200"></div>
 				</div>
 			</div>
 		);
@@ -71,9 +71,9 @@ function LoanOfficerCardView({ attributes }: { attributes: BlockAttributes }) {
 	if (!profile) {
 		return (
 			<div className="frs-loan-officer-card flex justify-center">
-				<div className="w-full max-w-md p-12 border-2 border-dashed border-gray-300 rounded-lg text-center">
+				<div className="w-full max-w-md rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
 					<p className="text-gray-500">No profile selected</p>
-					<p className="text-sm text-gray-400 mt-2">Please select a profile from the block settings</p>
+					<p className="mt-2 text-sm text-gray-400">Please select a profile from the block settings</p>
 				</div>
 			</div>
 		);
@@ -81,18 +81,18 @@ function LoanOfficerCardView({ attributes }: { attributes: BlockAttributes }) {
 
 	// Size mapping for ProfileCard
 	const sizeClasses = {
-		small: 'max-w-sm',
-		medium: 'max-w-md',
 		large: 'max-w-2xl',
+		medium: 'max-w-md',
+		small: 'max-w-sm',
 	};
 
 	return (
 		<div className="frs-loan-officer-card flex justify-center">
 			<ProfileCard
-				profile={profile}
-				showQRCode={false}
-				showContactButtons={showContactButtons}
 				className={sizeClasses[size]}
+				profile={profile}
+				showContactButtons={showContactButtons}
+				showQRCode={false}
 			/>
 		</div>
 	);

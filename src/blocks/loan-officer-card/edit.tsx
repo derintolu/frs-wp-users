@@ -12,37 +12,37 @@ import apiFetch from '@wordpress/api-fetch';
 import { ProfileCard } from '../../components/ProfileCard';
 
 interface BlockAttributes {
-	userId: number;
-	profileId: number;
-	size: 'small' | 'medium' | 'large';
-	detailLevel: 'minimal' | 'standard' | 'full';
 	audience: 'internal' | 'external';
+	detailLevel: 'minimal' | 'standard' | 'full';
+	profileId: number;
 	showContactButtons: boolean;
+	size: 'small' | 'medium' | 'large';
+	userId: number;
 }
 
 interface Profile {
-	id: number;
-	first_name: string;
-	last_name: string;
-	full_name: string;
-	email: string;
-	phone_number?: string;
-	mobile_number?: string;
-	job_title?: string;
-	headshot_url?: string;
 	biography?: string;
-	nmls_number?: string;
 	city_state?: string;
-	region?: string;
-	office?: string;
-	specialties_lo?: string[];
-	languages?: string[];
+	email: string;
 	facebook_url?: string;
+	first_name: string;
+	full_name: string;
+	headshot_url?: string;
+	id: number;
 	instagram_url?: string;
+	job_title?: string;
+	languages?: string[];
+	last_name: string;
 	linkedin_url?: string;
+	mobile_number?: string;
+	nmls_number?: string;
+	office?: string;
+	phone_number?: string;
+	region?: string;
+	specialties_lo?: string[];
+	tiktok_url?: string;
 	twitter_url?: string;
 	youtube_url?: string;
-	tiktok_url?: string;
 }
 
 interface EditProps {
@@ -51,7 +51,7 @@ interface EditProps {
 }
 
 export default function Edit({ attributes, setAttributes }: EditProps) {
-	const { profileId, size, detailLevel, audience, showContactButtons } = attributes;
+	const { audience, detailLevel, profileId, showContactButtons, size } = attributes;
 	const [profile, setProfile] = useState<Profile | null>(null);
 	const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
 	const [loading, setLoading] = useState(false);
@@ -101,9 +101,9 @@ export default function Edit({ attributes, setAttributes }: EditProps) {
 
 	// Size mapping for ProfileCard
 	const sizeClasses = {
-		small: 'max-w-sm',
-		medium: 'max-w-md',
 		large: 'max-w-2xl',
+		medium: 'max-w-md',
+		small: 'max-w-sm',
 	};
 
 	return (
@@ -117,52 +117,52 @@ export default function Edit({ attributes, setAttributes }: EditProps) {
 						</div>
 					) : (
 						<ComboboxControl
+							help={__('Search and select a loan officer to display', 'frs-users')}
 							label={__('Select Loan Officer', 'frs-users')}
-							value={profileId.toString()}
-							onChange={(value) => setAttributes({ profileId: parseInt(value || '0') || 0 })}
+							onChange={(value) => setAttributes({ profileId: Number.parseInt(value || '0') || 0 })}
 							options={[
 								{ label: __('-- Select a profile --', 'frs-users'), value: '0' },
 								...profileOptions,
 							]}
-							help={__('Search and select a loan officer to display', 'frs-users')}
+							value={profileId.toString()}
 						/>
 					)}
 				</PanelBody>
 
-				<PanelBody title={__('Display Settings', 'frs-users')} initialOpen={false}>
+				<PanelBody initialOpen={false} title={__('Display Settings', 'frs-users')}>
 					<SelectControl
 						label={__('Card Size', 'frs-users')}
-						value={size}
+						onChange={(value) => setAttributes({ size: value as BlockAttributes['size'] })}
 						options={[
 							{ label: __('Small', 'frs-users'), value: 'small' },
 							{ label: __('Medium', 'frs-users'), value: 'medium' },
 							{ label: __('Large', 'frs-users'), value: 'large' },
 						]}
-						onChange={(value) => setAttributes({ size: value as BlockAttributes['size'] })}
+						value={size}
 					/>
 					<SelectControl
+						help={__('Note: Profile card currently shows full detail level', 'frs-users')}
 						label={__('Detail Level', 'frs-users')}
-						value={detailLevel}
+						onChange={(value) => setAttributes({ detailLevel: value as BlockAttributes['detailLevel'] })}
 						options={[
 							{ label: __('Minimal', 'frs-users'), value: 'minimal' },
 							{ label: __('Standard', 'frs-users'), value: 'standard' },
 							{ label: __('Full', 'frs-users'), value: 'full' },
 						]}
-						onChange={(value) => setAttributes({ detailLevel: value as BlockAttributes['detailLevel'] })}
-						help={__('Note: Profile card currently shows full detail level', 'frs-users')}
+						value={detailLevel}
 					/>
 					<SelectControl
 						label={__('Audience', 'frs-users')}
-						value={audience}
+						onChange={(value) => setAttributes({ audience: value as BlockAttributes['audience'] })}
 						options={[
 							{ label: __('External (Public)', 'frs-users'), value: 'external' },
 							{ label: __('Internal (Staff)', 'frs-users'), value: 'internal' },
 						]}
-						onChange={(value) => setAttributes({ audience: value as BlockAttributes['audience'] })}
+						value={audience}
 					/>
 					<ToggleControl
-						label={__('Show Contact Buttons', 'frs-users')}
 						checked={showContactButtons}
+						label={__('Show Contact Buttons', 'frs-users')}
 						onChange={(value) => setAttributes({ showContactButtons: value })}
 					/>
 				</PanelBody>
@@ -170,24 +170,24 @@ export default function Edit({ attributes, setAttributes }: EditProps) {
 
 			<div {...blockProps}>
 				{loading && (
-					<div className="flex items-center justify-center p-12 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+					<div className="flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-12">
 						<Spinner />
 						<span className="ml-2">{__('Loading profile...', 'frs-users')}</span>
 					</div>
 				)}
 
 				{!loading && !profile && (
-					<div className="p-12 border-2 border-dashed border-gray-300 rounded-lg text-center bg-gradient-to-br from-blue-50 to-purple-50">
-						<div className="max-w-md mx-auto">
-							<div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
-								<svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+					<div className="rounded-lg border-2 border-dashed border-gray-300 bg-gradient-to-br from-blue-50 to-purple-50 p-12 text-center">
+						<div className="mx-auto max-w-md">
+							<div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500">
+								<svg className="size-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} />
 								</svg>
 							</div>
-							<h3 className="text-lg font-semibold text-gray-900 mb-2">
+							<h3 className="mb-2 text-lg font-semibold text-gray-900">
 								{__('Loan Officer Card', 'frs-users')}
 							</h3>
-							<p className="text-sm text-gray-600 mb-4">
+							<p className="mb-4 text-sm text-gray-600">
 								{__('Select a loan officer from the sidebar to display their profile card', 'frs-users')}
 							</p>
 							<p className="text-xs text-gray-500">
@@ -200,10 +200,10 @@ export default function Edit({ attributes, setAttributes }: EditProps) {
 				{!loading && profile && (
 					<div className="loan-officer-card-preview flex justify-center">
 						<ProfileCard
-							profile={profile}
-							showQRCode={false}
-							showContactButtons={showContactButtons}
 							className={sizeClasses[size]}
+							profile={profile}
+							showContactButtons={showContactButtons}
+							showQRCode={false}
 						/>
 					</div>
 				)}

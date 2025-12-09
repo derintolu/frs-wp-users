@@ -99,129 +99,663 @@ import {
  * Icon map - maps string names to Lucide icon components
  */
 export const iconMap: Record<string, LucideIcon> = {
-  // Navigation
-  home: Home,
-  dashboard: LayoutDashboard,
-  menu: Menu,
-
-  // Users & People
-  users: Users,
-  user: User,
-  'user-plus': UserPlus,
-  'user-check': UserCheck,
-  'user-minus': UserMinus,
-  'user-x': UserX,
-  users2: Users2,
-  group: Group,
-
-  // Files & Documents
-  file: File,
-  'file-text': FileText,
-  'file-plus': FilePlus,
-  'file-edit': FileEdit,
-  'file-check': FileCheck,
-  folder: Folder,
-  'folder-open': FolderOpen,
-  archive: Archive,
-
-  // Communication
-  mail: Mail,
-  phone: Phone,
-  'message-square': MessageSquare,
-  send: Send,
-
-  // Location
-  'map-pin': MapPin,
-  map: Map,
-  navigation: Navigation,
-  compass: Compass,
-  globe: Globe,
-
-  // Time & Schedule
-  calendar: Calendar,
-  clock: Clock,
-
-  // Finance
-  'dollar-sign': DollarSign,
-  'trending-up': TrendingUp,
-
-  // Business
-  building: Building,
-  briefcase: Briefcase,
-
-  // Analytics
-  'bar-chart-3': BarChart3,
-  'pie-chart': PieChart,
+  
   activity: Activity,
+  
 
-  // UI Elements
-  settings: Settings,
-  bell: Bell,
-  link2: Link2,
-  'external-link': ExternalLink,
-  share2: Share2,
-  layers: Layers,
-  box: Box,
-  package: Package,
 
-  // Actions
-  plus: Plus,
-  minus: Minus,
-  edit: Edit,
-  trash2: Trash2,
-  eye: Eye,
-  'eye-off': EyeOff,
-  copy: Copy,
-  download: Download,
-  upload: Upload,
-  search: Search,
-  filter: Filter,
+
+
+archive: Archive,
+  
+
+
+
+
+
+
+
+// Analytics
+'bar-chart-3': BarChart3,
+
+  
+  
+
+
+
+
+
+
+
+bell: Bell,
+  
+
+
+
+
+
+
+
+
+briefcase: Briefcase,
+  
+
+
+
+
+
+
+
+// Business
+building: Building,
+  
+
+
+
+
+
+
+
+box: Box,
+  
+
+
+
+
+
+
+// Time & Schedule
+calendar: Calendar,
+  
+
+
+
+
+
+
+clock: Clock,
+  
+
+
+
+
+
+
+compass: Compass,
+  
+
+
+
+
+
+
+
+dashboard: LayoutDashboard,
+
+  
+  
+
+
+
+
+
+
+// Finance
+'dollar-sign': DollarSign,
+  
+
+
+
+
+
+
+edit: Edit,
+  
+
+
+
+
+
+
+'external-link': ExternalLink,
+  
+
+
+
+
+
+
+copy: Copy,
+  
+
+
+
+
+
+
+eye: Eye,
+  
+
+
+
+
+
+
+download: Download,
+  
+
+
+
+
+
+// Files & Documents
+file: File,
+  
+
+
+
+
+
+'eye-off': EyeOff,
+
+  
+  
+
+
+
+
+
+'file-check': FileCheck,
+  
+
+
+
+
+
+
+
+'file-edit': FileEdit,
+  
+
+
+
+
+
+
+
+
+'file-plus': FilePlus,
+  
+
+
+
+
+
+
+
+
+check: Check,
+
+  
+  
+
+
+
+
+
+
+
+'file-text': FileText,
+  
+
+
+
+
+
+
+
+// Indicators
+'alert-circle': AlertCircle,
+  
+
+
+
+
+
+
+
+
+filter: Filter,
+  
+
+
+
+
+
+
+
+
+folder: Folder,
+  
+
+
+
+
+
+
+
+
+'folder-open': FolderOpen,
+
+  
+  
+
+
+
+
+
+
+
+globe: Globe,
+  
+
+
+
+
+
+
+
+group: Group,
+
+  
+  
+
+
+
+
+
+
+
+bookmark: Bookmark,
+  
+
+
+
+
+
+
+
+
+heart: Heart,
+
+  
+  
+
+
+
+
+
+
+
+'help-circle': HelpCircle,
+  
+
+
+
+
+
+
+// Navigation
+home: Home,
+
+  
+  
+
+
+
+
+
+headphones: Headphones,
+  
+
+
+
+
+menu: Menu,
+  
+
+
+
+camera: Camera,
+
+  
+  
+
+
+
+user: User,
+  
+
+
+
+
+// Media
+image: Image,
+  
+
+
+
+
+
+'user-check': UserCheck,
+  
+
+
+
+
+
+info: Info,
+  
+
+
+
+
+
+'user-minus': UserMinus,
+  
+
+
+
+
+
+laptop: Laptop,
+  
+
+
+
+
+// Users & People
+users: Users,
+  
+
+
+
+
+// Navigation Arrows
+'chevron-right': ChevronRight,
+
+  
+  
+
+
+
+
+
+'user-plus': UserPlus,
+  
+
+
+
+
+
+
+'chevron-down': ChevronDown,
+  
+
+
+
+
+
+
+'user-x': UserX,
+  
+
+
+
+
+
+
+battery: Battery,
+  
+
+
+
+
+
+
+
+users2: Users2,
+  
+
+
+
+
+
+
+
+
+layers: Layers,
+  
+
+
+
+
+
+
+
+link2: Link2,
+  
+
+
+
+
+
+// Communication
+mail: Mail,
+  
+
+
+
+
+
+key: Key,
+  
+
+
+
+
+
+map: Map,
+  
+
+
+
+
+
+// Security
+lock: Lock,
+  
+
+
+
+
+
+// Location
+'map-pin': MapPin,
+  
+
+
+
+
+
+'message-square': MessageSquare,
+
+  
+  
+
+
+
+
+mic: Mic,
+  
+
+
+
+
+
+minus: Minus,
+  
+
+
+
+
+
+phone: Phone,
+  
+
+
+
+
+monitor: Monitor,
+  
+
+
+
+
+send: Send,
+  
+
+
+
+
+music: Music,
+
+  
+  
+
+
+
+navigation: Navigation,
+  
+
+
+
+package: Package,
+  
+
+
+
+'pie-chart': PieChart,
+  
+
+
+
+// Actions
+plus: Plus,
+  
+
+
+
+
+power: Power,
+  
+
+
+
+
+// Devices
+printer: Printer,
+
+  
+  
+
+
+
+
+search: Search,
+  
+
+
+
+
+'trending-up': TrendingUp,
+  
+
+
+
+// UI Elements
+settings: Settings,
+  
+
+
+
+share2: Share2,
+  
+
+
+
+shield: Shield,
+
+  
+  
+
+
+
+'shield-check': ShieldCheck,
+  
+
+
+
+
+smartphone: Smartphone,
+
+  
+  
+
+
+
+star: Star,
+  
+
+
+tablet: Tablet,
+
+  
+  
+
+// Utility
+target: Target,
+  
+
+
+
+trash2: Trash2,
+  
+
+
+
+unlock: Unlock,
+  
+
+
+
+upload: Upload,
+
+  
+  
+
+
+video: Video,
+  
+
+
+// Connectivity
+wifi: Wifi,
+  
+
+'wifi-off': WifiOff,
   x: X,
-  check: Check,
-
-  // Indicators
-  'alert-circle': AlertCircle,
-  info: Info,
-  'help-circle': HelpCircle,
-  star: Star,
-  heart: Heart,
-  bookmark: Bookmark,
-
-  // Media
-  image: Image,
-  video: Video,
-  music: Music,
-  headphones: Headphones,
-  mic: Mic,
-  camera: Camera,
-
-  // Devices
-  printer: Printer,
-  monitor: Monitor,
-  smartphone: Smartphone,
-  tablet: Tablet,
-  laptop: Laptop,
-
-  // Connectivity
-  wifi: Wifi,
-  'wifi-off': WifiOff,
-
-  // Navigation Arrows
-  'chevron-right': ChevronRight,
-  'chevron-down': ChevronDown,
-
-  // Utility
-  target: Target,
   zap: Zap,
-  battery: Battery,
-  power: Power,
-
-  // Security
-  lock: Lock,
-  unlock: Unlock,
-  shield: Shield,
-  'shield-check': ShieldCheck,
-  key: Key,
 };
 
 /**

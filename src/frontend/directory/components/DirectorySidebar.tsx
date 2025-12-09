@@ -4,18 +4,18 @@ import { FloatingInput } from '@/components/ui/floating-input';
 import { Search, Users } from 'lucide-react';
 
 interface DirectorySidebarProps {
-  searchQuery: string;
+  currentPage?: number;
   onSearchChange: (value: string) => void;
   profileCount: number;
-  currentPage?: number;
+  searchQuery: string;
   totalPages?: number;
 }
 
 export function DirectorySidebar({
-  searchQuery,
+  currentPage,
   onSearchChange,
   profileCount,
-  currentPage,
+  searchQuery,
   totalPages,
 }: DirectorySidebarProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -70,28 +70,26 @@ export function DirectorySidebar({
   // Create menu items with search widget
   const menuItems: MenuItem[] = [
     {
-      id: 'search',
-      label: 'Search',
-      icon: Search,
       customWidget: (
         <div className="px-4 py-3">
           <FloatingInput
-            type="text"
+            icon={<Search className="size-4" />}
             label="Search by name, title, or location"
-            value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            icon={<Search className="h-4 w-4" />}
+            type="text"
+            value={searchQuery}
           />
         </div>
       ),
+      icon: Search,
+      id: 'search',
+      label: 'Search',
     },
     {
-      id: 'stats',
-      label: '',
       customWidget: (
-        <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
+          <div className="mb-2 flex items-center justify-between">
+            <div className="text-xs font-semibold uppercase tracking-wider text-gray-500">
               Results
             </div>
             <div className="text-xs font-semibold text-gray-700">
@@ -105,6 +103,8 @@ export function DirectorySidebar({
           )}
         </div>
       ),
+      id: 'stats',
+      label: '',
     },
   ];
 
@@ -124,10 +124,10 @@ export function DirectorySidebar({
           <>
             <video
               autoPlay
-              muted
+              className="absolute inset-0 size-full object-cover"
               loop
+              muted
               playsInline
-              className="absolute inset-0 w-full h-full object-cover"
               style={{ zIndex: 0 }}
             >
               <source src={gradientUrl} type="video/mp4" />
@@ -142,29 +142,29 @@ export function DirectorySidebar({
 
         {/* Icon and Title - Horizontal Layout */}
         <div
-          className="relative w-full px-4 py-4 flex items-center gap-3"
+          className="relative flex w-full items-center gap-3 p-4"
           style={{ zIndex: 10 }}
         >
           {/* Icon with gradient border */}
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <div
-              className="size-14 rounded-full overflow-hidden shadow-lg flex items-center justify-center"
+              className="flex size-14 items-center justify-center overflow-hidden rounded-full shadow-lg"
               style={{
-                border: '2px solid transparent',
+                backgroundClip: 'padding-box, border-box',
+                backgroundColor: 'white',
                 backgroundImage: 'linear-gradient(white, white), linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                 backgroundOrigin: 'padding-box, border-box',
-                backgroundClip: 'padding-box, border-box',
-                backgroundColor: 'white'
+                border: '2px solid transparent'
               }}
             >
-              <Users className="h-8 w-8 text-[#2563eb]" />
+              <Users className="size-8 text-[#2563eb]" />
             </div>
           </div>
 
           {/* Title */}
-          <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-white text-base mb-0.5 drop-shadow-md truncate">Team Directory</h3>
-            <p className="font-normal text-white text-sm drop-shadow-md truncate">Find your team members</p>
+          <div className="min-w-0 flex-1">
+            <h3 className="mb-0.5 truncate text-base font-bold text-white drop-shadow-md">Team Directory</h3>
+            <p className="truncate text-sm font-normal text-white drop-shadow-md">Find your team members</p>
           </div>
         </div>
       </div>
@@ -173,18 +173,18 @@ export function DirectorySidebar({
 
   return (
     <CollapsibleSidebar
-      menuItems={menuItems}
-      header={sidebarHeader}
-      width="320px"
-      collapsedWidth="4rem"
-      backgroundColor="hsl(var(--sidebar-background))"
-      textColor="hsl(var(--sidebar-foreground))"
-      activeItemColor="hsl(var(--sidebar-foreground))"
       activeItemBackground="linear-gradient(to right, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1))"
-      position="left"
-      topOffset={headerHeight}
+      activeItemColor="hsl(var(--sidebar-foreground))"
+      backgroundColor="hsl(var(--sidebar-background))"
+      collapsedWidth="4rem"
       defaultCollapsed={sidebarCollapsed}
+      header={sidebarHeader}
+      menuItems={menuItems}
       onCollapsedChange={setSidebarCollapsed}
+      position="left"
+      textColor="hsl(var(--sidebar-foreground))"
+      topOffset={headerHeight}
+      width="320px"
     />
   );
 }

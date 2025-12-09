@@ -20,37 +20,37 @@ export default function ImportExport() {
   const [importing, setImporting] = useState(false);
 
   const availableFields: Record<string, string> = {
-    id: 'Profile ID',
-    user_id: 'User ID',
-    first_name: 'First Name',
-    last_name: 'Last Name',
-    email: 'Email',
-    phone_number: 'Phone Number',
-    mobile_number: 'Mobile Number',
-    office: 'Office',
-    headshot_id: 'Headshot ID',
+    arrive: 'Arrive Link',
     avatar_url: 'Avatar/Headshot URL',
-    job_title: 'Job Title',
     biography: 'Biography',
+    brand: 'Brand',
+    canva_folder_link: 'Canva Folder Link',
+    city_state: 'City, State',
+    created_at: 'Created At',
     date_of_birth: 'Date of Birth',
+    dre_license: 'DRE License',
+    email: 'Email',
+    facebook_url: 'Facebook URL',
+    first_name: 'First Name',
+    headshot_id: 'Headshot ID',
+    id: 'Profile ID',
+    instagram_url: 'Instagram URL',
+    job_title: 'Job Title',
+    last_name: 'Last Name',
+    license_number: 'License Number',
+    linkedin_url: 'LinkedIn URL',
+    mobile_number: 'Mobile Number',
     nmls: 'NMLS',
     nmls_number: 'NMLS Number',
-    license_number: 'License Number',
-    dre_license: 'DRE License',
-    brand: 'Brand',
-    city_state: 'City, State',
+    office: 'Office',
+    phone_number: 'Phone Number',
     region: 'Region',
-    facebook_url: 'Facebook URL',
-    instagram_url: 'Instagram URL',
-    linkedin_url: 'LinkedIn URL',
-    twitter_url: 'Twitter URL',
-    youtube_url: 'YouTube URL',
-    tiktok_url: 'TikTok URL',
-    arrive: 'Arrive Link',
-    canva_folder_link: 'Canva Folder Link',
     status: 'Status',
-    created_at: 'Created At',
+    tiktok_url: 'TikTok URL',
+    twitter_url: 'Twitter URL',
     updated_at: 'Updated At',
+    user_id: 'User ID',
+    youtube_url: 'YouTube URL',
   };
 
   const toggleField = (field: string) => {
@@ -79,16 +79,16 @@ export default function ImportExport() {
       // Build query parameters
       const params = new URLSearchParams();
       selectedExportFields.forEach(field => params.append('fields[]', field));
-      if (exportActiveOnly) params.append('active_only', '1');
-      if (exportWithUsersOnly) params.append('with_users_only', '1');
+      if (exportActiveOnly) {params.append('active_only', '1');}
+      if (exportWithUsersOnly) {params.append('with_users_only', '1');}
 
       // Download via API
       const url = `${wordpressPluginBoilerplate.apiUrl}frs-users/v1/profiles/export?${params.toString()}`;
 
       window.location.href = url;
       toast.success('Export started');
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Export failed');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Export failed');
     }
   };
 
@@ -106,20 +106,20 @@ export default function ImportExport() {
 
     try {
       const response = await fetch(`${wordpressPluginBoilerplate.apiUrl}frs-users/v1/profiles/import`, {
-        method: 'POST',
+        body: formData,
         headers: {
           'X-WP-Nonce': wordpressPluginBoilerplate.nonce
         },
-        body: formData
+        method: 'POST'
       });
 
-      if (!response.ok) throw new Error('Import failed');
+      if (!response.ok) {throw new Error('Import failed');}
 
       const data = await response.json();
       toast.success(data.message || 'Import completed successfully');
       setImportFile(null);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Import failed');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Import failed');
     } finally {
       setImporting(false);
     }
@@ -134,13 +134,13 @@ export default function ImportExport() {
         </p>
       </div>
 
-      <Tabs defaultValue="export" className="space-y-4">
+      <Tabs className="space-y-4" defaultValue="export">
         <TabsList>
           <TabsTrigger value="export">Export</TabsTrigger>
           <TabsTrigger value="import">Import</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="export" className="space-y-4">
+        <TabsContent className="space-y-4" value="export">
           <Card>
             <CardHeader>
               <CardTitle>Export Profiles to CSV</CardTitle>
@@ -151,13 +151,13 @@ export default function ImportExport() {
             <CardContent className="space-y-6">
               {/* Field Selection */}
               <div>
-                <div className="flex items-center justify-between mb-4">
+                <div className="mb-4 flex items-center justify-between">
                   <Label className="text-base font-semibold">Select Fields</Label>
                   <div className="flex gap-2">
-                    <Button type="button" onClick={selectAllFields} variant="outline" size="sm">
+                    <Button onClick={selectAllFields} size="sm" type="button" variant="outline">
                       Select All
                     </Button>
-                    <Button type="button" onClick={deselectAllFields} variant="outline" size="sm">
+                    <Button onClick={deselectAllFields} size="sm" type="button" variant="outline">
                       Deselect All
                     </Button>
                   </div>
@@ -165,7 +165,7 @@ export default function ImportExport() {
 
                 <div className="grid grid-cols-3 gap-3">
                   {Object.entries(availableFields).map(([key, label]) => (
-                    <label key={key} className="flex items-center space-x-2 cursor-pointer">
+                    <label className="flex cursor-pointer items-center space-x-2" key={key}>
                       <Checkbox
                         checked={selectedExportFields.includes(key)}
                         onCheckedChange={() => toggleField(key)}
@@ -178,16 +178,16 @@ export default function ImportExport() {
 
               {/* Filter Options */}
               <div className="border-t pt-6">
-                <Label className="text-base font-semibold mb-4 block">Filter Options</Label>
+                <Label className="mb-4 block text-base font-semibold">Filter Options</Label>
                 <div className="space-y-3">
-                  <label className="flex items-center space-x-2 cursor-pointer">
+                  <label className="flex cursor-pointer items-center space-x-2">
                     <Checkbox
                       checked={exportActiveOnly}
                       onCheckedChange={setExportActiveOnly}
                     />
                     <span className="text-sm">Export active profiles only</span>
                   </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
+                  <label className="flex cursor-pointer items-center space-x-2">
                     <Checkbox
                       checked={exportWithUsersOnly}
                       onCheckedChange={setExportWithUsersOnly}
@@ -200,7 +200,7 @@ export default function ImportExport() {
               {/* Export Button */}
               <div className="border-t pt-6">
                 <Button onClick={handleExport}>
-                  <Download className="mr-2 h-4 w-4" />
+                  <Download className="mr-2 size-4" />
                   Export to CSV
                 </Button>
               </div>
@@ -208,7 +208,7 @@ export default function ImportExport() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="import" className="space-y-4">
+        <TabsContent className="space-y-4" value="import">
           <Card>
             <CardHeader>
               <CardTitle>Import Profiles from CSV</CardTitle>
@@ -219,17 +219,17 @@ export default function ImportExport() {
             <CardContent className="space-y-6">
               {/* File Upload */}
               <div>
-                <Label htmlFor="import-file" className="text-base font-semibold mb-4 block">
+                <Label className="mb-4 block text-base font-semibold" htmlFor="import-file">
                   CSV File
                 </Label>
                 <Input
-                  id="import-file"
-                  type="file"
                   accept=".csv"
+                  id="import-file"
                   onChange={(e) => setImportFile(e.target.files?.[0] || null)}
+                  type="file"
                 />
                 {importFile && (
-                  <p className="text-sm text-muted-foreground mt-2">
+                  <p className="mt-2 text-sm text-muted-foreground">
                     Selected: {importFile.name}
                   </p>
                 )}
@@ -237,51 +237,51 @@ export default function ImportExport() {
 
               {/* Import Options */}
               <div className="border-t pt-6">
-                <Label className="text-base font-semibold mb-4 block">Import Options</Label>
+                <Label className="mb-4 block text-base font-semibold">Import Options</Label>
                 <div className="space-y-3">
-                  <label className="flex items-center space-x-2 cursor-pointer">
+                  <label className="flex cursor-pointer items-center space-x-2">
                     <Checkbox
                       checked={updateExisting}
                       onCheckedChange={setUpdateExisting}
                     />
                     <span className="text-sm">Update existing profiles if email matches</span>
                   </label>
-                  <p className="text-xs text-muted-foreground ml-6">
+                  <p className="ml-6 text-xs text-muted-foreground">
                     If unchecked, existing profiles will be skipped
                   </p>
 
-                  <label className="flex items-center space-x-2 cursor-pointer">
+                  <label className="flex cursor-pointer items-center space-x-2">
                     <Checkbox
                       checked={createUsers}
                       onCheckedChange={setCreateUsers}
                     />
                     <span className="text-sm">Create WordPress user accounts for profiles without users</span>
                   </label>
-                  <p className="text-xs text-muted-foreground ml-6">
-                    Users will be created with role "subscriber" if not specified
+                  <p className="ml-6 text-xs text-muted-foreground">
+                    Users will be created with role &quot;subscriber&quot; if not specified
                   </p>
                 </div>
               </div>
 
               {/* CSV Format Help */}
               <div className="border-t pt-6">
-                <Label className="text-base font-semibold mb-4 block">CSV Format</Label>
-                <p className="text-sm text-muted-foreground mb-2">
+                <Label className="mb-4 block text-base font-semibold">CSV Format</Label>
+                <p className="mb-2 text-sm text-muted-foreground">
                   Your CSV should have column headers matching field names:
                 </p>
-                <code className="block text-xs bg-muted p-3 rounded">
+                <code className="block rounded bg-muted p-3 text-xs">
                   first_name,last_name,email,phone_number,nmls,arrive
                   <br />
                   John,Doe,john@example.com,555-1234,123456,https://arrive.com/123456
                 </code>
-                <p className="text-sm text-muted-foreground mt-4 mb-2">Available field names:</p>
+                <p className="mb-2 mt-4 text-sm text-muted-foreground">Available field names:</p>
                 <div className="grid grid-cols-3 gap-2 text-xs">
                   {Object.keys(availableFields).map(field => (
-                    <code key={field} className="bg-muted px-2 py-1 rounded">{field}</code>
+                    <code className="rounded bg-muted px-2 py-1" key={field}>{field}</code>
                   ))}
                 </div>
-                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
-                  <p className="text-sm font-semibold mb-1">Auto-Generation:</p>
+                <div className="mt-4 rounded border border-blue-200 bg-blue-50 p-3">
+                  <p className="mb-1 text-sm font-semibold">Auto-Generation:</p>
                   <p className="text-xs text-muted-foreground">
                     Arrive links will be automatically generated if arrive field is empty and NMLS is present.
                     <br />
@@ -292,8 +292,8 @@ export default function ImportExport() {
 
               {/* Import Button */}
               <div className="border-t pt-6">
-                <Button onClick={handleImport} disabled={!importFile || importing}>
-                  <Upload className="mr-2 h-4 w-4" />
+                <Button disabled={!importFile || importing} onClick={handleImport}>
+                  <Upload className="mr-2 size-4" />
                   {importing ? 'Importing...' : 'Import CSV'}
                 </Button>
               </div>

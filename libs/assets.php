@@ -15,6 +15,38 @@ use WP_HTML_Tag_Processor;
 const VITE_CLIENT_SCRIPT_HANDLE = 'vite-client';
 
 /**
+ * Get the manifest file path for a dist directory.
+ * Checks both Vite 4 (dist/manifest.json) and Vite 5 (dist/.vite/manifest.json) locations.
+ *
+ * @param string $dist_dir Path to dist directory.
+ * @return string|null Path to manifest file, or null if not found.
+ */
+function get_manifest_path( string $dist_dir ): ?string {
+	$paths = array(
+		"{$dist_dir}/manifest.json",
+		"{$dist_dir}/.vite/manifest.json",
+	);
+
+	foreach ( $paths as $path ) {
+		if ( file_exists( $path ) ) {
+			return $path;
+		}
+	}
+
+	return null;
+}
+
+/**
+ * Check if a manifest exists for a dist directory.
+ *
+ * @param string $dist_dir Path to dist directory.
+ * @return bool True if manifest exists.
+ */
+function manifest_exists( string $dist_dir ): bool {
+	return get_manifest_path( $dist_dir ) !== null;
+}
+
+/**
  * Get manifest data
  *
  * @since 0.1.0
@@ -31,11 +63,15 @@ function get_manifest( string $manifest_dir ): object {
 	// Avoid repeatedly opening & decoding the same file.
 	static $manifests = array();
 
-	$file_names = array( $dev_manifest, 'manifest' );
+	// Check for manifest in multiple locations (Vite 5 moved to .vite/ subdirectory)
+	$file_paths = array(
+		$dev_manifest => "{$manifest_dir}/{$dev_manifest}.json",
+		'manifest'    => "{$manifest_dir}/manifest.json",
+		'vite5'       => "{$manifest_dir}/.vite/manifest.json",
+	);
 
-	foreach ( $file_names as $file_name ) {
-		$is_dev        = $file_name === $dev_manifest;
-		$manifest_path = "{$manifest_dir}/{$file_name}.json";
+	foreach ( $file_paths as $file_name => $manifest_path ) {
+		$is_dev = $file_name === $dev_manifest;
 
 		if ( isset( $manifests[ $manifest_path ] ) ) {
 			return $manifests[ $manifest_path ];

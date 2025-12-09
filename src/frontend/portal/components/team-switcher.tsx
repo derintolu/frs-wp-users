@@ -21,8 +21,8 @@ export function TeamSwitcher({
   teams,
 }: {
   teams: {
-    name: string
-    logo: React.ElementType
+    logo: React.ElementType,
+    name: string,
     plan: string
   }[]
 }) {
@@ -43,8 +43,8 @@ export function TeamSwitcher({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
+              className="bg-black text-white hover:bg-black hover:text-white data-[state=open]:bg-black data-[state=open]:text-white"
               size="lg"
-              className="data-[state=open]:bg-black data-[state=open]:text-white bg-black text-white hover:bg-black hover:text-white"
             >
               <div
                 className="flex aspect-square size-12 items-center justify-center rounded-lg text-white"
@@ -64,8 +64,8 @@ export function TeamSwitcher({
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
             align="start"
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
           >
@@ -74,9 +74,9 @@ export function TeamSwitcher({
             </DropdownMenuLabel>
             {teams.map((team, index) => (
               <DropdownMenuItem
+                className="gap-2 p-2"
                 key={team.name}
                 onClick={() => setActiveTeam(team)}
-                className="gap-2 p-2"
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
                   <team.logo className="size-4 shrink-0" />

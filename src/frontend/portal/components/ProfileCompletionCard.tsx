@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import {
   calculateProfileCompletion,
   type CompletionResult,
@@ -8,8 +7,8 @@ import {
 } from '@/frontend/portal/utils/profileCompletion';
 
 interface ProfileCompletionCardProps {
-  userData: Record<string, any>;
   onDismiss?: () => void;
+  userData: Record<string, any>;
 }
 
 /**
@@ -19,10 +18,10 @@ interface ProfileCompletionCardProps {
  * Currently replaced by a thin horizontal progress bar in the sidebar.
  * This full card with gauge and checklist will be reused in the bento dashboard.
  */
-export function ProfileCompletionCard({ userData, onDismiss }: ProfileCompletionCardProps) {
+export function ProfileCompletionCard({ onDismiss, userData }: ProfileCompletionCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const completion: CompletionResult = calculateProfileCompletion(userData);
-  const { percentage, incompleteSections } = completion;
+  const { incompleteSections, percentage } = completion;
 
   // Calculate the stroke dash offset for the half circle
   // Half circle circumference = π * radius
@@ -47,41 +46,41 @@ export function ProfileCompletionCard({ userData, onDismiss }: ProfileCompletion
         {/* Dismiss button - Top right corner */}
         {onDismiss && (
           <button
-            onClick={onDismiss}
-            className="absolute -top-2 -right-2 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors"
             aria-label="Dismiss profile completion card"
+            className="absolute -right-2 -top-2 z-10 flex size-6 items-center justify-center rounded-full bg-gray-200 transition-colors hover:bg-gray-300"
+            onClick={onDismiss}
           >
-            <X className="h-4 w-4 text-gray-600" />
+            <X className="size-4 text-gray-600" />
           </button>
         )}
 
         {/* Half Circle Gauge */}
         <div className="relative mb-6 flex justify-center">
-          <svg width="200" height="120" viewBox="0 0 200 120" className="overflow-visible">
+          <svg className="overflow-visible" height="120" viewBox="0 0 200 120" width="200">
             {/* Background arc */}
             <path
               d="M 20 100 A 80 80 0 0 1 180 100"
               fill="none"
               stroke="#E5E7EB"
-              strokeWidth="12"
               strokeLinecap="round"
+              strokeWidth="12"
             />
             {/* Progress arc with brand gradient */}
             <path
               d="M 20 100 A 80 80 0 0 1 180 100"
               fill="none"
               stroke="url(#brandGradient)"
-              strokeWidth="12"
-              strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={offset}
+              strokeLinecap="round"
+              strokeWidth="12"
               style={{
                 transition: 'stroke-dashoffset 1s ease-out',
               }}
             />
             {/* Brand gradient definition */}
             <defs>
-              <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <linearGradient id="brandGradient" x1="0%" x2="100%" y1="0%" y2="0%">
                 <stop offset="0%" stopColor="#2563eb" />
                 <stop offset="100%" stopColor="#2dd4da" />
               </linearGradient>
@@ -89,13 +88,13 @@ export function ProfileCompletionCard({ userData, onDismiss }: ProfileCompletion
           </svg>
 
           {/* Percentage in center */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/4 text-center">
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/4 text-center">
             <div
               className="text-4xl font-bold"
               style={{
-                background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
+                background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                 backgroundClip: 'text',
               }}
             >
@@ -108,35 +107,35 @@ export function ProfileCompletionCard({ userData, onDismiss }: ProfileCompletion
         {/* Accordion Drawer */}
         <div className="w-full">
           <button
+            className="flex w-full items-center justify-between rounded-lg p-3 transition-colors hover:bg-gray-50"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
           >
             <span className="text-sm font-medium text-gray-700">
               {isExpanded ? 'Hide Details' : 'Show Details'}
             </span>
             {isExpanded ? (
-              <ChevronUp className="h-4 w-4 text-gray-500" />
+              <ChevronUp className="size-4 text-gray-500" />
             ) : (
-              <ChevronDown className="h-4 w-4 text-gray-500" />
+              <ChevronDown className="size-4 text-gray-500" />
             )}
           </button>
 
           {/* Expandable Checklist */}
           <div
             className={`overflow-hidden transition-all duration-300 ${
-              isExpanded ? 'max-h-96 opacity-100 mt-2' : 'max-h-0 opacity-0'
+              isExpanded ? 'mt-2 max-h-96 opacity-100' : 'max-h-0 opacity-0'
             }`}
           >
             <div className="space-y-3 px-3 pb-3">
               {sectionStatus.map((section) => (
-                <div key={section.id} className="flex items-center gap-3">
+                <div className="flex items-center gap-3" key={section.id}>
                   {/* Gradient dot indicator */}
                   <div className="relative">
                     <div
-                      className={`w-5 h-5 rounded-full border-2 transition-all ${
+                      className={`size-5 rounded-full border-2 transition-all ${
                         section.isComplete
                           ? 'border-transparent'
-                          : 'bg-white border-gray-300'
+                          : 'border-gray-300 bg-white'
                       }`}
                       style={
                         section.isComplete
@@ -148,17 +147,17 @@ export function ProfileCompletionCard({ userData, onDismiss }: ProfileCompletion
                     >
                       {section.isComplete && (
                         <svg
-                          className="w-full h-full p-0.5"
-                          viewBox="0 0 20 20"
+                          className="size-full p-0.5"
                           fill="none"
+                          viewBox="0 0 20 20"
                           xmlns="http://www.w3.org/2000/svg"
                         >
                           <path
                             d="M6 10L9 13L14 7"
                             stroke="white"
-                            strokeWidth="2"
                             strokeLinecap="round"
                             strokeLinejoin="round"
+                            strokeWidth="2"
                           />
                         </svg>
                       )}

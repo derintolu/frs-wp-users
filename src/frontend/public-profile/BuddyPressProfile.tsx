@@ -7,39 +7,39 @@
 import { useState, useEffect } from 'react';
 
 interface FRSProfile {
-  id: number;
-  user_id: number | null;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone?: string;
   bio?: string;
+  email: string;
+  first_name: string;
+  id: number;
+  last_name: string;
   nmls_id?: string;
+  phone?: string;
   select_person_type?: string;
+  user_id: number | null;
 }
 
 interface BPMember {
   id: number;
-  name: string;
-  mention_name: string;
-  link: string;
-  user_avatar: {
-    full: string;
-    thumb: string;
-  };
   last_activity: {
     date: string;
     timediff: string;
   };
+  link: string;
+  mention_name: string;
+  name: string;
+  user_avatar: {
+    full: string;
+    thumb: string;
+  };
 }
 
 interface BPActivity {
-  id: number;
-  user_id: number;
+  component: string;
   content: string;
   date: string;
-  component: string;
+  id: number;
   type: string;
+  user_id: number;
 }
 
 export function BuddyPressProfile() {
@@ -71,8 +71,8 @@ export function BuddyPressProfile() {
         setBpActivity(activity);
         setLoading(false);
       })
-      .catch((err) => {
-        setError(err.message);
+      .catch((error_) => {
+        setError(error_.message);
         setLoading(false);
       });
   }, [userId]);
@@ -87,7 +87,7 @@ export function BuddyPressProfile() {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+      <div className="rounded-lg border border-red-200 bg-red-50 p-4">
         <p className="text-red-600">Error: {error}</p>
       </div>
     );
@@ -95,61 +95,61 @@ export function BuddyPressProfile() {
 
   if (!frsProfile || !bpMember) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+      <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
         <p className="text-yellow-600">Profile not found</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="mx-auto max-w-4xl p-6">
       {/* Profile Header */}
-      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+      <div className="mb-6 rounded-lg bg-white p-6 shadow-lg">
         <div className="flex items-start gap-6">
           {/* Avatar */}
           <img
-            src={bpMember.user_avatar.full}
             alt={frsProfile.first_name}
-            className="w-32 h-32 rounded-full object-cover"
+            className="size-32 rounded-full object-cover"
+            src={bpMember.user_avatar.full}
           />
 
           {/* Info */}
           <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="mb-2 text-3xl font-bold text-gray-900">
               {frsProfile.first_name} {frsProfile.last_name}
             </h1>
 
             {frsProfile.select_person_type && (
-              <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-3">
+              <span className="mb-3 inline-block rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
                 {frsProfile.select_person_type.replace('_', ' ').toUpperCase()}
               </span>
             )}
 
             {frsProfile.nmls_id && (
-              <p className="text-gray-600 mb-2">
+              <p className="mb-2 text-gray-600">
                 <strong>NMLS:</strong> #{frsProfile.nmls_id}
               </p>
             )}
 
-            <p className="text-gray-600 mb-2">
+            <p className="mb-2 text-gray-600">
               <strong>Email:</strong> {frsProfile.email}
             </p>
 
             {frsProfile.phone && (
-              <p className="text-gray-600 mb-2">
+              <p className="mb-2 text-gray-600">
                 <strong>Phone:</strong> {frsProfile.phone}
               </p>
             )}
 
-            <p className="text-sm text-gray-500 mt-3">
+            <p className="mt-3 text-sm text-gray-500">
               Last active: {bpMember.last_activity.timediff}
             </p>
 
             <a
+              className="mt-3 inline-block text-blue-600 hover:underline"
               href={bpMember.link}
-              className="inline-block mt-3 text-blue-600 hover:underline"
-              target="_blank"
               rel="noopener noreferrer"
+              target="_blank"
             >
               View BuddyPress Profile →
             </a>
@@ -158,16 +158,16 @@ export function BuddyPressProfile() {
 
         {/* Bio */}
         {frsProfile.bio && (
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <h2 className="text-xl font-semibold mb-3">About</h2>
-            <p className="text-gray-700 leading-relaxed">{frsProfile.bio}</p>
+          <div className="mt-6 border-t border-gray-200 pt-6">
+            <h2 className="mb-3 text-xl font-semibold">About</h2>
+            <p className="leading-relaxed text-gray-700">{frsProfile.bio}</p>
           </div>
         )}
       </div>
 
       {/* Activity Feed */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Recent Activity</h2>
+      <div className="rounded-lg bg-white p-6 shadow-lg">
+        <h2 className="mb-4 text-2xl font-bold text-gray-900">Recent Activity</h2>
 
         {bpActivity.length === 0 ? (
           <p className="text-gray-500">No recent activity</p>
@@ -175,14 +175,14 @@ export function BuddyPressProfile() {
           <div className="space-y-4">
             {bpActivity.map((activity) => (
               <div
-                key={activity.id}
                 className="border-b border-gray-200 pb-4 last:border-b-0"
+                key={activity.id}
               >
                 <div
                   className="text-gray-700"
                   dangerouslySetInnerHTML={{ __html: activity.content }}
                 />
-                <p className="text-sm text-gray-500 mt-2">
+                <p className="mt-2 text-sm text-gray-500">
                   {new Date(activity.date).toLocaleString()}
                 </p>
               </div>
@@ -205,13 +205,13 @@ function getAPIConfig() {
   return {
     apiUrl: config.apiUrl || '/wp-json/',
     bpNamespace: config.bpNamespace || 'buddypress/v1',
-    frsNamespace: config.frsNamespace || 'frs-users/v1',
     bpSlugs: config.bpSlugs || {
-      members: 'members',
       activity: 'activity',
-      groups: 'groups',
       attachments: 'attachments',
+      groups: 'groups',
+      members: 'members',
     },
+    frsNamespace: config.frsNamespace || 'frs-users/v1',
     nonce: config.restNonce || '',
   };
 }

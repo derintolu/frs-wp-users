@@ -20,44 +20,29 @@
  * - Member stats
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Label } from '@/components/ui/label';
-import { FloatingInput } from '@/components/ui/floating-input';
-import { RichTextEditor } from '@/components/ui/RichTextEditor';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ProfileHeader } from './components/ProfileHeader';
-import { CustomizerPreview, type Breakpoint } from './components/CustomizerPreview';
+import { type Breakpoint } from './components/CustomizerPreview';
 import { parseServiceAreaForState } from './utils/stateUtils';
 import { useProfileEdit } from '@/frontend/portal/contexts/ProfileEditContext';
 import { ProfileEditorView } from './components/ProfileEditorView';
 import {
-  Phone,
-  Mail,
   MapPin,
   FileText,
   CheckSquare,
-  User,
-  QrCode,
-  Users,
-  MessageCircle,
-  Activity,
-  UserPlus,
   UserCheck,
   Heart,
   MessageSquare,
-  Share2,
   Calendar,
-  Award,
   Globe,
   Linkedin,
   Facebook,
   ExternalLink,
-  Zap,
   Smartphone,
   Bell,
   Settings as SettingsIcon
@@ -65,77 +50,77 @@ import {
 
 // Interfaces
 interface FRSProfile {
-  id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone_number?: string;
-  mobile_number?: string;
-  job_title?: string;
-  headshot_url?: string;
   biography?: string;
+  city_state?: string;
+  custom_links?: Array<{ title: string; url: string }>;
+  email: string;
+  facebook_url?: string;
+  first_name: string;
+  headshot_url?: string;
+  id: number;
+  job_title?: string;
+  last_name: string;
+  linkedin_url?: string;
+  mobile_number?: string;
+  namb_certifications?: string[];
   nmls_id?: string;
   nmls_number?: string;
-  specialties_lo?: string[];
-  namb_certifications?: string[];
-  service_areas?: string[];
-  city_state?: string;
-  linkedin_url?: string;
-  facebook_url?: string;
-  website?: string;
+  phone_number?: string;
   profile_slug?: string;
-  custom_links?: Array<{ title: string; url: string }>;
+  service_areas?: string[];
+  specialties_lo?: string[];
+  website?: string;
 }
 
 interface BPMember {
   id: number;
-  name: string;
-  mention_name: string;
-  link: string;
-  user_avatar: {
-    full: string;
-    thumb: string;
-  };
   last_activity: {
     date: string;
     timediff: string;
   };
+  link: string;
+  mention_name: string;
+  name: string;
+  user_avatar: {
+    full: string;
+    thumb: string;
+  };
 }
 
 interface BPActivity {
-  id: number;
-  user_id: number;
+  component: string;
   content: string;
   date: string;
-  component: string;
+  id: number;
   type: string;
   user_avatar?: string;
+  user_id: number;
 }
 
 interface BPGroup {
-  id: number;
-  name: string;
-  description: string;
   avatar_urls: {
     full: string;
     thumb: string;
   };
+  description: string;
+  id: number;
+  name: string;
   status: string;
 }
 
 interface HybridProfileProps {
-  userId?: string;
-  slug?: string;
   activeTab?: string;
-  onProfileLoaded?: (profile: FRSProfile) => void;
   isEditMode?: boolean;
-  viewport?: Breakpoint;
   isOwnProfile?: boolean;
+  onProfileLoaded?: (profile: FRSProfile) => void;
+  slug?: string;
+  userId?: string;
+  viewport?: Breakpoint;
 }
 
-export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLoaded, isEditMode = false, viewport = 'desktop', isOwnProfile = true }: HybridProfileProps) {
+export function HybridProfile({ activeTab = 'profile', isEditMode = false, isOwnProfile = true, onProfileLoaded, slug, userId, viewport = 'desktop' }: HybridProfileProps) {
   // Profile edit context for edit mode
-  const { activeSection, setActiveSection, setIsSaving: setContextSaving, setHandleSave, setHandleCancel } = useProfileEdit();
+  const { activeSection, setActiveSection, setHandleCancel, setHandleSave, setIsSaving: setContextSaving } = useProfileEdit();
 
   // Check which section is being edited
   const isEditingPersonal = activeSection === 'personal';
@@ -163,6 +148,7 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
 
   useEffect(() => {
     fetchAllData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchAllData is intentionally not a dependency to avoid re-fetching on every render
   }, [userId, slug]);
 
   // Register save and cancel handlers with context
@@ -181,13 +167,13 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
 
         try {
           const response = await fetch(`/wp-json/frs-users/v1/profiles/${frsProfile.id}`, {
-            method: 'PUT',
+            body: JSON.stringify(frsProfile),
             credentials: 'include',
             headers: {
               'Content-Type': 'application/json',
               'X-WP-Nonce': (window as any).wpApiSettings?.nonce || (window as any).frsBPConfig?.restNonce || ''
             },
-            body: JSON.stringify(frsProfile)
+            method: 'PUT'
           });
 
           if (response.ok) {
@@ -200,14 +186,14 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
             const successMsg = document.createElement('div');
             successMsg.className = 'fixed top-20 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
             successMsg.textContent = 'Profile saved successfully!';
-            document.body.appendChild(successMsg);
+            document.body.append(successMsg);
             setTimeout(() => successMsg.remove(), 3000);
           } else {
             const errorData = await response.json();
             const errorMsg = document.createElement('div');
             errorMsg.className = 'fixed top-20 right-6 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
             errorMsg.textContent = errorData.message || 'Failed to save profile changes';
-            document.body.appendChild(errorMsg);
+            document.body.append(errorMsg);
             setTimeout(() => errorMsg.remove(), 5000);
             setError(errorData.message || 'Failed to save profile changes');
           }
@@ -216,7 +202,7 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
           const errorMsg = document.createElement('div');
           errorMsg.className = 'fixed top-20 right-6 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
           errorMsg.textContent = 'Network error - please try again';
-          document.body.appendChild(errorMsg);
+          document.body.append(errorMsg);
           setTimeout(() => errorMsg.remove(), 5000);
           setError('Failed to save profile changes');
         } finally {
@@ -262,11 +248,11 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
         // Set basic member data
         setBpMember({
           id: frsData.user_id,
-          name: bp.display_name || `${frsData.first_name} ${frsData.last_name}`,
-          mention_name: bp.display_name || frsData.first_name,
+          last_activity: bp.last_activity || { date: '', timediff: '' },
           link: bp.member_url || '#',
-          user_avatar: bp.avatar_urls || { full: '', thumb: '' },
-          last_activity: bp.last_activity || { date: '', timediff: '' }
+          mention_name: bp.display_name || frsData.first_name,
+          name: bp.display_name || `${frsData.first_name} ${frsData.last_name}`,
+          user_avatar: bp.avatar_urls || { full: '', thumb: '' }
         });
 
         // Set friend count
@@ -275,9 +261,9 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
         // TODO: Fetch activity and groups via FRS API endpoints
         // For now, leaving empty until we add those endpoints
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load profile');
-      console.error('Profile fetch error:', err);
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : 'Failed to load profile');
+      console.error('Profile fetch error:', error_);
     } finally {
       setLoading(false);
     }
@@ -285,17 +271,17 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
 
   if (loading) {
     return (
-      <div className="@container w-full max-w-[1290px] mx-auto px-4 pt-6 pb-6">
-        <div className="grid grid-cols-1 @lg:!grid-cols-[65%,35%] gap-4 mb-4">
+      <div className="mx-auto w-full max-w-[1290px] px-4 py-6 @container">
+        <div className="mb-4 grid grid-cols-1 gap-4 @lg:!grid-cols-[65%,35%]">
           {/* Profile Card Skeleton */}
-          <Card className="@container shadow-lg rounded border border-gray-200">
+          <Card className="rounded border border-gray-200 shadow-lg @container">
             <CardContent className="pt-6">
               {/* Cover/Header Skeleton */}
-              <Skeleton className="w-full h-48 mb-4 rounded-lg" />
+              <Skeleton className="mb-4 h-48 w-full rounded-lg" />
 
               {/* Avatar Skeleton */}
-              <div className="flex items-center gap-4 mb-4">
-                <Skeleton className="w-24 h-24 rounded-full" />
+              <div className="mb-4 flex items-center gap-4">
+                <Skeleton className="size-24 rounded-full" />
                 <div className="flex-1 space-y-2">
                   <Skeleton className="h-8 w-64" />
                   <Skeleton className="h-4 w-48" />
@@ -313,15 +299,15 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
 
           {/* Action Buttons + Service Areas Skeleton */}
           <div className="space-y-4">
-            <Card className="shadow-lg rounded border border-gray-200">
-              <CardContent className="pt-6 space-y-3">
+            <Card className="rounded border border-gray-200 shadow-lg">
+              <CardContent className="space-y-3 pt-6">
                 <Skeleton className="h-10 w-full" />
                 <Skeleton className="h-10 w-full" />
                 <Skeleton className="h-10 w-full" />
               </CardContent>
             </Card>
 
-            <Card className="shadow-lg rounded border border-gray-200">
+            <Card className="rounded border border-gray-200 shadow-lg">
               <CardHeader className="pb-2">
                 <Skeleton className="h-6 w-32" />
               </CardHeader>
@@ -338,8 +324,8 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
         </div>
 
         {/* Additional Cards Skeleton */}
-        <div className="grid grid-cols-1 @lg:!grid-cols-2 gap-4">
-          <Card className="shadow-lg rounded border border-gray-200">
+        <div className="grid grid-cols-1 gap-4 @lg:!grid-cols-2">
+          <Card className="rounded border border-gray-200 shadow-lg">
             <CardHeader className="pb-2">
               <Skeleton className="h-6 w-40" />
             </CardHeader>
@@ -350,7 +336,7 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
             </CardContent>
           </Card>
 
-          <Card className="shadow-lg rounded border border-gray-200">
+          <Card className="rounded border border-gray-200 shadow-lg">
             <CardHeader className="pb-2">
               <Skeleton className="h-6 w-40" />
             </CardHeader>
@@ -366,7 +352,7 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
   }
 
   if (error || !frsProfile) {
-    return <div className="text-center py-8 text-red-600">{error || 'Profile not found'}</div>;
+    return <div className="py-8 text-center text-red-600">{error || 'Profile not found'}</div>;
   }
 
   const fullName = `${frsProfile.first_name} ${frsProfile.last_name}`;
@@ -385,64 +371,64 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
 
   // Derive the active editing section for ProfileEditorView
   const getSettingsSection = (): 'personal' | 'professional' | 'social' | 'links' | null => {
-    if (!activeTab) return 'personal';
-    if (activeTab === 'settings') return 'personal'; // Default to personal when clicking Settings
-    if (activeTab === 'settings-personal') return 'personal';
-    if (activeTab === 'settings-professional') return 'professional';
-    if (activeTab === 'settings-social') return 'social';
-    if (activeTab === 'settings-directory') return 'links'; // Directory maps to 'links' in ProfileEditorView
+    if (!activeTab) {return 'personal';}
+    if (activeTab === 'settings') {return 'personal';} // Default to personal when clicking Settings
+    if (activeTab === 'settings-personal') {return 'personal';}
+    if (activeTab === 'settings-professional') {return 'professional';}
+    if (activeTab === 'settings-social') {return 'social';}
+    if (activeTab === 'settings-directory') {return 'links';} // Directory maps to 'links' in ProfileEditorView
     return 'personal';
   };
 
   // If in edit mode (activeSection is set), render ProfileEditorView
   if (activeSection) {
-    return <ProfileEditorView userId={userId} slug={slug} />;
+    return <ProfileEditorView slug={slug} userId={userId} />;
   }
 
   // Wrap profile cards in customizer preview when in edit mode
   const profileContent = (
-    <div className="@container w-full max-w-[1290px] mx-auto px-4 pt-6 pb-6">
+    <div className="mx-auto w-full max-w-[1290px] px-4 py-6 @container">
       {/* Profile Bento Cards - Shown for Profile and About tabs */}
       {showProfileCards && (activeTab === 'edit-profile' || !isEditMode) && (
         <>
           {/* Row 1: Profile Card + Action Buttons/Service Areas */}
-          <div className="grid grid-cols-1 @lg:!grid-cols-[65%,35%] gap-4 mb-4">
+          <div className="mb-4 grid grid-cols-1 gap-4 @lg:!grid-cols-[65%,35%]">
             {/* Profile Card */}
             <ProfileHeader
-              profile={frsProfile}
-              coverImageUrl={bpMember?.cover_image_url}
-              gradientUrl={gradientUrl}
-              iconPath={iconPath}
               bpPluginUrl={bpPluginUrl}
-              showBPStats={true}
-              lastActivity={bpMember?.last_activity}
+              coverImageUrl={bpMember?.cover_image_url}
               friendCount={friendCount}
+              gradientUrl={gradientUrl}
               groupCount={bpGroups.length}
+              iconPath={iconPath}
               isOwnProfile={isOwnProfile}
+              lastActivity={bpMember?.last_activity}
+              profile={frsProfile}
+              showBPStats={true}
             />
 
             {/* Right Column: Action Buttons + Service Areas */}
-            <div className="space-y-4 h-full flex flex-col" style={{ backgroundColor: 'white' }}>
+            <div className="flex h-full flex-col space-y-4" style={{ backgroundColor: 'white' }}>
               {/* Action Buttons Card */}
-              <Card className="@container shadow-lg rounded border border-gray-200">
+              <Card className="rounded border border-gray-200 shadow-lg @container">
                 <CardContent className="pt-6">
                   <div className="flex flex-col gap-3">
                     <Button
-                      variant="outline"
-                      className="font-semibold px-6 py-2 shadow-lg whitespace-nowrap bg-white hover:bg-gray-50 transition-all border-0 relative overflow-hidden w-full"
+                      className="relative w-full overflow-hidden whitespace-nowrap border-0 bg-white px-6 py-2 font-semibold shadow-lg transition-all hover:bg-gray-50"
                       style={{
+                        backgroundClip: 'padding-box, border-box',
                         backgroundImage: 'linear-gradient(white, white), linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                         backgroundOrigin: 'padding-box, border-box',
-                        backgroundClip: 'padding-box, border-box',
                         border: '2px solid transparent',
                       }}
+                      variant="outline"
                     >
                       <span
                         className="font-semibold"
                         style={{
-                          background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                           WebkitBackgroundClip: 'text',
                           WebkitTextFillColor: 'transparent',
+                          background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                           backgroundClip: 'text',
                         }}
                       >
@@ -450,21 +436,21 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
                       </span>
                     </Button>
                     <Button
-                      variant="outline"
-                      className="font-semibold px-6 py-2 shadow-lg whitespace-nowrap bg-white hover:bg-gray-50 transition-all border-0 relative overflow-hidden w-full"
+                      className="relative w-full overflow-hidden whitespace-nowrap border-0 bg-white px-6 py-2 font-semibold shadow-lg transition-all hover:bg-gray-50"
                       style={{
+                        backgroundClip: 'padding-box, border-box',
                         backgroundImage: 'linear-gradient(white, white), linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                         backgroundOrigin: 'padding-box, border-box',
-                        backgroundClip: 'padding-box, border-box',
                         border: '2px solid transparent',
                       }}
+                      variant="outline"
                     >
                       <span
                         className="font-semibold"
                         style={{
-                          background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                           WebkitBackgroundClip: 'text',
                           WebkitTextFillColor: 'transparent',
+                          background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                           backgroundClip: 'text',
                         }}
                       >
@@ -472,21 +458,21 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
                       </span>
                     </Button>
                     <Button
-                      variant="outline"
-                      className="font-semibold px-6 py-2 shadow-lg whitespace-nowrap bg-white hover:bg-gray-50 transition-all border-0 relative overflow-hidden w-full"
+                      className="relative w-full overflow-hidden whitespace-nowrap border-0 bg-white px-6 py-2 font-semibold shadow-lg transition-all hover:bg-gray-50"
                       style={{
+                        backgroundClip: 'padding-box, border-box',
                         backgroundImage: 'linear-gradient(white, white), linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                         backgroundOrigin: 'padding-box, border-box',
-                        backgroundClip: 'padding-box, border-box',
                         border: '2px solid transparent',
                       }}
+                      variant="outline"
                     >
                       <span
                         className="font-semibold"
                         style={{
-                          background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                           WebkitBackgroundClip: 'text',
                           WebkitTextFillColor: 'transparent',
+                          background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                           backgroundClip: 'text',
                         }}
                       >
@@ -498,15 +484,15 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
               </Card>
 
               {/* Service Areas Card */}
-              <Card className="@container shadow-lg rounded border border-gray-200 flex-1" style={{ backgroundColor: 'white' }}>
+              <Card className="flex-1 rounded border border-gray-200 shadow-lg @container" style={{ backgroundColor: 'white' }}>
                 <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
-                    <MapPin className="h-5 w-5" />
+                  <CardTitle className="flex items-center gap-2 text-base font-semibold text-gray-900">
+                    <MapPin className="size-5" />
                     Service Areas
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 py-3">
-                  <div className="grid grid-cols-2 @md:grid-cols-3 @lg:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 gap-3 @md:grid-cols-3 @lg:grid-cols-4">
                     {frsProfile.service_areas && frsProfile.service_areas.length > 0 ? (
                       frsProfile.service_areas.map((area, index) => {
                         const stateInfo = parseServiceAreaForState(area);
@@ -515,13 +501,13 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
                           // Display as state card with SVG
                           return (
                             <div
+                              className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-gray-200 bg-white px-2 pb-3 pt-0.5 transition-all hover:border-blue-400 hover:shadow-md"
                               key={index}
-                              className="flex flex-col items-center justify-center pt-0.5 pb-3 px-2 rounded-lg border-2 border-gray-200 bg-white hover:border-blue-400 hover:shadow-md transition-all cursor-pointer aspect-square"
                             >
                               <img
-                                src={stateInfo.svgUrl}
                                 alt={stateInfo.abbr}
-                                className="w-16 h-16 mb-1 object-contain"
+                                className="mb-1 size-16 object-contain"
+                                src={stateInfo.svgUrl}
                               />
                               <span className="text-sm font-semibold text-gray-700">{stateInfo.abbr}</span>
                             </div>
@@ -531,16 +517,16 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
                         // Fallback for non-state service areas (cities, zip codes, etc.)
                         return (
                           <div
+                            className="flex aspect-square flex-col items-center justify-center rounded-lg border-2 border-gray-200 bg-white px-2 pb-3 pt-0.5 transition-all hover:border-blue-400 hover:shadow-md"
                             key={index}
-                            className="flex flex-col items-center justify-center pt-0.5 pb-3 px-2 rounded-lg border-2 border-gray-200 bg-white hover:border-blue-400 hover:shadow-md transition-all aspect-square"
                           >
-                            <MapPin className="w-12 h-12 mb-1 text-gray-500" />
-                            <span className="text-xs font-medium text-gray-700 text-center break-words">{area}</span>
+                            <MapPin className="mb-1 size-12 text-gray-500" />
+                            <span className="break-words text-center text-xs font-medium text-gray-700">{area}</span>
                           </div>
                         );
                       })
                     ) : (
-                      <p className="text-sm text-gray-500 italic col-span-4">No service areas specified.</p>
+                      <p className="col-span-4 text-sm italic text-gray-500">No service areas specified.</p>
                     )}
                   </div>
                 </CardContent>
@@ -549,56 +535,56 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
           </div>
 
           {/* Row 2: Biography + Specialties & Credentials */}
-          <div className="grid grid-cols-1 @lg:!grid-cols-[65%,35%] gap-4 mb-4">
+          <div className="mb-4 grid grid-cols-1 gap-4 @lg:!grid-cols-[65%,35%]">
             {/* Biography Card */}
-            <Card className="@container shadow-lg rounded border border-gray-200 h-full">
+            <Card className="h-full rounded border border-gray-200 shadow-lg @container">
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
-                  <FileText className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 text-base font-semibold text-gray-900">
+                  <FileText className="size-5" />
                   Professional Biography
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div
-                  className="text-sm text-gray-700 prose prose-sm max-w-none"
+                  className="prose prose-sm max-w-none text-sm text-gray-700"
                   dangerouslySetInnerHTML={{ __html: frsProfile.biography || '<p class="text-gray-500 italic">No biography provided.</p>' }}
                 />
               </CardContent>
             </Card>
 
             {/* Specialties & Credentials Card */}
-            <Card className="@container shadow-lg rounded border border-gray-200 h-full">
+            <Card className="h-full rounded border border-gray-200 shadow-lg @container">
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
-                  <CheckSquare className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 text-base font-semibold text-gray-900">
+                  <CheckSquare className="size-5" />
                   Specialties & Credentials
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Loan Officer Specialties */}
                 <div>
-                  <h4 className="text-sm font-medium mb-2">Loan Officer Specialties</h4>
+                  <h4 className="mb-2 text-sm font-medium">Loan Officer Specialties</h4>
                   <div className="flex flex-wrap gap-2">
                     {frsProfile.specialties_lo && frsProfile.specialties_lo.length > 0 ? (
                       frsProfile.specialties_lo.map((specialty, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">{specialty}</Badge>
+                        <Badge className="text-xs" key={index} variant="secondary">{specialty}</Badge>
                       ))
                     ) : (
-                      <p className="text-xs text-gray-500 italic">No specialties selected</p>
+                      <p className="text-xs italic text-gray-500">No specialties selected</p>
                     )}
                   </div>
                 </div>
 
                 {/* NAMB Certifications */}
                 <div>
-                  <h4 className="text-sm font-medium mb-2">NAMB Certifications</h4>
+                  <h4 className="mb-2 text-sm font-medium">NAMB Certifications</h4>
                   <div className="flex flex-wrap gap-2">
                     {frsProfile.namb_certifications && frsProfile.namb_certifications.length > 0 ? (
                       frsProfile.namb_certifications.map((cert, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs bg-purple-100 text-purple-800">{cert}</Badge>
+                        <Badge className="bg-purple-100 text-xs text-purple-800" key={index} variant="secondary">{cert}</Badge>
                       ))
                     ) : (
-                      <p className="text-xs text-gray-500 italic">No certifications selected</p>
+                      <p className="text-xs italic text-gray-500">No certifications selected</p>
                     )}
                   </div>
                 </div>
@@ -607,12 +593,12 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
           </div>
 
           {/* Row 3: Custom Links + Links & Social */}
-          <div className="grid grid-cols-1 @lg:!grid-cols-[65%,35%] gap-4 mb-4">
+          <div className="mb-4 grid grid-cols-1 gap-4 @lg:!grid-cols-[65%,35%]">
             {/* Custom Links Card */}
-            <Card className="@container shadow-lg rounded border border-gray-200 h-full">
+            <Card className="h-full rounded border border-gray-200 shadow-lg @container">
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
-                  <ExternalLink className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 text-base font-semibold text-gray-900">
+                  <ExternalLink className="size-5" />
                   Custom Links
                 </CardTitle>
               </CardHeader>
@@ -621,53 +607,53 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
                   {frsProfile.custom_links && Array.isArray(frsProfile.custom_links) && frsProfile.custom_links.length > 0 ? (
                     frsProfile.custom_links.map((link, index) => (
                       <a
-                        key={index}
+                        className="group flex items-center justify-between rounded-lg border border-gray-200 p-3 transition-all hover:border-blue-400 hover:bg-blue-50/50"
                         href={link.url}
-                        target="_blank"
+                        key={index}
                         rel="noopener noreferrer"
-                        className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all group"
+                        target="_blank"
                       >
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-sm text-gray-900 group-hover:text-blue-600 transition-colors truncate">
+                        <div className="min-w-0 flex-1">
+                          <h4 className="truncate text-sm font-semibold text-gray-900 transition-colors group-hover:text-blue-600">
                             {link.title}
                           </h4>
-                          <p className="text-xs text-gray-500 truncate mt-0.5">{link.url}</p>
+                          <p className="mt-0.5 truncate text-xs text-gray-500">{link.url}</p>
                         </div>
-                        <ExternalLink className="h-4 w-4 text-gray-400 group-hover:text-blue-600 flex-shrink-0 ml-2" />
+                        <ExternalLink className="ml-2 size-4 shrink-0 text-gray-400 group-hover:text-blue-600" />
                       </a>
                     ))
                   ) : (
-                    <p className="text-sm text-gray-500 italic text-center py-4">No custom links added yet.</p>
+                    <p className="py-4 text-center text-sm italic text-gray-500">No custom links added yet.</p>
                   )}
                 </div>
               </CardContent>
             </Card>
 
             {/* Links & Social Card */}
-            <Card className="@container shadow-lg rounded border border-gray-200 h-full">
+            <Card className="h-full rounded border border-gray-200 shadow-lg @container">
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
-                  <Globe className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 text-base font-semibold text-gray-900">
+                  <Globe className="size-5" />
                   Links & Social
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 py-3">
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="flex items-center gap-2 p-2 rounded border">
-                    <Globe className="h-4 w-4 text-gray-600" />
-                    <span className="text-xs truncate">{frsProfile.website || 'Website'}</span>
+                  <div className="flex items-center gap-2 rounded border p-2">
+                    <Globe className="size-4 text-gray-600" />
+                    <span className="truncate text-xs">{frsProfile.website || 'Website'}</span>
                   </div>
-                  <div className="flex items-center gap-2 p-2 rounded border">
-                    <Linkedin className="h-4 w-4 text-gray-600" />
-                    <span className="text-xs truncate">{frsProfile.linkedin_url || 'LinkedIn'}</span>
+                  <div className="flex items-center gap-2 rounded border p-2">
+                    <Linkedin className="size-4 text-gray-600" />
+                    <span className="truncate text-xs">{frsProfile.linkedin_url || 'LinkedIn'}</span>
                   </div>
-                  <div className="flex items-center gap-2 p-2 rounded border">
-                    <Facebook className="h-4 w-4 text-gray-600" />
-                    <span className="text-xs truncate">{frsProfile.facebook_url || 'Facebook'}</span>
+                  <div className="flex items-center gap-2 rounded border p-2">
+                    <Facebook className="size-4 text-gray-600" />
+                    <span className="truncate text-xs">{frsProfile.facebook_url || 'Facebook'}</span>
                   </div>
-                  <div className="flex items-center gap-2 p-2 rounded border">
-                    <Smartphone className="h-4 w-4 text-gray-600" />
-                    <span className="text-xs truncate">{frsProfile.instagram_url || 'Instagram'}</span>
+                  <div className="flex items-center gap-2 rounded border p-2">
+                    <Smartphone className="size-4 text-gray-600" />
+                    <span className="truncate text-xs">{frsProfile.instagram_url || 'Instagram'}</span>
                   </div>
                 </div>
               </CardContent>
@@ -681,32 +667,32 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
+              <Calendar className="size-5" />
               Experience
             </CardTitle>
           </CardHeader>
           <CardContent>
             {bpActivity.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">No recent experience</p>
+              <p className="py-8 text-center text-gray-500">No recent experience</p>
             ) : (
               <div className="space-y-4">
                 {bpActivity.map((activity) => (
-                  <div key={activity.id} className="border-b pb-4 last:border-0">
+                  <div className="border-b pb-4 last:border-0" key={activity.id}>
                     <div
-                      className="prose prose-sm max-w-none mb-2"
+                      className="prose prose-sm mb-2 max-w-none"
                       dangerouslySetInnerHTML={{ __html: activity.content }}
                     />
                     <div className="flex items-center gap-4 text-xs text-gray-500">
                       <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
+                        <Calendar className="size-3" />
                         {new Date(activity.date).toLocaleDateString()}
                       </span>
                       <button className="flex items-center gap-1 hover:text-red-500">
-                        <Heart className="h-3 w-3" />
+                        <Heart className="size-3" />
                         Like
                       </button>
                       <button className="flex items-center gap-1 hover:text-blue-500">
-                        <MessageSquare className="h-3 w-3" />
+                        <MessageSquare className="size-3" />
                         Comment
                       </button>
                     </div>
@@ -720,11 +706,11 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
 
       {/* Groups Section */}
       {showGroupsSection && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {bpGroups.length === 0 ? (
             <Card className="col-span-2">
               <CardContent className="py-8">
-                <p className="text-gray-500 text-center">Not a member of any groups yet</p>
+                <p className="text-center text-gray-500">Not a member of any groups yet</p>
               </CardContent>
             </Card>
           ) : (
@@ -732,14 +718,14 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
               <Card key={group.id}>
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-4">
-                    <Avatar className="h-12 w-12">
+                    <Avatar className="size-12">
                       <AvatarImage src={group.avatar_urls.thumb} />
                       <AvatarFallback>{group.name[0]}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
                       <h3 className="font-semibold">{group.name}</h3>
-                      <p className="text-sm text-gray-600 line-clamp-2">{group.description}</p>
-                      <Badge variant="secondary" className="mt-2">{group.status}</Badge>
+                      <p className="line-clamp-2 text-sm text-gray-600">{group.description}</p>
+                      <Badge className="mt-2" variant="secondary">{group.status}</Badge>
                     </div>
                   </div>
                 </CardContent>
@@ -754,12 +740,12 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <UserCheck className="h-5 w-5" />
+              <UserCheck className="size-5" />
               Connections ({friendCount})
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-500 text-center py-8">Friends list will be displayed here</p>
+            <p className="py-8 text-center text-gray-500">Friends list will be displayed here</p>
           </CardContent>
         </Card>
       )}
@@ -769,12 +755,12 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5" />
+              <MessageSquare className="size-5" />
               Messages
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-500 text-center py-8">Your messages will be displayed here</p>
+            <p className="py-8 text-center text-gray-500">Your messages will be displayed here</p>
           </CardContent>
         </Card>
       )}
@@ -784,12 +770,12 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <SettingsIcon className="h-5 w-5" />
+              <SettingsIcon className="size-5" />
               Settings
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-500 text-center py-8">Settings content placeholder</p>
+            <p className="py-8 text-center text-gray-500">Settings content placeholder</p>
           </CardContent>
         </Card>
       )}
@@ -799,12 +785,12 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Bell className="h-5 w-5" />
+              <Bell className="size-5" />
               Notifications
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-500 text-center py-8">Your notifications will be displayed here</p>
+            <p className="py-8 text-center text-gray-500">Your notifications will be displayed here</p>
           </CardContent>
         </Card>
       )}
@@ -814,24 +800,24 @@ export function HybridProfile({ userId, slug, activeTab = 'profile', onProfileLo
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5" />
+              <MessageSquare className="size-5" />
               Send Message to {fullName}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Subject</label>
+                <label className="mb-2 block text-sm font-medium">Subject</label>
                 <input
-                  type="text"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter subject..."
+                  type="text"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Message</label>
+                <label className="mb-2 block text-sm font-medium">Message</label>
                 <textarea
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[200px]"
+                  className="min-h-[200px] w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Write your message..."
                 />
               </div>
@@ -872,7 +858,7 @@ async function fetchFRSProfile(userId?: string, slug?: string): Promise<FRSProfi
     headers: { 'X-WP-Nonce': config.nonce }
   });
 
-  if (!response.ok) throw new Error('Failed to fetch FRS profile');
+  if (!response.ok) {throw new Error('Failed to fetch FRS profile');}
 
   const result = await response.json();
   return result.data || result;
@@ -886,7 +872,7 @@ async function fetchBPMember(userId: string | number): Promise<BPMember> {
     headers: { 'X-WP-Nonce': config.nonce }
   });
 
-  if (!response.ok) throw new Error('Failed to fetch BuddyPress member');
+  if (!response.ok) {throw new Error('Failed to fetch BuddyPress member');}
   return response.json();
 }
 
@@ -898,7 +884,7 @@ async function fetchBPActivity(userId: string | number): Promise<BPActivity[]> {
     headers: { 'X-WP-Nonce': config.nonce }
   });
 
-  if (!response.ok) return [];
+  if (!response.ok) {return [];}
   return response.json();
 }
 
@@ -910,7 +896,7 @@ async function fetchBPGroups(userId: string | number): Promise<BPGroup[]> {
     headers: { 'X-WP-Nonce': config.nonce }
   });
 
-  if (!response.ok) return [];
+  if (!response.ok) {return [];}
   return response.json();
 }
 

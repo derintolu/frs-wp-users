@@ -35,9 +35,9 @@ export function NavUser({
   user,
 }: {
   user: {
-    name: string
+    avatar: string,
     email: string
-    avatar: string
+    name: string
   }
 }) {
   const { isMobile } = useSidebar()
@@ -78,16 +78,16 @@ export function NavUser({
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu open={open} onOpenChange={setOpen}>
+        <DropdownMenu onOpenChange={setOpen} open={open}>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
-              size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
+              size="lg"
             >
-              <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.name} />
+              <Avatar className="size-8 rounded-lg">
+                <AvatarImage alt={user.name} src={user.avatar} />
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -98,17 +98,17 @@ export function NavUser({
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-            side="top"
             align="end"
-            sideOffset={8}
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
+            side="top"
+            sideOffset={8}
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
+                <Avatar className="size-8 rounded-lg">
+                  <AvatarImage alt={user.name} src={user.avatar} />
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
@@ -120,26 +120,26 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem asChild>
-                <Link to="/dashboard" className="cursor-pointer">
+                <Link className="cursor-pointer" to="/dashboard">
                   <LayoutDashboard />
                   Dashboard
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/profile" className="cursor-pointer">
+                <Link className="cursor-pointer" to="/profile">
                   <User />
                   Profile
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/settings" className="cursor-pointer">
+                <Link className="cursor-pointer" to="/settings">
                   <Settings />
                   Settings
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+            <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
               <LogOut />
               Log out
             </DropdownMenuItem>

@@ -16,14 +16,14 @@ import { tv } from "tailwind-variants";
 
 export const menu = tv({
   slots: {
+    item: "data-[focused]:text-blue-700 border border-transparent data-[focused]:border data-[focused]:border-border-default data-[focused]:shadow-border font-medium relative flex cursor-pointer justify-between rounded-md p-2 outline-none",
+    menuContentClass: "flex h-fit w-56 flex-col gap-2 p-2 outline-none",
     menuPopoverClass:
       "border-border-default bg-white data-[entering]:animate-fade data-[exiting]:animate-fadeOut overflow-auto rounded-md border shadow-border",
-    menuContentClass: "flex h-fit w-56 flex-col gap-2 p-2 outline-none",
-    item: "data-[focused]:text-blue-700 border border-transparent data-[focused]:border data-[focused]:border-border-default data-[focused]:shadow-border font-medium relative flex cursor-pointer justify-between rounded-md p-2 outline-none",
   },
 });
 
-const { menuPopoverClass, menuContentClass, item } = menu();
+const { item, menuContentClass, menuPopoverClass } = menu();
 
 interface MyMenuButtonProps<T>
   extends MenuProps<T>,
@@ -32,8 +32,8 @@ interface MyMenuButtonProps<T>
 }
 
 function MyMenuButton<T extends object>({
-  label,
   children,
+  label,
   ...props
 }: MyMenuButtonProps<T>) {
   return (

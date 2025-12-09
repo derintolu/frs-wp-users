@@ -1,149 +1,155 @@
 // Data service for managing partnership portal data
 export interface User {
-  id: string;
-  name: string;
-  email: string;
-  username?: string;
-  user_nicename?: string;
-  phone?: string;
-  mobile_number?: string;
-  company?: string;
-  office?: string;
+  // Tools & Platforms
+  arrive?: string;
   avatar?: string;
+  awards?: string[];
+  biography?: string;
+  brand?: string;
+  canva_folder_link?: string;
+  city_state?: string;
+  company?: string;
+  createdAt: string;
+  date_of_birth?: string;
+  dre_license?: string;
+  email: string;
+  // Social media
+  facebook_url?: string;
+  // Additional
+  frs_agent_id?: string;
   headshot_id?: number;
   headshot_url?: string;
-  role: 'loan_officer' | 'realtor';
-  status: 'active' | 'pending' | 'inactive';
-  createdAt: string;
-  location?: string;
-  city_state?: string;
-  region?: string;
-  title?: string;
+  id: string;
+  instagram_url?: string;
+  is_guest?: boolean;
   job_title?: string;
-  website?: string;
+  languages?: string[];
+  license_number?: string;
   linkedin?: string;
+  linkedin_url?: string;
+  location?: string;
+  mobile_number?: string;
+  namb_certifications?: string[];
+  name: string;
+  nar_designations?: string[];
+  niche_bio_content?: string;
   // Professional details
   nmls?: string;
   nmls_number?: string;
-  license_number?: string;
-  dre_license?: string;
-  brand?: string;
-  biography?: string;
-  date_of_birth?: string;
+  office?: string;
+  personal_branding_images?: number[];
+  phone?: string;
+  profile_id?: number;
+  region?: string;
+  role: 'loan_officer' | 'realtor';
   select_person_type?: string;
-  // Social media
-  facebook_url?: string;
-  instagram_url?: string;
-  linkedin_url?: string;
-  twitter_url?: string;
-  youtube_url?: string;
-  tiktok_url?: string;
   // Professional arrays
   specialties?: string[];
   specialties_lo?: string[];
-  languages?: string[];
-  awards?: string[];
-  nar_designations?: string[];
-  namb_certifications?: string[];
-  // Tools & Platforms
-  arrive?: string;
-  canva_folder_link?: string;
-  niche_bio_content?: string;
-  personal_branding_images?: number[];
-  // Additional
-  frs_agent_id?: string;
+  status: 'active' | 'pending' | 'inactive';
+  tiktok_url?: string;
+  title?: string;
+  twitter_url?: string;
   user_id?: number;
-  profile_id?: number;
-  is_guest?: boolean;
+  user_nicename?: string;
+  username?: string;
+  website?: string;
+  youtube_url?: string;
 }
 
 export interface LandingPage {
+  conversions: number;
+  created?: string;
+  // LO ID for co-branded pages, Realtor ID for individual pages
+  createdAt: string;
+  featured_image?: string;
   id: string;
+  isCoBranded: boolean;
+  lastModified: string;
+  ownerId: string;
+  status: string; 
+  thumbnail: string;
   title: string;
   type: string;
-  status: string;
-  views: number;
-  conversions: number;
-  thumbnail: string;
-  isCoBranded: boolean;
-  ownerId: string; // LO ID for co-branded pages, Realtor ID for individual pages
-  createdAt: string;
-  lastModified: string;
-  url?: string;
-  featured_image?: string;
   updated?: string;
-  created?: string;
+  url?: string;
+  views: number;
 }
 
 export interface Partnership {
-  id: string;
-  loanOfficerId: string;
-  realtorId: string;
-  status: 'active' | 'pending' | 'inactive';
   createdAt: string;
+  id: string;
+  inviteMessage?: string;
   lastActivity?: string;
-  sharedResources: number;
-  totalLeads: number;
+  leadsReceived: number;
+  loanOfficerId: string;
   notifications: {
     email: boolean;
     sms: boolean;
   };
-  leadsReceived: number;
-  inviteMessage?: string;
+  realtorId: string;
+  sharedResources: number;
+  status: 'active' | 'pending' | 'inactive';
+  totalLeads: number;
 }
 
 export interface Lead {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  status: 'new' | 'contacted' | 'qualified' | 'closed' | 'lost' | 'test';
-  source: string;
-  loanAmount: number;
-  propertyType: string;
-  timeframe: string;
+  assignedTo: string;
   createdAt: string;
+  email: string;
+  firstName: string;
+  id: string;
+  // If from a partnership
+  landingPageId?: string;
   lastActivity: string;
-  assignedTo: string; // Loan Officer or Realtor ID
-  partnershipId?: string; // If from a partnership
-  landingPageId?: string; // Which landing page generated this lead
+  lastName: string;
+  loanAmount: number;
+  // Which landing page generated this lead
   notes?: string;
+  // Loan Officer or Realtor ID
+  partnershipId?: string;
+  phone: string;
+  propertyType: string; 
+  source: string; 
+  status: 'new' | 'contacted' | 'qualified' | 'closed' | 'lost' | 'test'; 
+  timeframe: string;
 }
 
 export interface DashboardStats {
   activePartnerships: number;
-  pendingInvitations: number;
-  totalLeads: number;
-  conversionRate: number;
   coBrandedPages: number;
+  conversionRate: number;
   newLeadsThisMonth: number;
-  topPerformingPages: Array<{id: string; title: string; leads: number}>;
+  pendingInvitations: number;
+  topPerformingPages: Array<{id: string; leads: number, title: string;}>;
+  totalLeads: number;
 }
 
 declare global {
   interface Window {
     frsPortalConfig: {
       apiUrl: string;
+      currentUser: {
+        email: string;
+        id: number;
+        name: string;
+        roles: string[];
+      };
       restNonce: string;
-      userId: number;
-      userName: string;
-      userEmail: string;
-      userAvatar: string;
-      userRole: string;
       siteLogo?: string;
       siteName?: string;
       testRole?: string;
-      currentUser: {
-        id: number;
-        name: string;
-        email: string;
-        roles: string[];
-      };
+      userAvatar: string;
+      userEmail: string;
+      userId: number;
+      userName: string;
+      userRole: string;
     };
   }
 }
 
+// Static utility class for API requests - intentionally uses only static methods
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 class DataService {
   private static getBaseUrl(): string {
     return (window as any).frsPortalConfig?.apiUrl || '/wp-json/frs/v1/';
@@ -153,18 +159,18 @@ class DataService {
   private static getWpData() {
     return window.frsPortalConfig || {
       apiUrl: '/wp-json/frs/v1/',
-      restNonce: '',
-      userId: 0,
-      userName: '',
-      userEmail: '',
-      userAvatar: '',
-      userRole: '',
       currentUser: {
+        email: '',
         id: 0,
         name: '',
-        email: '',
         roles: []
-      }
+      },
+      restNonce: '',
+      userAvatar: '',
+      userEmail: '',
+      userId: 0,
+      userName: '',
+      userRole: ''
     };
   }
 
@@ -176,12 +182,12 @@ class DataService {
     const wpData = this.getWpData();
 
     const defaultOptions: RequestInit = {
+      credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json',
         'X-WP-Nonce': wpData.restNonce,
         ...options.headers,
       },
-      credentials: 'same-origin',
       ...options,
     };
 
@@ -208,59 +214,186 @@ class DataService {
     }
 
     return {
-      id: wpUser.id.toString(),
-      profile_id: profile.id,
-      user_id: wpUser.id,
-      name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || wpUser.name || 'User',
-      email: profile.email || wpUser.email || '',
-      phone: profile.phone_number || '',
-      mobile_number: profile.mobile_number || '',
-      company: profile.office || (role === 'realtor' ? 'Real Estate Agency' : '21st Century Lending'),
-      office: profile.office || '',
       avatar: profile.headshot_url || wpUser.avatar || '',
-      headshot_id: profile.headshot_id,
-      headshot_url: profile.headshot_url,
-      role: role,
-      status: profile.is_active ? 'active' : 'inactive',
-      createdAt: profile.created_at || new Date().toISOString(),
-      location: profile.city_state || profile.region || '',
-      city_state: profile.city_state,
-      region: profile.region,
-      title: profile.job_title || '',
-      job_title: profile.job_title,
-      website: '',
-      linkedin: profile.linkedin_url || '',
-      // Professional details
-      nmls: profile.nmls || profile.nmls_number || '',
-      nmls_number: profile.nmls_number,
-      license_number: profile.license_number,
-      dre_license: profile.dre_license,
-      brand: profile.brand,
       biography: profile.biography,
+      brand: profile.brand,
+      city_state: profile.city_state,
+      company: profile.office || (role === 'realtor' ? 'Real Estate Agency' : '21st Century Lending'),
+      createdAt: profile.created_at || new Date().toISOString(),
       date_of_birth: profile.date_of_birth,
-      select_person_type: profile.select_person_type,
-      // Social media
-      facebook_url: profile.facebook_url,
-      instagram_url: profile.instagram_url,
-      linkedin_url: profile.linkedin_url,
-      twitter_url: profile.twitter_url,
-      youtube_url: profile.youtube_url,
-      tiktok_url: profile.tiktok_url,
-      // Professional arrays
-      specialties: profile.specialties || [],
-      specialties_lo: profile.specialties_lo || [],
-      languages: profile.languages || [],
       awards: profile.awards || [],
-      nar_designations: profile.nar_designations || [],
-      namb_certifications: profile.namb_certifications || [],
-      // Tools & Platforms
-      arrive: profile.arrive,
-      canva_folder_link: profile.canva_folder_link,
-      niche_bio_content: profile.niche_bio_content,
-      personal_branding_images: profile.personal_branding_images || [],
-      // Additional
-      frs_agent_id: profile.frs_agent_id,
-      is_guest: profile.is_guest || false,
+      dre_license: profile.dre_license,
+      
+email: profile.email || wpUser.email || '',
+      
+// Social media
+facebook_url: profile.facebook_url,
+      
+// Tools & Platforms
+arrive: profile.arrive,
+      
+
+headshot_id: profile.headshot_id,
+      
+
+
+canva_folder_link: profile.canva_folder_link,
+      
+
+
+
+headshot_url: profile.headshot_url,
+      
+
+
+
+// Additional
+frs_agent_id: profile.frs_agent_id,
+      
+
+
+
+
+id: wpUser.id.toString(),
+      
+
+
+
+
+instagram_url: profile.instagram_url,
+      
+
+
+
+
+is_guest: profile.is_guest || false,
+      
+
+
+
+
+job_title: profile.job_title,
+      
+
+
+
+
+languages: profile.languages || [],
+      
+
+
+
+
+license_number: profile.license_number,
+      
+      
+
+
+
+linkedin: profile.linkedin_url || '',
+      
+
+
+
+linkedin_url: profile.linkedin_url,
+      
+
+
+
+location: profile.city_state || profile.region || '',
+      
+
+
+
+mobile_number: profile.mobile_number || '',
+      
+
+
+
+namb_certifications: profile.namb_certifications || [],
+      
+
+
+
+name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || wpUser.name || 'User',
+      
+
+
+
+nar_designations: profile.nar_designations || [],
+      
+
+
+
+niche_bio_content: profile.niche_bio_content,
+      
+      
+
+// Professional details
+nmls: profile.nmls || profile.nmls_number || '',
+      
+
+nmls_number: profile.nmls_number,
+      
+
+office: profile.office || '',
+      
+
+
+personal_branding_images: profile.personal_branding_images || [],
+      
+
+
+
+phone: profile.phone_number || '',
+      
+
+
+
+profile_id: profile.id,
+      
+      
+
+
+region: profile.region,
+      
+
+
+role,
+      
+
+
+select_person_type: profile.select_person_type,
+      
+
+
+// Professional arrays
+specialties: profile.specialties || [],
+      
+
+
+
+specialties_lo: profile.specialties_lo || [],
+      
+
+
+
+status: profile.is_active ? 'active' : 'inactive',
+      
+      
+
+
+user_id: wpUser.id,
+      
+
+tiktok_url: profile.tiktok_url,
+      
+title: profile.job_title || '',
+      
+twitter_url: profile.twitter_url,
+      
+      website: '',
+      youtube_url: profile.youtube_url,
     };
   }
 
@@ -272,10 +405,10 @@ class DataService {
       // First, try to get profile from frs-users API
       const profileUrl = `/wp-json/frs-users/v1/profiles/user/me`;
       const profileResponse = await fetch(profileUrl, {
+        credentials: 'same-origin',
         headers: {
           'X-WP-Nonce': wpData.restNonce,
         },
-        credentials: 'same-origin',
       });
 
       if (profileResponse.ok) {
@@ -293,7 +426,7 @@ class DataService {
     try {
       const response = await this.request('/users/me');
       return response;
-    } catch (error) {
+    } catch {
       // Final fallback to WordPress localized data
       if (wpData.currentUser && wpData.currentUser.id) {
         const userRoles = wpData.currentUser.roles || [];
@@ -304,15 +437,15 @@ class DataService {
         }
 
         return {
-          id: wpData.currentUser.id.toString(),
-          name: wpData.currentUser.name || 'User',
-          email: wpData.currentUser.email || '',
           avatar: wpData.currentUser.avatar || '',
-          role: role,
-          status: 'active',
-          createdAt: new Date().toISOString(),
           company: role === 'realtor' ? 'Real Estate Agency' : '21st Century Lending',
-          location: 'Denver, Colorado'
+          createdAt: new Date().toISOString(),
+          email: wpData.currentUser.email || '',
+          id: wpData.currentUser.id.toString(),
+          location: 'Denver, Colorado',
+          name: wpData.currentUser.name || 'User',
+          role,
+          status: 'active'
         };
       }
 
@@ -327,10 +460,10 @@ class DataService {
       // First, try to get profile from frs-users API
       const profileUrl = `/wp-json/frs-users/v1/profiles/user/${userId}`;
       const profileResponse = await fetch(profileUrl, {
+        credentials: 'same-origin',
         headers: {
           'X-WP-Nonce': wpData.restNonce,
         },
-        credentials: 'same-origin',
       });
 
       if (profileResponse.ok) {
@@ -338,9 +471,9 @@ class DataService {
         if (profileData.success && profileData.data) {
           // Create minimal wp user object for mapping
           const wpUser = {
-            id: parseInt(userId),
-            name: `${profileData.data.first_name} ${profileData.data.last_name}`,
             email: profileData.data.email,
+            id: Number.parseInt(userId),
+            name: `${profileData.data.first_name} ${profileData.data.last_name}`,
             roles: []
           };
           return this.mapProfileToUser(profileData.data, wpUser);
@@ -354,7 +487,7 @@ class DataService {
     try {
       const response = await this.request(`/users/${userId}`);
       return response;
-    } catch (error) {
+    } catch {
       console.warn('Failed to fetch user, user not found');
       return null;
     }
@@ -366,23 +499,23 @@ class DataService {
       const response = await this.request(`/dashboard/stats/lo/${userId}`);
       return {
         activePartnerships: response.activePartnerships || 0,
-        pendingInvitations: response.pendingInvitations || 0,
-        totalLeads: response.totalLeads || 0,
-        conversionRate: response.conversionRate || 0,
         coBrandedPages: response.coBrandedPages || 0,
+        conversionRate: response.conversionRate || 0,
         newLeadsThisMonth: response.newLeadsThisMonth || 0,
-        topPerformingPages: response.topPerformingPages || []
+        pendingInvitations: response.pendingInvitations || 0,
+        topPerformingPages: response.topPerformingPages || [],
+        totalLeads: response.totalLeads || 0
       };
-    } catch (error) {
+    } catch {
       // Return empty state for presentation
       return {
         activePartnerships: 0,
-        pendingInvitations: 0,
-        totalLeads: 0,
-        conversionRate: 0,
         coBrandedPages: 0,
+        conversionRate: 0,
         newLeadsThisMonth: 0,
-        topPerformingPages: []
+        pendingInvitations: 0,
+        topPerformingPages: [],
+        totalLeads: 0
       };
     }
   }
@@ -392,24 +525,24 @@ class DataService {
       const response = await this.request(`/dashboard/stats/realtor/${userId}`);
       return {
         activePartnerships: response.activePartnerships || 0,
-        pendingInvitations: response.pendingInvitations || 0,
-        totalLeads: response.totalLeads || 0,
-        conversionRate: response.conversionRate || 0,
         coBrandedPages: response.coBrandedPages || 0,
+        conversionRate: response.conversionRate || 0,
         newLeadsThisMonth: 0,
-        topPerformingPages: []
+        pendingInvitations: response.pendingInvitations || 0,
+        topPerformingPages: [],
+        totalLeads: response.totalLeads || 0
       };
-    } catch (error) {
+    } catch {
       console.warn('Dashboard stats API not available, showing empty state');
       // Return empty state instead of fake data
       return {
         activePartnerships: 0,
-        pendingInvitations: 0,
-        totalLeads: 0,
-        conversionRate: 0,
         coBrandedPages: 0,
+        conversionRate: 0,
         newLeadsThisMonth: 0,
-        topPerformingPages: []
+        pendingInvitations: 0,
+        topPerformingPages: [],
+        totalLeads: 0
       };
     }
   }
@@ -422,7 +555,7 @@ class DataService {
         return response.data;
       }
       return Array.isArray(response) ? response : [];
-    } catch (error) {
+    } catch {
       console.warn('Failed to fetch partners, showing empty state');
       return [];
     }
@@ -435,7 +568,7 @@ class DataService {
         return response.data;
       }
       return Array.isArray(response) ? response : [];
-    } catch (error) {
+    } catch {
       console.warn('Failed to fetch partnerships, showing empty state');
       return [];
     }
@@ -445,7 +578,7 @@ class DataService {
     try {
       const response = await this.request(`/partnerships/realtor/${userId}`);
       return response;
-    } catch (error) {
+    } catch {
       console.warn('Failed to fetch partnership, showing empty state');
       return null;
     }
@@ -456,7 +589,7 @@ class DataService {
     try {
       const response = await this.request(`/landing-pages/lo/${userId}`);
       return response || [];
-    } catch (error) {
+    } catch {
       console.warn('Failed to fetch landing pages, showing empty state');
       return [];
     }
@@ -466,7 +599,7 @@ class DataService {
     try {
       const response = await this.request(`/landing-pages/realtor/${userId}`);
       return response || [];
-    } catch (error) {
+    } catch {
       console.warn('Failed to fetch co-branded pages, showing empty state');
       return [];
     }
@@ -479,24 +612,24 @@ class DataService {
       if (response && response.success && Array.isArray(response.data)) {
         // Map API response (snake_case) to Lead interface (camelCase)
         return response.data.map((lead: any) => ({
-          id: lead.id?.toString() || '',
-          firstName: lead.first_name || '',
-          lastName: lead.last_name || '',
+          createdAt: lead.created_date || new Date().toISOString(),
           email: lead.email || '',
-          phone: lead.phone || '',
-          status: lead.status || 'new',
-          source: lead.lead_source || 'Unknown',
-          loanAmount: lead.loan_amount ? parseFloat(lead.loan_amount) : 0,
-          propertyValue: lead.property_value ? parseFloat(lead.property_value) : 0,
-          propertyAddress: lead.property_address || '',
+          firstName: lead.first_name || '',
+          id: lead.id?.toString() || '',
+          lastContact: lead.updated_date || null,
+          lastName: lead.last_name || '',
+          loanAmount: lead.loan_amount ? Number.parseFloat(lead.loan_amount) : 0,
           message: lead.message || '',
           notes: lead.notes || '',
-          createdAt: lead.created_date || new Date().toISOString(),
-          lastContact: lead.updated_date || null
+          phone: lead.phone || '',
+          propertyAddress: lead.property_address || '',
+          propertyValue: lead.property_value ? Number.parseFloat(lead.property_value) : 0,
+          source: lead.lead_source || 'Unknown',
+          status: lead.status || 'new'
         }));
       }
       return [];
-    } catch (error) {
+    } catch {
       console.warn('Failed to fetch leads, showing empty state');
       return [];
     }
@@ -505,8 +638,8 @@ class DataService {
   static async createLead(leadData: any): Promise<any> {
     try {
       const response = await this.request('/leads', {
-        method: 'POST',
-        body: JSON.stringify(leadData)
+        body: JSON.stringify(leadData),
+        method: 'POST'
       });
       return response;
     } catch (error) {
@@ -519,13 +652,13 @@ class DataService {
   static async invitePartner(loId: string, email: string, name: string, message: string): Promise<boolean> {
     try {
       await this.request('/partnerships/invite', {
-        method: 'POST',
         body: JSON.stringify({
-          loan_officer_id: loId,
           email,
-          name,
-          message
-        })
+          loan_officer_id: loId,
+          message,
+          name
+        }),
+        method: 'POST'
       });
       return true;
     } catch (error) {
@@ -538,8 +671,8 @@ class DataService {
   static async updateNotificationSettings(partnershipId: string, notifications: {email: boolean, sms: boolean}): Promise<boolean> {
     try {
       await this.request(`/partnerships/${partnershipId}/notifications`, {
-        method: 'PUT',
-        body: JSON.stringify({ notifications })
+        body: JSON.stringify({ notifications }),
+        method: 'PUT'
       });
       return true;
     } catch (error) {
@@ -560,10 +693,10 @@ class DataService {
 
       console.log('Fetching profile from:', profileUrl);
       const profileResponse = await fetch(profileUrl, {
+        credentials: 'same-origin',
         headers: {
           'X-WP-Nonce': wpData.restNonce,
         },
-        credentials: 'same-origin',
       });
 
       if (!profileResponse.ok) {
@@ -586,42 +719,42 @@ class DataService {
 
       // Helper to check if value is non-empty (not undefined, null, empty string, or whitespace-only)
       const hasValue = (val: any) => {
-        if (val === undefined || val === null) return false;
-        if (typeof val === 'string') return val.trim().length > 0;
-        if (Array.isArray(val)) return val.length > 0;
+        if (val === undefined || val === null) {return false;}
+        if (typeof val === 'string') {return val.trim().length > 0;}
+        if (Array.isArray(val)) {return val.length > 0;}
         return true;
       };
 
-      if (hasValue(profileData.firstName)) updateData.first_name = profileData.firstName;
-      if (hasValue(profileData.lastName)) updateData.last_name = profileData.lastName;
-      if (hasValue(profileData.email)) updateData.email = profileData.email;
-      if (hasValue(profileData.phone)) updateData.phone_number = profileData.phone;
-      if (hasValue(profileData.mobileNumber)) updateData.mobile_number = profileData.mobileNumber;
-      if (hasValue(profileData.title)) updateData.job_title = profileData.title;
-      if (hasValue(profileData.bio)) updateData.biography = profileData.bio;
-      if (hasValue(profileData.location)) updateData.city_state = profileData.location;
-      if (hasValue(profileData.nmls)) updateData.nmls = profileData.nmls;
-      if (hasValue(profileData.nmls_number)) updateData.nmls_number = profileData.nmls_number;
-      if (hasValue(profileData.license_number)) updateData.license_number = profileData.license_number;
-      if (hasValue(profileData.dre_license)) updateData.dre_license = profileData.dre_license;
-      if (hasValue(profileData.company)) updateData.office = profileData.company;
-      if (hasValue(profileData.linkedin)) updateData.linkedin_url = profileData.linkedin;
-      if (hasValue(profileData.facebook)) updateData.facebook_url = profileData.facebook;
-      if (hasValue(profileData.instagram)) updateData.instagram_url = profileData.instagram;
-      if (hasValue(profileData.twitter)) updateData.twitter_url = profileData.twitter;
-      if (hasValue(profileData.youtube)) updateData.youtube_url = profileData.youtube;
-      if (hasValue(profileData.tiktok)) updateData.tiktok_url = profileData.tiktok;
-      if (hasValue(profileData.specialtiesLo)) updateData.specialties_lo = profileData.specialtiesLo;
-      if (hasValue(profileData.specialties)) updateData.specialties = profileData.specialties;
-      if (hasValue(profileData.languages)) updateData.languages = profileData.languages;
-      if (hasValue(profileData.awards)) updateData.awards = profileData.awards;
-      if (hasValue(profileData.nambCertifications)) updateData.namb_certifications = profileData.nambCertifications;
-      if (hasValue(profileData.narDesignations)) updateData.nar_designations = profileData.narDesignations;
-      if (hasValue(profileData.serviceAreas)) updateData.service_areas = profileData.serviceAreas;
-      if (hasValue(profileData.brand)) updateData.brand = profileData.brand;
-      if (hasValue(profileData.arrive)) updateData.arrive = profileData.arrive;
-      if (hasValue(profileData.canvaFolderLink)) updateData.canva_folder_link = profileData.canvaFolderLink;
-      if (hasValue(profileData.nicheBioContent)) updateData.niche_bio_content = profileData.nicheBioContent;
+      if (hasValue(profileData.firstName)) {updateData.first_name = profileData.firstName;}
+      if (hasValue(profileData.lastName)) {updateData.last_name = profileData.lastName;}
+      if (hasValue(profileData.email)) {updateData.email = profileData.email;}
+      if (hasValue(profileData.phone)) {updateData.phone_number = profileData.phone;}
+      if (hasValue(profileData.mobileNumber)) {updateData.mobile_number = profileData.mobileNumber;}
+      if (hasValue(profileData.title)) {updateData.job_title = profileData.title;}
+      if (hasValue(profileData.bio)) {updateData.biography = profileData.bio;}
+      if (hasValue(profileData.location)) {updateData.city_state = profileData.location;}
+      if (hasValue(profileData.nmls)) {updateData.nmls = profileData.nmls;}
+      if (hasValue(profileData.nmls_number)) {updateData.nmls_number = profileData.nmls_number;}
+      if (hasValue(profileData.license_number)) {updateData.license_number = profileData.license_number;}
+      if (hasValue(profileData.dre_license)) {updateData.dre_license = profileData.dre_license;}
+      if (hasValue(profileData.company)) {updateData.office = profileData.company;}
+      if (hasValue(profileData.linkedin)) {updateData.linkedin_url = profileData.linkedin;}
+      if (hasValue(profileData.facebook)) {updateData.facebook_url = profileData.facebook;}
+      if (hasValue(profileData.instagram)) {updateData.instagram_url = profileData.instagram;}
+      if (hasValue(profileData.twitter)) {updateData.twitter_url = profileData.twitter;}
+      if (hasValue(profileData.youtube)) {updateData.youtube_url = profileData.youtube;}
+      if (hasValue(profileData.tiktok)) {updateData.tiktok_url = profileData.tiktok;}
+      if (hasValue(profileData.specialtiesLo)) {updateData.specialties_lo = profileData.specialtiesLo;}
+      if (hasValue(profileData.specialties)) {updateData.specialties = profileData.specialties;}
+      if (hasValue(profileData.languages)) {updateData.languages = profileData.languages;}
+      if (hasValue(profileData.awards)) {updateData.awards = profileData.awards;}
+      if (hasValue(profileData.nambCertifications)) {updateData.namb_certifications = profileData.nambCertifications;}
+      if (hasValue(profileData.narDesignations)) {updateData.nar_designations = profileData.narDesignations;}
+      if (hasValue(profileData.serviceAreas)) {updateData.service_areas = profileData.serviceAreas;}
+      if (hasValue(profileData.brand)) {updateData.brand = profileData.brand;}
+      if (hasValue(profileData.arrive)) {updateData.arrive = profileData.arrive;}
+      if (hasValue(profileData.canvaFolderLink)) {updateData.canva_folder_link = profileData.canvaFolderLink;}
+      if (hasValue(profileData.nicheBioContent)) {updateData.niche_bio_content = profileData.nicheBioContent;}
 
       // Update the profile
       const updateUrl = `/wp-json/frs-users/v1/profiles/${profile.id}`;
@@ -629,13 +762,13 @@ class DataService {
       console.log('Update data:', updateData);
 
       const updateResponse = await fetch(updateUrl, {
-        method: 'PUT',
+        body: JSON.stringify(updateData),
+        credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json',
           'X-WP-Nonce': wpData.restNonce,
         },
-        credentials: 'same-origin',
-        body: JSON.stringify(updateData),
+        method: 'PUT',
       });
 
       console.log('Update response status:', updateResponse.status);
@@ -668,12 +801,12 @@ class DataService {
 
       const wpData = this.getWpData();
       const response = await fetch('/wp-json/frs-users/v1/profiles/upload-avatar', {
-        method: 'POST',
         body: formData,
+        credentials: 'same-origin',
         headers: {
           'X-WP-Nonce': wpData.restNonce,
         },
-        credentials: 'same-origin'
+        method: 'POST'
       });
 
       if (!response.ok) {
@@ -692,7 +825,7 @@ class DataService {
     try {
       const response = await this.request(`/marketing-materials/${userId}`);
       return response || [];
-    } catch (error) {
+    } catch {
       console.warn('Failed to fetch marketing materials, showing empty state');
       return [];
     }
@@ -703,7 +836,7 @@ class DataService {
     try {
       const response = await this.request('/announcements');
       return response || [];
-    } catch (error) {
+    } catch {
       console.warn('Failed to fetch announcements, showing empty state');
       return [];
     }
@@ -714,7 +847,7 @@ class DataService {
     try {
       const response = await this.request('/custom-links');
       return response || [];
-    } catch (error) {
+    } catch {
       console.warn('Failed to fetch custom links, showing empty state');
       return [];
     }
@@ -725,7 +858,7 @@ class DataService {
     try {
       const response = await this.request(`/person/${personId}`);
       return response;
-    } catch (error) {
+    } catch {
       console.warn('Failed to fetch person CPT data');
       return null;
     }

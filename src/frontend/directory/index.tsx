@@ -13,12 +13,12 @@ if (container) {
     <HashRouter>
       <ProfileEditProvider>
         <Routes>
-          <Route path="/" element={<Directory />} />
-          <Route path="/lo/:slug" element={<ProfileDetailPage />} />
-          <Route path="/agent/:slug" element={<ProfileDetailPage />} />
-          <Route path="/staff/:slug" element={<ProfileDetailPage />} />
-          <Route path="/leadership/:slug" element={<ProfileDetailPage />} />
-          <Route path="/assistant/:slug" element={<ProfileDetailPage />} />
+          <Route element={<Directory />} path="/" />
+          <Route element={<ProfileDetailPage />} path="/lo/:slug" />
+          <Route element={<ProfileDetailPage />} path="/agent/:slug" />
+          <Route element={<ProfileDetailPage />} path="/staff/:slug" />
+          <Route element={<ProfileDetailPage />} path="/leadership/:slug" />
+          <Route element={<ProfileDetailPage />} path="/assistant/:slug" />
         </Routes>
       </ProfileEditProvider>
     </HashRouter>

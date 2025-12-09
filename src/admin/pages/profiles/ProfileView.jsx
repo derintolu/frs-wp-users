@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,11 +22,7 @@ export default function ProfileView() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchProfile();
-  }, [id]);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const response = await fetch(`${wordpressPluginBoilerplate.apiUrl}frs-users/v1/profiles/${id}`, {
         headers: {
@@ -38,12 +34,16 @@ export default function ProfileView() {
       }
       const data = await response.json();
       setProfile(data.data || {});
-    } catch (err) {
-      setError(err.message);
+    } catch (error_) {
+      setError(error_.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   const handleDelete = async () => {
     if (!confirm(`Are you sure you want to delete ${profile.first_name} ${profile.last_name}?`)) {
@@ -52,10 +52,10 @@ export default function ProfileView() {
 
     try {
       const response = await fetch(`${wordpressPluginBoilerplate.apiUrl}frs-users/v1/profiles/${id}`, {
-        method: 'DELETE',
         headers: {
           'X-WP-Nonce': wordpressPluginBoilerplate.nonce
-        }
+        },
+        method: 'DELETE'
       });
 
       if (!response.ok) {
@@ -64,8 +64,8 @@ export default function ProfileView() {
 
       toast.success('Profile deleted successfully');
       navigate('/profiles');
-    } catch (err) {
-      toast.error(err.message);
+    } catch (error_) {
+      toast.error(error_.message);
     }
   };
 
@@ -79,28 +79,28 @@ export default function ProfileView() {
     if (value && type === 'url') {
       displayValue = (
         <a
+          className="text-blue-600 hover:underline"
           href={value}
-          target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-600 hover:underline">
+          target="_blank">
           {value}
         </a>
       );
     } else if (value && type === 'email') {
       displayValue = (
-        <a href={`mailto:${value}`} className="text-blue-600 hover:underline">
+        <a className="text-blue-600 hover:underline" href={`mailto:${value}`}>
           {value}
         </a>
       );
     } else if (value && type === 'phone') {
       displayValue = (
-        <a href={`tel:${value}`} className="text-blue-600 hover:underline">
+        <a className="text-blue-600 hover:underline" href={`tel:${value}`}>
           {value}
         </a>
       );
     } else if (value && type === 'code') {
       displayValue = (
-        <code className="text-xs bg-muted px-2 py-1 rounded">{value}</code>
+        <code className="rounded bg-muted px-2 py-1 text-xs">{value}</code>
       );
     } else if (type === 'array') {
       displayValue = Array.isArray(value) && value.length > 0 ? value.join(', ') : '—';
@@ -125,7 +125,7 @@ export default function ProfileView() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Button variant="outline" onClick={() => navigate('/profiles')}>
+          <Button onClick={() => navigate('/profiles')} variant="outline">
             ← Back
           </Button>
           <div>
@@ -140,35 +140,35 @@ export default function ProfileView() {
             <Button>Edit Profile</Button>
           </Link>
           <Button
-            variant="outline"
             onClick={() => {
               // Open public profile in new tab
-              const slug = profile.profile_slug || `${profile.first_name}-${profile.last_name}`.toLowerCase().replace(/\s+/g, '-');
+              const slug = profile.profile_slug || `${profile.first_name}-${profile.last_name}`.toLowerCase().replaceAll(/\s+/g, '-');
               const publicUrl = `${window.location.origin}/profile/${slug}`;
               window.open(publicUrl, '_blank');
             }}
+            variant="outline"
           >
             View Public Profile
           </Button>
           <Button
-            variant="outline"
             onClick={() => {
               const fluentUrl = `/wp-admin/admin.php?page=fluentcrm-admin#/subscribers/${profile.email}`;
               window.open(fluentUrl, '_blank');
             }}
+            variant="outline"
           >
             View FluentCRM Profile
           </Button>
           {!profile.user_id && (
-            <Button variant="outline" onClick={async () => {
+            <Button onClick={async () => {
               try {
                 const response = await fetch(`${wordpressPluginBoilerplate.apiUrl}frs-users/v1/profiles/${id}/create-user`, {
-                  method: 'POST',
+                  body: JSON.stringify({ send_email: true }),
                   headers: {
-                    'X-WP-Nonce': wordpressPluginBoilerplate.nonce,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce': wordpressPluginBoilerplate.nonce
                   },
-                  body: JSON.stringify({ send_email: true })
+                  method: 'POST'
                 });
                 const data = await response.json();
                 if (response.ok) {
@@ -177,15 +177,15 @@ export default function ProfileView() {
                 } else {
                   toast.error(data.message || 'Failed to create user account');
                 }
-              } catch (err) {
-                toast.error(err.message);
+              } catch (error_) {
+                toast.error(error_.message);
               }
-            }}>
+            }} variant="outline">
               Create User Account
             </Button>
           )}
-          <Button variant="destructive" size="icon" onClick={handleDelete}>
-            <Trash2 className="h-4 w-4" />
+          <Button onClick={handleDelete} size="icon" variant="destructive">
+            <Trash2 className="size-4" />
           </Button>
         </div>
       </div>
@@ -194,13 +194,13 @@ export default function ProfileView() {
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-start space-x-6">
-            <div className="flex-shrink-0">
-              <Avatar className="h-32 w-32">
+            <div className="shrink-0">
+              <Avatar className="size-32">
                 {profile.headshot_url ? (
                   <AvatarImage
-                    src={profile.headshot_url}
                     alt={`${profile.first_name} ${profile.last_name}`}
                     className="object-cover"
+                    src={profile.headshot_url}
                   />
                 ) : (
                   <AvatarFallback className="text-3xl">
@@ -224,7 +224,7 @@ export default function ProfileView() {
                 {profile.email && (
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-muted-foreground">Email:</span>
-                    <a href={`mailto:${profile.email}`} className="text-sm text-blue-600 hover:underline">
+                    <a className="text-sm text-blue-600 hover:underline" href={`mailto:${profile.email}`}>
                       {profile.email}
                     </a>
                   </div>
@@ -232,7 +232,7 @@ export default function ProfileView() {
                 {profile.phone_number && (
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-muted-foreground">Phone:</span>
-                    <a href={`tel:${profile.phone_number}`} className="text-sm text-blue-600 hover:underline">
+                    <a className="text-sm text-blue-600 hover:underline" href={`tel:${profile.phone_number}`}>
                       {profile.phone_number}
                     </a>
                   </div>
@@ -267,7 +267,7 @@ export default function ProfileView() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="overview" className="space-y-4">
+      <Tabs className="space-y-4" defaultValue="overview">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="professional">Professional</TabsTrigger>
@@ -277,7 +277,7 @@ export default function ProfileView() {
           <TabsTrigger value="system">System Info</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
+        <TabsContent className="space-y-6" value="overview">
           {/* License & Professional Numbers */}
           <Card>
             <CardHeader>
@@ -296,7 +296,7 @@ export default function ProfileView() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="professional" className="space-y-6">
+        <TabsContent className="space-y-6" value="professional">
           {/* Professional Information */}
           <Card>
             <CardHeader>
@@ -310,7 +310,7 @@ export default function ProfileView() {
               {profile.biography ? (
                 <>
                   <div className="py-3">
-                    <div className="font-medium text-muted-foreground mb-2 text-sm">
+                    <div className="mb-2 text-sm font-medium text-muted-foreground">
                       Biography
                     </div>
                     <div
@@ -345,12 +345,12 @@ export default function ProfileView() {
                 <>
                   <Separator />
                   <div className="py-3">
-                    <div className="font-medium text-muted-foreground mb-2 text-sm">
+                    <div className="mb-2 text-sm font-medium text-muted-foreground">
                       Awards & Recognition
                     </div>
                     <div className="space-y-2">
                       {profile.awards.map((award, index) => (
-                        <div key={index} className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2" key={index}>
                           <Badge variant="outline">
                             {award.year} - {award.award}
                           </Badge>
@@ -366,7 +366,7 @@ export default function ProfileView() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="contact" className="space-y-6">
+        <TabsContent className="space-y-6" value="contact">
           {/* Contact Information */}
           <Card>
             <CardHeader>
@@ -398,7 +398,7 @@ export default function ProfileView() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="social" className="space-y-6">
+        <TabsContent className="space-y-6" value="social">
           {/* Social Media */}
           <Card>
             <CardHeader>
@@ -416,7 +416,7 @@ export default function ProfileView() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="tools" className="space-y-6">
+        <TabsContent className="space-y-6" value="tools">
           {/* Tools & Platforms */}
           <Card>
             <CardHeader>
@@ -430,7 +430,7 @@ export default function ProfileView() {
               {renderField('Canva Folder', profile.canva_folder_link, 'url')}
               {profile.niche_bio_content ? (
                 <div className="py-3">
-                  <div className="font-medium text-muted-foreground mb-2 text-sm">
+                  <div className="mb-2 text-sm font-medium text-muted-foreground">
                     Niche Bio Content
                   </div>
                   <div
@@ -445,16 +445,16 @@ export default function ProfileView() {
               Array.isArray(profile.personal_branding_images) &&
               profile.personal_branding_images.length > 0 ? (
                 <div className="py-3">
-                  <div className="font-medium text-muted-foreground mb-2 text-sm">
+                  <div className="mb-2 text-sm font-medium text-muted-foreground">
                     Personal Branding Images
                   </div>
                   <div className="flex flex-wrap gap-4">
                     {profile.personal_branding_images.map((image, index) => (
                       <img
+                        alt={`Branding ${index + 1}`}
+                        className="max-w-sm rounded-lg border"
                         key={index}
                         src={image.url || image}
-                        alt={`Branding ${index + 1}`}
-                        className="rounded-lg border max-w-sm"
                       />
                     ))}
                   </div>
@@ -478,7 +478,7 @@ export default function ProfileView() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="system" className="space-y-6">
+        <TabsContent className="space-y-6" value="system">
           {/* System Metadata */}
           <Card>
             <CardHeader>

@@ -24,11 +24,23 @@ use Prappo\WpEloquent\Database\Eloquent\Model;
 class Profile extends Model {
 
 	/**
-	 * The table associated with the model.
+	 * The base table name (without prefix).
 	 *
 	 * @var string
 	 */
 	protected $table = 'frs_profiles';
+
+	/**
+	 * Get the table name.
+	 *
+	 * In multisite, profiles are stored in a single network-wide table.
+	 * The connection is configured with base_prefix in libs/db.php.
+	 *
+	 * @return string
+	 */
+	public function getTable() {
+		return 'frs_profiles';
+	}
 
 	/**
 	 * The primary key for the model.
@@ -73,6 +85,9 @@ class Profile extends Model {
 		'phone_number',
 		'mobile_number',
 		'office',
+		'company_name',
+		'company_logo_id',
+		'company_website',
 		'headshot_id',
 		'job_title',
 		'biography',
@@ -124,6 +139,7 @@ class Profile extends Model {
 	protected $casts = [
 		'user_id'                => 'integer',
 		'headshot_id'            => 'integer',
+		'company_logo_id'        => 'integer',
 		'loan_officer_profile'   => 'integer',
 		'loan_officer_user'      => 'integer',
 		'is_active'              => 'boolean',

@@ -3,37 +3,37 @@ import { Button } from '@/components/ui/button';
 import QRCodeStyling from 'qr-code-styling';
 
 interface ProfileCardProps {
-  id?: number;
-  first_name: string;
-  last_name: string;
-  job_title?: string;
-  nmls_number?: string;
-  email: string;
-  phone_number?: string;
-  mobile_number?: string;
   city_state?: string;
+  email: string;
+  first_name: string;
   headshot_url?: string;
-  profile_slug?: string;
-  onScheduleMeeting?: () => void;
+  id?: number;
+  job_title?: string;
+  last_name: string;
+  mobile_number?: string;
+  nmls_number?: string;
   onApplyNow?: () => void;
   onMenuClick?: () => void;
+  onScheduleMeeting?: () => void;
+  phone_number?: string;
+  profile_slug?: string;
 }
 
 export function ProfileCard({
-  first_name,
-  last_name,
-  job_title = 'Digital Director',
-  nmls_number,
-  email,
-  phone_number,
-  mobile_number,
   city_state = 'San Francisco, CA',
+  email,
+  first_name,
   headshot_url,
-  profile_slug,
   id,
-  onScheduleMeeting,
+  job_title = 'Digital Director',
+  last_name,
+  mobile_number,
+  nmls_number,
   onApplyNow,
-  onMenuClick
+  onMenuClick,
+  onScheduleMeeting,
+  phone_number,
+  profile_slug
 }: ProfileCardProps) {
   const [showQRCode, setShowQRCode] = useState(false);
   const qrCodeRef = useRef<HTMLDivElement>(null);
@@ -53,54 +53,54 @@ export function ProfileCard({
       qrCodeRef.current.innerHTML = '';
 
       const qrCode = new QRCodeStyling({
-        type: 'canvas',
-        shape: 'square',
-        width: 96,
-        height: 96,
-        data: qrProfileUrl,
-        margin: 0,
-        qrOptions: {
-          typeNumber: 0,
-          mode: 'Byte',
-          errorCorrectionLevel: 'L'
-        },
-        dotsOptions: {
-          type: 'extra-rounded',
-          roundSize: true,
-          gradient: {
-            type: 'linear',
-            rotation: 0,
-            colorStops: [
-              { offset: 0, color: '#2563eb' },
-              { offset: 1, color: '#2dd4da' }
-            ]
-          }
-        },
         backgroundOptions: {
           color: '#ffffff'
         },
-        cornersSquareOptions: {
-          type: 'extra-rounded',
-          gradient: {
-            type: 'linear',
-            rotation: 0,
-            colorStops: [
-              { offset: 0, color: '#2563ea' },
-              { offset: 1, color: '#2dd4da' }
-            ]
-          }
-        },
         cornersDotOptions: {
-          type: '',
           gradient: {
-            type: 'linear',
-            rotation: 0,
             colorStops: [
-              { offset: 0, color: '#2dd4da' },
-              { offset: 1, color: '#2563e9' }
-            ]
-          }
-        }
+              { color: '#2dd4da', offset: 0 },
+              { color: '#2563e9', offset: 1 }
+            ],
+            rotation: 0,
+            type: 'linear'
+          },
+          type: ''
+        },
+        cornersSquareOptions: {
+          gradient: {
+            colorStops: [
+              { color: '#2563ea', offset: 0 },
+              { color: '#2dd4da', offset: 1 }
+            ],
+            rotation: 0,
+            type: 'linear'
+          },
+          type: 'extra-rounded'
+        },
+        data: qrProfileUrl,
+        dotsOptions: {
+          gradient: {
+            colorStops: [
+              { color: '#2563eb', offset: 0 },
+              { color: '#2dd4da', offset: 1 }
+            ],
+            rotation: 0,
+            type: 'linear'
+          },
+          roundSize: true,
+          type: 'extra-rounded'
+        },
+        height: 96,
+        margin: 0,
+        qrOptions: {
+          errorCorrectionLevel: 'L',
+          mode: 'Byte',
+          typeNumber: 0
+        },
+        shape: 'square',
+        type: 'canvas',
+        width: 96
       });
 
       qrCode.append(qrCodeRef.current);
@@ -108,15 +108,15 @@ export function ProfileCard({
   }, [showQRCode, qrProfileUrl]);
 
   return (
-    <div className="relative w-[874px] h-[862px] bg-white rounded-lg border-2 border-[#4678eb] overflow-hidden">
+    <div className="relative h-[862px] w-[874px] overflow-hidden rounded-lg border-2 border-[#4678eb] bg-white">
       {/* Gradient Video Background */}
-      <div className="absolute top-0 left-0 right-0 h-[540px] overflow-hidden">
+      <div className="absolute inset-x-0 top-0 h-[540px] overflow-hidden">
         <video
           autoPlay
+          className="size-full object-cover"
           loop
           muted
           playsInline
-          className="w-full h-full object-cover"
         >
           <source src={gradientUrl} type="video/mp4" />
         </video>
@@ -124,10 +124,10 @@ export function ProfileCard({
 
       {/* 3-Dot Menu */}
       <button
+        className="absolute right-8 top-8 z-20 flex size-16 items-center justify-center rounded-full border-4 border-white bg-white shadow-lg transition-colors hover:bg-gray-50"
         onClick={onMenuClick}
-        className="absolute top-8 right-8 w-16 h-16 bg-white border-4 border-white rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors shadow-lg z-20"
       >
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" className="text-gray-600">
+        <svg className="text-gray-600" fill="currentColor" height="32" viewBox="0 0 24 24" width="32">
           <circle cx="12" cy="5" r="2"/>
           <circle cx="12" cy="12" r="2"/>
           <circle cx="12" cy="19" r="2"/>
@@ -135,13 +135,13 @@ export function ProfileCard({
       </button>
 
       {/* Avatar Container */}
-      <div className="absolute top-24 left-1/2 -translate-x-1/2 z-10">
-        <div className="relative w-[320px] h-[320px]" style={{ perspective: '1000px' }}>
+      <div className="absolute left-1/2 top-24 z-10 -translate-x-1/2">
+        <div className="relative size-[320px]" style={{ perspective: '1000px' }}>
           <div
-            className="relative w-full h-full transition-transform duration-700"
+            className="relative size-full transition-transform duration-700"
             style={{
-              transformStyle: 'preserve-3d',
-              transform: showQRCode ? 'rotateY(180deg)' : 'rotateY(0deg)'
+              transform: showQRCode ? 'rotateY(180deg)' : 'rotateY(0deg)',
+              transformStyle: 'preserve-3d'
             }}
           >
             {/* Front - Avatar */}
@@ -149,37 +149,37 @@ export function ProfileCard({
               className="absolute inset-0 rounded-full"
               style={{ backfaceVisibility: 'hidden' }}
             >
-              <div className="w-full h-full rounded-full overflow-hidden border-8 border-[#2563eb] bg-white shadow-2xl">
+              <div className="size-full overflow-hidden rounded-full border-8 border-[#2563eb] bg-white shadow-2xl">
                 <img
-                  src={headshot_url || 'https://via.placeholder.com/320'}
                   alt={fullName}
-                  className="w-full h-full object-cover"
+                  className="size-full object-cover"
+                  src={headshot_url || 'https://via.placeholder.com/320'}
                 />
               </div>
             </div>
 
             {/* Back - QR Code */}
             <div
-              className="absolute inset-0 rounded-full bg-white border-8 border-[#2563eb] shadow-2xl"
+              className="absolute inset-0 rounded-full border-8 border-[#2563eb] bg-white shadow-2xl"
               style={{
                 backfaceVisibility: 'hidden',
                 transform: 'rotateY(180deg)'
               }}
             >
-              <div className="w-full h-full flex items-center justify-center p-12">
-                <div ref={qrCodeRef} className="w-48 h-48" />
+              <div className="flex size-full items-center justify-center p-12">
+                <div className="size-48" ref={qrCodeRef} />
               </div>
             </div>
           </div>
 
           {/* QR Toggle Button */}
           <button
+            className="absolute right-2 top-2 z-20 flex size-16 items-center justify-center rounded-full bg-white shadow-lg transition-colors hover:bg-gray-50"
             onClick={() => setShowQRCode(!showQRCode)}
-            className="absolute top-2 right-2 w-16 h-16 bg-white rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors shadow-lg z-20"
           >
             <img
               alt="Toggle QR"
-              className="w-8 h-8"
+              className="size-8"
               src={`${iconPath}/qr-flip.svg`}
             />
           </button>
@@ -187,25 +187,25 @@ export function ProfileCard({
       </div>
 
       {/* Content */}
-      <div className="absolute bottom-0 left-0 right-0 bg-white px-16 py-12">
+      <div className="absolute inset-x-0 bottom-0 bg-white px-16 py-12">
         {/* Name */}
         <h2
-          className="text-6xl font-bold text-center mb-4 text-[#020817]"
+          className="mb-4 text-center text-6xl font-bold text-[#020817]"
           style={{ fontFamily: 'Mona Sans, sans-serif' }}
         >
           {fullName}
         </h2>
 
         {/* Title and NMLS */}
-        <div className="flex items-center justify-center gap-2 mb-6">
+        <div className="mb-6 flex items-center justify-center gap-2">
           <p
-            className="text-3xl text-center"
+            className="text-center text-3xl"
             style={{
-              fontFamily: 'Roboto, sans-serif',
-              background: 'linear-gradient(90deg, #2dd4da 0%, #2563eb 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
+              background: 'linear-gradient(90deg, #2dd4da 0%, #2563eb 100%)',
+              backgroundClip: 'text',
+              fontFamily: 'Roboto, sans-serif'
             }}
           >
             {job_title}
@@ -214,15 +214,15 @@ export function ProfileCard({
         </div>
 
         {/* Contact Info */}
-        <div className="flex flex-col items-center gap-3 mb-8">
+        <div className="mb-8 flex flex-col items-center gap-3">
           {/* Email */}
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center">
-              <img alt="" className="w-12 h-12" src={`${iconPath}/Email.svg`} />
+            <div className="flex size-12 items-center justify-center rounded-full">
+              <img alt="" className="size-12" src={`${iconPath}/Email.svg`} />
             </div>
             <a
-              href={`mailto:${email}`}
               className="text-2xl text-[#4678eb] hover:underline"
+              href={`mailto:${email}`}
               style={{ fontFamily: 'Mona Sans, sans-serif' }}
             >
               {email}
@@ -233,12 +233,12 @@ export function ProfileCard({
           <div className="flex items-center gap-8">
             {/* Phone */}
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 flex items-center justify-center">
-                <img alt="" className="w-12 h-12" src={`${iconPath}/Phne.svg`} />
+              <div className="flex size-12 items-center justify-center">
+                <img alt="" className="size-12" src={`${iconPath}/Phne.svg`} />
               </div>
               <a
-                href={`tel:${phoneNumber.replace(/[^0-9+]/g, '')}`}
                 className="text-2xl text-[#4678eb] hover:underline"
+                href={`tel:${phoneNumber.replaceAll(/[^\d+]/g, '')}`}
                 style={{ fontFamily: 'Mona Sans, sans-serif' }}
               >
                 {phoneNumber}
@@ -247,8 +247,8 @@ export function ProfileCard({
 
             {/* Location */}
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 flex items-center justify-center">
-                <img alt="" className="w-12 h-12 rotate-[283deg]" src={`${iconPath}/location.svg`} />
+              <div className="flex size-12 items-center justify-center">
+                <img alt="" className="size-12 rotate-[283deg]" src={`${iconPath}/location.svg`} />
               </div>
               <span
                 className="text-2xl text-[#1d4fc4]"
@@ -261,21 +261,21 @@ export function ProfileCard({
         </div>
 
         {/* Buttons */}
-        <div className="flex gap-8 justify-center">
+        <div className="flex justify-center gap-8">
           <Button
-            variant="outline"
+            className="h-20 rounded-lg border-2 border-[#4678eb] bg-white px-12 text-2xl font-normal text-[#4678eb] hover:bg-blue-50"
             onClick={onScheduleMeeting}
-            className="h-20 px-12 text-2xl border-2 border-[#4678eb] text-[#4678eb] bg-white hover:bg-blue-50 rounded-lg font-normal"
             style={{ fontFamily: 'Mona Sans, sans-serif' }}
+            variant="outline"
           >
             Schedule a Meeting
           </Button>
           <Button
+            className="h-20 rounded-lg border-0 px-16 text-2xl font-bold text-white hover:opacity-90"
             onClick={onApplyNow}
-            className="h-20 px-16 text-2xl text-white border-0 rounded-lg font-bold hover:opacity-90"
             style={{
-              fontFamily: 'Mona Sans, sans-serif',
-              background: 'linear-gradient(90deg, #2dd4da 0%, #2563eb 100%)'
+              background: 'linear-gradient(90deg, #2dd4da 0%, #2563eb 100%)',
+              fontFamily: 'Mona Sans, sans-serif'
             }}
           >
             Apply Now

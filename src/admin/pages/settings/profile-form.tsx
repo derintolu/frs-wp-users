@@ -27,6 +27,19 @@ import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
 
 const profileFormSchema = z.object({
+  bio: z.string().max(160).min(4),
+  email: z
+    .string({
+      required_error: "Please select an email to display.",
+    })
+    .email(),
+  urls: z
+    .array(
+      z.object({
+        value: z.string().url({ message: "Please enter a valid URL." }),
+      })
+    )
+    .optional(),
   username: z
     .string()
     .min(2, {
@@ -35,19 +48,6 @@ const profileFormSchema = z.object({
     .max(30, {
       message: "Username must not be longer than 30 characters.",
     }),
-  email: z
-    .string({
-      required_error: "Please select an email to display.",
-    })
-    .email(),
-  bio: z.string().max(160).min(4),
-  urls: z
-    .array(
-      z.object({
-        value: z.string().url({ message: "Please enter a valid URL." }),
-      })
-    )
-    .optional(),
 })
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>
@@ -63,30 +63,30 @@ const defaultValues: Partial<ProfileFormValues> = {
 
 export function ProfileForm() {
   const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileFormSchema),
     defaultValues,
     mode: "onChange",
+    resolver: zodResolver(profileFormSchema),
   })
 
-  const { fields, append } = useFieldArray({
-    name: "urls",
+  const { append, fields } = useFieldArray({
     control: form.control,
+    name: "urls",
   })
 
   function onSubmit(data: ProfileFormValues) {
     toast({
-      title: "You submitted the following values:",
       description: (
         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
           <code className="text-white">{JSON.stringify(data, null, 2)}</code>
         </pre>
       ),
+      title: "You submitted the following values:",
     })
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
         <FormField
           control={form.control}
           name="username"
@@ -110,7 +110,7 @@ export function ProfileForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Email</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select defaultValue={field.value} onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a verified email to display" />
@@ -138,8 +138,8 @@ export function ProfileForm() {
               <FormLabel>Bio</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Tell us a little bit about yourself"
                   className="resize-none"
+                  placeholder="Tell us a little bit about yourself"
                   {...field}
                 />
               </FormControl>
@@ -174,11 +174,11 @@ export function ProfileForm() {
             />
           ))}
           <Button
-            type="button"
-            variant="outline"
-            size="sm"
             className="mt-2"
             onClick={() => append({ value: "" })}
+            size="sm"
+            type="button"
+            variant="outline"
           >
             Add URL
           </Button>

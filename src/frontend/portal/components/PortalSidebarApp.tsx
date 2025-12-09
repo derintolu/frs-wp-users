@@ -9,33 +9,33 @@ import { CollapsibleSidebar, MenuItem } from './ui/CollapsibleSidebar';
 import * as LucideIcons from 'lucide-react';
 
 interface PortalSidebarAppProps {
-  userId: number;
-  userName: string;
-  userEmail: string;
-  userAvatar: string;
-  userRole: string;
-  siteUrl: string;
-  portalUrl: string;
-  restNonce: string;
+  backgroundColor?: string;
+  colorScheme?: 'blue' | 'gold';
   gradientUrl: string;
   menuItems: any[];
-  colorScheme?: 'blue' | 'gold';
-  backgroundColor?: string;
+  portalUrl: string;
+  restNonce: string;
+  siteUrl: string;
+  userAvatar: string;
+  userEmail: string;
+  userId: number;
+  userName: string;
+  userRole: string;
 }
 
 export function PortalSidebarApp({
-  userId,
-  userName,
-  userEmail,
-  userAvatar,
-  userRole,
-  siteUrl,
-  portalUrl,
-  restNonce,
+  backgroundColor = '#252526',
+  colorScheme = 'blue',
   gradientUrl,
   menuItems: phpMenuItems,
-  colorScheme = 'blue',
-  backgroundColor = '#252526'
+  portalUrl,
+  restNonce,
+  siteUrl,
+  userAvatar,
+  userEmail,
+  userId,
+  userName,
+  userRole
 }: PortalSidebarAppProps) {
   const [headerHeight, setHeaderHeight] = useState<string>('0px');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -43,12 +43,12 @@ export function PortalSidebarApp({
 
   // Debug logging
   console.log('[PortalSidebarApp] Props received:', {
+    gradientUrl,
+    portalUrl,
+    siteUrl,
+    userEmail,
     userId,
     userName,
-    userEmail,
-    gradientUrl,
-    siteUrl,
-    portalUrl,
   });
 
   // Calculate total offset (header + admin bar)
@@ -105,9 +105,9 @@ export function PortalSidebarApp({
       const IconComponent = item.icon ? (LucideIcons as any)[item.icon] : null;
 
       const menuItem: MenuItem = {
+        icon: IconComponent,
         id: item.id,
         label: item.label,
-        icon: IconComponent,
         url: item.url,
       };
 
@@ -130,13 +130,14 @@ export function PortalSidebarApp({
   const colorConfigs = {
     blue: {
       gradient: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
-      videoOverlay: 'bg-black/20',
       videoFilter: 'none',
+      videoOverlay: 'bg-black/20',
     },
     gold: {
       gradient: `linear-gradient(135deg, ${backgroundColor} 0%, ${backgroundColor} 100%)`,
-      videoOverlay: 'bg-[#beaf87]/40', // Gold overlay
-      videoFilter: 'sepia(100%) saturate(150%) hue-rotate(10deg) brightness(0.9)',
+      // Gold overlay
+videoFilter: 'sepia(100%) saturate(150%) hue-rotate(10deg) brightness(0.9)', 
+      videoOverlay: 'bg-[#beaf87]/40',
     },
   };
 
@@ -145,7 +146,7 @@ export function PortalSidebarApp({
   // Header content - User Profile Section with Gradient Background and Video
   const sidebarHeader = (
     <div
-      className="relative p-6 flex flex-col items-center justify-center text-center w-full overflow-hidden"
+      className="relative flex w-full flex-col items-center justify-center overflow-hidden p-6 text-center"
       style={{
         background: config.gradient,
         minHeight: '200px',
@@ -156,13 +157,13 @@ export function PortalSidebarApp({
         <>
           <video
             autoPlay
-            muted
+            className="absolute inset-0 size-full object-cover"
             loop
+            muted
             playsInline
-            className="absolute inset-0 w-full h-full object-cover"
             style={{
-              zIndex: 0,
               filter: config.videoFilter,
+              zIndex: 0,
             }}
           >
             <source src={gradientUrl} type="video/mp4" />
@@ -171,8 +172,8 @@ export function PortalSidebarApp({
           <div
             className={`absolute inset-0 ${config.videoOverlay}`}
             style={{
-              zIndex: 1,
               mixBlendMode: colorScheme === 'gold' ? 'overlay' : 'normal',
+              zIndex: 1,
             }}
           />
           {/* Additional gold shimmer layer for depth */}
@@ -180,9 +181,9 @@ export function PortalSidebarApp({
             <div
               className="absolute inset-0"
               style={{
-                zIndex: 2,
                 background: 'linear-gradient(135deg, rgba(190, 175, 135, 0.3) 0%, rgba(255, 215, 0, 0.2) 50%, rgba(190, 175, 135, 0.3) 100%)',
                 mixBlendMode: 'screen',
+                zIndex: 2,
               }}
             />
           )}
@@ -190,32 +191,32 @@ export function PortalSidebarApp({
       )}
 
       {/* User Avatar */}
-      <div className="relative mb-3 z-10 flex items-center justify-center">
+      <div className="relative z-10 mb-3 flex items-center justify-center">
         <img
-          src={userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName || 'User')}&background=2DD4DA&color=fff`}
           alt={userName || 'User'}
-          className="w-[104px] h-[104px] rounded-full border-4 border-white shadow-lg"
+          className="size-[104px] rounded-full border-4 border-white shadow-lg"
           onError={(e) => {
             e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName || 'User')}&background=2DD4DA&color=fff`;
           }}
+          src={userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName || 'User')}&background=2DD4DA&color=fff`}
         />
       </div>
 
       {/* User Info */}
-      <h3 className="font-semibold text-white text-2xl mb-1 z-10 relative">{userName}</h3>
-      <p className="text-white/80 text-base mb-3 z-10 relative">{userEmail || 'User'}</p>
+      <h3 className="relative z-10 mb-1 text-2xl font-semibold text-white">{userName}</h3>
+      <p className="relative z-10 mb-3 text-base text-white/80">{userEmail || 'User'}</p>
 
       {/* Action Buttons */}
-      <div className="flex gap-2 z-10 relative">
+      <div className="relative z-10 flex gap-2">
         <a
+          className="rounded border border-white/30 bg-white/10 px-3 py-1 text-xs text-white no-underline shadow-lg backdrop-blur-md transition-all hover:bg-white/20"
           href={`${portalUrl || siteUrl}/profile`}
-          className="px-3 py-1 text-xs bg-white/10 hover:bg-white/20 text-white rounded border border-white/30 transition-all backdrop-blur-md shadow-lg no-underline"
         >
           View Profile
         </a>
         <a
+          className="rounded border border-white/30 bg-white/10 px-3 py-1 text-xs text-white no-underline shadow-lg backdrop-blur-md transition-all hover:bg-white/20"
           href={`${portalUrl || siteUrl}/profile/edit`}
-          className="px-3 py-1 text-xs bg-white/10 hover:bg-white/20 text-white rounded border border-white/30 transition-all backdrop-blur-md shadow-lg no-underline"
         >
           Edit Profile
         </a>
@@ -229,19 +230,19 @@ export function PortalSidebarApp({
 
   return (
     <CollapsibleSidebar
-      menuItems={menuItems}
-      activeItemId={activeView}
-      onItemClick={handleItemClick}
-      header={sidebarHeader}
-      width="16rem"
-      collapsedWidth="4rem"
-      backgroundColor="hsl(var(--sidebar-background))"
-      textColor="hsl(var(--sidebar-foreground))"
-      activeItemColor="hsl(var(--sidebar-foreground))"
       activeItemBackground="linear-gradient(to right, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1))"
-      position="left"
-      topOffset={headerHeight}
+      activeItemColor="hsl(var(--sidebar-foreground))"
+      activeItemId={activeView}
+      backgroundColor="hsl(var(--sidebar-background))"
+      collapsedWidth="4rem"
       defaultCollapsed={sidebarCollapsed}
+      header={sidebarHeader}
+      menuItems={menuItems}
+      onItemClick={handleItemClick}
+      position="left"
+      textColor="hsl(var(--sidebar-foreground))"
+      topOffset={headerHeight}
+      width="16rem"
     />
   );
 }

@@ -3,17 +3,17 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
 interface RichTextEditorProps {
-  value: string;
+  className?: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  className?: string;
+  value: string;
 }
 
 export const RichTextEditor: React.FC<RichTextEditorProps> = ({
-  value,
+  className = '',
   onChange,
   placeholder = 'Start typing...',
-  className = '',
+  value,
 }) => {
   const modules = useMemo(
     () => ({
@@ -39,12 +39,12 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   return (
     <div className={`rich-text-editor ${className}`}>
       <ReactQuill
+        formats={formats}
+        modules={modules}
+        onChange={onChange}
+        placeholder={placeholder}
         theme="snow"
         value={value}
-        onChange={onChange}
-        modules={modules}
-        formats={formats}
-        placeholder={placeholder}
       />
       <style>{`
         .rich-text-editor .ql-container {

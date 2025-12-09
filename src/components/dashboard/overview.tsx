@@ -55,27 +55,27 @@ const data = [
 
 export function Overview() {
   return (
-    <ResponsiveContainer width="100%" height={350}>
+    <ResponsiveContainer height={350} width="100%">
       <BarChart data={data}>
         <XAxis
-          dataKey="name"
-          stroke="#888888"
-          fontSize={12}
-          tickLine={false}
           axisLine={false}
+          dataKey="name"
+          fontSize={12}
+          stroke="#888888"
+          tickLine={false}
         />
         <YAxis
-          stroke="#888888"
-          fontSize={12}
-          tickLine={false}
           axisLine={false}
+          fontSize={12}
+          stroke="#888888"
           tickFormatter={(value) => `$${value}`}
+          tickLine={false}
         />
         <Bar
+          className="fill-primary"
           dataKey="total"
           fill="currentColor"
           radius={[4, 4, 0, 0]}
-          className="fill-primary"
         />
       </BarChart>
     </ResponsiveContainer>

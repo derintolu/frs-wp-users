@@ -36,7 +36,7 @@ class AddRealtorFields {
 	public static function up() {
 		global $wpdb;
 
-		$table_name      = $wpdb->prefix . 'frs_profiles';
+		$table_name      = $wpdb->base_prefix . 'frs_profiles';
 		$charset_collate = $wpdb->get_charset_collate();
 
 		// Check if columns already exist before adding
@@ -105,7 +105,7 @@ class AddRealtorFields {
 	public static function down() {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'frs_profiles';
+		$table_name = $wpdb->base_prefix . 'frs_profiles';
 
 		$columns_to_drop = array();
 

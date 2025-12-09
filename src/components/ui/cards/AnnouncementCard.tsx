@@ -18,63 +18,64 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '../card';
-import { Bell, AlertCircle, Info, Star } from 'lucide-react';
+import { Bell } from 'lucide-react';
 
 export type AnnouncementPriority = 'high' | 'medium' | 'low';
 export type AnnouncementBadge = 'NEW' | 'IMPORTANT' | 'UPDATE' | 'FEATURED' | string;
 
 export interface AnnouncementCardProps {
-  /** Announcement title */
-  title: string;
-  /** Short excerpt or summary */
-  excerpt?: string;
+  /** Badge text */
+  badge?: AnnouncementBadge;
+  /** Additional className */
+  className?: string;
   /** Full content (shown in modal/expanded view) */
   content?: string;
   /** Date string or Date object */
   date?: string | Date;
-  /** Badge text */
-  badge?: AnnouncementBadge;
+  /** Short excerpt or summary */
+  excerpt?: string;
+  /** Whether the announcement has been read */
+  isRead?: boolean;
+  /** Click handler */
+  onClick?: () => void;
   /** Priority level affects visual indicator */
   priority?: AnnouncementPriority;
   /** Thumbnail image URL */
   thumbnail?: string;
-  /** Click handler */
-  onClick?: () => void;
-  /** Whether the announcement has been read */
-  isRead?: boolean;
-  /** Additional className */
-  className?: string;
+  /** Announcement title */
+  title: string;
 }
 
 export function AnnouncementCard({
-  title,
-  excerpt,
-  date,
   badge,
+  className,
+  date,
+  excerpt,
+  isRead = false,
+  onClick,
   priority = 'medium',
   thumbnail,
-  onClick,
-  isRead = false,
-  className,
+  title,
 }: AnnouncementCardProps) {
   const priorityColors = {
-    high: '#ef4444', // red
-    medium: 'var(--brand-electric-blue)',
+    high: '#ef4444', 
     low: 'var(--brand-slate)',
+    // red
+medium: 'var(--brand-electric-blue)',
   };
 
   const badgeStyles: Record<string, { bg: string; text: string }> = {
-    NEW: { bg: 'var(--brand-electric-blue)', text: 'white' },
-    IMPORTANT: { bg: '#ef4444', text: 'white' },
-    UPDATE: { bg: 'var(--brand-cyan)', text: 'white' },
     FEATURED: { bg: 'var(--brand-navy)', text: 'white' },
+    IMPORTANT: { bg: '#ef4444', text: 'white' },
+    NEW: { bg: 'var(--brand-electric-blue)', text: 'white' },
+    UPDATE: { bg: 'var(--brand-cyan)', text: 'white' },
   };
 
   const formatDate = (d: string | Date) => {
     const dateObj = typeof d === 'string' ? new Date(d) : d;
     return dateObj.toLocaleDateString('en-US', {
-      month: 'short',
       day: 'numeric',
+      month: 'short',
       year: 'numeric',
     });
   };
@@ -86,19 +87,13 @@ export function AnnouncementCard({
   return (
     <Card
       className={cn(
-        'relative transition-all duration-200 cursor-pointer',
-        'border-l-4 rounded-lg overflow-hidden',
+        'relative cursor-pointer transition-all duration-200',
+        'overflow-hidden rounded-lg border-l-4',
         'hover:shadow-md',
         isRead ? 'opacity-75' : '',
         className
       )}
-      style={{
-        borderLeftColor: priorityColors[priority],
-        backgroundColor: 'var(--brand-off-white)',
-      }}
       onClick={onClick}
-      role="button"
-      tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -111,30 +106,36 @@ export function AnnouncementCard({
       onMouseLeave={(e) => {
         (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--brand-off-white)';
       }}
+      role="button"
+      style={{
+        backgroundColor: 'var(--brand-off-white)',
+        borderLeftColor: priorityColors[priority],
+      }}
+      tabIndex={0}
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-4">
           {/* Thumbnail */}
           {thumbnail && (
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <img
-                src={thumbnail}
                 alt=""
-                className="w-16 h-16 object-cover rounded-lg"
+                className="size-16 rounded-lg object-cover"
+                src={thumbnail}
               />
             </div>
           )}
 
           {/* Content */}
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             {/* Title and Badge */}
-            <div className="flex items-center gap-2 mb-2">
-              <h4 className="font-medium text-[var(--brand-dark-navy)] text-sm truncate">
+            <div className="mb-2 flex items-center gap-2">
+              <h4 className="truncate text-sm font-medium text-[var(--brand-dark-navy)]">
                 {title}
               </h4>
               {badge && currentBadgeStyle && (
                 <span
-                  className="flex-shrink-0 px-2 py-0.5 text-xs font-medium rounded"
+                  className="shrink-0 rounded px-2 py-0.5 text-xs font-medium"
                   style={{
                     backgroundColor: currentBadgeStyle.bg,
                     color: currentBadgeStyle.text,
@@ -147,7 +148,7 @@ export function AnnouncementCard({
 
             {/* Excerpt */}
             {excerpt && (
-              <p className="text-xs text-[var(--brand-slate)] mb-2 line-clamp-2">
+              <p className="mb-2 line-clamp-2 text-xs text-[var(--brand-slate)]">
                 {excerpt}
               </p>
             )}
@@ -158,7 +159,7 @@ export function AnnouncementCard({
                 <p className="text-xs text-[var(--brand-slate)]">{formatDate(date)}</p>
               )}
               <div
-                className="w-2 h-2 rounded-full flex-shrink-0"
+                className="size-2 shrink-0 rounded-full"
                 style={{ backgroundColor: priorityColors[priority] }}
                 title={`${priority} priority`}
               />
@@ -177,22 +178,22 @@ export function AnnouncementCard({
  */
 export interface AnnouncementListProps {
   children: React.ReactNode;
+  /** Additional className */
+  className?: string;
+  /** Empty state message */
+  emptyMessage?: string;
   /** Maximum items to show before "show more" */
   maxItems?: number;
   /** Whether to show empty state */
   showEmptyState?: boolean;
-  /** Empty state message */
-  emptyMessage?: string;
-  /** Additional className */
-  className?: string;
 }
 
 export function AnnouncementList({
   children,
+  className,
+  emptyMessage = 'No announcements at this time',
   maxItems,
   showEmptyState = true,
-  emptyMessage = 'No announcements at this time',
-  className,
 }: AnnouncementListProps) {
   const childArray = React.Children.toArray(children);
   const hasChildren = childArray.length > 0;
@@ -201,8 +202,8 @@ export function AnnouncementList({
 
   if (!hasChildren && showEmptyState) {
     return (
-      <div className="text-center py-8">
-        <Bell className="h-8 w-8 mx-auto mb-2 text-[var(--brand-pale-blue)]" />
+      <div className="py-8 text-center">
+        <Bell className="mx-auto mb-2 size-8 text-[var(--brand-pale-blue)]" />
         <p className="text-sm text-[var(--brand-slate)]">{emptyMessage}</p>
       </div>
     );
@@ -212,7 +213,7 @@ export function AnnouncementList({
     <div className={cn('space-y-3', className)}>
       {displayedChildren}
       {remainingCount > 0 && (
-        <div className="text-center pt-2">
+        <div className="pt-2 text-center">
           <p className="text-xs text-[var(--brand-slate)]">
             +{remainingCount} more announcements
           </p>

@@ -49,16 +49,25 @@ class ProfileStorage {
 		// Get profile for this user
 		$profile = Profile::get_by_user_id( $user_id );
 
-		// If no profile exists, create one
+		// If no profile exists by user_id, try by email (handles mismatched data)
 		if ( ! $profile ) {
 			$user = get_user_by( 'id', $user_id );
 			if ( ! $user ) {
 				return;
 			}
 
-			$profile = new Profile();
-			$profile->user_id = $user_id;
-			$profile->email = $user->user_email;
+			// Try to find by email first (may be linked to wrong user)
+			$profile = Profile::get_by_email( $user->user_email );
+
+			if ( $profile ) {
+				// Fix the user_id link
+				$profile->user_id = $user_id;
+			} else {
+				// Create new profile
+				$profile = new Profile();
+				$profile->user_id = $user_id;
+				$profile->email = $user->user_email;
+			}
 		}
 
 		// Get all field values from Carbon Fields
@@ -93,7 +102,11 @@ class ProfileStorage {
 
 		// Save to profiles table
 		if ( ! empty( $fields_to_save ) ) {
-			$profile->save( $fields_to_save );
+			try {
+				$profile->save( $fields_to_save );
+			} catch ( \Exception $e ) {
+				error_log( 'FRS Users: Failed to save profile for user ' . $user_id . ': ' . $e->getMessage() );
+			}
 		}
 	}
 

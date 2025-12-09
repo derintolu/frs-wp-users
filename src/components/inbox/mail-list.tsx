@@ -20,11 +20,11 @@ export function MailList({ items }: MailListProps) {
       <div className="flex flex-col gap-2 p-4 pt-0">
         {items.map((item) => (
           <button
-            key={item.id}
             className={cn(
               "flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent",
               mail.selected === item.id && "bg-muted"
             )}
+            key={item.id}
             onClick={() =>
               setMail({
                 ...mail,
@@ -37,7 +37,7 @@ export function MailList({ items }: MailListProps) {
                 <div className="flex items-center gap-2">
                   <div className="font-semibold">{item.name}</div>
                   {!item.read && (
-                    <span className="flex h-2 w-2 rounded-full bg-blue-600" />
+                    <span className="flex size-2 rounded-full bg-blue-600" />
                   )}
                 </div>
                 <div
@@ -56,7 +56,7 @@ export function MailList({ items }: MailListProps) {
               <div className="text-xs font-medium">{item.subject}</div>
             </div>
             <div className="line-clamp-2 text-xs text-muted-foreground">
-              {item.text.substring(0, 300)}
+              {item.text.slice(0, 300)}
             </div>
             {item.labels.length ? (
               <div className="flex items-center gap-2">

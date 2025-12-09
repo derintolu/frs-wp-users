@@ -43,7 +43,8 @@ class ProfileFields {
 			->add_tab( __( 'Professional', 'frs-users' ), self::get_professional_fields() )
 			->add_tab( __( 'Location', 'frs-users' ), self::get_location_fields() )
 			->add_tab( __( 'Social Media', 'frs-users' ), self::get_social_fields() )
-			->add_tab( __( 'Tools & Platforms', 'frs-users' ), self::get_tools_fields() );
+			->add_tab( __( 'Tools & Platforms', 'frs-users' ), self::get_tools_fields() )
+			->add_tab( __( 'Company Branding', 'frs-users' ), self::get_branding_fields() );
 	}
 
 	/**
@@ -57,7 +58,8 @@ class ProfileFields {
 			self::get_professional_fields(),
 			self::get_location_fields(),
 			self::get_social_fields(),
-			self::get_tools_fields()
+			self::get_tools_fields(),
+			self::get_branding_fields()
 		);
 	}
 
@@ -338,6 +340,43 @@ class ProfileFields {
 			Field::make( 'text', 'loan_officer_user', __( 'Loan Officer User ID', 'frs-users' ) )
 				->set_attribute( 'type', 'number' )
 				->set_help_text( __( 'Related loan officer WordPress user ID', 'frs-users' ) ),
+		);
+	}
+
+	/**
+	 * Get company branding fields for landing pages
+	 *
+	 * @return array
+	 */
+	private static function get_branding_fields() {
+		return array(
+			Field::make( 'text', 'company_name', __( 'Company Name', 'frs-users' ) )
+				->set_help_text( __( 'Your company or brokerage name', 'frs-users' ) ),
+
+			Field::make( 'image', 'company_logo', __( 'Company Logo', 'frs-users' ) )
+				->set_value_type( 'url' )
+				->set_help_text( __( 'Company logo for landing pages (light background)', 'frs-users' ) ),
+
+			Field::make( 'image', 'company_logo_dark', __( 'Company Logo (Dark)', 'frs-users' ) )
+				->set_value_type( 'url' )
+				->set_help_text( __( 'Company logo for dark backgrounds (optional)', 'frs-users' ) ),
+
+			Field::make( 'color', 'brand_primary_color', __( 'Primary Brand Color', 'frs-users' ) )
+				->set_help_text( __( 'Main brand color for buttons and accents', 'frs-users' ) ),
+
+			Field::make( 'color', 'brand_secondary_color', __( 'Secondary Brand Color', 'frs-users' ) )
+				->set_help_text( __( 'Secondary brand color (optional)', 'frs-users' ) ),
+
+			Field::make( 'text', 'company_tagline', __( 'Company Tagline', 'frs-users' ) )
+				->set_help_text( __( 'Short tagline or slogan', 'frs-users' ) ),
+
+			Field::make( 'text', 'company_website', __( 'Company Website', 'frs-users' ) )
+				->set_attribute( 'type', 'url' )
+				->set_help_text( __( 'Company website URL', 'frs-users' ) ),
+
+			Field::make( 'image', 'default_hero_image', __( 'Default Hero Image', 'frs-users' ) )
+				->set_value_type( 'url' )
+				->set_help_text( __( 'Default background image for landing pages', 'frs-users' ) ),
 		);
 	}
 }

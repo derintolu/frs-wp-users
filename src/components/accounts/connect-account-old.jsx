@@ -4,18 +4,18 @@ import EmailIcon from "./icons/email-icon";
 
 export default function ConnectAccount() {
   return (
-    <div className="flex flex-col items-center p-6 bg-white rounded-lg shadow-lg max-w-sm mx-auto">
+    <div className="mx-auto flex max-w-sm flex-col items-center rounded-lg bg-white p-6 shadow-lg">
       <h2 className="text-2xl font-semibold text-gray-800">
         Connect an account
       </h2>
-      <p className="mt-2 text-gray-600 text-sm">
+      <p className="mt-2 text-sm text-gray-600">
         Thank you for choosing FluentCRM. An easier way to manage email
         marketing campaigns!
       </p>
 
-      <div className="w-full mt-6">
-        <div className="flex items-center justify-between p-4 mb-4 bg-gray-100 rounded-lg">
-          <span className="flex w-full justify-between items-center">
+      <div className="mt-6 w-full">
+        <div className="mb-4 flex items-center justify-between rounded-lg bg-gray-100 p-4">
+          <span className="flex w-full items-center justify-between">
             <GmailIcon />
             {/* <img
               src="/path-to-google-icon.png"
@@ -27,7 +27,7 @@ export default function ConnectAccount() {
           </span>
         </div>
 
-        <div className="flex items-center justify-between p-4 mb-4 bg-gray-100 rounded-lg">
+        <div className="mb-4 flex items-center justify-between rounded-lg bg-gray-100 p-4">
           <span className="flex items-center">
             {/* <img
               src="/path-to-microsoft-icon.png"
@@ -39,7 +39,7 @@ export default function ConnectAccount() {
           </span>
         </div>
 
-        <div className="flex items-center justify-between p-4 bg-gray-100 rounded-lg">
+        <div className="flex items-center justify-between rounded-lg bg-gray-100 p-4">
           <span className="flex items-center">
             {/* <img
               src="/path-to-generic-email-icon.png"

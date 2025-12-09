@@ -30,7 +30,7 @@ class AddServiceAreasToProfiles implements Migration {
 	public static function up(): void {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'frs_profiles';
+		$table_name = $wpdb->base_prefix . 'frs_profiles';
 
 		// Check if table exists
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) !== $table_name ) {
@@ -66,7 +66,7 @@ class AddServiceAreasToProfiles implements Migration {
 	public static function down(): void {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'frs_profiles';
+		$table_name = $wpdb->base_prefix . 'frs_profiles';
 
 		// Drop the service_areas column
 		$sql = "ALTER TABLE `{$table_name}` DROP COLUMN IF EXISTS service_areas";

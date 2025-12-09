@@ -3,55 +3,55 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface MenuItem {
-  id: string;
-  label: string;
-  icon?: React.ComponentType<{ className?: string }>;
-  url?: string;
-  children?: MenuItem[];
   badge?: string;
   badgeVariant?: 'default' | 'secondary' | 'destructive' | 'outline';
-  description?: string;
+  children?: MenuItem[];
   customWidget?: React.ReactNode;
+  description?: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  id: string;
+  label: string;
+  url?: string;
 }
 
 export interface CollapsibleSidebarProps {
-  menuItems: MenuItem[];
-  activeItemId?: string;
-  onItemClick?: (item: MenuItem) => void;
-  defaultCollapsed?: boolean;
-  onCollapsedChange?: (collapsed: boolean) => void;
-  className?: string;
-  header?: React.ReactNode;
-  footer?: React.ReactNode;
-  width?: string;
-  collapsedWidth?: string;
-  backgroundColor?: string;
-  textColor?: string;
-  activeItemColor?: string;
   activeItemBackground?: string;
+  activeItemColor?: string;
+  activeItemId?: string;
+  backgroundColor?: string;
+  className?: string;
+  collapsedWidth?: string;
+  defaultCollapsed?: boolean;
+  footer?: React.ReactNode;
+  header?: React.ReactNode;
+  integrated?: boolean;
+  menuItems: MenuItem[];
+  onCollapsedChange?: (collapsed: boolean) => void;
+  onItemClick?: (item: MenuItem) => void;
   position?: 'left' | 'right';
+  textColor?: string;
   topOffset?: string;
-  integrated?: boolean; // If true, renders as a regular div without fixed positioning
+  width?: string; // If true, renders as a regular div without fixed positioning
 }
 
 export function CollapsibleSidebar({
-  menuItems,
-  activeItemId,
-  onItemClick,
-  defaultCollapsed = false,
-  onCollapsedChange,
-  className = '',
-  header,
-  footer,
-  width = '16rem',
-  collapsedWidth = '4rem',
-  backgroundColor = '#ffffff',
-  textColor = '#374151',
-  activeItemColor = '#ffffff',
   activeItemBackground = 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
-  position = 'left',
-  topOffset = '0',
+  activeItemColor = '#ffffff',
+  activeItemId,
+  backgroundColor = '#ffffff',
+  className = '',
+  collapsedWidth = '4rem',
+  defaultCollapsed = false,
+  footer,
+  header,
   integrated = false,
+  menuItems,
+  onCollapsedChange,
+  onItemClick,
+  position = 'left',
+  textColor = '#374151',
+  topOffset = '0',
+  width = '16rem',
 }: CollapsibleSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
@@ -189,7 +189,7 @@ export function CollapsibleSidebar({
     // If item has no label and only customWidget, render just the widget
     if (!item.label && hasCustomWidget && !shouldShowCollapsed) {
       return (
-        <div key={item.id} className="my-2">
+        <div className="my-2" key={item.id}>
           {item.customWidget}
         </div>
       );
@@ -204,8 +204,8 @@ export function CollapsibleSidebar({
         <Element
           {...elementProps}
           className={cn(
-            'w-full inline-flex items-center gap-2 text-xs font-medium transition-all rounded-md h-8 px-3 py-1.5',
-            isChild && 'h-7 px-2 ml-6 text-[11px]',
+            'inline-flex h-8 w-full items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-all',
+            isChild && 'ml-6 h-7 px-2 text-[11px]',
             shouldShowCollapsed && !isChild && 'justify-center px-2',
             !isActive && 'hover:bg-accent hover:text-accent-foreground',
             isActive && 'shadow-sm',
@@ -214,14 +214,14 @@ export function CollapsibleSidebar({
           style={{
             backgroundColor: isActive ? 'transparent' : 'transparent',
             backgroundImage: isActive ? activeItemBackground : 'none',
-            color: isActive ? activeItemColor : textColor,
             border: 'none',
-            outline: 'none',
+            color: isActive ? activeItemColor : textColor,
             cursor: 'pointer',
+            outline: 'none',
           }}
           title={shouldShowCollapsed ? item.label : undefined}
         >
-          {Icon && <Icon className="size-3.5 flex-shrink-0" />}
+          {Icon && <Icon className="size-3.5 shrink-0" />}
           {!shouldShowCollapsed && (
             <>
               <span className="flex-1 text-left">{item.label}</span>
@@ -236,7 +236,7 @@ export function CollapsibleSidebar({
               {item.badge && (
                 <span
                   className={cn(
-                    'px-2 py-0.5 text-xs rounded-full',
+                    'rounded-full px-2 py-0.5 text-xs',
                     item.badgeVariant === 'destructive' && 'bg-red-100 text-red-700',
                     item.badgeVariant === 'secondary' && 'bg-gray-100 text-gray-700',
                     item.badgeVariant === 'outline' && 'border border-gray-300 text-gray-700',
@@ -274,8 +274,8 @@ export function CollapsibleSidebar({
         {/* Backdrop overlay */}
         <div
           className={cn(
-            'fixed inset-0 bg-black/50 z-40 transition-opacity duration-500 ease-out',
-            isMobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+            'fixed inset-0 z-40 bg-black/50 transition-opacity duration-500 ease-out',
+            isMobileOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
           )}
           onClick={() => {
             setIsMobileOpen(false);
@@ -285,16 +285,16 @@ export function CollapsibleSidebar({
 
         {/* Mobile Bottom Panel */}
         <aside
-          id="frs-mobile-sidebar"
           className={cn(
-            'fixed left-0 right-0 z-50 transition-all duration-500 ease-out',
-            'shadow-2xl overflow-hidden bg-white',
+            'fixed inset-x-0 z-50 transition-all duration-500 ease-out',
+            'overflow-hidden bg-white shadow-2xl',
             isMobileOpen ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0',
             className
           )}
+          id="frs-mobile-sidebar"
           style={{
-            bottom: 0,
             backgroundColor: '#ffffff',
+            bottom: 0,
             color: textColor,
             maxHeight: `calc(100vh - ${topOffset})`,
             top: isResizing ? `calc(${topOffset} + 2px)` : topOffset,
@@ -302,31 +302,31 @@ export function CollapsibleSidebar({
         >
           {/* Close X Button - Top Right */}
           <button
+            aria-label="Close menu"
+            className="absolute right-4 top-4 z-50 flex items-center justify-center rounded-full transition-all hover:scale-110"
             onClick={() => {
               setIsMobileOpen(false);
               window.location.hash = '';
             }}
-            className="absolute top-4 right-4 z-50 flex items-center justify-center rounded-full transition-all hover:scale-110"
             style={{
-              width: '40px',
-              height: '40px',
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%)',
-              backdropFilter: 'blur(10px)',
               WebkitBackdropFilter: 'blur(10px)',
+              backdropFilter: 'blur(10px)',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%)',
               border: '1px solid rgba(255, 255, 255, 0.3)',
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              height: '40px',
+              width: '40px',
             }}
-            aria-label="Close menu"
           >
-            <X className="h-5 w-5 text-white" />
+            <X className="size-5 text-white" />
           </button>
 
-          <div className="h-full flex flex-col overflow-hidden">
+          <div className="flex h-full flex-col overflow-hidden">
             {/* Header Section - Edge to Edge */}
             {header && <div className="w-full">{header}</div>}
 
             {/* Navigation Items */}
-            <nav className="flex-1 overflow-y-auto p-4 space-y-2">
+            <nav className="flex-1 space-y-2 overflow-y-auto p-4">
               {menuItems.map((item) => renderMenuItem(item, false, true))}
             </nav>
           </div>
@@ -339,51 +339,51 @@ export function CollapsibleSidebar({
   return (
     <aside
       className={cn(
-        !integrated && 'fixed transition-all duration-300 ease-in-out z-[50]',
-        !integrated && 'border shadow-lg overflow-visible',
+        !integrated && 'fixed z-50 transition-all duration-300 ease-in-out',
+        !integrated && 'overflow-visible border shadow-lg',
         !integrated && (position === 'left' ? 'left-0 border-r border-border' : 'right-0 border-l border-border'),
-        integrated && 'h-full flex flex-col',
+        integrated && 'flex h-full flex-col',
         className
       )}
       style={{
-        width: !integrated && isCollapsed ? collapsedWidth : !integrated ? width : undefined,
         backgroundColor,
-        color: textColor,
-        top: !integrated ? topOffset : undefined,
-        height: !integrated ? `calc(100vh - ${topOffset})` : undefined,
         boxShadow: !integrated ? '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)' : undefined,
+        color: textColor,
+        height: !integrated ? `calc(100vh - ${topOffset})` : undefined,
+        top: !integrated ? topOffset : undefined,
+        width: !integrated && isCollapsed ? collapsedWidth : !integrated ? width : undefined,
       }}
     >
       {/* Toggle Button - Hidden in integrated mode */}
       {!integrated && (
         <a
-          href="#frs-portal-sidebar-toggle"
-          id="frs-portal-sidebar-toggle"
+          aria-label="Toggle sidebar navigation"
           className={cn(
             'frs-portal-sidebar-toggle',
             'frs-sidebar-toggle-btn',
-            'absolute top-[30px] z-50 h-8 w-8 rounded-full border bg-white shadow-md hover:bg-gray-50',
-            'flex items-center justify-center transition-colors cursor-pointer no-underline',
+            'absolute top-[30px] z-50 size-8 rounded-full border bg-white shadow-md hover:bg-gray-50',
+            'flex cursor-pointer items-center justify-center no-underline transition-colors',
             '-right-4'
           )}
+          data-frs-component="sidebar-toggle"
+          href="#frs-portal-sidebar-toggle"
+          id="frs-portal-sidebar-toggle"
           onClick={(e) => {
             e.preventDefault();
             const newCollapsedState = !isCollapsed;
             setIsCollapsed(newCollapsedState);
             onCollapsedChange?.(newCollapsedState);
           }}
-          aria-label="Toggle sidebar navigation"
-          data-frs-component="sidebar-toggle"
         >
           {isCollapsed ? (
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="size-4" />
           ) : (
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="size-4" />
           )}
         </a>
       )}
 
-      <div className="h-full flex flex-col overflow-hidden">
+      <div className="flex h-full flex-col overflow-hidden">
         {/* Header Section */}
         {header && (
           <div className={cn(isCollapsed && 'hidden')}>
@@ -394,7 +394,7 @@ export function CollapsibleSidebar({
         {/* Navigation Items */}
         <nav
           className={cn(
-            'flex-1 overflow-y-auto p-4 space-y-2',
+            'flex-1 space-y-2 overflow-y-auto p-4',
             isCollapsed && 'px-2'
           )}
         >

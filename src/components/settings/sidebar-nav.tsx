@@ -24,8 +24,6 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
     >
       {items.map((item) => (
         <a
-          key={item.href}
-          href={item.href}
           className={cn(
             buttonVariants({ variant: "ghost" }),
             window.location.hash === item.href
@@ -33,6 +31,8 @@ export function SidebarNav({ className, items, ...props }: SidebarNavProps) {
               : "hover:bg-transparent hover:underline",
             "justify-start"
           )}
+          href={item.href}
+          key={item.href}
         >
           {item.title}
          

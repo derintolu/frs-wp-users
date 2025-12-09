@@ -50,7 +50,7 @@ const useExternalLinkHandler = () => {
   const setIframeRef = useCallback((iframe: HTMLIFrameElement | null) => {
     iframeRef.current = iframe;
 
-    if (!iframe) return;
+    if (!iframe) {return;}
 
     const setupIframeHandler = () => {
       try {
@@ -60,7 +60,7 @@ const useExternalLinkHandler = () => {
           let base = iframeDoc.querySelector('base');
           if (!base) {
             base = iframeDoc.createElement('base');
-            iframeDoc.head.appendChild(base);
+            iframeDoc.head.append(base);
           }
           base.setAttribute('target', '_blank');
 
@@ -94,12 +94,9 @@ const useExternalLinkHandler = () => {
 };
 import {
   Phone,
-  Mail,
   MapPin,
   FileText,
   CheckSquare,
-  User,
-  QrCode,
   Camera,
   Save,
   X,
@@ -113,9 +110,7 @@ import {
   PlusCircle,
   Calendar,
   Settings,
-  MessageSquare,
-  Send,
-  CheckCircle
+  MessageSquare
 } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loading';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
@@ -123,49 +118,49 @@ import { parseServiceAreaForState } from '@/frontend/portal/utils/stateUtils';
 import { useProfileEdit } from '@/frontend/portal/contexts/ProfileEditContext';
 
 interface ProfileData {
-  id: number;
-  first_name: string;
-  last_name: string;
-  display_name?: string;
-  email: string;
-  phone_number?: string;
-  mobile_number?: string;
-  job_title?: string;
-  headshot_url?: string;
-  biography?: string;
-  nmls_number?: string;
-  nmls?: string;
-  license_number?: string;
-  dre_license?: string;
-  specialties_lo?: string[];
-  namb_certifications?: string[];
-  service_areas?: string[];
-  city_state?: string;
-  region?: string;
-  linkedin_url?: string;
-  facebook_url?: string;
-  instagram_url?: string;
-  twitter_url?: string;
-  youtube_url?: string;
-  tiktok_url?: string;
-  website?: string;
   arrive?: string;
+  biography?: string;
   brand?: string;
-  office?: string;
-  profile_slug?: string;
-  directory_button_type?: 'schedule' | 'call' | 'contact';
-  scheduling_url?: string;
   calendar_id?: number;
+  city_state?: string;
+  directory_button_type?: 'schedule' | 'call' | 'contact';
+  display_name?: string;
+  dre_license?: string;
+  email: string;
+  facebook_url?: string;
+  first_name: string;
+  headshot_url?: string;
+  id: number;
+  instagram_url?: string;
+  job_title?: string;
+  last_name: string;
+  license_number?: string;
+  linkedin_url?: string;
+  mobile_number?: string;
+  namb_certifications?: string[];
+  nmls?: string;
+  nmls_number?: string;
+  office?: string;
+  phone_number?: string;
+  profile_slug?: string;
+  region?: string;
+  scheduling_url?: string;
+  service_areas?: string[];
+  specialties_lo?: string[];
+  tiktok_url?: string;
+  twitter_url?: string;
+  website?: string;
+  youtube_url?: string;
 }
 
 interface ProfileEditorViewProps {
-  userId?: string;
   slug?: string;
+  userId?: string;
 }
 
 // Also export as PublicProfileView for backwards compatibility
-export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
-  const { activeSection, setActiveSection, setIsSaving: setContextSaving, setHandleSave, setHandleCancel } = useProfileEdit();
+export function ProfileEditorView({ slug, userId }: ProfileEditorViewProps) {
+  const { activeSection, setActiveSection, setHandleCancel, setHandleSave, setIsSaving: setContextSaving } = useProfileEdit();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [originalProfile, setOriginalProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -192,7 +187,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        console.log('[PublicProfileView] Starting fetch with:', { userId, slug });
+        console.log('[PublicProfileView] Starting fetch with:', { slug, userId });
 
         // Determine API URL based on what's provided
         let apiUrl;
@@ -231,9 +226,9 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
         setProfile(profileData);
         setOriginalProfile(profileData); // Save original for cancel functionality
-      } catch (err) {
-        console.error('[PublicProfileView] Error:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load profile');
+      } catch (error_) {
+        console.error('[PublicProfileView] Error:', error_);
+        setError(error_ instanceof Error ? error_.message : 'Failed to load profile');
       } finally {
         setLoading(false);
       }
@@ -244,11 +239,11 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
   // Generate V-Card
   const generateVCard = () => {
-    if (!profile) return;
+    if (!profile) {return;}
 
     // Build NMLS info for note
     const nmlsInfo = (profile.nmls || profile.nmls_number) ? `NMLS #${profile.nmls || profile.nmls_number}` : '';
-    const noteContent = [nmlsInfo, profile.biography?.replace(/\n/g, '\\n')].filter(Boolean).join(' - ');
+    const noteContent = [nmlsInfo, profile.biography?.replace(/\n/g, String.raw`\n`)].filter(Boolean).join(' - ');
 
     const vcard = [
       'BEGIN:VCARD',
@@ -281,7 +276,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
     const link = document.createElement('a');
     link.href = url;
     link.download = `${profile.first_name}_${profile.last_name}.vcf`;
-    document.body.appendChild(link);
+    document.body.append(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
@@ -289,7 +284,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
   // Determine the directory path based on person type (matches DirectoryProfileCard)
   const getDirectoryPath = () => {
-    if (!profile) return '/lo/';
+    if (!profile) {return '/lo/';}
     const profileSlug = slug || (profile as any).profile_slug || `${profile.first_name?.toLowerCase()}-${profile.last_name?.toLowerCase()}`;
     const personType = (profile as any).select_person_type || 'loan_officer';
 
@@ -323,54 +318,54 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
       try {
         const qrCode = new QRCodeStyling({
-          type: 'canvas',
-          shape: 'square',
-          width: qrSize,
-          height: qrSize,
-          data: qrProfileUrl,
-          margin: 0,
-          qrOptions: {
-            typeNumber: 0,
-            mode: 'Byte',
-            errorCorrectionLevel: 'L'
-          },
-          dotsOptions: {
-            type: 'extra-rounded',
-            roundSize: true,
-            gradient: {
-              type: 'linear',
-              rotation: 0,
-              colorStops: [
-                { offset: 0, color: '#2563eb' },
-                { offset: 1, color: '#2dd4da' }
-              ]
-            }
-          },
           backgroundOptions: {
             color: '#ffffff'
           },
-          cornersSquareOptions: {
-            type: 'extra-rounded',
-            gradient: {
-              type: 'linear',
-              rotation: 0,
-              colorStops: [
-                { offset: 0, color: '#2563ea' },
-                { offset: 1, color: '#2dd4da' }
-              ]
-            }
-          },
           cornersDotOptions: {
-            type: '',
             gradient: {
-              type: 'linear',
-              rotation: 0,
               colorStops: [
-                { offset: 0, color: '#2dd4da' },
-                { offset: 1, color: '#2563e9' }
-              ]
-            }
-          }
+                { color: '#2dd4da', offset: 0 },
+                { color: '#2563e9', offset: 1 }
+              ],
+              rotation: 0,
+              type: 'linear'
+            },
+            type: ''
+          },
+          cornersSquareOptions: {
+            gradient: {
+              colorStops: [
+                { color: '#2563ea', offset: 0 },
+                { color: '#2dd4da', offset: 1 }
+              ],
+              rotation: 0,
+              type: 'linear'
+            },
+            type: 'extra-rounded'
+          },
+          data: qrProfileUrl,
+          dotsOptions: {
+            gradient: {
+              colorStops: [
+                { color: '#2563eb', offset: 0 },
+                { color: '#2dd4da', offset: 1 }
+              ],
+              rotation: 0,
+              type: 'linear'
+            },
+            roundSize: true,
+            type: 'extra-rounded'
+          },
+          height: qrSize,
+          margin: 0,
+          qrOptions: {
+            errorCorrectionLevel: 'L',
+            mode: 'Byte',
+            typeNumber: 0
+          },
+          shape: 'square',
+          type: 'canvas',
+          width: qrSize
         });
 
         qrCode.append(qrCodeRef.current);
@@ -388,6 +383,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
         console.error('Failed to generate QR code:', error);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- getDirectoryPath uses profile and slug which are already in deps
   }, [profile, showQRCode, slug]);
 
   // Register save and cancel handlers with context
@@ -411,13 +407,13 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
         try {
           const response = await fetch(`/wp-json/frs-users/v1/profiles/${profile.id}`, {
-            method: 'PUT',
+            body: JSON.stringify(profile),
             credentials: 'include',
             headers: {
               'Content-Type': 'application/json',
               'X-WP-Nonce': (window as any).wpApiSettings?.nonce || (window as any).frsPortalConfig?.restNonce || ''
             },
-            body: JSON.stringify(profile)
+            method: 'PUT'
           });
 
           console.log('Response status:', response.status);
@@ -433,7 +429,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
             const successMsg = document.createElement('div');
             successMsg.className = 'fixed top-20 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
             successMsg.textContent = successMessage;
-            document.body.appendChild(successMsg);
+            document.body.append(successMsg);
             setTimeout(() => successMsg.remove(), 3000);
           } else {
             const errorData = await response.json();
@@ -441,7 +437,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
             const errorMsg = document.createElement('div');
             errorMsg.className = 'fixed top-20 right-6 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
             errorMsg.textContent = errorData.message || 'Failed to save profile changes';
-            document.body.appendChild(errorMsg);
+            document.body.append(errorMsg);
             setTimeout(() => errorMsg.remove(), 5000);
             setError(errorData.message || 'Failed to save profile changes');
           }
@@ -450,7 +446,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
           const errorMsg = document.createElement('div');
           errorMsg.className = 'fixed top-20 right-6 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
           errorMsg.textContent = 'Network error - please try again';
-          document.body.appendChild(errorMsg);
+          document.body.append(errorMsg);
           setTimeout(() => errorMsg.remove(), 5000);
           setError('Failed to save profile changes');
         } finally {
@@ -475,19 +471,19 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
   }, [activeSection, profile, originalProfile, setHandleSave, setHandleCancel, setActiveSection, setContextSaving]);
 
   const handleSave = async () => {
-    if (!profile) return;
+    if (!profile) {return;}
 
     setIsSaving(true);
     setError(null);
     try {
       const response = await fetch(`/wp-json/frs-users/v1/profiles/${profile.id}`, {
-        method: 'PUT',
+        body: JSON.stringify(profile),
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
           'X-WP-Nonce': (window as any).wpApiSettings?.nonce || (window as any).frsPortalConfig?.restNonce || ''
         },
-        body: JSON.stringify(profile)
+        method: 'PUT'
       });
 
       if (response.ok) {
@@ -495,7 +491,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
         const successMsg = document.createElement('div');
         successMsg.className = 'fixed top-20 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
         successMsg.textContent = 'Profile saved successfully!';
-        document.body.appendChild(successMsg);
+        document.body.append(successMsg);
         setTimeout(() => successMsg.remove(), 3000);
       } else {
         setError('Failed to save profile changes');
@@ -510,72 +506,72 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
   if (loading) {
     return (
-      <div className="@container w-full max-w-[1290px] mx-auto px-4 py-6 animate-pulse">
+      <div className="mx-auto w-full max-w-[1290px] animate-pulse px-4 py-6 @container">
         {/* Two Column Layout Skeleton */}
-        <div className="grid grid-cols-1 @lg:!grid-cols-[65%,35%] gap-4 mb-4">
+        <div className="mb-4 grid grid-cols-1 gap-4 @lg:!grid-cols-[65%,35%]">
           {/* Profile Card Skeleton */}
-          <div className="bg-white shadow-lg rounded border border-gray-200 p-8">
+          <div className="rounded border border-gray-200 bg-white p-8 shadow-lg">
             {/* Header background */}
-            <div className="h-[149px] bg-gradient-to-r from-blue-500 to-cyan-500 -mx-8 -mt-8 mb-4 rounded-t"></div>
+            <div className="-mx-8 -mt-8 mb-4 h-[149px] rounded-t bg-gradient-to-r from-blue-500 to-cyan-500"></div>
 
             {/* Avatar skeleton */}
-            <div className="w-[156px] h-[156px] bg-gray-300 rounded-full mx-auto @lg:mx-0 mb-4"></div>
+            <div className="mx-auto mb-4 size-[156px] rounded-full bg-gray-300 @lg:mx-0"></div>
 
             {/* Name skeleton */}
-            <div className="h-10 bg-gray-300 rounded w-3/4 mb-4"></div>
+            <div className="mb-4 h-10 w-3/4 rounded bg-gray-300"></div>
 
             {/* Details skeleton */}
-            <div className="space-y-2 mb-4">
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-              <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+            <div className="mb-4 space-y-2">
+              <div className="h-4 w-1/2 rounded bg-gray-200"></div>
+              <div className="h-4 w-2/3 rounded bg-gray-200"></div>
             </div>
 
             {/* Contact skeleton */}
-            <div className="flex gap-4 mb-4">
-              <div className="h-6 bg-gray-200 rounded w-32"></div>
-              <div className="h-6 bg-gray-200 rounded w-32"></div>
+            <div className="mb-4 flex gap-4">
+              <div className="h-6 w-32 rounded bg-gray-200"></div>
+              <div className="h-6 w-32 rounded bg-gray-200"></div>
             </div>
           </div>
 
           {/* Right Column Skeleton */}
           <div className="space-y-4">
             {/* Action Buttons Skeleton */}
-            <div className="bg-white shadow-lg rounded border border-gray-200 p-6">
+            <div className="rounded border border-gray-200 bg-white p-6 shadow-lg">
               <div className="space-y-3">
-                <div className="h-10 bg-gray-200 rounded"></div>
-                <div className="h-10 bg-gray-200 rounded"></div>
-                <div className="h-10 bg-gray-200 rounded"></div>
+                <div className="h-10 rounded bg-gray-200"></div>
+                <div className="h-10 rounded bg-gray-200"></div>
+                <div className="h-10 rounded bg-gray-200"></div>
               </div>
             </div>
 
             {/* Service Areas Skeleton */}
-            <div className="bg-white shadow-lg rounded border border-gray-200 p-6">
-              <div className="h-6 bg-gray-300 rounded w-1/2 mb-4"></div>
+            <div className="rounded border border-gray-200 bg-white p-6 shadow-lg">
+              <div className="mb-4 h-6 w-1/2 rounded bg-gray-300"></div>
               <div className="space-y-2">
-                <div className="h-4 bg-gray-200 rounded"></div>
-                <div className="h-4 bg-gray-200 rounded"></div>
-                <div className="h-4 bg-gray-200 rounded"></div>
+                <div className="h-4 rounded bg-gray-200"></div>
+                <div className="h-4 rounded bg-gray-200"></div>
+                <div className="h-4 rounded bg-gray-200"></div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Biography Row Skeleton */}
-        <div className="grid grid-cols-1 @lg:!grid-cols-[65%,35%] gap-4 mb-4">
-          <div className="bg-white shadow-lg rounded border border-gray-200 p-6">
-            <div className="h-6 bg-gray-300 rounded w-1/3 mb-4"></div>
+        <div className="mb-4 grid grid-cols-1 gap-4 @lg:!grid-cols-[65%,35%]">
+          <div className="rounded border border-gray-200 bg-white p-6 shadow-lg">
+            <div className="mb-4 h-6 w-1/3 rounded bg-gray-300"></div>
             <div className="space-y-2">
-              <div className="h-4 bg-gray-200 rounded"></div>
-              <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-              <div className="h-4 bg-gray-200 rounded w-4/6"></div>
+              <div className="h-4 rounded bg-gray-200"></div>
+              <div className="h-4 w-5/6 rounded bg-gray-200"></div>
+              <div className="h-4 w-4/6 rounded bg-gray-200"></div>
             </div>
           </div>
 
-          <div className="bg-white shadow-lg rounded border border-gray-200 p-6">
-            <div className="h-6 bg-gray-300 rounded w-1/2 mb-4"></div>
+          <div className="rounded border border-gray-200 bg-white p-6 shadow-lg">
+            <div className="mb-4 h-6 w-1/2 rounded bg-gray-300"></div>
             <div className="space-y-3">
-              <div className="h-8 bg-gray-200 rounded"></div>
-              <div className="h-8 bg-gray-200 rounded"></div>
+              <div className="h-8 rounded bg-gray-200"></div>
+              <div className="h-8 rounded bg-gray-200"></div>
             </div>
           </div>
         </div>
@@ -585,8 +581,8 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
   if (error || !profile) {
     return (
-      <div className="text-center py-8">
-        <p className="text-red-600 mb-4">{error || 'Profile not found'}</p>
+      <div className="py-8 text-center">
+        <p className="mb-4 text-red-600">{error || 'Profile not found'}</p>
         <Button onClick={() => window.location.reload()}>
           Try Again
         </Button>
@@ -607,30 +603,30 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
   return (
     <div
-      className="@container w-full max-w-[1290px] mx-auto px-4 py-6 pb-24 animate-in fade-in duration-500"
+      className="mx-auto w-full max-w-[1290px] px-4 py-6 pb-24 duration-500 animate-in fade-in @container"
       style={{
         opacity: loading ? 0 : 1,
         transition: 'opacity 0.5s ease-in-out'
       }}
     >
       {/* Two Column Layout: Profile Card + Links & Social */}
-      <div className="grid grid-cols-1 @lg:!grid-cols-[65%,35%] gap-4 mb-4">
+      <div className="mb-4 grid grid-cols-1 gap-4 @lg:!grid-cols-[65%,35%]">
         {/* Profile Card */}
-        <Card className="@container shadow-lg max-md:rounded-none @lg:rounded border border-gray-200 h-full">
+        <Card className="h-full border border-gray-200 shadow-lg @container @lg:rounded max-md:rounded-none">
           <div
-            className="p-8 relative overflow-hidden"
+            className="relative overflow-hidden p-8"
             style={{
               background: '#F4F4F5',
             }}
           >
             {/* Gradient Video Background - Blurred */}
-            <div className="absolute top-0 left-0 right-0 w-full overflow-hidden" style={{ height: '149px' }}>
+            <div className="absolute inset-x-0 top-0 w-full overflow-hidden" style={{ height: '149px' }}>
               <video
                 autoPlay
+                className="size-full object-cover"
                 loop
                 muted
                 playsInline
-                className="w-full h-full object-cover"
                 style={{
                   filter: 'blur(30px)',
                   transform: 'scale(1.2)'
@@ -641,37 +637,37 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
             </div>
 
             {/* Avatar with Gradient Border - Flip Card */}
-            <div className="mb-4 relative z-10 mx-auto @lg:!mx-0" style={{ perspective: '1000px', width: '156px' }}>
+            <div className="relative z-10 mx-auto mb-4 @lg:!mx-0" style={{ perspective: '1000px', width: '156px' }}>
               <div
                 className="relative transition-transform duration-700"
                 style={{
-                  width: '156px',
                   height: '156px',
+                  transform: showQRCode ? 'rotateY(180deg)' : 'rotateY(0deg)',
                   transformStyle: 'preserve-3d',
-                  transform: showQRCode ? 'rotateY(180deg)' : 'rotateY(0deg)'
+                  width: '156px'
                 }}
               >
                 {/* Front Side - Avatar */}
                 <div
-                  className="absolute inset-0 rounded-full overflow-visible"
+                  className="absolute inset-0 overflow-visible rounded-full"
                   style={{
                     backfaceVisibility: 'hidden'
                   }}
                 >
                   <div
-                    className="w-full h-full rounded-full overflow-hidden"
+                    className="size-full overflow-hidden rounded-full"
                     style={{
-                      border: '3px solid transparent',
+                      backgroundClip: 'padding-box, border-box',
                       backgroundImage: 'linear-gradient(white, white), linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                       backgroundOrigin: 'padding-box, border-box',
-                      backgroundClip: 'padding-box, border-box',
+                      border: '3px solid transparent',
                     }}
                   >
                     {profile.headshot_url ? (
-                      <img src={profile.headshot_url} alt="Profile" className="w-full h-full object-cover" />
+                      <img alt="Profile" className="size-full object-cover" src={profile.headshot_url} />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                        <span className="text-3xl text-gray-600 font-semibold">
+                      <div className="flex size-full items-center justify-center bg-gray-100">
+                        <span className="text-3xl font-semibold text-gray-600">
                           {(profile.first_name?.[0] || '?')}{(profile.last_name?.[0] || '')}
                         </span>
                       </div>
@@ -680,13 +676,13 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
                   {/* QR Code button - flips with avatar, shows QR icon */}
                   <button
+                    className="absolute right-[-5px] top-2 z-20 flex size-[35px] items-center justify-center"
                     onClick={() => setShowQRCode(!showQRCode)}
-                    className="absolute top-2 right-[-5px] w-[35px] h-[35px] flex items-center justify-center z-20"
                     type="button"
                   >
                     <img
                       alt="Toggle QR"
-                      className="w-[35px] h-[35px]"
+                      className="size-[35px]"
                       src={`${iconPath}/qr-flip.svg`}
                     />
                   </button>
@@ -694,30 +690,30 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
                 {/* Back Side - QR Code */}
                 <div
-                  className="absolute inset-0 rounded-full overflow-visible"
+                  className="absolute inset-0 overflow-visible rounded-full"
                   style={{
                     backfaceVisibility: 'hidden',
                     transform: 'rotateY(180deg)'
                   }}
                 >
                   <div
-                    className="w-full h-full rounded-full overflow-hidden"
+                    className="size-full overflow-hidden rounded-full"
                     style={{
-                      border: '3px solid transparent',
+                      backgroundClip: 'padding-box, border-box',
                       backgroundImage: 'linear-gradient(white, white), linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                       backgroundOrigin: 'padding-box, border-box',
-                      backgroundClip: 'padding-box, border-box',
+                      border: '3px solid transparent',
                     }}
                   >
-                    <div className="w-full h-full flex items-center justify-center bg-white p-5">
+                    <div className="flex size-full items-center justify-center bg-white p-5">
                       <div
                         ref={qrCodeRef}
                         style={{
-                          width: '130px',
-                          height: '130px',
-                          display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center'
+                          display: 'flex',
+                          height: '130px',
+                          justifyContent: 'center',
+                          width: '130px'
                         }}
                       />
                     </div>
@@ -725,14 +721,14 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
                   {/* Avatar button - flips with QR code, shows profile icon */}
                   <button
+                    className="absolute right-[-5px] top-2 z-20 flex size-[35px] items-center justify-center"
                     onClick={() => setShowQRCode(!showQRCode)}
-                    className="absolute top-2 right-[-5px] w-[35px] h-[35px] flex items-center justify-center z-20"
                     style={{ transform: 'scaleX(-1)' }}
                     type="button"
                   >
                     <img
                       alt="Show Profile"
-                      className="w-[35px] h-[35px]"
+                      className="size-[35px]"
                       src={`${iconPath}/profile flip.svg`}
                       style={{ transform: 'scaleX(-1)' }}
                     />
@@ -743,10 +739,9 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
                 {isEditing && (
                   <>
                     <input
-                      type="file"
-                      id="avatar-upload"
                       accept="image/*"
                       className="hidden"
+                      id="avatar-upload"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
@@ -754,15 +749,16 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
                           console.log('Upload avatar:', file);
                         }
                       }}
+                      type="file"
                     />
                     <Button
-                      size="sm"
-                      className="absolute rounded-full w-10 h-10 p-0 bg-black text-white hover:bg-gray-900 shadow-lg z-20"
-                      style={{ top: '10px', left: '-5px' }}
+                      className="absolute z-20 size-10 rounded-full bg-black p-0 text-white shadow-lg hover:bg-gray-900"
                       onClick={() => document.getElementById('avatar-upload')?.click()}
+                      size="sm"
+                      style={{ left: '-5px', top: '10px' }}
                       type="button"
                     >
-                      <Camera className="h-5 w-5" />
+                      <Camera className="size-5" />
                     </Button>
                   </>
                 )}
@@ -771,35 +767,35 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
             {/* Name */}
             {isEditing ? (
-              <div className="grid grid-cols-2 gap-4 mb-6 relative z-10">
+              <div className="relative z-10 mb-6 grid grid-cols-2 gap-4">
                 <FloatingInput
+                  className="bg-white/90"
                   id="firstName-profile"
                   label="First Name"
-                  value={profile.first_name}
                   onChange={(e) => setProfile({...profile, first_name: e.target.value})}
-                  className="bg-white/90"
+                  value={profile.first_name}
                 />
                 <FloatingInput
+                  className="bg-white/90"
                   id="lastName-profile"
                   label="Last Name"
-                  value={profile.last_name}
                   onChange={(e) => setProfile({...profile, last_name: e.target.value})}
-                  className="bg-white/90"
+                  value={profile.last_name}
                 />
               </div>
             ) : (
-              <div className="flex flex-col @lg:!flex-row items-center @lg:!items-start justify-center @lg:!justify-between mb-2 relative z-10 gap-4 text-center @lg:!text-left">
+              <div className="relative z-10 mb-2 flex flex-col items-center justify-center gap-4 text-center @lg:!flex-row @lg:!items-start @lg:!justify-between @lg:!text-left">
                 <h3 className="text-[34px] font-bold text-[#1A1A1A]" style={{ fontFamily: 'Mona Sans Extended, sans-serif' }}>
                   {fullName}
                 </h3>
                 <Button
                   asChild
-                  className="hidden @lg:!inline-flex text-white font-semibold px-6 py-2 shadow-lg whitespace-nowrap"
+                  className="hidden whitespace-nowrap px-6 py-2 font-semibold text-white shadow-lg @lg:!inline-flex"
                   style={{
                     background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                   }}
                 >
-                  <a href={profile.arrive || '#'} target="_blank" rel="noopener noreferrer">
+                  <a href={profile.arrive || '#'} rel="noopener noreferrer" target="_blank">
                     Apply Now
                   </a>
                 </Button>
@@ -808,15 +804,15 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
             {/* Job Title, NMLS, and Location */}
             {!isEditing && (
-              <div className="mb-4 relative z-10">
-                <p className="text-base text-[#1D4FC4] flex flex-col @lg:!flex-row items-center @lg:!items-start justify-center @lg:!justify-start gap-2 @lg:!gap-6 text-center @lg:!text-left" style={{ fontFamily: 'Roboto, sans-serif' }}>
+              <div className="relative z-10 mb-4">
+                <p className="flex flex-col items-center justify-center gap-2 text-center text-base text-[#1D4FC4] @lg:!flex-row @lg:!items-start @lg:!justify-start @lg:!gap-6 @lg:!text-left" style={{ fontFamily: 'Roboto, sans-serif' }}>
                   <span>
                     {profile.job_title || 'Loan Officer'}
                     {(profile.nmls || profile.nmls_number) && <span> | NMLS {profile.nmls || profile.nmls_number}</span>}
                   </span>
                   {profile.city_state && (
-                    <span className="flex items-center justify-center @lg:!justify-start gap-2">
-                      <MapPin className="h-4 w-4" />
+                    <span className="flex items-center justify-center gap-2 @lg:!justify-start">
+                      <MapPin className="size-4" />
                       {profile.city_state}
                     </span>
                   )}
@@ -826,35 +822,35 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
             {/* Social Media Icons Row */}
             {!isEditing && (profile.linkedin_url || profile.facebook_url || profile.instagram_url || profile.twitter_url || profile.youtube_url || profile.website) && (
-              <div className="flex items-center justify-center @lg:!justify-start gap-3 mb-4 relative z-10">
+              <div className="relative z-10 mb-4 flex items-center justify-center gap-3 @lg:!justify-start">
                 {profile.linkedin_url && (
-                  <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer">
-                    <Linkedin className="h-6 w-6 text-[#1A1A1A] hover:text-[#2563eb] transition-colors" />
+                  <a href={profile.linkedin_url} rel="noopener noreferrer" target="_blank">
+                    <Linkedin className="size-6 text-[#1A1A1A] transition-colors hover:text-[#2563eb]" />
                   </a>
                 )}
                 {profile.facebook_url && (
-                  <a href={profile.facebook_url} target="_blank" rel="noopener noreferrer">
-                    <Facebook className="h-6 w-6 text-[#1A1A1A] hover:text-[#2563eb] transition-colors" />
+                  <a href={profile.facebook_url} rel="noopener noreferrer" target="_blank">
+                    <Facebook className="size-6 text-[#1A1A1A] transition-colors hover:text-[#2563eb]" />
                   </a>
                 )}
                 {profile.instagram_url && (
-                  <a href={profile.instagram_url} target="_blank" rel="noopener noreferrer">
-                    <Smartphone className="h-6 w-6 text-[#1A1A1A] hover:text-[#2563eb] transition-colors" />
+                  <a href={profile.instagram_url} rel="noopener noreferrer" target="_blank">
+                    <Smartphone className="size-6 text-[#1A1A1A] transition-colors hover:text-[#2563eb]" />
                   </a>
                 )}
                 {profile.twitter_url && (
-                  <a href={profile.twitter_url} target="_blank" rel="noopener noreferrer">
-                    <Globe className="h-6 w-6 text-[#1A1A1A] hover:text-[#2563eb] transition-colors" />
+                  <a href={profile.twitter_url} rel="noopener noreferrer" target="_blank">
+                    <Globe className="size-6 text-[#1A1A1A] transition-colors hover:text-[#2563eb]" />
                   </a>
                 )}
                 {profile.youtube_url && (
-                  <a href={profile.youtube_url} target="_blank" rel="noopener noreferrer">
-                    <Globe className="h-6 w-6 text-[#1A1A1A] hover:text-[#2563eb] transition-colors" />
+                  <a href={profile.youtube_url} rel="noopener noreferrer" target="_blank">
+                    <Globe className="size-6 text-[#1A1A1A] transition-colors hover:text-[#2563eb]" />
                   </a>
                 )}
                 {profile.website && (
-                  <a href={profile.website} target="_blank" rel="noopener noreferrer">
-                    <Globe className="h-6 w-6 text-[#1A1A1A] hover:text-[#2563eb] transition-colors" />
+                  <a href={profile.website} rel="noopener noreferrer" target="_blank">
+                    <Globe className="size-6 text-[#1A1A1A] transition-colors hover:text-[#2563eb]" />
                   </a>
                 )}
               </div>
@@ -862,19 +858,19 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
             {/* Contact Information - Always visible */}
             {!isEditing && (
-              <div className="flex flex-col @lg:!flex-row items-center @lg:!items-start justify-center @lg:!justify-start gap-2 @lg:!gap-6 mb-6 relative z-10">
+              <div className="relative z-10 mb-6 flex flex-col items-center justify-center gap-2 @lg:!flex-row @lg:!items-start @lg:!justify-start @lg:!gap-6">
                 {profile.email && (
                   <div className="flex items-center gap-2 text-sm text-gray-700">
-                    <img src={`${iconPath}/Email.svg`} alt="Email" className="w-6 h-6" />
-                    <a href={`mailto:${profile.email}`} className="hover:text-[#1D4FC4] transition-colors">
+                    <img alt="Email" className="size-6" src={`${iconPath}/Email.svg`} />
+                    <a className="transition-colors hover:text-[#1D4FC4]" href={`mailto:${profile.email}`}>
                       {profile.email}
                     </a>
                   </div>
                 )}
                 {phoneNumber && (
                   <div className="flex items-center gap-2 text-sm text-gray-700">
-                    <img src={`${iconPath}/Phne.svg`} alt="Phone" className="w-6 h-6" />
-                    <a href={`tel:${phoneNumber}`} className="hover:text-[#1D4FC4] transition-colors">
+                    <img alt="Phone" className="size-6" src={`${iconPath}/Phne.svg`} />
+                    <a className="transition-colors hover:text-[#1D4FC4]" href={`tel:${phoneNumber}`}>
                       {phoneNumber}
                     </a>
                   </div>
@@ -884,15 +880,15 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
             {/* Mobile only: Apply Now Button - Centered at bottom */}
             {!isEditing && (
-              <div className="@lg:!hidden flex justify-center relative z-10">
+              <div className="relative z-10 flex justify-center @lg:!hidden">
                 <Button
                   asChild
-                  className="text-white font-semibold px-12 py-3 shadow-lg text-lg rounded-lg w-full"
+                  className="w-full rounded-lg px-12 py-3 text-lg font-semibold text-white shadow-lg"
                   style={{
                     background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                   }}
                 >
-                  <a href={profile.arrive || '#'} target="_blank" rel="noopener noreferrer">
+                  <a href={profile.arrive || '#'} rel="noopener noreferrer" target="_blank">
                     Apply Now
                   </a>
                 </Button>
@@ -901,43 +897,43 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
             {/* Edit Mode Fields - Personal Information */}
             {isEditing && (
-              <div className="space-y-4 relative z-10">
+              <div className="relative z-10 space-y-4">
                 <FloatingInput
+                  className="bg-white/90"
                   id="display-name-profile"
                   label="Display Name"
-                  value={profile.display_name || ''}
                   onChange={(e) => setProfile({...profile, display_name: e.target.value})}
-                  className="bg-white/90"
+                  value={profile.display_name || ''}
                 />
                 <FloatingInput
+                  className="bg-white/90"
                   id="email-profile"
                   label="Email"
+                  onChange={(e) => setProfile({...profile, email: e.target.value})}
                   type="email"
                   value={profile.email}
-                  onChange={(e) => setProfile({...profile, email: e.target.value})}
-                  className="bg-white/90"
                 />
                 <FloatingInput
+                  className="bg-white/90"
                   id="phone-profile"
                   label="Phone"
+                  onChange={(e) => setProfile({...profile, phone_number: e.target.value})}
                   type="tel"
                   value={phoneNumber || ''}
-                  onChange={(e) => setProfile({...profile, phone_number: e.target.value})}
-                  className="bg-white/90"
                 />
                 <FloatingInput
+                  className="bg-white/90"
                   id="title-edit"
                   label="Job Title"
-                  value={profile.job_title || ''}
                   onChange={(e) => setProfile({...profile, job_title: e.target.value})}
-                  className="bg-white/90"
+                  value={profile.job_title || ''}
                 />
                 <FloatingInput
+                  className="bg-white/90"
                   id="location-edit"
                   label="Location"
-                  value={profile.city_state || ''}
                   onChange={(e) => setProfile({...profile, city_state: e.target.value})}
-                  className="bg-white/90"
+                  value={profile.city_state || ''}
                 />
 
                 {/* Directory Button Settings */}
@@ -948,53 +944,53 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
                   </p>
                   <div className="space-y-2">
                     <label
-                      className="flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors hover:bg-gray-50"
+                      className="flex cursor-pointer items-center gap-3 rounded-lg border-2 p-3 transition-colors hover:bg-gray-50"
                       style={{
-                        borderColor: profile.directory_button_type === 'schedule' ? '#2563eb' : '#e5e7eb',
-                        backgroundColor: profile.directory_button_type === 'schedule' ? '#eff6ff' : 'white'
+                        backgroundColor: profile.directory_button_type === 'schedule' ? '#eff6ff' : 'white',
+                        borderColor: profile.directory_button_type === 'schedule' ? '#2563eb' : '#e5e7eb'
                       }}
                     >
                       <input
-                        type="radio"
-                        name="directory_button"
-                        value="schedule"
                         checked={profile.directory_button_type === 'schedule'}
+                        className="size-4"
+                        name="directory_button"
                         onChange={(e) => setProfile({...profile, directory_button_type: e.target.value as 'schedule' | 'call' | 'contact'})}
-                        className="w-4 h-4"
+                        type="radio"
+                        value="schedule"
                       />
                       <span className="text-sm font-medium">Schedule a Meeting</span>
                     </label>
                     <label
-                      className="flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors hover:bg-gray-50"
+                      className="flex cursor-pointer items-center gap-3 rounded-lg border-2 p-3 transition-colors hover:bg-gray-50"
                       style={{
-                        borderColor: profile.directory_button_type === 'call' ? '#2563eb' : '#e5e7eb',
-                        backgroundColor: profile.directory_button_type === 'call' ? '#eff6ff' : 'white'
+                        backgroundColor: profile.directory_button_type === 'call' ? '#eff6ff' : 'white',
+                        borderColor: profile.directory_button_type === 'call' ? '#2563eb' : '#e5e7eb'
                       }}
                     >
                       <input
-                        type="radio"
-                        name="directory_button"
-                        value="call"
                         checked={profile.directory_button_type === 'call'}
+                        className="size-4"
+                        name="directory_button"
                         onChange={(e) => setProfile({...profile, directory_button_type: e.target.value as 'schedule' | 'call' | 'contact'})}
-                        className="w-4 h-4"
+                        type="radio"
+                        value="call"
                       />
                       <span className="text-sm font-medium">Call Me</span>
                     </label>
                     <label
-                      className="flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors hover:bg-gray-50"
+                      className="flex cursor-pointer items-center gap-3 rounded-lg border-2 p-3 transition-colors hover:bg-gray-50"
                       style={{
-                        borderColor: profile.directory_button_type === 'contact' ? '#2563eb' : '#e5e7eb',
-                        backgroundColor: profile.directory_button_type === 'contact' ? '#eff6ff' : 'white'
+                        backgroundColor: profile.directory_button_type === 'contact' ? '#eff6ff' : 'white',
+                        borderColor: profile.directory_button_type === 'contact' ? '#2563eb' : '#e5e7eb'
                       }}
                     >
                       <input
-                        type="radio"
-                        name="directory_button"
-                        value="contact"
                         checked={profile.directory_button_type === 'contact'}
+                        className="size-4"
+                        name="directory_button"
                         onChange={(e) => setProfile({...profile, directory_button_type: e.target.value as 'schedule' | 'call' | 'contact'})}
-                        className="w-4 h-4"
+                        type="radio"
+                        value="contact"
                       />
                       <span className="text-sm font-medium">Contact Form</span>
                     </label>
@@ -1006,29 +1002,29 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
         </Card>
 
         {/* Right Column: Action Buttons + Service Areas */}
-        <div className="space-y-4 h-full flex flex-col" style={{ backgroundColor: 'white' }}>
+        <div className="flex h-full flex-col space-y-4" style={{ backgroundColor: 'white' }}>
           {/* Action Buttons Card */}
           {!isEditing && (
-            <Card className="@container shadow-lg rounded-sm border border-gray-200">
+            <Card className="rounded-sm border border-gray-200 shadow-lg @container">
               <CardContent className="pt-6">
                 <div className="flex flex-col gap-3">
                   <Button
-                    variant="outline"
+                    className="relative w-full overflow-hidden whitespace-nowrap border-0 bg-white px-6 py-2 font-semibold shadow-lg transition-all hover:bg-gray-50"
                     onClick={generateVCard}
-                    className="font-semibold px-6 py-2 shadow-lg whitespace-nowrap bg-white hover:bg-gray-50 transition-all border-0 relative overflow-hidden w-full"
                     style={{
+                      backgroundClip: 'padding-box, border-box',
                       backgroundImage: 'linear-gradient(white, white), linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                       backgroundOrigin: 'padding-box, border-box',
-                      backgroundClip: 'padding-box, border-box',
                       border: '2px solid transparent',
                     }}
+                    variant="outline"
                   >
                     <span
                       className="font-semibold"
                       style={{
-                        background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
+                        background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                         backgroundClip: 'text',
                       }}
                     >
@@ -1036,7 +1032,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
                     </span>
                   </Button>
                   <Button
-                    variant="outline"
+                    className="relative w-full overflow-hidden whitespace-nowrap border-0 bg-white px-6 py-2 font-semibold shadow-lg transition-all hover:bg-gray-50"
                     onClick={() => {
                       if (profile?.scheduling_url) {
                         // If scheduling is set up, open the scheduling page
@@ -1049,66 +1045,66 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
                         setShowSchedulingModal(true);
                       }
                     }}
-                    className="font-semibold px-6 py-2 shadow-lg whitespace-nowrap bg-white hover:bg-gray-50 transition-all border-0 relative overflow-hidden w-full"
                     style={{
+                      backgroundClip: 'padding-box, border-box',
                       backgroundImage: 'linear-gradient(white, white), linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                       backgroundOrigin: 'padding-box, border-box',
-                      backgroundClip: 'padding-box, border-box',
                       border: '2px solid transparent',
                     }}
+                    variant="outline"
                   >
                     <span
-                      className="font-semibold flex items-center gap-2"
+                      className="flex items-center gap-2 font-semibold"
                       style={{
-                        background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
+                        background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                         backgroundClip: 'text',
                       }}
                     >
                       {profile?.scheduling_url ? (
                         <>
-                          <Calendar className="h-4 w-4" style={{ color: '#2563eb' }} />
+                          <Calendar className="size-4" style={{ color: '#2563eb' }} />
                           Schedule Meeting
                         </>
                       ) : isPublicView ? (
                         <>
-                          <MessageSquare className="h-4 w-4" style={{ color: '#2563eb' }} />
+                          <MessageSquare className="size-4" style={{ color: '#2563eb' }} />
                           Request Meeting
                         </>
                       ) : (
                         <>
-                          <Settings className="h-4 w-4" style={{ color: '#2563eb' }} />
+                          <Settings className="size-4" style={{ color: '#2563eb' }} />
                           Set Up Scheduling
                         </>
                       )}
                     </span>
                   </Button>
                   <Button
-                    variant="outline"
+                    className="relative w-full overflow-hidden whitespace-nowrap border-0 bg-white px-6 py-2 font-semibold shadow-lg transition-all hover:bg-gray-50"
                     onClick={() => {
                       if (phoneNumber) {
                         window.location.href = `tel:${phoneNumber}`;
                       }
                     }}
-                    className="font-semibold px-6 py-2 shadow-lg whitespace-nowrap bg-white hover:bg-gray-50 transition-all border-0 relative overflow-hidden w-full"
                     style={{
+                      backgroundClip: 'padding-box, border-box',
                       backgroundImage: 'linear-gradient(white, white), linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                       backgroundOrigin: 'padding-box, border-box',
-                      backgroundClip: 'padding-box, border-box',
                       border: '2px solid transparent',
                     }}
+                    variant="outline"
                   >
                     <span
-                      className="font-semibold flex items-center gap-2"
+                      className="flex items-center gap-2 font-semibold"
                       style={{
-                        background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
+                        background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                         backgroundClip: 'text',
                       }}
                     >
-                      <Phone className="h-4 w-4" style={{ color: '#2563eb' }} />
+                      <Phone className="size-4" style={{ color: '#2563eb' }} />
                       Call Me
                     </span>
                   </Button>
@@ -1118,10 +1114,10 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
           )}
 
           {/* Service Areas Card */}
-          <Card className="@container shadow-lg rounded-sm border border-gray-200 flex-1" style={{ backgroundColor: 'white' }}>
+          <Card className="flex-1 rounded-sm border border-gray-200 shadow-lg @container" style={{ backgroundColor: 'white' }}>
             <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
-                <MapPin className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2 text-base font-semibold text-gray-900">
+                <MapPin className="size-5" />
                 Service Areas
               </CardTitle>
             </CardHeader>
@@ -1131,16 +1127,14 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
                 <div className="space-y-3">
                   <div className="flex gap-2">
                     <FloatingInput
+                      className="flex-1 bg-white"
                       id="service-state"
                       label="State"
-                      value={serviceAreaInput}
                       onChange={(e) => setServiceAreaInput(e.target.value)}
-                      className="bg-white flex-1"
+                      value={serviceAreaInput}
                     />
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      type="button"
+                      className="text-blue-500 hover:bg-blue-50 hover:text-blue-600"
                       onClick={() => {
                         if (serviceAreaInput.trim() !== '') {
                           setProfile({
@@ -1150,9 +1144,11 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
                           setServiceAreaInput('');
                         }
                       }}
-                      className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
+                      size="icon"
+                      type="button"
+                      variant="ghost"
                     >
-                      <PlusCircle className="h-5 w-5" />
+                      <PlusCircle className="size-5" />
                     </Button>
                   </div>
                   {profile.service_areas && profile.service_areas.length > 0 && (
@@ -1160,16 +1156,16 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
                       <Label className="text-sm font-medium">States Added</Label>
                       <div className="flex flex-wrap gap-2">
                         {profile.service_areas.map((area: string, index: number) => (
-                          <Badge key={index} variant="secondary" className="text-xs flex items-center gap-1">
+                          <Badge className="flex items-center gap-1 text-xs" key={index} variant="secondary">
                             {area}
                             <button
+                              className="ml-1 hover:text-red-600"
                               onClick={() => {
                                 setProfile({
                                   ...profile,
                                   service_areas: profile.service_areas?.filter((_: string, i: number) => i !== index)
                                 });
                               }}
-                              className="ml-1 hover:text-red-600"
                             >
                               ×
                             </button>
@@ -1189,13 +1185,13 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
                         // Display as state card with SVG
                         return (
                           <div
+                            className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-gray-200 bg-white px-2 pb-3 pt-0.5 transition-all hover:border-blue-400 hover:shadow-md"
                             key={index}
-                            className="flex flex-col items-center justify-center pt-0.5 pb-3 px-2 rounded-lg border-2 border-gray-200 bg-white hover:border-blue-400 hover:shadow-md transition-all cursor-pointer aspect-square"
                           >
                             <img
-                              src={stateInfo.svgUrl}
                               alt={stateInfo.abbr}
-                              className="w-16 h-16 mb-1 object-contain"
+                              className="mb-1 size-16 object-contain"
+                              src={stateInfo.svgUrl}
                             />
                             <span className="text-sm font-semibold text-gray-700">{stateInfo.abbr}</span>
                           </div>
@@ -1205,16 +1201,16 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
                       // Fallback for non-state service areas (cities, zip codes, etc.)
                       return (
                         <div
+                          className="flex aspect-square flex-col items-center justify-center rounded-lg border-2 border-gray-200 bg-white px-2 pb-3 pt-0.5 transition-all hover:border-blue-400 hover:shadow-md"
                           key={index}
-                          className="flex flex-col items-center justify-center pt-0.5 pb-3 px-2 rounded-lg border-2 border-gray-200 bg-white hover:border-blue-400 hover:shadow-md transition-all aspect-square"
                         >
-                          <MapPin className="w-12 h-12 mb-1 text-gray-500" />
-                          <span className="text-xs font-medium text-gray-700 text-center break-words">{area}</span>
+                          <MapPin className="mb-1 size-12 text-gray-500" />
+                          <span className="break-words text-center text-xs font-medium text-gray-700">{area}</span>
                         </div>
                       );
                     })
                   ) : (
-                    <p className="text-sm text-gray-500 italic col-span-4">No service areas specified.</p>
+                    <p className="col-span-4 text-sm italic text-gray-500">No service areas specified.</p>
                   )}
                 </div>
               )}
@@ -1224,12 +1220,12 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
       </div>
 
       {/* Second Row: Biography + Specialties & Credentials */}
-      <div className="grid grid-cols-1 @lg:!grid-cols-[65%,35%] gap-4 mb-4">
+      <div className="mb-4 grid grid-cols-1 gap-4 @lg:!grid-cols-[65%,35%]">
         {/* Biography Card */}
-        <Card className="@container shadow-lg rounded-sm border border-gray-200 h-full">
+        <Card className="h-full rounded-sm border border-gray-200 shadow-lg @container">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
-            <FileText className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 text-base font-semibold text-gray-900">
+            <FileText className="size-5" />
             Professional Biography
           </CardTitle>
         </CardHeader>
@@ -1237,13 +1233,13 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
           {/* Biography editing will be implemented in Professional Details section */}
           {isEditing ? (
             <RichTextEditor
-              value={profile.biography || ''}
               onChange={(value) => setProfile({...profile, biography: value})}
               placeholder="Share your professional background..."
+              value={profile.biography || ''}
             />
           ) : (
             <div
-              className="text-sm text-gray-700 prose prose-sm max-w-none"
+              className="prose prose-sm max-w-none text-sm text-gray-700"
               dangerouslySetInnerHTML={{ __html: profile.biography || '<p class="text-gray-500 italic">No biography provided.</p>' }}
             />
           )}
@@ -1251,20 +1247,20 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
       </Card>
 
         {/* Specialties & Credentials Card */}
-        <Card className="@container shadow-lg rounded-sm border border-gray-200 h-full">
+        <Card className="h-full rounded-sm border border-gray-200 shadow-lg @container">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
-              <CheckSquare className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-base font-semibold text-gray-900">
+              <CheckSquare className="size-5" />
               Specialties & Credentials
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
           {/* Loan Officer Specialties */}
           <div>
-            <Label className="text-sm font-medium mb-2 block">Loan Officer Specialties</Label>
+            <Label className="mb-2 block text-sm font-medium">Loan Officer Specialties</Label>
             {/* Specialties editing will be implemented in Professional Details section */}
             {isEditing ? (
-              <div className="grid grid-cols-1 @lg:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 gap-2 @lg:grid-cols-3">
                 {[
                   'Residential Mortgages',
                   'Consumer Loans',
@@ -1277,10 +1273,10 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
                   'USDA Rural Loans',
                   'Bridge Loans'
                 ].map((specialty) => (
-                  <label key={specialty} className="flex items-center space-x-2 cursor-pointer">
+                  <label className="flex cursor-pointer items-center space-x-2" key={specialty}>
                     <input
-                      type="checkbox"
                       checked={profile.specialties_lo?.includes(specialty) || false}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       onChange={(e) => {
                         if (e.target.checked) {
                           setProfile({
@@ -1294,7 +1290,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
                           });
                         }
                       }}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      type="checkbox"
                     />
                     <span className="text-sm text-gray-700">{specialty}</span>
                   </label>
@@ -1304,12 +1300,12 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
               <div className="flex flex-wrap gap-2">
                 {profile.specialties_lo && profile.specialties_lo.length > 0 ? (
                   profile.specialties_lo.map((specialty) => (
-                    <Badge key={specialty} variant="secondary" className="text-xs">
+                    <Badge className="text-xs" key={specialty} variant="secondary">
                       {specialty}
                     </Badge>
                   ))
                 ) : (
-                  <p className="text-xs text-gray-500 italic">No specialties selected</p>
+                  <p className="text-xs italic text-gray-500">No specialties selected</p>
                 )}
               </div>
             )}
@@ -1317,20 +1313,20 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
           {/* NAMB Certifications */}
           <div>
-            <Label className="text-sm font-medium mb-2 block">NAMB Certifications</Label>
+            <Label className="mb-2 block text-sm font-medium">NAMB Certifications</Label>
             {/* Certifications editing will be implemented in Professional Details section */}
             {isEditing ? (
-              <div className="grid grid-cols-1 @lg:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 gap-2 @lg:grid-cols-3">
                 {[
                   'CMC - Certified Mortgage Consultant',
                   'CRMS - Certified Residential Mortgage Specialist',
                   'GMA - General Mortgage Associate',
                   'CVLS - Certified Veterans Lending Specialist'
                 ].map((cert) => (
-                  <label key={cert} className="flex items-center space-x-2 cursor-pointer">
+                  <label className="flex cursor-pointer items-center space-x-2" key={cert}>
                     <input
-                      type="checkbox"
                       checked={profile.namb_certifications?.includes(cert) || false}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       onChange={(e) => {
                         if (e.target.checked) {
                           setProfile({
@@ -1344,7 +1340,7 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
                           });
                         }
                       }}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      type="checkbox"
                     />
                     <span className="text-sm text-gray-700">{cert}</span>
                   </label>
@@ -1354,12 +1350,12 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
               <div className="flex flex-wrap gap-2">
                 {profile.namb_certifications && profile.namb_certifications.length > 0 ? (
                   profile.namb_certifications.map((cert) => (
-                    <Badge key={cert} variant="secondary" className="text-xs bg-purple-100 text-purple-800">
+                    <Badge className="bg-purple-100 text-xs text-purple-800" key={cert} variant="secondary">
                       {cert}
                     </Badge>
                   ))
                 ) : (
-                  <p className="text-xs text-gray-500 italic">No certifications selected</p>
+                  <p className="text-xs italic text-gray-500">No certifications selected</p>
                 )}
               </div>
             )}
@@ -1369,38 +1365,36 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
       </div>
 
       {/* Third Row: Custom Links + Links & Social */}
-      <div className="grid grid-cols-1 @lg:!grid-cols-[65%,35%] gap-4 mb-4">
+      <div className="mb-4 grid grid-cols-1 gap-4 @lg:!grid-cols-[65%,35%]">
         {/* Custom Links Card */}
-        <Card className="@container shadow-lg rounded-sm border border-gray-200 h-full">
+        <Card className="h-full rounded-sm border border-gray-200 shadow-lg @container">
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
-            <Link2 className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2 text-base font-semibold text-gray-900">
+            <Link2 className="size-5" />
             Custom Links
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {isEditing ? (
             <div className="space-y-3">
-              <div className="grid grid-cols-[1fr,1fr,auto] gap-2 items-center">
+              <div className="grid grid-cols-[1fr,1fr,auto] items-center gap-2">
                 <FloatingInput
+                  className="bg-white"
                   id="link-title"
                   label="Link Title"
-                  value={customLinkInput.title}
                   onChange={(e) => setCustomLinkInput({...customLinkInput, title: e.target.value})}
-                  className="bg-white"
+                  value={customLinkInput.title}
                 />
                 <FloatingInput
+                  className="bg-white"
                   id="link-url"
                   label="URL"
+                  onChange={(e) => setCustomLinkInput({...customLinkInput, url: e.target.value})}
                   type="url"
                   value={customLinkInput.url}
-                  onChange={(e) => setCustomLinkInput({...customLinkInput, url: e.target.value})}
-                  className="bg-white"
                 />
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  type="button"
+                  className="-mt-1.5 text-blue-500 hover:bg-blue-50 hover:text-blue-600"
                   onClick={() => {
                     if (customLinkInput.title.trim() !== '' && customLinkInput.url.trim() !== '') {
                       setProfile({
@@ -1413,9 +1407,11 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
                       setCustomLinkInput({ title: '', url: '' });
                     }
                   }}
-                  className="text-blue-500 hover:text-blue-600 hover:bg-blue-50 -mt-1.5"
+                  size="icon"
+                  type="button"
+                  variant="ghost"
                 >
-                  <PlusCircle className="h-5 w-5" />
+                  <PlusCircle className="size-5" />
                 </Button>
               </div>
               {profile.custom_links && profile.custom_links.length > 0 && (
@@ -1423,19 +1419,19 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
                   <Label className="text-sm font-medium">Links Added</Label>
                   <div className="space-y-2">
                     {profile.custom_links.map((link: any, index: number) => (
-                      <div key={index} className="flex items-center gap-2 p-2 rounded border border-gray-200 bg-gray-50">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{link.title}</p>
-                          <p className="text-xs text-gray-500 truncate">{link.url}</p>
+                      <div className="flex items-center gap-2 rounded border border-gray-200 bg-gray-50 p-2" key={index}>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-gray-900">{link.title}</p>
+                          <p className="truncate text-xs text-gray-500">{link.url}</p>
                         </div>
                         <button
+                          className="px-2 text-red-500 hover:text-red-700"
                           onClick={() => {
                             setProfile({
                               ...profile,
                               custom_links: profile.custom_links?.filter((_: any, i: number) => i !== index)
                             });
                           }}
-                          className="text-red-500 hover:text-red-700 px-2"
                         >
                           ×
                         </button>
@@ -1450,25 +1446,25 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
               {profile.custom_links && Array.isArray(profile.custom_links) && profile.custom_links.length > 0 ? (
                 profile.custom_links.map((link: any, index: number) => (
                   <a
-                    key={index}
+                    className="group flex items-center justify-between rounded-lg border border-gray-200 p-3 transition-all hover:border-blue-400 hover:bg-blue-50/50"
                     href={link.url}
-                    target="_blank"
+                    key={index}
                     rel="noopener noreferrer"
-                    className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all group"
+                    target="_blank"
                   >
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-sm text-gray-900 group-hover:text-blue-600 transition-colors truncate">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="truncate text-sm font-semibold text-gray-900 transition-colors group-hover:text-blue-600">
                         {link.title}
                       </h4>
-                      <p className="text-xs text-gray-500 truncate mt-0.5">
+                      <p className="mt-0.5 truncate text-xs text-gray-500">
                         {link.url}
                       </p>
                     </div>
-                    <ExternalLink className="h-4 w-4 text-gray-400 group-hover:text-blue-600 flex-shrink-0 ml-2" />
+                    <ExternalLink className="ml-2 size-4 shrink-0 text-gray-400 group-hover:text-blue-600" />
                   </a>
                 ))
               ) : (
-                <p className="text-sm text-gray-500 italic text-center py-4">No custom links added yet.</p>
+                <p className="py-4 text-center text-sm italic text-gray-500">No custom links added yet.</p>
               )}
             </div>
           )}
@@ -1476,10 +1472,10 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
       </Card>
 
         {/* Links & Social Card */}
-        <Card className="@container shadow-lg rounded-sm border border-gray-200 h-full">
+        <Card className="h-full rounded-sm border border-gray-200 shadow-lg @container">
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
-              <Globe className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-base font-semibold text-gray-900">
+              <Globe className="size-5" />
               Links & Social
             </CardTitle>
           </CardHeader>
@@ -1491,49 +1487,49 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
                   <FloatingInput
                     id="website"
                     label="Website"
+                    onChange={(e) => setProfile({...profile, website: e.target.value})}
                     type="url"
                     value={profile.website || ''}
-                    onChange={(e) => setProfile({...profile, website: e.target.value})}
                   />
                   <FloatingInput
                     id="linkedin"
                     label="LinkedIn"
+                    onChange={(e) => setProfile({...profile, linkedin_url: e.target.value})}
                     type="url"
                     value={profile.linkedin_url || ''}
-                    onChange={(e) => setProfile({...profile, linkedin_url: e.target.value})}
                   />
                   <FloatingInput
                     id="facebook"
                     label="Facebook"
+                    onChange={(e) => setProfile({...profile, facebook_url: e.target.value})}
                     type="url"
                     value={profile.facebook_url || ''}
-                    onChange={(e) => setProfile({...profile, facebook_url: e.target.value})}
                   />
                   <FloatingInput
                     id="instagram"
                     label="Instagram"
+                    onChange={(e) => setProfile({...profile, instagram_url: e.target.value})}
                     type="url"
                     value={profile.instagram_url || ''}
-                    onChange={(e) => setProfile({...profile, instagram_url: e.target.value})}
                   />
                 </>
               ) : (
                 <>
-                  <div className="flex items-center gap-2 p-2 rounded border">
-                    <Globe className="h-4 w-4 text-gray-600" />
-                    <span className="text-xs truncate">{profile.website || 'Website'}</span>
+                  <div className="flex items-center gap-2 rounded border p-2">
+                    <Globe className="size-4 text-gray-600" />
+                    <span className="truncate text-xs">{profile.website || 'Website'}</span>
                   </div>
-                  <div className="flex items-center gap-2 p-2 rounded border">
-                    <Linkedin className="h-4 w-4 text-gray-600" />
-                    <span className="text-xs truncate">{profile.linkedin_url || 'LinkedIn'}</span>
+                  <div className="flex items-center gap-2 rounded border p-2">
+                    <Linkedin className="size-4 text-gray-600" />
+                    <span className="truncate text-xs">{profile.linkedin_url || 'LinkedIn'}</span>
                   </div>
-                  <div className="flex items-center gap-2 p-2 rounded border">
-                    <Facebook className="h-4 w-4 text-gray-600" />
-                    <span className="text-xs truncate">{profile.facebook_url || 'Facebook'}</span>
+                  <div className="flex items-center gap-2 rounded border p-2">
+                    <Facebook className="size-4 text-gray-600" />
+                    <span className="truncate text-xs">{profile.facebook_url || 'Facebook'}</span>
                   </div>
-                  <div className="flex items-center gap-2 p-2 rounded border">
-                    <Smartphone className="h-4 w-4 text-gray-600" />
-                    <span className="text-xs truncate">{profile.instagram_url || 'Instagram'}</span>
+                  <div className="flex items-center gap-2 rounded border p-2">
+                    <Smartphone className="size-4 text-gray-600" />
+                    <span className="truncate text-xs">{profile.instagram_url || 'Instagram'}</span>
                   </div>
                 </>
               )}
@@ -1544,23 +1540,24 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
       {/* Bottom Bar - Edit or Save/Cancel */}
       {!isPublicView && (
-        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[1290px] z-[999] bg-white border-t border-gray-200 shadow-lg">
-          <div className="px-4 py-3 flex items-center justify-end gap-3">
+        <div className="fixed inset-x-0 bottom-0 z-[999] w-full border-t border-gray-200 bg-white shadow-lg">
+          <div className="mx-auto flex max-w-[1290px] items-center justify-end gap-3 px-4 py-3">
             {!activeSection ? (
               <Button
+                className="px-8 py-2 font-semibold text-white"
                 onClick={() => setActiveSection('edit')}
-                className="text-white font-semibold px-8 py-2"
                 style={{
                   background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                 }}
               >
-                <Edit className="h-4 w-4 mr-2" />
+                <Edit className="mr-2 size-4" />
                 Edit Profile
               </Button>
             ) : (
               <>
                 <Button
-                  variant="outline"
+                  className="px-6"
+                  disabled={isSaving}
                   onClick={() => {
                     if (originalProfile) {
                       setProfile(originalProfile);
@@ -1568,15 +1565,16 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
                     setActiveSection(null);
                     setError(null);
                   }}
-                  disabled={isSaving}
-                  className="px-6"
+                  variant="outline"
                 >
-                  <X className="h-4 w-4 mr-2" />
+                  <X className="mr-2 size-4" />
                   Cancel
                 </Button>
                 <Button
+                  className="px-6 text-white"
+                  disabled={isSaving}
                   onClick={async () => {
-                    if (!profile) return;
+                    if (!profile) {return;}
 
                     setIsSaving(true);
                     setContextSaving(true);
@@ -1584,13 +1582,13 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
                     try {
                       const response = await fetch(`/wp-json/frs-users/v1/profiles/${profile.id}`, {
-                        method: 'PUT',
+                        body: JSON.stringify(profile),
                         credentials: 'include',
                         headers: {
                           'Content-Type': 'application/json',
                           'X-WP-Nonce': (window as any).wpApiSettings?.nonce || (window as any).frsPortalConfig?.restNonce || ''
                         },
-                        body: JSON.stringify(profile)
+                        method: 'PUT'
                       });
 
                       if (response.ok) {
@@ -1603,22 +1601,22 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
                         const successMsg = document.createElement('div');
                         successMsg.className = 'fixed top-20 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
                         successMsg.textContent = 'Profile saved successfully!';
-                        document.body.appendChild(successMsg);
+                        document.body.append(successMsg);
                         setTimeout(() => successMsg.remove(), 3000);
                       } else {
                         const errorData = await response.json();
                         const errorMsg = document.createElement('div');
                         errorMsg.className = 'fixed top-20 right-6 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
                         errorMsg.textContent = errorData.message || 'Failed to save profile changes';
-                        document.body.appendChild(errorMsg);
+                        document.body.append(errorMsg);
                         setTimeout(() => errorMsg.remove(), 5000);
                         setError(errorData.message || 'Failed to save profile changes');
                       }
-                    } catch (err) {
+                    } catch {
                       const errorMsg = document.createElement('div');
                       errorMsg.className = 'fixed top-20 right-6 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
                       errorMsg.textContent = 'Network error - please try again';
-                      document.body.appendChild(errorMsg);
+                      document.body.append(errorMsg);
                       setTimeout(() => errorMsg.remove(), 5000);
                       setError('Failed to save profile changes');
                     } finally {
@@ -1626,20 +1624,18 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
                       setContextSaving(false);
                     }
                   }}
-                  disabled={isSaving}
-                  className="px-6 text-white"
                   style={{
                     background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                   }}
                 >
                   {isSaving ? (
                     <>
-                      <LoadingSpinner className="h-4 w-4 mr-2" />
+                      <LoadingSpinner className="mr-2 size-4" />
                       Saving...
                     </>
                   ) : (
                     <>
-                      <Save className="h-4 w-4 mr-2" />
+                      <Save className="mr-2 size-4" />
                       Save Changes
                     </>
                   )}
@@ -1652,54 +1648,54 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
       {/* Scheduling Setup Modal (Portal View Only) */}
       {showSchedulingModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-[90vw] max-w-4xl h-[80vh] flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="flex h-[80vh] w-[90vw] max-w-4xl flex-col rounded-lg bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b p-4">
+              <h2 className="flex items-center gap-2 text-lg font-semibold">
+                <Calendar className="size-5" />
                 Set Up Your Scheduling Calendar
               </h2>
               <Button
-                variant="ghost"
-                size="sm"
+                className="size-8 p-0"
                 onClick={() => setShowSchedulingModal(false)}
-                className="h-8 w-8 p-0"
+                size="sm"
+                variant="ghost"
               >
-                <X className="h-4 w-4" />
+                <X className="size-4" />
               </Button>
             </div>
             <div className="flex-1 overflow-hidden">
               <iframe
+                className="size-full border-0"
                 ref={setIframeRef}
                 src={`/my-bookings#/calendars/${profile?.calendar_id || 6}/settings/remote-calendars`}
-                className="w-full h-full border-0"
                 title="Calendar Setup"
               />
             </div>
-            <div className="flex items-center justify-end gap-3 p-4 border-t">
-              <p className="text-sm text-gray-500 flex-1">
-                Connect your calendar to enable scheduling. Click "Done" when finished.
+            <div className="flex items-center justify-end gap-3 border-t p-4">
+              <p className="flex-1 text-sm text-gray-500">
+                Connect your calendar to enable scheduling. Click &quot;Done&quot; when finished.
               </p>
               <Button
-                variant="outline"
                 onClick={() => setShowSchedulingModal(false)}
+                variant="outline"
               >
                 Cancel
               </Button>
               <Button
+                className="text-white"
                 onClick={() => {
                   setShowSchedulingModal(false);
                   // Show success message
                   const successMsg = document.createElement('div');
                   successMsg.className = 'fixed top-20 right-6 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
                   successMsg.textContent = 'Calendar setup complete!';
-                  document.body.appendChild(successMsg);
+                  document.body.append(successMsg);
                   setTimeout(() => successMsg.remove(), 3000);
                 }}
                 style={{
                   background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                 }}
-                className="text-white"
               >
                 Done
               </Button>
@@ -1710,18 +1706,19 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
 
       {/* Meeting Request Form (Public View - FluentForms via iframe) */}
       {showMeetingRequestForm && !meetingFormSubmitted && (
-        <div className="fixed inset-0 bg-white z-50 flex flex-col">
+        <div className="fixed inset-0 z-50 flex flex-col bg-white">
           {/* Back Button */}
           <button
+            className="absolute left-5 top-5 z-10 flex items-center gap-2 rounded-lg bg-white/80 px-3 py-2 text-base text-gray-600 backdrop-blur-sm hover:text-gray-900"
             onClick={() => setShowMeetingRequestForm(false)}
-            className="absolute top-5 left-5 text-gray-600 hover:text-gray-900 flex items-center gap-2 text-base z-10 bg-white/80 backdrop-blur-sm px-3 py-2 rounded-lg"
           >
             ← Back to Profile
           </button>
 
           {/* FluentForms Iframe - Form ID 7 is Schedule Appointment */}
-          <div className="flex-1 w-full">
+          <div className="w-full flex-1">
             <iframe
+              className="size-full border-0"
               ref={(iframe) => {
                 if (iframe) {
                   // Set up external link handler
@@ -1743,8 +1740,8 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
                         );
                         console.log('FluentForm listener attached to iframe');
                       }
-                    } catch (e) {
-                      console.log('Could not attach FluentForm listener:', e);
+                    } catch (error_) {
+                      console.log('Could not attach FluentForm listener:', error_);
                     }
                   };
 
@@ -1756,7 +1753,6 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
                 }
               }}
               src={`/?fluent-form=7&loan_officer_id=${profile?.user_id || ''}`}
-              className="w-full h-full border-0"
               title="Schedule Appointment Form"
             />
           </div>
@@ -1769,38 +1765,38 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
           {/* Video Background */}
           <video
             autoPlay
-            muted
+            className="absolute inset-0 size-full object-cover"
             loop
+            muted
             playsInline
-            className="absolute inset-0 w-full h-full object-cover"
           >
             <source src={gradientUrl} type="video/mp4" />
           </video>
 
           {/* Content Overlay */}
           <div className="absolute inset-0 flex items-center justify-center p-6">
-            <div className="text-center max-w-lg">
+            <div className="max-w-lg text-center">
               <h2
-                className="text-4xl md:text-5xl font-bold text-white mb-6"
+                className="mb-6 text-4xl font-bold text-white md:text-5xl"
                 style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
               >
                 Thank You!
               </h2>
 
               <p
-                className="text-white text-lg md:text-xl mb-10 leading-relaxed"
+                className="mb-10 text-lg leading-relaxed text-white md:text-xl"
                 style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.5)' }}
               >
                 Thanks for reaching out! {profile?.first_name} will personally review your information and get back to you soon.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+              <div className="mx-auto flex max-w-md flex-col gap-4 sm:flex-row">
                 <button
+                  className="flex-1 rounded-xl px-8 py-4 font-medium text-gray-900 transition-all hover:-translate-y-1"
                   onClick={() => {
                     setShowMeetingRequestForm(false);
                     setMeetingFormSubmitted(false);
                   }}
-                  className="flex-1 px-8 py-4 rounded-xl font-medium text-gray-900 transition-all hover:-translate-y-1"
                   style={{
                     background: 'linear-gradient(145deg, #f8f9fa, #e9ecef)',
                     boxShadow: '0 8px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04)',
@@ -1810,8 +1806,8 @@ export function ProfileEditorView({ userId, slug }: ProfileEditorViewProps) {
                 </button>
 
                 <button
+                  className="flex-1 rounded-xl px-8 py-4 font-medium text-gray-900 transition-all hover:-translate-y-1"
                   onClick={() => window.close()}
-                  className="flex-1 px-8 py-4 rounded-xl font-medium text-gray-900 transition-all hover:-translate-y-1"
                   style={{
                     background: 'linear-gradient(145deg, #f8f9fa, #e9ecef)',
                     boxShadow: '0 8px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04)',

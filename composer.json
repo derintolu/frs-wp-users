@@ -12,6 +12,7 @@
       "DataKit\\DataViews\\": "libs/datakit/src/"
     },
     "files": [
+      "libs/db.php",
       "libs/assets.php"
     ]
   },

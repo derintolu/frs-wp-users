@@ -18,28 +18,28 @@ import { Phone, Mail, MapPin, Award, Linkedin, Facebook, Instagram, Twitter } fr
  * Loan Officer Profile Data Interface
  */
 export interface LoanOfficerProfile {
-	id: number;
-	first_name: string;
-	last_name: string;
-	full_name: string;
-	email: string;
-	phone_number?: string;
-	mobile_number?: string;
-	job_title?: string;
-	headshot_url?: string;
-	biography?: string;
-	nmls_number?: string;
-	license_number?: string;
-	city_state?: string;
-	region?: string;
-	specialties_lo?: string[];
-	languages?: string[];
 	awards?: string[];
+	biography?: string;
+	city_state?: string;
+	email: string;
 	facebook_url?: string;
+	first_name: string;
+	full_name: string;
+	headshot_url?: string;
+	id: number;
 	instagram_url?: string;
+	job_title?: string;
+	languages?: string[];
+	last_name: string;
+	license_number?: string;
 	linkedin_url?: string;
-	twitter_url?: string;
+	mobile_number?: string;
+	nmls_number?: string;
+	phone_number?: string;
+	region?: string;
 	select_person_type?: string;
+	specialties_lo?: string[];
+	twitter_url?: string;
 }
 
 /**
@@ -48,20 +48,20 @@ export interface LoanOfficerProfile {
 const cardVariants = cva(
 	'transition-all duration-300 hover:shadow-lg',
 	{
-		variants: {
-			size: {
-				small: 'max-w-xs',
-				medium: 'max-w-md',
-				large: 'max-w-2xl',
-			},
-			audience: {
-				internal: 'border-blue-200 bg-blue-50/50',
-				external: 'border-gray-200 bg-white',
-			},
-		},
 		defaultVariants: {
-			size: 'medium',
 			audience: 'external',
+			size: 'medium',
+		},
+		variants: {
+			audience: {
+				external: 'border-gray-200 bg-white',
+				internal: 'border-blue-200 bg-blue-50/50',
+			},
+			size: {
+				large: 'max-w-2xl',
+				medium: 'max-w-md',
+				small: 'max-w-xs',
+			},
 		},
 	}
 );
@@ -77,10 +77,10 @@ export type DetailLevel = 'minimal' | 'standard' | 'full';
 export interface LoanOfficerCardProps
 	extends React.HTMLAttributes<HTMLDivElement>,
 		VariantProps<typeof cardVariants> {
-	profile: LoanOfficerProfile;
 	detailLevel?: DetailLevel;
-	showContactButtons?: boolean;
 	onContactClick?: (profile: LoanOfficerProfile, method: 'phone' | 'email') => void;
+	profile: LoanOfficerProfile;
+	showContactButtons?: boolean;
 }
 
 /**
@@ -94,8 +94,8 @@ const getInitials = (firstName: string, lastName: string): string => {
  * Format phone number for display
  */
 const formatPhone = (phone?: string): string | null => {
-	if (!phone) return null;
-	const cleaned = phone.replace(/\D/g, '');
+	if (!phone) {return null;}
+	const cleaned = phone.replaceAll(/\D/g, '');
 	if (cleaned.length === 10) {
 		return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
 	}
@@ -117,13 +117,13 @@ const formatPhone = (phone?: string): string | null => {
 export const LoanOfficerCard = React.forwardRef<HTMLDivElement, LoanOfficerCardProps>(
 	(
 		{
-			profile,
-			size = 'medium',
 			audience = 'external',
-			detailLevel = 'standard',
-			showContactButtons = true,
-			onContactClick,
 			className,
+			detailLevel = 'standard',
+			onContactClick,
+			profile,
+			showContactButtons = true,
+			size = 'medium',
 			...props
 		},
 		ref
@@ -133,16 +133,16 @@ export const LoanOfficerCard = React.forwardRef<HTMLDivElement, LoanOfficerCardP
 
 		// Social media links
 		const socialLinks = [
-			{ platform: 'linkedin', url: profile.linkedin_url, icon: Linkedin },
-			{ platform: 'facebook', url: profile.facebook_url, icon: Facebook },
-			{ platform: 'instagram', url: profile.instagram_url, icon: Instagram },
-			{ platform: 'twitter', url: profile.twitter_url, icon: Twitter },
+			{ icon: Linkedin, platform: 'linkedin', url: profile.linkedin_url },
+			{ icon: Facebook, platform: 'facebook', url: profile.facebook_url },
+			{ icon: Instagram, platform: 'instagram', url: profile.instagram_url },
+			{ icon: Twitter, platform: 'twitter', url: profile.twitter_url },
 		].filter(link => link.url);
 
 		return (
 			<Card
+				className={cn(cardVariants({ audience, size }), className)}
 				ref={ref}
-				className={cn(cardVariants({ size, audience }), className)}
 				{...props}
 			>
 				<CardHeader className={cn(
@@ -154,13 +154,13 @@ export const LoanOfficerCard = React.forwardRef<HTMLDivElement, LoanOfficerCardP
 					)}>
 						{/* Avatar */}
 						<Avatar className={cn(
-							size === 'small' ? 'h-16 w-16' : size === 'medium' ? 'h-20 w-20' : 'h-24 w-24'
+							size === 'small' ? 'size-16' : size === 'medium' ? 'size-20' : 'size-24'
 						)}>
 							<AvatarImage
-								src={profile.headshot_url}
 								alt={profile.full_name}
+								src={profile.headshot_url}
 							/>
-							<AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white text-lg font-semibold">
+							<AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-500 text-lg font-semibold text-white">
 								{getInitials(profile.first_name, profile.last_name)}
 							</AvatarFallback>
 						</Avatar>
@@ -181,7 +181,7 @@ export const LoanOfficerCard = React.forwardRef<HTMLDivElement, LoanOfficerCardP
 								</CardDescription>
 							)}
 							{profile.nmls_number && detailLevel !== 'minimal' && (
-								<Badge variant="outline" className="mt-2 text-xs">
+								<Badge className="mt-2 text-xs" variant="outline">
 									NMLS# {profile.nmls_number}
 								</Badge>
 							)}
@@ -196,7 +196,7 @@ export const LoanOfficerCard = React.forwardRef<HTMLDivElement, LoanOfficerCardP
 					)}>
 						{/* Biography - full detail only */}
 						{detailLevel === 'full' && profile.biography && (
-							<p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+							<p className="mb-4 line-clamp-3 text-sm text-muted-foreground">
 								{profile.biography}
 							</p>
 						)}
@@ -205,22 +205,22 @@ export const LoanOfficerCard = React.forwardRef<HTMLDivElement, LoanOfficerCardP
 						<div className="space-y-2">
 							{profile.city_state && (
 								<div className="flex items-center gap-2 text-sm text-muted-foreground">
-									<MapPin className="h-4 w-4 flex-shrink-0" />
+									<MapPin className="size-4 shrink-0" />
 									<span>{profile.city_state}</span>
 								</div>
 							)}
 							{profile.email && (
 								<div className="flex items-center gap-2 text-sm text-muted-foreground">
-									<Mail className="h-4 w-4 flex-shrink-0" />
-									<a href={`mailto:${profile.email}`} className="hover:text-foreground transition-colors">
+									<Mail className="size-4 shrink-0" />
+									<a className="transition-colors hover:text-foreground" href={`mailto:${profile.email}`}>
 										{profile.email}
 									</a>
 								</div>
 							)}
 							{formattedPhone && (
 								<div className="flex items-center gap-2 text-sm text-muted-foreground">
-									<Phone className="h-4 w-4 flex-shrink-0" />
-									<a href={`tel:${phone}`} className="hover:text-foreground transition-colors">
+									<Phone className="size-4 shrink-0" />
+									<a className="transition-colors hover:text-foreground" href={`tel:${phone}`}>
 										{formattedPhone}
 									</a>
 								</div>
@@ -230,10 +230,10 @@ export const LoanOfficerCard = React.forwardRef<HTMLDivElement, LoanOfficerCardP
 						{/* Specialties - standard and full detail */}
 						{profile.specialties_lo && profile.specialties_lo.length > 0 && (
 							<div className="mt-4">
-								<p className="text-xs font-semibold text-muted-foreground mb-2">Specialties</p>
+								<p className="mb-2 text-xs font-semibold text-muted-foreground">Specialties</p>
 								<div className="flex flex-wrap gap-1">
 									{profile.specialties_lo.slice(0, size === 'small' ? 2 : size === 'medium' ? 4 : 6).map((specialty, idx) => (
-										<Badge key={idx} variant="secondary" className="text-xs">
+										<Badge className="text-xs" key={idx} variant="secondary">
 											{specialty}
 										</Badge>
 									))}
@@ -244,10 +244,10 @@ export const LoanOfficerCard = React.forwardRef<HTMLDivElement, LoanOfficerCardP
 						{/* Languages - full detail only */}
 						{detailLevel === 'full' && profile.languages && profile.languages.length > 0 && (
 							<div className="mt-4">
-								<p className="text-xs font-semibold text-muted-foreground mb-2">Languages</p>
+								<p className="mb-2 text-xs font-semibold text-muted-foreground">Languages</p>
 								<div className="flex flex-wrap gap-1">
 									{profile.languages.map((language, idx) => (
-										<Badge key={idx} variant="outline" className="text-xs">
+										<Badge className="text-xs" key={idx} variant="outline">
 											{language}
 										</Badge>
 									))}
@@ -258,11 +258,11 @@ export const LoanOfficerCard = React.forwardRef<HTMLDivElement, LoanOfficerCardP
 						{/* Awards - full detail only */}
 						{detailLevel === 'full' && profile.awards && profile.awards.length > 0 && (
 							<div className="mt-4">
-								<div className="flex items-center gap-2 mb-2">
-									<Award className="h-4 w-4 text-muted-foreground" />
+								<div className="mb-2 flex items-center gap-2">
+									<Award className="size-4 text-muted-foreground" />
 									<p className="text-xs font-semibold text-muted-foreground">Awards & Recognition</p>
 								</div>
-								<ul className="text-xs text-muted-foreground space-y-1">
+								<ul className="space-y-1 text-xs text-muted-foreground">
 									{profile.awards.slice(0, 3).map((award, idx) => (
 										<li key={idx}>• {award}</li>
 									))}
@@ -273,16 +273,16 @@ export const LoanOfficerCard = React.forwardRef<HTMLDivElement, LoanOfficerCardP
 						{/* Social Links - standard and full */}
 						{socialLinks.length > 0 && (
 							<div className="mt-4 flex gap-2">
-								{socialLinks.map(({ platform, url, icon: Icon }) => (
+								{socialLinks.map(({ icon: Icon, platform, url }) => (
 									<a
-										key={platform}
-										href={url}
-										target="_blank"
-										rel="noopener noreferrer"
-										className="text-muted-foreground hover:text-foreground transition-colors"
 										aria-label={platform}
+										className="text-muted-foreground transition-colors hover:text-foreground"
+										href={url}
+										key={platform}
+										rel="noopener noreferrer"
+										target="_blank"
 									>
-										<Icon className="h-5 w-5" />
+										<Icon className="size-5" />
 									</a>
 								))}
 							</div>
@@ -299,28 +299,28 @@ export const LoanOfficerCard = React.forwardRef<HTMLDivElement, LoanOfficerCardP
 					)}>
 						{formattedPhone && (
 							<Button
-								variant={size === 'large' ? 'default' : 'outline'}
-								size={size === 'small' ? 'sm' : 'default'}
+								asChild
 								className="w-full"
 								onClick={() => onContactClick?.(profile, 'phone')}
-								asChild
+								size={size === 'small' ? 'sm' : 'default'}
+								variant={size === 'large' ? 'default' : 'outline'}
 							>
 								<a href={`tel:${phone}`}>
-									<Phone className="mr-2 h-4 w-4" />
+									<Phone className="mr-2 size-4" />
 									Call Now
 								</a>
 							</Button>
 						)}
 						{profile.email && (
 							<Button
-								variant={size === 'large' ? 'default' : 'outline'}
-								size={size === 'small' ? 'sm' : 'default'}
+								asChild
 								className="w-full"
 								onClick={() => onContactClick?.(profile, 'email')}
-								asChild
+								size={size === 'small' ? 'sm' : 'default'}
+								variant={size === 'large' ? 'default' : 'outline'}
 							>
 								<a href={`mailto:${profile.email}`}>
-									<Mail className="mr-2 h-4 w-4" />
+									<Mail className="mr-2 size-4" />
 									Send Email
 								</a>
 							</Button>

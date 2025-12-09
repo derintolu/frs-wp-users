@@ -38,53 +38,53 @@ export function Dashboard() {
       <div className="hidden border-r bg-muted/40 md:block">
         <div className="flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-            <Link href="/" className="flex items-center gap-2 font-semibold">
-              <Package2 className="h-6 w-6" />
+            <Link className="flex items-center gap-2 font-semibold" href="/">
+              <Package2 className="size-6" />
               <span className="">Acme Inc</span>
             </Link>
-            <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
-              <Bell className="h-4 w-4" />
+            <Button className="ml-auto size-8" size="icon" variant="outline">
+              <Bell className="size-4" />
               <span className="sr-only">Toggle notifications</span>
             </Button>
           </div>
           <div className="flex-1">
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
               <Link
-                href="#"
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                href="#"
               >
-                <Home className="h-4 w-4" />
+                <Home className="size-4" />
                 Dashboard
               </Link>
               <Link
-                href="#"
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                href="#"
               >
-                <ShoppingCart className="h-4 w-4" />
+                <ShoppingCart className="size-4" />
                 Orders
-                <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
+                <Badge className="ml-auto flex size-6 shrink-0 items-center justify-center rounded-full">
                   6
                 </Badge>
               </Link>
               <Link
-                href="#"
                 className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
+                href="#"
               >
-                <Package className="h-4 w-4" />
+                <Package className="size-4" />
                 Products{" "}
               </Link>
               <Link
-                href="#"
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                href="#"
               >
-                <Users className="h-4 w-4" />
+                <Users className="size-4" />
                 Customers
               </Link>
               <Link
-                href="#"
                 className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                href="#"
               >
-                <LineChart className="h-4 w-4" />
+                <LineChart className="size-4" />
                 Analytics
               </Link>
             </nav>
@@ -99,7 +99,7 @@ export function Dashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
-                <Button size="sm" className="w-full">
+                <Button className="w-full" size="sm">
                   Upgrade
                 </Button>
               </CardContent>
@@ -112,59 +112,59 @@ export function Dashboard() {
           <Sheet>
             <SheetTrigger asChild>
               <Button
-                variant="outline"
-                size="icon"
                 className="shrink-0 md:hidden"
+                size="icon"
+                variant="outline"
               >
-                <Menu className="h-5 w-5" />
+                <Menu className="size-5" />
                 <span className="sr-only">Toggle navigation menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="flex flex-col">
+            <SheetContent className="flex flex-col" side="left">
               <nav className="grid gap-2 text-lg font-medium">
                 <Link
-                  href="#"
                   className="flex items-center gap-2 text-lg font-semibold"
+                  href="#"
                 >
-                  <Package2 className="h-6 w-6" />
+                  <Package2 className="size-6" />
                   <span className="sr-only">Acme Inc</span>
                 </Link>
                 <Link
-                  href="#"
                   className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
+                  href="#"
                 >
-                  <Home className="h-5 w-5" />
+                  <Home className="size-5" />
                   Dashboard
                 </Link>
                 <Link
-                  href="#"
                   className="mx-[-0.65rem] flex items-center gap-4 rounded-xl bg-muted px-3 py-2 text-foreground hover:text-foreground"
+                  href="#"
                 >
-                  <ShoppingCart className="h-5 w-5" />
+                  <ShoppingCart className="size-5" />
                   Orders
-                  <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
+                  <Badge className="ml-auto flex size-6 shrink-0 items-center justify-center rounded-full">
                     6
                   </Badge>
                 </Link>
                 <Link
-                  href="#"
                   className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
+                  href="#"
                 >
-                  <Package className="h-5 w-5" />
+                  <Package className="size-5" />
                   Products
                 </Link>
                 <Link
-                  href="#"
                   className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
+                  href="#"
                 >
-                  <Users className="h-5 w-5" />
+                  <Users className="size-5" />
                   Customers
                 </Link>
                 <Link
-                  href="#"
                   className="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground"
+                  href="#"
                 >
-                  <LineChart className="h-5 w-5" />
+                  <LineChart className="size-5" />
                   Analytics
                 </Link>
               </nav>
@@ -178,7 +178,7 @@ export function Dashboard() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button size="sm" className="w-full">
+                    <Button className="w-full" size="sm">
                       Upgrade
                     </Button>
                   </CardContent>
@@ -189,19 +189,19 @@ export function Dashboard() {
           <div className="w-full flex-1">
             <form>
               <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
                 <Input
-                  type="search"
-                  placeholder="Search products..."
                   className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
+                  placeholder="Search products..."
+                  type="search"
                 />
               </div>
             </form>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="secondary" size="icon" className="rounded-full">
-                <CircleUser className="h-5 w-5" />
+              <Button className="rounded-full" size="icon" variant="secondary">
+                <CircleUser className="size-5" />
                 <span className="sr-only">Toggle user menu</span>
               </Button>
             </DropdownMenuTrigger>
@@ -220,7 +220,7 @@ export function Dashboard() {
             <h1 className="text-lg font-semibold md:text-2xl">Inventory</h1>
           </div>
           <div
-            className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm" x-chunk="dashboard-02-chunk-1"
+            className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm" data-chunk="dashboard-02-chunk-1"
           >
             <div className="flex flex-col items-center gap-1 text-center">
               <h3 className="text-2xl font-bold tracking-tight">

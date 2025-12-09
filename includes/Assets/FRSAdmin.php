@@ -88,12 +88,11 @@ class FRSAdmin {
 		$assets_url = FRS_USERS_URL . 'assets/admin/dist';
 
 		// Production mode - load built assets
-		$manifest_path = $assets_dir . '/manifest.json';
+		$manifest_path = \FRSUsers\Libs\Assets\get_manifest_path( $assets_dir );
 
-		error_log( 'FRSAdmin: Manifest path = ' . $manifest_path );
-		error_log( 'FRSAdmin: Manifest exists = ' . ( file_exists( $manifest_path ) ? 'yes' : 'no' ) );
+		error_log( 'FRSAdmin: Manifest path = ' . ( $manifest_path ?: 'not found' ) );
 
-		if ( file_exists( $manifest_path ) ) {
+		if ( $manifest_path ) {
 			$manifest = json_decode( file_get_contents( $manifest_path ), true );
 
 			error_log( 'FRSAdmin: Manifest = ' . print_r( $manifest, true ) );

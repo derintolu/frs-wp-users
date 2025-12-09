@@ -9,8 +9,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import QRCodeStyling from 'qr-code-styling';
 import {
-  Phone,
-  Mail,
   MapPin,
   Globe,
   Linkedin,
@@ -19,48 +17,48 @@ import {
 } from 'lucide-react';
 
 interface ProfileHeaderProps {
+  bpPluginUrl: string;
+  coverImageUrl?: string;
+  friendCount?: number;
+  gradientUrl: string;
+  groupCount?: number;
+  iconPath: string;
+  isOwnProfile?: boolean;
+  lastActivity?: { timediff: string };
   profile: {
-    first_name: string;
-    last_name: string;
+    arrive?: string;
+    city_state?: string;
     email?: string;
-    phone_number?: string;
-    mobile_number?: string;
-    job_title?: string;
+    facebook_url?: string;
+    first_name: string;
     headshot_url?: string;
+    instagram_url?: string;
+    job_title?: string;
+    last_name: string;
+    linkedin_url?: string;
+    mobile_number?: string;
     nmls_id?: string;
     nmls_number?: string;
-    city_state?: string;
-    linkedin_url?: string;
-    facebook_url?: string;
-    instagram_url?: string;
-    twitter_url?: string;
-    youtube_url?: string;
-    website?: string;
+    phone_number?: string;
     profile_slug?: string;
-    arrive?: string;
+    twitter_url?: string;
+    website?: string;
+    youtube_url?: string;
   };
-  coverImageUrl?: string;
-  gradientUrl: string;
-  iconPath: string;
-  bpPluginUrl: string;
   showBPStats?: boolean;
-  lastActivity?: { timediff: string };
-  friendCount?: number;
-  groupCount?: number;
-  isOwnProfile?: boolean;
 }
 
 export function ProfileHeader({
-  profile,
-  coverImageUrl,
-  gradientUrl,
-  iconPath,
   bpPluginUrl,
-  showBPStats = false,
-  lastActivity,
-  isOwnProfile = true,
+  coverImageUrl,
   friendCount = 0,
+  gradientUrl,
   groupCount = 0,
+  iconPath,
+  isOwnProfile = true,
+  lastActivity,
+  profile,
+  showBPStats = false,
 }: ProfileHeaderProps) {
   const [showQRCode, setShowQRCode] = useState(false);
   const qrCodeRef = useRef<HTMLDivElement>(null);
@@ -78,46 +76,46 @@ export function ProfileHeader({
       const profileUrl = `${siteUrl}/profile/${profileSlug}`;
 
       const qrCode = new QRCodeStyling({
-        type: 'canvas',
-        width: 85,
-        height: 85,
-        data: profileUrl,
-        dotsOptions: {
-          type: 'extra-rounded',
-          gradient: {
-            type: 'linear',
-            rotation: 0,
-            colorStops: [
-              { offset: 0, color: '#2563eb' },
-              { offset: 1, color: '#2dd4da' }
-            ]
-          }
-        },
         backgroundOptions: {
           color: '#ffffff'
         },
-        cornersSquareOptions: {
-          type: 'extra-rounded',
-          gradient: {
-            type: 'linear',
-            rotation: 0,
-            colorStops: [
-              { offset: 0, color: '#2563eb' },
-              { offset: 1, color: '#2dd4da' }
-            ]
-          }
-        },
         cornersDotOptions: {
-          type: 'dot',
           gradient: {
-            type: 'linear',
-            rotation: 0,
             colorStops: [
-              { offset: 0, color: '#2563eb' },
-              { offset: 1, color: '#2dd4da' }
-            ]
-          }
-        }
+              { color: '#2563eb', offset: 0 },
+              { color: '#2dd4da', offset: 1 }
+            ],
+            rotation: 0,
+            type: 'linear'
+          },
+          type: 'dot'
+        },
+        cornersSquareOptions: {
+          gradient: {
+            colorStops: [
+              { color: '#2563eb', offset: 0 },
+              { color: '#2dd4da', offset: 1 }
+            ],
+            rotation: 0,
+            type: 'linear'
+          },
+          type: 'extra-rounded'
+        },
+        data: profileUrl,
+        dotsOptions: {
+          gradient: {
+            colorStops: [
+              { color: '#2563eb', offset: 0 },
+              { color: '#2dd4da', offset: 1 }
+            ],
+            rotation: 0,
+            type: 'linear'
+          },
+          type: 'extra-rounded'
+        },
+        height: 85,
+        type: 'canvas',
+        width: 85
       });
 
       qrCode.append(qrCodeRef.current);
@@ -125,23 +123,23 @@ export function ProfileHeader({
   }, [profile, showQRCode]);
 
   return (
-    <Card className="@container shadow-lg rounded border border-gray-200">
-      <CardContent className="p-8 relative overflow-hidden bg-gray-50">
+    <Card className="rounded border border-gray-200 shadow-lg @container">
+      <CardContent className="relative overflow-hidden bg-gray-50 p-8">
         {/* Background - Use cover image if available, otherwise gradient */}
-        <div className="absolute top-0 left-0 right-0 w-full overflow-hidden" style={{ height: '149px', zIndex: 0 }}>
+        <div className="absolute inset-x-0 top-0 w-full overflow-hidden" style={{ height: '149px', zIndex: 0 }}>
           {coverImageUrl ? (
             <img
-              src={coverImageUrl}
               alt="Cover"
-              className="w-full h-full object-cover"
+              className="size-full object-cover"
+              src={coverImageUrl}
             />
           ) : gradientUrl ? (
             <video
               autoPlay
+              className="size-full object-cover"
               loop
               muted
               playsInline
-              className="w-full h-full object-cover"
               style={{ filter: 'blur(30px)', transform: 'scale(1.2)' }}
             >
               <source src={gradientUrl} type="video/mp4" />
@@ -150,36 +148,36 @@ export function ProfileHeader({
         </div>
 
         {/* Avatar with Gradient Border - Flip Card */}
-        <div className="mb-4 relative z-10 mx-auto @lg:!mx-0" style={{ perspective: '1000px', width: '148px' }}>
+        <div className="relative z-10 mx-auto mb-4 @lg:!mx-0" style={{ perspective: '1000px', width: '148px' }}>
           <div
             className="relative transition-transform duration-700"
             style={{
-              width: '148px',
               height: '148px',
+              transform: showQRCode ? 'rotateY(180deg)' : 'rotateY(0deg)',
               transformStyle: 'preserve-3d',
-              transform: showQRCode ? 'rotateY(180deg)' : 'rotateY(0deg)'
+              width: '148px'
             }}
           >
             {/* Front Side - Avatar */}
             <div
-              className="absolute inset-0 rounded-full overflow-visible"
+              className="absolute inset-0 overflow-visible rounded-full"
               style={{ backfaceVisibility: 'hidden' }}
             >
               <div
-                className="w-full h-full rounded-full overflow-hidden"
+                className="size-full overflow-hidden rounded-full"
                 style={{
-                  border: '3px solid transparent',
-                  borderRadius: '50%',
+                  backgroundClip: 'padding-box, border-box',
                   backgroundImage: 'linear-gradient(white, white), linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                   backgroundOrigin: 'padding-box, border-box',
-                  backgroundClip: 'padding-box, border-box',
+                  border: '3px solid transparent',
+                  borderRadius: '50%',
                 }}
               >
                 {profile.headshot_url ? (
-                  <img src={profile.headshot_url} alt="Profile" className="w-full h-full object-cover" />
+                  <img alt="Profile" className="size-full object-cover" src={profile.headshot_url} />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                    <span className="text-3xl text-gray-600 font-semibold">
+                  <div className="flex size-full items-center justify-center bg-gray-100">
+                    <span className="text-3xl font-semibold text-gray-600">
                       {profile.first_name?.[0] || '?'}{profile.last_name?.[0] || ''}
                     </span>
                   </div>
@@ -188,50 +186,50 @@ export function ProfileHeader({
 
               {/* QR Code button */}
               <Button
+                className="absolute z-20 size-10 rounded-full border-0 bg-transparent p-0 shadow-lg hover:bg-transparent"
+                onClick={() => setShowQRCode(!showQRCode)}
                 size="sm"
-                className="absolute rounded-full w-10 h-10 p-0 bg-transparent hover:bg-transparent shadow-lg z-20 border-0"
                 style={{
-                  top: '5px',
-                  right: '5px',
-                  borderRadius: '50%',
                   background: 'transparent',
                   border: 'none',
-                  boxShadow: 'none'
+                  borderRadius: '50%',
+                  boxShadow: 'none',
+                  right: '5px',
+                  top: '5px'
                 }}
-                onClick={() => setShowQRCode(!showQRCode)}
                 type="button"
               >
-                <img src={`${bpPluginUrl}assets/images/qr-flip.svg`} alt="QR Code" className="w-10 h-10" />
+                <img alt="QR Code" className="size-10" src={`${bpPluginUrl}assets/images/qr-flip.svg`} />
               </Button>
             </div>
 
             {/* Back Side - QR Code */}
             <div
-              className="absolute inset-0 rounded-full overflow-visible"
+              className="absolute inset-0 overflow-visible rounded-full"
               style={{
                 backfaceVisibility: 'hidden',
                 transform: 'rotateY(180deg)'
               }}
             >
               <div
-                className="w-full h-full rounded-full overflow-hidden"
+                className="size-full overflow-hidden rounded-full"
                 style={{
-                  border: '3px solid transparent',
-                  borderRadius: '50%',
+                  backgroundClip: 'padding-box, border-box',
                   backgroundImage: 'linear-gradient(white, white), linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
                   backgroundOrigin: 'padding-box, border-box',
-                  backgroundClip: 'padding-box, border-box',
+                  border: '3px solid transparent',
+                  borderRadius: '50%',
                 }}
               >
-                <div className="w-full h-full flex items-center justify-center bg-white p-5">
+                <div className="flex size-full items-center justify-center bg-white p-5">
                   <div
                     ref={qrCodeRef}
                     style={{
-                      width: '85px',
-                      height: '85px',
-                      display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      display: 'flex',
+                      height: '85px',
+                      justifyContent: 'center',
+                      width: '85px'
                     }}
                   />
                 </div>
@@ -239,46 +237,46 @@ export function ProfileHeader({
 
               {/* Avatar button - flips back */}
               <Button
+                className="absolute z-20 size-10 rounded-full border-0 bg-transparent p-0 shadow-lg hover:bg-transparent"
+                onClick={() => setShowQRCode(!showQRCode)}
                 size="sm"
-                className="absolute rounded-full w-10 h-10 p-0 bg-transparent hover:bg-transparent shadow-lg z-20 border-0"
                 style={{
-                  top: '5px',
-                  right: '5px',
-                  transform: 'scaleX(-1)',
-                  borderRadius: '50%',
                   background: 'transparent',
                   border: 'none',
-                  boxShadow: 'none'
+                  borderRadius: '50%',
+                  boxShadow: 'none',
+                  right: '5px',
+                  top: '5px',
+                  transform: 'scaleX(-1)'
                 }}
-                onClick={() => setShowQRCode(!showQRCode)}
                 type="button"
               >
-                <img src={`${bpPluginUrl}assets/images/profile-flip.svg`} alt="Profile" className="w-10 h-10" style={{ transform: 'scaleX(-1)' }} />
+                <img alt="Profile" className="size-10" src={`${bpPluginUrl}assets/images/profile-flip.svg`} style={{ transform: 'scaleX(-1)' }} />
               </Button>
             </div>
           </div>
         </div>
 
         {/* Name */}
-        <div className="flex flex-col @lg:!flex-row items-center @lg:!items-start justify-center @lg:!justify-between mb-2 relative z-10 gap-4 text-center @lg:!text-left">
+        <div className="relative z-10 mb-2 flex flex-col items-center justify-center gap-4 text-center @lg:!flex-row @lg:!items-start @lg:!justify-between @lg:!text-left">
           <h3 className="text-[34px] font-bold text-[#1A1A1A]" style={{ fontFamily: 'Mona Sans Extended, sans-serif' }}>
             {fullName}
           </h3>
           {isOwnProfile ? (
             <Button
               asChild
-              className="hidden @lg:!inline-flex text-white font-semibold px-6 py-2 shadow-lg whitespace-nowrap"
+              className="hidden whitespace-nowrap px-6 py-2 font-semibold text-white shadow-lg @lg:!inline-flex"
               style={{
                 background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
               }}
             >
-              <a href={profile.arrive || '#'} target="_blank" rel="noopener noreferrer">
+              <a href={profile.arrive || '#'} rel="noopener noreferrer" target="_blank">
                 Apply Now
               </a>
             </Button>
           ) : (
             <Button
-              className="hidden @lg:!inline-flex text-white font-semibold px-6 py-2 shadow-lg whitespace-nowrap"
+              className="hidden whitespace-nowrap px-6 py-2 font-semibold text-white shadow-lg @lg:!inline-flex"
               style={{
                 background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
               }}
@@ -289,15 +287,15 @@ export function ProfileHeader({
         </div>
 
         {/* Job Title, NMLS, and Location */}
-        <div className="mb-4 relative z-10">
-          <p className="text-base text-[#1D4FC4] flex flex-col @lg:!flex-row items-center @lg:!items-start justify-center @lg:!justify-start gap-2 @lg:!gap-6 text-center @lg:!text-left" style={{ fontFamily: 'Roboto, sans-serif' }}>
+        <div className="relative z-10 mb-4">
+          <p className="flex flex-col items-center justify-center gap-2 text-center text-base text-[#1D4FC4] @lg:!flex-row @lg:!items-start @lg:!justify-start @lg:!gap-6 @lg:!text-left" style={{ fontFamily: 'Roboto, sans-serif' }}>
             <span>
               {profile.job_title || 'Loan Officer'}
               {(profile.nmls_id || profile.nmls_number) && <span> | NMLS {profile.nmls_id || profile.nmls_number}</span>}
             </span>
             {profile.city_state && (
-              <span className="flex items-center justify-center @lg:!justify-start gap-2">
-                <MapPin className="h-4 w-4" />
+              <span className="flex items-center justify-center gap-2 @lg:!justify-start">
+                <MapPin className="size-4" />
                 {profile.city_state}
               </span>
             )}
@@ -306,44 +304,44 @@ export function ProfileHeader({
 
         {/* Social Media Icons Row */}
         {(profile.linkedin_url || profile.facebook_url || profile.instagram_url || profile.twitter_url || profile.youtube_url || profile.website) && (
-          <div className="flex items-center justify-center @lg:!justify-start gap-3 mb-4 relative z-10">
+          <div className="relative z-10 mb-4 flex items-center justify-center gap-3 @lg:!justify-start">
             {profile.linkedin_url && (
-              <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer">
-                <Linkedin className="h-6 w-6 text-[#1A1A1A] hover:text-[#2563eb] transition-colors" />
+              <a href={profile.linkedin_url} rel="noopener noreferrer" target="_blank">
+                <Linkedin className="size-6 text-[#1A1A1A] transition-colors hover:text-[#2563eb]" />
               </a>
             )}
             {profile.facebook_url && (
-              <a href={profile.facebook_url} target="_blank" rel="noopener noreferrer">
-                <Facebook className="h-6 w-6 text-[#1A1A1A] hover:text-[#2563eb] transition-colors" />
+              <a href={profile.facebook_url} rel="noopener noreferrer" target="_blank">
+                <Facebook className="size-6 text-[#1A1A1A] transition-colors hover:text-[#2563eb]" />
               </a>
             )}
             {profile.instagram_url && (
-              <a href={profile.instagram_url} target="_blank" rel="noopener noreferrer">
-                <Smartphone className="h-6 w-6 text-[#1A1A1A] hover:text-[#2563eb] transition-colors" />
+              <a href={profile.instagram_url} rel="noopener noreferrer" target="_blank">
+                <Smartphone className="size-6 text-[#1A1A1A] transition-colors hover:text-[#2563eb]" />
               </a>
             )}
             {(profile.twitter_url || profile.youtube_url || profile.website) && (
-              <a href={profile.twitter_url || profile.youtube_url || profile.website} target="_blank" rel="noopener noreferrer">
-                <Globe className="h-6 w-6 text-[#1A1A1A] hover:text-[#2563eb] transition-colors" />
+              <a href={profile.twitter_url || profile.youtube_url || profile.website} rel="noopener noreferrer" target="_blank">
+                <Globe className="size-6 text-[#1A1A1A] transition-colors hover:text-[#2563eb]" />
               </a>
             )}
           </div>
         )}
 
         {/* Contact Information */}
-        <div className="flex flex-col @lg:!flex-row items-center @lg:!items-start justify-center @lg:!justify-start gap-2 @lg:!gap-6 mb-6 relative z-10">
+        <div className="relative z-10 mb-6 flex flex-col items-center justify-center gap-2 @lg:!flex-row @lg:!items-start @lg:!justify-start @lg:!gap-6">
           {profile.email && (
             <div className="flex items-center gap-2 text-sm text-gray-700">
-              <img src={`${iconPath}/Email.svg`} alt="Email" className="w-6 h-6" />
-              <a href={`mailto:${profile.email}`} className="hover:text-[#1D4FC4] transition-colors">
+              <img alt="Email" className="size-6" src={`${iconPath}/Email.svg`} />
+              <a className="transition-colors hover:text-[#1D4FC4]" href={`mailto:${profile.email}`}>
                 {profile.email}
               </a>
             </div>
           )}
           {phoneNumber && (
             <div className="flex items-center gap-2 text-sm text-gray-700">
-              <img src={`${iconPath}/Phne.svg`} alt="Phone" className="w-6 h-6" />
-              <a href={`tel:${phoneNumber}`} className="hover:text-[#1D4FC4] transition-colors">
+              <img alt="Phone" className="size-6" src={`${iconPath}/Phne.svg`} />
+              <a className="transition-colors hover:text-[#1D4FC4]" href={`tel:${phoneNumber}`}>
                 {phoneNumber}
               </a>
             </div>
@@ -351,22 +349,22 @@ export function ProfileHeader({
         </div>
 
         {/* Mobile only: Apply Now / Connect Button */}
-        <div className="@lg:!hidden flex justify-center relative z-10">
+        <div className="relative z-10 flex justify-center @lg:!hidden">
           {isOwnProfile ? (
             <Button
               asChild
-              className="text-white font-semibold px-12 py-3 shadow-lg text-lg rounded-lg w-full"
+              className="w-full rounded-lg px-12 py-3 text-lg font-semibold text-white shadow-lg"
               style={{
                 background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
               }}
             >
-              <a href={profile.arrive || '#'} target="_blank" rel="noopener noreferrer">
+              <a href={profile.arrive || '#'} rel="noopener noreferrer" target="_blank">
                 Apply Now
               </a>
             </Button>
           ) : (
             <Button
-              className="text-white font-semibold px-12 py-3 shadow-lg text-lg rounded-lg w-full"
+              className="w-full rounded-lg px-12 py-3 text-lg font-semibold text-white shadow-lg"
               style={{
                 background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
               }}

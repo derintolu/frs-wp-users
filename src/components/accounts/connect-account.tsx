@@ -14,19 +14,19 @@ export default function ConnectAccount() {
   return (
     <div>
       {accountProvider === "none" && (
-        <div className="flex flex-col items-center p-6 bg-white rounded-lg shadow-lg max-w-sm mx-auto">
+        <div className="mx-auto flex max-w-sm flex-col items-center rounded-lg bg-white p-6 shadow-lg">
           <h2 className="text-2xl font-semibold text-gray-800">
             Connect an account
           </h2>
-          <p className="mt-2 text-center text-gray-600 text-sm">
+          <p className="mt-2 text-center text-sm text-gray-600">
             Choose your email provider to add your email account.
           </p>
 
-          <div className="w-full mt-6">
+          <div className="mt-6 w-full">
             <div
-              onClick={() => handleAccountChange("gmail")}
-              className="flex items-center cursor-pointer justify-between p-4 mb-4 bg-gray-100 rounded-lg">
-              <span className="flex w-full justify-between items-center">
+              className="mb-4 flex cursor-pointer items-center justify-between rounded-lg bg-gray-100 p-4"
+              onClick={() => handleAccountChange("gmail")}>
+              <span className="flex w-full items-center justify-between">
                 <GmailIcon />
                 {/* <img
               src="/path-to-google-icon.png"
@@ -39,8 +39,8 @@ export default function ConnectAccount() {
             </div>
 
             <div
-              onClick={() => handleAccountChange("outlook")}
-              className="flex cursor-pointer items-center justify-between p-4 mb-4 bg-gray-100 rounded-lg">
+              className="mb-4 flex cursor-pointer items-center justify-between rounded-lg bg-gray-100 p-4"
+              onClick={() => handleAccountChange("outlook")}>
               <span className="flex items-center">
                 {/* <img
               src="/path-to-microsoft-icon.png"
@@ -53,8 +53,8 @@ export default function ConnectAccount() {
             </div>
 
             <div
-              onClick={() => handleAccountChange("other")}
-              className="flex cursor-pointer items-center justify-between p-4 bg-gray-100 rounded-lg">
+              className="flex cursor-pointer items-center justify-between rounded-lg bg-gray-100 p-4"
+              onClick={() => handleAccountChange("other")}>
               <span className="flex items-center">
                 {/* <img
               src="/path-to-generic-email-icon.png"

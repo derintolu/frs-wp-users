@@ -57,41 +57,41 @@ export const STATE_MAP: Record<string, string> = {
 };
 
 export const ABBR_TO_SLUG_MAP: Record<string, string> = {
-  'AL': 'alabama',
   'AK': 'alaska',
-  'AZ': 'arizona',
+  'AL': 'alabama',
   'AR': 'arkansas',
+  'AZ': 'arizona',
   'CA': 'california',
   'CO': 'colorado',
   'CT': 'connecticut',
-  'DE': 'delaware',
   'DC': 'district-of-columbia',
+  'DE': 'delaware',
   'FL': 'florida',
   'GA': 'georgia',
   'HI': 'hawaii',
+  'IA': 'iowa',
   'ID': 'idaho',
   'IL': 'illinois',
   'IN': 'indiana',
-  'IA': 'iowa',
   'KS': 'kansas',
   'KY': 'kentucky',
   'LA': 'louisiana',
-  'ME': 'maine',
-  'MD': 'maryland',
   'MA': 'massachusetts',
+  'MD': 'maryland',
+  'ME': 'maine',
   'MI': 'michigan',
   'MN': 'minnesota',
-  'MS': 'mississippi',
   'MO': 'missouri',
+  'MS': 'mississippi',
   'MT': 'montana',
+  'NC': 'north-carolina',
+  'ND': 'north-dakota',
   'NE': 'nebraska',
-  'NV': 'nevada',
   'NH': 'new-hampshire',
   'NJ': 'new-jersey',
   'NM': 'new-mexico',
+  'NV': 'nevada',
   'NY': 'new-york',
-  'NC': 'north-carolina',
-  'ND': 'north-dakota',
   'OH': 'ohio',
   'OK': 'oklahoma',
   'OR': 'oregon',
@@ -102,11 +102,11 @@ export const ABBR_TO_SLUG_MAP: Record<string, string> = {
   'TN': 'tennessee',
   'TX': 'texas',
   'UT': 'utah',
-  'VT': 'vermont',
   'VA': 'virginia',
+  'VT': 'vermont',
   'WA': 'washington',
-  'WV': 'west-virginia',
   'WI': 'wisconsin',
+  'WV': 'west-virginia',
   'WY': 'wyoming',
 };
 
@@ -114,7 +114,7 @@ export const ABBR_TO_SLUG_MAP: Record<string, string> = {
  * Get state abbreviation from state name or slug
  */
 export function getStateAbbr(stateNameOrSlug: string): string | null {
-  const normalized = stateNameOrSlug.toLowerCase().trim().replace(/\s+/g, '-');
+  const normalized = stateNameOrSlug.toLowerCase().trim().replaceAll(/\s+/g, '-');
   return STATE_MAP[normalized] || null;
 }
 
@@ -135,11 +135,11 @@ export function getStateSvgUrl(stateNameOrSlugOrAbbr: string): string | null {
 
   // If not found, try as name/slug
   if (!slug) {
-    const normalized = stateNameOrSlugOrAbbr.toLowerCase().trim().replace(/\s+/g, '-');
+    const normalized = stateNameOrSlugOrAbbr.toLowerCase().trim().replaceAll(/\s+/g, '-');
     slug = normalized;
   }
 
-  if (!slug) return null;
+  if (!slug) {return null;}
 
   // Get WordPress content URL
   const contentUrl = (window as any).frsPortalConfig?.contentUrl || '/wp-content';
@@ -158,7 +158,7 @@ export function parseServiceAreaForState(area: string): { abbr: string; svgUrl: 
   const trimmed = area.trim();
 
   // Check if it's a 2-letter abbreviation at the end
-  const abbrMatch = trimmed.match(/\b([A-Z]{2})\b$/i);
+  const abbrMatch = trimmed.match(/\b([a-z]{2})\b$/i);
   if (abbrMatch) {
     const abbr = abbrMatch[1].toUpperCase();
     const svgUrl = getStateSvgUrl(abbr);

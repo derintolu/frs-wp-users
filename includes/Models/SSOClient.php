@@ -44,6 +44,15 @@ class SSOClient extends Model {
 	protected $table = 'frs_sso_clients';
 
 	/**
+	 * Get the table name - always uses network-wide table.
+	 *
+	 * @return string
+	 */
+	public function getTable() {
+		return 'frs_sso_clients';
+	}
+
+	/**
 	 * The primary key for the model.
 	 *
 	 * @var string

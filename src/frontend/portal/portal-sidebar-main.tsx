@@ -19,16 +19,16 @@ if (portalSidebarRoot) {
 
   createRoot(portalSidebarRoot).render(
     <PortalSidebarApp
-      userId={config.userId}
-      userName={config.userName}
-      userEmail={config.userEmail}
-      userAvatar={config.userAvatar}
-      userRole={config.userRole}
-      siteUrl={config.siteUrl}
-      portalUrl={config.portalUrl}
-      restNonce={config.restNonce}
       gradientUrl={config.gradientUrl}
       menuItems={config.menuItems || []}
+      portalUrl={config.portalUrl}
+      restNonce={config.restNonce}
+      siteUrl={config.siteUrl}
+      userAvatar={config.userAvatar}
+      userEmail={config.userEmail}
+      userId={config.userId}
+      userName={config.userName}
+      userRole={config.userRole}
     />
   );
 

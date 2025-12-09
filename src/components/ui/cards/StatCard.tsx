@@ -17,7 +17,7 @@
 
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { Card, CardContent, CardHeader, CardTitle } from '../card';
+import { Card, CardContent } from '../card';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 export type StatCardVariant =
@@ -29,66 +29,66 @@ export type StatCardVariant =
   | 'accent';
 
 export interface StatCardProps {
-  /** Metric title/label */
-  title: string;
-  /** Metric value (formatted string) */
-  value: string | number;
   /** Change indicator (e.g., "+12%", "-5%") */
   change?: string;
   /** Change type for styling */
   changeType?: 'positive' | 'negative' | 'neutral';
-  /** Icon to display */
-  icon?: React.ReactNode;
-  /** Card variant */
-  variant?: StatCardVariant;
-  /** Additional description */
-  description?: string;
-  /** Click handler */
-  onClick?: () => void;
   /** Additional className */
   className?: string;
+  /** Additional description */
+  description?: string;
+  /** Icon to display */
+  icon?: React.ReactNode;
+  /** Click handler */
+  onClick?: () => void;
   /** Size variant */
   size?: 'sm' | 'md' | 'lg';
+  /** Metric title/label */
+  title: string;
+  /** Metric value (formatted string) */
+  value: string | number;
+  /** Card variant */
+  variant?: StatCardVariant;
 }
 
 export function StatCard({
-  title,
-  value,
   change,
   changeType = 'neutral',
-  icon,
-  variant = 'default',
-  description,
-  onClick,
   className,
+  description,
+  icon,
+  onClick,
   size = 'md',
+  title,
+  value,
+  variant = 'default',
 }: StatCardProps) {
   const isGradient = variant.startsWith('gradient');
   const isInteractive = !!onClick;
 
   const sizeClasses = {
-    sm: { padding: 'p-3', value: 'text-xl', title: 'text-xs', change: 'text-xs' },
-    md: { padding: 'p-4', value: 'text-2xl', title: 'text-sm', change: 'text-sm' },
-    lg: { padding: 'p-6', value: 'text-3xl', title: 'text-base', change: 'text-sm' },
+    lg: { change: 'text-sm', padding: 'p-6', title: 'text-base', value: 'text-3xl' },
+    md: { change: 'text-sm', padding: 'p-4', title: 'text-sm', value: 'text-2xl' },
+    sm: { change: 'text-xs', padding: 'p-3', title: 'text-xs', value: 'text-xl' },
   };
 
   const gradientStyles: Record<string, React.CSSProperties> = {
     'gradient-blue': { background: 'var(--gradient-brand-blue)' },
-    'gradient-teal': { background: 'var(--gradient-brand-teal)' },
-    'gradient-navy': { background: 'var(--gradient-brand-navy)' },
     'gradient-hero': { background: 'var(--gradient-hero)' },
+    'gradient-navy': { background: 'var(--gradient-brand-navy)' },
+    'gradient-teal': { background: 'var(--gradient-brand-teal)' },
   };
 
   const changeColors = {
-    positive: isGradient ? 'text-white/90' : 'text-green-600',
     negative: isGradient ? 'text-white/90' : 'text-red-600',
     neutral: isGradient ? 'text-white/70' : 'text-[var(--brand-slate)]',
+    positive: isGradient ? 'text-white/90' : 'text-green-600',
   };
 
   const ChangeIcon = {
-    positive: TrendingUp,
     negative: TrendingDown,
     neutral: Minus,
+    positive: TrendingUp,
   }[changeType];
 
   return (
@@ -99,13 +99,10 @@ export function StatCard({
         isGradient && 'border-0 text-white',
         variant === 'accent' && 'border-l-4 border-l-[var(--brand-electric-blue)]',
         variant === 'default' && 'border-[var(--brand-powder-blue)]',
-        isInteractive && 'cursor-pointer hover:shadow-lg hover:scale-[1.02]',
+        isInteractive && 'cursor-pointer hover:scale-[1.02] hover:shadow-lg',
         className
       )}
-      style={gradientStyles[variant] || {}}
       onClick={onClick}
-      role={isInteractive ? 'button' : undefined}
-      tabIndex={isInteractive ? 0 : undefined}
       onKeyDown={
         isInteractive
           ? (e) => {
@@ -116,14 +113,17 @@ export function StatCard({
             }
           : undefined
       }
+      role={isInteractive ? 'button' : undefined}
+      style={gradientStyles[variant] || {}}
+      tabIndex={isInteractive ? 0 : undefined}
     >
       <CardContent className="p-0">
         {/* Header with title and icon */}
-        <div className="flex items-start justify-between mb-2">
+        <div className="mb-2 flex items-start justify-between">
           <p
             className={cn(
               sizeClasses[size].title,
-              'font-medium truncate',
+              'truncate font-medium',
               isGradient ? 'text-white/90' : 'text-[var(--brand-slate)]'
             )}
           >
@@ -149,8 +149,8 @@ export function StatCard({
 
         {/* Change indicator */}
         {change && (
-          <div className={cn('flex items-center gap-1 mt-1', changeColors[changeType])}>
-            <ChangeIcon className="h-3 w-3" />
+          <div className={cn('mt-1 flex items-center gap-1', changeColors[changeType])}>
+            <ChangeIcon className="size-3" />
             <span className={sizeClasses[size].change}>{change}</span>
           </div>
         )}
@@ -159,7 +159,7 @@ export function StatCard({
         {description && (
           <p
             className={cn(
-              'text-xs mt-2',
+              'mt-2 text-xs',
               isGradient ? 'text-white/70' : 'text-[var(--brand-slate)]'
             )}
           >

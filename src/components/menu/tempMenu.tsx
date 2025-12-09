@@ -11,14 +11,14 @@ import { tv } from "tailwind-variants";
 
 export const menu = tv({
   slots: {
-    menuPopover:
-      "border-border-default bg-white data-[entering]:animate-fade data-[exiting]:animate-fadeOut overflow-auto rounded-md border shadow-border",
     content: "flex h-fit w-56 flex-col gap-2 p-2 outline-none",
     item: "data-[focused]:text-blue-700 border border-transparent data-[focused]:border data-[focused]:border-border-default data-[focused]:shadow-border font-medium relative flex cursor-pointer justify-between rounded-md p-2 outline-none",
+    menuPopover:
+      "border-border-default bg-white data-[entering]:animate-fade data-[exiting]:animate-fadeOut overflow-auto rounded-md border shadow-border",
   },
 });
 
-const { menuPopover, content, item } = menu();
+const { content, item, menuPopover } = menu();
 
 const MenuTrigger = AriaMenuTrigger;
 const Section = AriaSection;
@@ -30,8 +30,8 @@ interface MyMenuButtonProps<T>
 }
 
 function MyMenuButton<T extends object>({
-  label,
   children,
+  label,
   ...props
 }: MyMenuButtonProps<T>) {
   return (

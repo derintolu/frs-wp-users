@@ -130,9 +130,9 @@ class ProfilesPage {
 			array( $this, 'render_edit_page' )
 		);
 
-		// View page (hidden from menu)
+		// View page (hidden from menu - use empty string for PHP 8.1+ compatibility)
 		add_submenu_page(
-			null,
+			'',
 			__( 'View Profile', 'frs-users' ),
 			__( 'View Profile', 'frs-users' ),
 			'edit_users',
@@ -140,9 +140,9 @@ class ProfilesPage {
 			array( $this, 'render_view_page' )
 		);
 
-		// Merge page (hidden from menu)
+		// Merge page (hidden from menu - use empty string for PHP 8.1+ compatibility)
 		add_submenu_page(
-			null,
+			'',
 			__( 'Merge Profiles', 'frs-users' ),
 			__( 'Merge Profiles', 'frs-users' ),
 			'edit_users',
@@ -150,9 +150,9 @@ class ProfilesPage {
 			array( $this, 'render_merge_page' )
 		);
 
-		// Merge selection page (hidden from menu)
+		// Merge selection page (hidden from menu - use empty string for PHP 8.1+ compatibility)
 		add_submenu_page(
-			null,
+			'',
 			__( 'Select Profile to Merge', 'frs-users' ),
 			__( 'Select Profile to Merge', 'frs-users' ),
 			'edit_users',
@@ -250,7 +250,7 @@ class ProfilesPage {
 
 		// Render React app container
 		?>
-		<div class="wrap">
+		<div class="wrap" style="padding: 20px 20px 20px 0;">
 			<div id="frs-users-admin-root" data-route="/profiles"></div>
 		</div>
 		<?php
@@ -275,7 +275,7 @@ class ProfilesPage {
 
 		// Render React app container
 		?>
-		<div class="wrap">
+		<div class="wrap" style="padding: 20px 20px 20px 0;">
 			<div id="frs-users-admin-root" data-route="/profiles/<?php echo esc_attr( $profile_id ); ?>"></div>
 		</div>
 		<?php
@@ -303,7 +303,7 @@ class ProfilesPage {
 
 		// Render React app container
 		?>
-		<div class="wrap">
+		<div class="wrap" style="padding: 20px 20px 20px 0;">
 			<div id="frs-users-admin-root" data-route="<?php echo esc_attr( $route ); ?>"></div>
 		</div>
 		<?php

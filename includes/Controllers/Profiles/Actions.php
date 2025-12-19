@@ -154,6 +154,8 @@ class Actions {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_profile_by_slug( WP_REST_Request $request ) {
+		nocache_headers();
+
 		$slug = $request->get_param( 'slug' );
 
 		$profile = Profile::where( 'profile_slug', sanitize_title( $slug ) )->first();
@@ -742,6 +744,41 @@ class Actions {
 			array(
 				'success' => true,
 				'message' => __( 'Meeting request sent successfully', 'frs-users' ),
+			),
+			200
+		);
+	}
+
+	/**
+	 * Get all unique service areas from loan officer profiles
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response
+	 */
+	public function get_service_areas( WP_REST_Request $request ) {
+		// Get all loan officers with service areas
+		$profiles = Profile::active()
+			->ofType( 'loan_officer' )
+			->whereNotNull( 'service_areas' )
+			->get();
+
+		// Collect all unique service areas
+		$all_areas = array();
+		foreach ( $profiles as $profile ) {
+			$areas = $profile->service_areas;
+			if ( is_array( $areas ) ) {
+				$all_areas = array_merge( $all_areas, $areas );
+			}
+		}
+
+		// Remove duplicates and sort
+		$unique_areas = array_unique( $all_areas );
+		sort( $unique_areas );
+
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'data'    => array_values( $unique_areas ),
 			),
 			200
 		);

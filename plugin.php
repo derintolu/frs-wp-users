@@ -6,7 +6,6 @@
  * @since 1.0.0
  */
 
-use FRSUsers\Core\ProfileFields;
 use FRSUsers\Core\ProfileStorage;
 use FRSUsers\Core\CLI;
 use FRSUsers\Core\ProfileApi;
@@ -58,13 +57,13 @@ final class FRSUsers {
 	 * @return void
 	 */
 	public function init() {
+		// Run any pending migrations
+		$this->maybe_run_migrations();
+
 		// Check plugin dependencies (must run first)
 		PluginDependencies::get_instance()->init();
 
-		// Initialize Carbon Fields profile fields
-		ProfileFields::init();
-
-		// Initialize profile storage override
+		// Initialize profile storage utilities (avatar sync)
 		ProfileStorage::init();
 
 		// Initialize REST API routes
@@ -132,22 +131,17 @@ final class FRSUsers {
 	public function check_dependencies() {
 		$missing = array();
 
-		// Check for Carbon Fields
-		if ( !class_exists('\\Carbon_Fields\\Carbon_Fields') ) {
-			$missing[] = 'Carbon Fields';
-		}
-
 		// Check for FluentCRM (optional)
 		if ( !function_exists('FluentCrmApi') ) {
 			$missing[] = 'FluentCRM (optional - required for automatic contact sync)';
 		}
 
-		// Show notice if dependencies are missing
+		// Show notice if optional dependencies are missing
 		if ( !empty($missing) ) {
 			?>
-			<div class="notice notice-warning">
+			<div class="notice notice-info is-dismissible">
 				<p>
-					<strong>FRS User Profiles</strong> requires the following plugins to function properly:
+					<strong>FRS User Profiles</strong> - Optional integrations:
 				</p>
 				<ul style="list-style: disc; margin-left: 20px;">
 					<?php foreach ($missing as $plugin): ?>
@@ -169,5 +163,16 @@ final class FRSUsers {
 	 */
 	public function i18n() {
 		load_plugin_textdomain( 'frs-users', false, dirname( plugin_basename( FRS_USERS_PLUGIN_FILE ) ) . '/languages/' );
+	}
+
+	/**
+	 * Run any pending database migrations.
+	 *
+	 * @since 2.1.0
+	 * @return void
+	 */
+	private function maybe_run_migrations() {
+		// Run QR code data migration if column doesn't exist
+		\FRSUsers\Database\Migrations\AddQRCodeData::up();
 	}
 }

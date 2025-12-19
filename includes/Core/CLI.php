@@ -39,6 +39,8 @@ class CLI {
 		\WP_CLI::add_command( 'frs-users create-user', array( __CLASS__, 'create_user_account' ) );
 		\WP_CLI::add_command( 'frs-users generate-slugs', array( __CLASS__, 'generate_profile_slugs' ) );
 		\WP_CLI::add_command( 'frs-users sync-suredash-avatars', array( __CLASS__, 'sync_suredash_avatars' ) );
+		\WP_CLI::add_command( 'frs-users generate-qr-codes', array( __CLASS__, 'generate_qr_codes' ) );
+		\WP_CLI::add_command( 'frs-users generate-vcards', array( __CLASS__, 'generate_vcards' ) );
 	}
 
 	/**
@@ -381,5 +383,452 @@ class CLI {
 		if ( $skipped > 0 && ! $force ) {
 			\WP_CLI::line( 'Tip: Use --force to overwrite existing SureDash avatars.' );
 		}
+	}
+
+	/**
+	 * Generate QR codes for all profiles
+	 *
+	 * Generates styled QR codes linking to /directory/lo/{slug} and saves them
+	 * as SVG files in wp-content/uploads/frs-qr-codes/. Stores the URL in qr_code_data.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--force]
+	 * : Regenerate QR codes even if they already exist
+	 *
+	 * [--id=<profile_id>]
+	 * : Generate for a specific profile ID only
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp frs-users generate-qr-codes
+	 *     wp frs-users generate-qr-codes --force
+	 *     wp frs-users generate-qr-codes --id=123
+	 *
+	 * @when after_wp_load
+	 */
+	public static function generate_qr_codes( $args, $assoc_args ) {
+		$force      = isset( $assoc_args['force'] );
+		$profile_id = isset( $assoc_args['id'] ) ? intval( $assoc_args['id'] ) : null;
+
+		\WP_CLI::line( 'Generating QR codes for profiles...' );
+
+		// Check if Node.js is available
+		$node_check = shell_exec( 'which node' );
+		if ( empty( $node_check ) ) {
+			\WP_CLI::error( 'Node.js is required to generate styled QR codes. Please install Node.js.' );
+		}
+
+		// Setup QR codes directory in uploads
+		$upload_dir = wp_upload_dir();
+		$qr_dir     = $upload_dir['basedir'] . '/frs-qr-codes';
+		$qr_url_base = $upload_dir['baseurl'] . '/frs-qr-codes';
+
+		if ( ! file_exists( $qr_dir ) ) {
+			wp_mkdir_p( $qr_dir );
+		}
+
+		// Get profiles
+		if ( $profile_id ) {
+			$profiles = Profile::where( 'id', $profile_id )->get();
+		} elseif ( $force ) {
+			$profiles = Profile::whereNotNull( 'profile_slug' )->get();
+		} else {
+			$profiles = Profile::whereNotNull( 'profile_slug' )
+				->where( function( $query ) {
+					$query->whereNull( 'qr_code_data' )
+						  ->orWhere( 'qr_code_data', '' );
+				} )
+				->get();
+		}
+
+		$total = count( $profiles );
+
+		if ( $total === 0 ) {
+			\WP_CLI::success( 'No profiles need QR codes generated.' );
+			return;
+		}
+
+		\WP_CLI::line( sprintf( 'Found %d profiles to process.', $total ) );
+
+		// Path to the QR generator script
+		$script_path = FRS_USERS_DIR . 'scripts/generate-qr.js';
+
+		if ( ! file_exists( $script_path ) ) {
+			\WP_CLI::error( sprintf( 'QR generator script not found at: %s', $script_path ) );
+		}
+
+		$generated = 0;
+		$errors    = 0;
+
+		$progress = \WP_CLI\Utils\make_progress_bar( 'Generating QR codes', $total );
+
+		foreach ( $profiles as $profile ) {
+			if ( empty( $profile->profile_slug ) ) {
+				$errors++;
+				$progress->tick();
+				continue;
+			}
+
+			// Build URL for QR code content
+			$qr_content_url = home_url( '/directory/lo/' . $profile->profile_slug );
+
+			// Call Node.js script to generate QR code SVG
+			$cmd = sprintf(
+				'node %s %s 2>&1',
+				escapeshellarg( $script_path ),
+				escapeshellarg( $qr_content_url )
+			);
+
+			$svg_output = shell_exec( $cmd );
+
+			if ( $svg_output && strpos( $svg_output, '<svg' ) !== false ) {
+				// Save SVG to file
+				$filename = $profile->profile_slug . '.svg';
+				$filepath = $qr_dir . '/' . $filename;
+				$file_url = $qr_url_base . '/' . $filename;
+
+				if ( file_put_contents( $filepath, $svg_output ) ) {
+					// Store URL in database
+					$profile->qr_code_data = $file_url;
+					if ( $profile->save() ) {
+						$generated++;
+					} else {
+						$errors++;
+					}
+				} else {
+					\WP_CLI::warning( sprintf( 'Failed to save QR file for %s', $profile->profile_slug ) );
+					$errors++;
+				}
+			} else {
+				\WP_CLI::warning( sprintf( 'Failed to generate QR for %s: %s', $profile->profile_slug, substr( $svg_output ?? '', 0, 100 ) ) );
+				$errors++;
+			}
+
+			$progress->tick();
+		}
+
+		$progress->finish();
+
+		\WP_CLI::success( sprintf( 'QR code generation complete! Generated: %d, Errors: %d', $generated, $errors ) );
+		\WP_CLI::line( sprintf( 'QR codes saved to: %s', $qr_dir ) );
+	}
+
+	/**
+	 * Generate vCards for all loan officer profiles
+	 *
+	 * Creates vCard (.vcf) files with all profile data including embedded photos
+	 * and saves them to a folder in wp-content/uploads.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--type=<type>]
+	 * : Profile type to generate for. Default: loan_officer
+	 *
+	 * [--output=<path>]
+	 * : Custom output directory path
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp frs-users generate-vcards
+	 *     wp frs-users generate-vcards --type=loan_officer
+	 *     wp frs-users generate-vcards --output=/path/to/folder
+	 *
+	 * @when after_wp_load
+	 */
+	public static function generate_vcards( $args, $assoc_args ) {
+		$type = $assoc_args['type'] ?? 'loan_officer';
+
+		\WP_CLI::line( sprintf( 'Generating vCards for %s profiles...', $type ) );
+
+		// Setup output directory
+		if ( isset( $assoc_args['output'] ) ) {
+			$output_dir = rtrim( $assoc_args['output'], '/' );
+		} else {
+			$upload_dir = wp_upload_dir();
+			$output_dir = $upload_dir['basedir'] . '/frs-vcards';
+		}
+
+		if ( ! file_exists( $output_dir ) ) {
+			if ( ! wp_mkdir_p( $output_dir ) ) {
+				\WP_CLI::error( sprintf( 'Could not create output directory: %s', $output_dir ) );
+			}
+		}
+
+		// Exclude executives
+		$exclude_names = [
+			'Blake Anthony Corkill',
+			'Matthew Thompson',
+			'Keith Thompson',
+		];
+
+		// Get profiles
+		$profiles = Profile::where( 'select_person_type', $type )
+			->whereNotNull( 'first_name' )
+			->whereNotNull( 'last_name' )
+			->get();
+
+		$total = count( $profiles );
+
+		if ( $total === 0 ) {
+			\WP_CLI::warning( sprintf( 'No %s profiles found.', $type ) );
+			return;
+		}
+
+		\WP_CLI::line( sprintf( 'Found %d profiles to process.', $total ) );
+
+		$generated = 0;
+		$skipped   = 0;
+		$errors    = 0;
+
+		$progress = \WP_CLI\Utils\make_progress_bar( 'Generating vCards', $total );
+
+		foreach ( $profiles as $profile ) {
+			// Check if excluded
+			$full_name = trim( $profile->first_name . ' ' . $profile->last_name );
+			if ( in_array( $full_name, $exclude_names, true ) ) {
+				$skipped++;
+				$progress->tick();
+				continue;
+			}
+
+			// Build profile data array for vCard generator
+			$profile_data = [
+				'first_name'     => $profile->first_name,
+				'last_name'      => $profile->last_name,
+				'email'          => $profile->email,
+				'phone_number'   => $profile->phone_number,
+				'mobile_number'  => $profile->mobile_number,
+				'office_number'  => $profile->office ?? '',
+				'job_title'      => $profile->job_title,
+				'company'        => $profile->company_name ?? 'uMortgage',
+				'address'        => '',
+				'city_state'     => $profile->city_state,
+				'zip'            => '',
+				'website'        => $profile->company_website ?? '',
+				'profile_slug'   => $profile->profile_slug,
+				'nmls'           => $profile->nmls,
+				'dre_license'    => $profile->dre_license ?? '',
+				'linkedin_url'   => $profile->linkedin_url,
+				'facebook_url'   => $profile->facebook_url,
+				'instagram_url'  => $profile->instagram_url,
+				'twitter_url'    => $profile->twitter_url,
+				'youtube_url'    => $profile->youtube_url ?? '',
+				'headshot_url'   => $profile->headshot_url,
+			];
+
+			// Generate filename
+			$filename = sanitize_file_name(
+				strtolower( $profile->first_name . '-' . $profile->last_name ) . '.vcf'
+			);
+			$filepath = $output_dir . '/' . $filename;
+
+			// Generate vCard content
+			$vcard = self::generate_vcard_content( $profile_data );
+
+			if ( file_put_contents( $filepath, $vcard ) !== false ) {
+				$generated++;
+			} else {
+				\WP_CLI::warning( sprintf( 'Failed to save vCard for %s', $full_name ) );
+				$errors++;
+			}
+
+			$progress->tick();
+		}
+
+		$progress->finish();
+
+		\WP_CLI::success( sprintf(
+			'vCard generation complete! Generated: %d, Skipped: %d, Errors: %d',
+			$generated,
+			$skipped,
+			$errors
+		) );
+		\WP_CLI::line( sprintf( 'vCards saved to: %s', $output_dir ) );
+	}
+
+	/**
+	 * Generate vCard content from profile data
+	 *
+	 * @param array $profile Profile data array.
+	 * @return string vCard formatted string.
+	 */
+	private static function generate_vcard_content( array $profile ): string {
+		$lines = [
+			'BEGIN:VCARD',
+			'VERSION:3.0',
+		];
+
+		// Full name
+		$first = $profile['first_name'] ?? '';
+		$last  = $profile['last_name'] ?? '';
+		$full_name = trim( $first . ' ' . $last );
+
+		$lines[] = 'FN:' . self::vcard_escape( $full_name );
+		$lines[] = 'N:' . self::vcard_escape( $last ) . ';' . self::vcard_escape( $first ) . ';;;';
+
+		// Organization
+		if ( ! empty( $profile['company'] ) ) {
+			$lines[] = 'ORG:' . self::vcard_escape( $profile['company'] );
+		}
+
+		// Job title
+		if ( ! empty( $profile['job_title'] ) ) {
+			$lines[] = 'TITLE:' . self::vcard_escape( $profile['job_title'] );
+		}
+
+		// Email
+		if ( ! empty( $profile['email'] ) ) {
+			$lines[] = 'EMAIL;TYPE=WORK:' . self::vcard_escape( $profile['email'] );
+		}
+
+		// Phone numbers
+		if ( ! empty( $profile['phone_number'] ) ) {
+			$lines[] = 'TEL;TYPE=WORK,VOICE:' . self::vcard_escape( self::clean_phone( $profile['phone_number'] ) );
+		}
+
+		if ( ! empty( $profile['mobile_number'] ) ) {
+			$lines[] = 'TEL;TYPE=CELL,VOICE:' . self::vcard_escape( self::clean_phone( $profile['mobile_number'] ) );
+		}
+
+		// Address
+		if ( ! empty( $profile['city_state'] ) ) {
+			$city_state = $profile['city_state'];
+			$city  = '';
+			$state = '';
+			if ( preg_match( '/^(.+),\s*([A-Z]{2})$/i', $city_state, $matches ) ) {
+				$city  = trim( $matches[1] );
+				$state = trim( $matches[2] );
+			} else {
+				$city = $city_state;
+			}
+			$lines[] = 'ADR;TYPE=WORK:;;' . self::vcard_escape( $profile['address'] ?? '' ) . ';' . self::vcard_escape( $city ) . ';' . self::vcard_escape( $state ) . ';;USA';
+		}
+
+		// Website
+		if ( ! empty( $profile['website'] ) ) {
+			$lines[] = 'URL:' . self::vcard_escape( $profile['website'] );
+		}
+
+		// Profile URL
+		if ( ! empty( $profile['profile_slug'] ) ) {
+			$lines[] = 'URL;TYPE=PROFILE:' . home_url( '/directory/lo/' . $profile['profile_slug'] );
+		}
+
+		// Photo (embedded as base64)
+		if ( ! empty( $profile['headshot_url'] ) ) {
+			$photo_data = self::get_photo_base64( $profile['headshot_url'] );
+			if ( $photo_data ) {
+				$lines[] = 'PHOTO;ENCODING=b;TYPE=' . $photo_data['type'] . ':' . $photo_data['data'];
+			}
+		}
+
+		// Notes (NMLS, DRE)
+		$notes = [];
+		if ( ! empty( $profile['nmls'] ) ) {
+			$notes[] = 'NMLS# ' . $profile['nmls'];
+		}
+		if ( ! empty( $profile['dre_license'] ) ) {
+			$notes[] = 'DRE# ' . $profile['dre_license'];
+		}
+		if ( ! empty( $notes ) ) {
+			$lines[] = 'NOTE:' . self::vcard_escape( implode( ' | ', $notes ) );
+		}
+
+		// Social media
+		$social_fields = [
+			'linkedin_url'  => 'X-SOCIALPROFILE;TYPE=linkedin',
+			'facebook_url'  => 'X-SOCIALPROFILE;TYPE=facebook',
+			'instagram_url' => 'X-SOCIALPROFILE;TYPE=instagram',
+			'twitter_url'   => 'X-SOCIALPROFILE;TYPE=twitter',
+			'youtube_url'   => 'X-SOCIALPROFILE;TYPE=youtube',
+		];
+
+		foreach ( $social_fields as $field => $property ) {
+			if ( ! empty( $profile[ $field ] ) ) {
+				$lines[] = $property . ':' . self::vcard_escape( $profile[ $field ] );
+			}
+		}
+
+		// Revision timestamp
+		$lines[] = 'REV:' . gmdate( 'Ymd\THis\Z' );
+		$lines[] = 'END:VCARD';
+
+		return implode( "\r\n", $lines ) . "\r\n";
+	}
+
+	/**
+	 * Escape special characters for vCard format.
+	 *
+	 * @param string $str Input string.
+	 * @return string Escaped string.
+	 */
+	private static function vcard_escape( string $str ): string {
+		$str = str_replace( '\\', '\\\\', $str );
+		$str = str_replace( "\n", '\\n', $str );
+		$str = str_replace( "\r", '', $str );
+		$str = str_replace( ';', '\\;', $str );
+		$str = str_replace( ',', '\\,', $str );
+		return $str;
+	}
+
+	/**
+	 * Clean phone number for vCard format.
+	 *
+	 * @param string $phone Phone number.
+	 * @return string Cleaned phone number.
+	 */
+	private static function clean_phone( string $phone ): string {
+		$cleaned = preg_replace( '/[^\d+]/', '', $phone );
+		if ( strlen( $cleaned ) === 10 ) {
+			return '+1' . $cleaned;
+		}
+		return $cleaned;
+	}
+
+	/**
+	 * Get photo as base64 encoded data.
+	 *
+	 * @param string $url Image URL.
+	 * @return array|null Array with 'type' and 'data' keys, or null on failure.
+	 */
+	private static function get_photo_base64( string $url ): ?array {
+		$upload_dir = wp_upload_dir();
+		$local_path = null;
+
+		// Check if it's a local file
+		if ( strpos( $url, $upload_dir['baseurl'] ) !== false ) {
+			$local_path = str_replace( $upload_dir['baseurl'], $upload_dir['basedir'], $url );
+		}
+
+		if ( $local_path && file_exists( $local_path ) ) {
+			$image_data = file_get_contents( $local_path );
+			$mime = mime_content_type( $local_path );
+		} else {
+			// Fetch remote image
+			$response = wp_remote_get( $url, [ 'timeout' => 15 ] );
+			if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
+				return null;
+			}
+			$image_data = wp_remote_retrieve_body( $response );
+			$mime = wp_remote_retrieve_header( $response, 'content-type' );
+		}
+
+		if ( empty( $image_data ) ) {
+			return null;
+		}
+
+		// Determine image type
+		$type = 'JPEG';
+		if ( strpos( $mime, 'png' ) !== false ) {
+			$type = 'PNG';
+		} elseif ( strpos( $mime, 'gif' ) !== false ) {
+			$type = 'GIF';
+		}
+
+		return [
+			'type' => $type,
+			'data' => base64_encode( $image_data ),
+		];
 	}
 }

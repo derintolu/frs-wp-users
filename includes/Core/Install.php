@@ -18,6 +18,7 @@ use FRSUsers\Database\Migrations\AddServiceAreasToProfiles;
 use FRSUsers\Database\Migrations\AddDisplayNameToProfiles;
 use FRSUsers\Database\Migrations\AddProfileSlug;
 use FRSUsers\Database\Migrations\AddCompanyAndLogo;
+use FRSUsers\Database\Migrations\AddQRCodeData;
 use FRSUsers\Traits\Base;
 
 /**
@@ -79,6 +80,7 @@ class Install {
 		AddDisplayNameToProfiles::up();
 		AddProfileSlug::up();
 		AddCompanyAndLogo::up();
+		AddQRCodeData::up();
 	}
 
 	/**

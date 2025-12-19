@@ -127,6 +127,7 @@ class Profile extends Model {
 		'custom_links',
 		'service_areas',
 		'directory_button_type',
+		'qr_code_data',
 		'is_active',
 		'synced_to_fluentcrm_at',
 	];

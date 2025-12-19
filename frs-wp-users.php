@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: FRS User Profiles
- * Description: Advanced user profile management system with guest profiles, Carbon Fields integration, and REST API. Manages profiles for loan officers, real estate agents, staff, leadership, and assistants.
+ * Description: Advanced user profile management system with guest profiles and REST API. Manages profiles for loan officers, real estate agents, staff, leadership, and assistants.
  * Author: 21st Century Lending
  * Author URI: https://hub21loan.com
  * License: GPLv2
@@ -49,8 +49,3 @@ add_action( 'plugins_loaded', 'frs_users_init' );
 
 // Hook for plugin activation
 register_activation_hook( __FILE__, array( Install::get_instance(), 'init' ) );
-
-// Hook for Carbon Fields initialization
-add_action( 'after_setup_theme', function() {
-	\Carbon_Fields\Carbon_Fields::boot();
-} );

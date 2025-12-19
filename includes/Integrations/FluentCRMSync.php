@@ -30,8 +30,8 @@ class FluentCRMSync {
         // Hook into role changes
         add_action('set_user_role', [$this, 'sync_role_change'], 10, 3);
 
-        // Hook into FRS profile updates (from Carbon Fields)
-        add_action('carbon_fields_post_meta_container_saved', [$this, 'sync_profile_meta_update'], 10, 1);
+        // Hook into FRS profile updates (from REST API)
+        add_action('frs_profile_saved', [$this, 'sync_profile_update'], 10, 2);
     }
 
     /**
@@ -86,28 +86,34 @@ class FluentCRMSync {
     }
 
     /**
-     * Sync profile meta update (Carbon Fields) to FluentCRM (only if changed)
+     * Sync profile update to FluentCRM
      *
-     * @param int $post_id User ID
+     * @param int   $profile_id Profile ID
+     * @param array $profile_data Profile data that was saved
      */
-    public function sync_profile_meta_update(int $post_id): void {
-        // Carbon Fields uses post ID which is the user ID for user meta
-        if (!$this->should_sync_user($post_id)) {
+    public function sync_profile_update(int $profile_id, array $profile_data): void {
+        // Get the profile to find the user_id
+        $profile = Profile::find($profile_id);
+        if (!$profile || !$profile->user_id) {
+            return;
+        }
+
+        if (!$this->should_sync_user($profile->user_id)) {
             return;
         }
 
         // Check if this is actually a profile change by checking last modified time
-        $last_sync = get_user_meta($post_id, '_frs_last_fluentcrm_sync', true);
+        $last_sync = get_user_meta($profile->user_id, '_frs_last_fluentcrm_sync', true);
         $current_time = current_time('timestamp');
 
         // Only sync if more than 5 seconds have passed since last sync
-        // This prevents duplicate syncs from multiple Carbon Fields saves
+        // This prevents duplicate syncs from rapid saves
         if ($last_sync && ($current_time - $last_sync) < 5) {
             return;
         }
 
-        $this->perform_sync($post_id, 'meta_update');
-        update_user_meta($post_id, '_frs_last_fluentcrm_sync', $current_time);
+        $this->perform_sync($profile->user_id, 'profile_update');
+        update_user_meta($profile->user_id, '_frs_last_fluentcrm_sync', $current_time);
     }
 
     /**

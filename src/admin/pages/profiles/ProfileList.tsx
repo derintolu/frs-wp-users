@@ -121,6 +121,7 @@ export default function ProfileList() {
       assistant: 'bg-yellow-500',
       leadership: 'bg-red-500',
       loan_officer: 'bg-blue-500',
+      pending_lo: 'bg-orange-500',
       realtor_partner: 'bg-green-500',
       staff: 'bg-purple-500',
     };
@@ -396,6 +397,7 @@ export default function ProfileList() {
               <SelectContent>
                 <SelectItem value="all">All Profile Types</SelectItem>
                 <SelectItem value="loan_officer">Loan Officers</SelectItem>
+                <SelectItem value="pending_lo">Pending LOs (No NMLS)</SelectItem>
                 <SelectItem value="realtor_partner">Real Estate Partners</SelectItem>
                 <SelectItem value="staff">Staff</SelectItem>
                 <SelectItem value="leadership">Leadership</SelectItem>

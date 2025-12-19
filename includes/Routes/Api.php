@@ -358,6 +358,17 @@ class Api {
 			)
 		);
 
+		// Get all unique service areas (public endpoint for directory filtering)
+		register_rest_route(
+			self::$namespace,
+			'/service-areas',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( self::$actions, 'get_service_areas' ),
+				'permission_callback' => '__return_true', // Public endpoint
+			)
+		);
+
 		// Allow hooks to add more custom API routes
 		do_action( 'frs_users_api_routes', self::$namespace );
 	}

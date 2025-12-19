@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -15,6 +16,35 @@ import {
 } from "@/components/ui/select";
 import { MediaUploader } from "@/components/ui/media-uploader";
 import { toast } from "sonner";
+import { X } from "lucide-react";
+
+const US_STATES = [
+  { abbr: 'AL', name: 'Alabama' }, { abbr: 'AK', name: 'Alaska' }, { abbr: 'AZ', name: 'Arizona' },
+  { abbr: 'AR', name: 'Arkansas' }, { abbr: 'CA', name: 'California' }, { abbr: 'CO', name: 'Colorado' },
+  { abbr: 'CT', name: 'Connecticut' }, { abbr: 'DE', name: 'Delaware' }, { abbr: 'FL', name: 'Florida' },
+  { abbr: 'GA', name: 'Georgia' }, { abbr: 'HI', name: 'Hawaii' }, { abbr: 'ID', name: 'Idaho' },
+  { abbr: 'IL', name: 'Illinois' }, { abbr: 'IN', name: 'Indiana' }, { abbr: 'IA', name: 'Iowa' },
+  { abbr: 'KS', name: 'Kansas' }, { abbr: 'KY', name: 'Kentucky' }, { abbr: 'LA', name: 'Louisiana' },
+  { abbr: 'ME', name: 'Maine' }, { abbr: 'MD', name: 'Maryland' }, { abbr: 'MA', name: 'Massachusetts' },
+  { abbr: 'MI', name: 'Michigan' }, { abbr: 'MN', name: 'Minnesota' }, { abbr: 'MS', name: 'Mississippi' },
+  { abbr: 'MO', name: 'Missouri' }, { abbr: 'MT', name: 'Montana' }, { abbr: 'NE', name: 'Nebraska' },
+  { abbr: 'NV', name: 'Nevada' }, { abbr: 'NH', name: 'New Hampshire' }, { abbr: 'NJ', name: 'New Jersey' },
+  { abbr: 'NM', name: 'New Mexico' }, { abbr: 'NY', name: 'New York' }, { abbr: 'NC', name: 'North Carolina' },
+  { abbr: 'ND', name: 'North Dakota' }, { abbr: 'OH', name: 'Ohio' }, { abbr: 'OK', name: 'Oklahoma' },
+  { abbr: 'OR', name: 'Oregon' }, { abbr: 'PA', name: 'Pennsylvania' }, { abbr: 'RI', name: 'Rhode Island' },
+  { abbr: 'SC', name: 'South Carolina' }, { abbr: 'SD', name: 'South Dakota' }, { abbr: 'TN', name: 'Tennessee' },
+  { abbr: 'TX', name: 'Texas' }, { abbr: 'UT', name: 'Utah' }, { abbr: 'VT', name: 'Vermont' },
+  { abbr: 'VA', name: 'Virginia' }, { abbr: 'WA', name: 'Washington' }, { abbr: 'WV', name: 'West Virginia' },
+  { abbr: 'WI', name: 'Wisconsin' }, { abbr: 'WY', name: 'Wyoming' }
+];
+
+// Normalize state name to abbreviation
+const normalizeState = (state) => {
+  if (!state) return null;
+  const upper = state.toUpperCase();
+  const found = US_STATES.find(s => s.abbr === upper || s.name.toUpperCase() === upper);
+  return found ? found.abbr : null;
+};
 
 const getInitials = (firstName, lastName) => {
   return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase();
@@ -51,6 +81,7 @@ export default function ProfileEdit() {
     profile_slug: "",
     region: "",
     select_person_type: "",
+    service_areas: [],
     status: "active",
     tiktok_url: "",
     twitter_url: "",
@@ -103,7 +134,8 @@ export default function ProfileEdit() {
       'brand', 'status', 'city_state', 'region', 'facebook_url',
       'instagram_url', 'linkedin_url', 'twitter_url', 'youtube_url',
       'tiktok_url', 'arrive', 'canva_folder_link', 'niche_bio_content',
-      'personal_branding_images', 'loan_officer_profile', 'loan_officer_user'
+      'personal_branding_images', 'loan_officer_profile', 'loan_officer_user',
+      'service_areas', 'profile_slug'
     ];
 
     const dataToSave = {};
@@ -341,6 +373,75 @@ export default function ProfileEdit() {
                 <div>
                   <Label>Region</Label>
                   <Input onChange={(e) => handleChange('region', e.target.value)} value={profile.region} />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="mt-4">
+              <CardHeader>
+                <CardTitle className="text-lg">Service Areas (Licensed States)</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Current service areas */}
+                <div>
+                  <Label>Current Service Areas</Label>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {(Array.isArray(profile.service_areas) ? profile.service_areas : []).map((area, idx) => {
+                      const normalized = normalizeState(area);
+                      const stateInfo = US_STATES.find(s => s.abbr === normalized);
+                      return (
+                        <Badge key={idx} className="flex items-center gap-1 px-3 py-1" variant="secondary">
+                          <span>{normalized || area}</span>
+                          {stateInfo && <span className="text-xs text-muted-foreground">({stateInfo.name})</span>}
+                          <button
+                            className="ml-1 hover:text-red-600"
+                            onClick={() => {
+                              const newAreas = [...profile.service_areas];
+                              newAreas.splice(idx, 1);
+                              handleChange('service_areas', newAreas);
+                            }}
+                            type="button"
+                          >
+                            <X className="size-3" />
+                          </button>
+                        </Badge>
+                      );
+                    })}
+                    {(!profile.service_areas || profile.service_areas.length === 0) && (
+                      <span className="text-sm text-muted-foreground">No service areas set</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Add new service area */}
+                <div>
+                  <Label>Add Service Area</Label>
+                  <Select
+                    onValueChange={(value) => {
+                      const currentAreas = Array.isArray(profile.service_areas) ? profile.service_areas : [];
+                      if (!currentAreas.includes(value)) {
+                        handleChange('service_areas', [...currentAreas, value]);
+                      }
+                    }}
+                    value=""
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a state to add..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {US_STATES.filter(s => {
+                        const currentAreas = Array.isArray(profile.service_areas) ? profile.service_areas : [];
+                        return !currentAreas.includes(s.abbr);
+                      }).map(state => (
+                        <SelectItem key={state.abbr} value={state.abbr}>
+                          {state.abbr} - {state.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Select states where this person is licensed to operate
+                  </p>
                 </div>
               </CardContent>
             </Card>

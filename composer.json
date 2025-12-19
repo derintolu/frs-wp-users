@@ -1,6 +1,6 @@
 {
   "name": "frs/wp-users",
-  "description": "Advanced user profile management system with guest profiles and Carbon Fields integration",
+  "description": "Advanced user profile management system with guest profiles and REST API",
   "type": "wordpress-plugin",
   "license": "GPL-2.0-or-later",
   "autoload": {
@@ -18,8 +18,7 @@
   },
   "require": {
     "php": ">=8.1",
-    "prappo/wp-eloquent": "^3.0",
-    "htmlburger/carbon-fields": "^3.6"
+    "prappo/wp-eloquent": "^3.0"
   },
   "require-dev": {
     "squizlabs/php_codesniffer": "^3.7",

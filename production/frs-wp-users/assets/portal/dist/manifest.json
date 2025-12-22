@@ -1,0 +1,28 @@
+{
+  "_index-089210f2.js": {
+    "css": [
+      "assets/index-0557f369.css"
+    ],
+    "file": "assets/index-089210f2.js"
+  },
+  "index.css": {
+    "file": "assets/index-0557f369.css",
+    "src": "index.css"
+  },
+  "src/frontend/portal/main.tsx": {
+    "file": "assets/portal-1ea4616e.js",
+    "imports": [
+      "_index-089210f2.js"
+    ],
+    "isEntry": true,
+    "src": "src/frontend/portal/main.tsx"
+  },
+  "src/frontend/portal/public-main.tsx": {
+    "file": "assets/public-profile-8df7bc42.js",
+    "imports": [
+      "_index-089210f2.js"
+    ],
+    "isEntry": true,
+    "src": "src/frontend/portal/public-main.tsx"
+  }
+}

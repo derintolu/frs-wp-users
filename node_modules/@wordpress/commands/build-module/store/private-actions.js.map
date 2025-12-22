@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../src/store/private-actions.js"],
+  "sourcesContent": ["/**\n * Sets the active context.\n *\n * @param {string} context Context.\n *\n * @return {Object} action.\n */\nexport function setContext( context ) {\n\treturn {\n\t\ttype: 'SET_CONTEXT',\n\t\tcontext,\n\t};\n}\n"],
+  "mappings": ";AAOO,SAAS,WAAY,SAAU;AACrC,SAAO;AAAA,IACN,MAAM;AAAA,IACN;AAAA,EACD;AACD;",
+  "names": []
+}

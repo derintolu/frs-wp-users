@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/styles/shadow/index.ts"],
+  "sourcesContent": ["/**\n * Internal dependencies\n */\nimport type { Style, StyleOptions } from '../../types';\nimport { generateRule } from '../utils';\n\nconst shadow = {\n\tname: 'shadow',\n\tgenerate: ( style: Style, options: StyleOptions ) => {\n\t\treturn generateRule( style, options, [ 'shadow' ], 'boxShadow' );\n\t},\n};\n\nexport default [ shadow ];\n"],
+  "mappings": ";AAIA,SAAS,oBAAoB;AAE7B,IAAM,SAAS;AAAA,EACd,MAAM;AAAA,EACN,UAAU,CAAE,OAAc,YAA2B;AACpD,WAAO,aAAc,OAAO,SAAS,CAAE,QAAS,GAAG,WAAY;AAAA,EAChE;AACD;AAEA,IAAO,iBAAQ,CAAE,MAAO;",
+  "names": []
+}

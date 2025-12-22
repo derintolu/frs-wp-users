@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../src/hooks/use-command-context.js"],
+  "sourcesContent": ["/**\n * WordPress dependencies\n */\nimport { useEffect, useRef } from '@wordpress/element';\nimport { useDispatch, useSelect } from '@wordpress/data';\n\n/**\n * Internal dependencies\n */\nimport { store as commandsStore } from '../store';\nimport { unlock } from '../lock-unlock';\n\n/**\n * Sets the active context of the command palette\n *\n * @param {string} context Context to set.\n */\nexport default function useCommandContext( context ) {\n\tconst { getContext } = useSelect( commandsStore );\n\tconst initialContext = useRef( getContext() );\n\tconst { setContext } = unlock( useDispatch( commandsStore ) );\n\n\tuseEffect( () => {\n\t\tsetContext( context );\n\t}, [ context, setContext ] );\n\n\t// This effects ensures that on unmount, we restore the context\n\t// that was set before the component actually mounts.\n\tuseEffect( () => {\n\t\tconst initialContextRef = initialContext.current;\n\t\treturn () => setContext( initialContextRef );\n\t}, [ setContext ] );\n}\n"],
+  "mappings": ";;;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAGA,qBAAkC;AAClC,kBAAuC;AAKvC,mBAAuC;AACvC,yBAAuB;AAOR,SAAR,kBAAoC,SAAU;AACpD,QAAM,EAAE,WAAW,QAAI,uBAAW,aAAAA,KAAc;AAChD,QAAM,qBAAiB,uBAAQ,WAAW,CAAE;AAC5C,QAAM,EAAE,WAAW,QAAI,+BAAQ,yBAAa,aAAAA,KAAc,CAAE;AAE5D,gCAAW,MAAM;AAChB,eAAY,OAAQ;AAAA,EACrB,GAAG,CAAE,SAAS,UAAW,CAAE;AAI3B,gCAAW,MAAM;AAChB,UAAM,oBAAoB,eAAe;AACzC,WAAO,MAAM,WAAY,iBAAkB;AAAA,EAC5C,GAAG,CAAE,UAAW,CAAE;AACnB;",
+  "names": ["commandsStore"]
+}

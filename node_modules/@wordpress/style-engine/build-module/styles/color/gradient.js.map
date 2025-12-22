@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/styles/color/gradient.ts"],
+  "sourcesContent": ["/**\n * Internal dependencies\n */\nimport type { Style, StyleOptions } from '../../types';\nimport { generateRule } from '../utils';\n\nconst gradient = {\n\tname: 'gradient',\n\tgenerate: ( style: Style, options: StyleOptions ) => {\n\t\treturn generateRule(\n\t\t\tstyle,\n\t\t\toptions,\n\t\t\t[ 'color', 'gradient' ],\n\t\t\t'background'\n\t\t);\n\t},\n};\n\nexport default gradient;\n"],
+  "mappings": ";AAIA,SAAS,oBAAoB;AAE7B,IAAM,WAAW;AAAA,EAChB,MAAM;AAAA,EACN,UAAU,CAAE,OAAc,YAA2B;AACpD,WAAO;AAAA,MACN;AAAA,MACA;AAAA,MACA,CAAE,SAAS,UAAW;AAAA,MACtB;AAAA,IACD;AAAA,EACD;AACD;AAEA,IAAO,mBAAQ;",
+  "names": []
+}

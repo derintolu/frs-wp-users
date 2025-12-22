@@ -1,0 +1,1 @@
+{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../../../src/components/preferences-modal-tabs/index.tsx"],"names":[],"mappings":"AA8BA,MAAM,MAAM,yBAAyB,GAAG;IACvC,QAAQ,EAAE;QAAE,IAAI,EAAE,MAAM,CAAC;QAAC,QAAQ,EAAE,MAAM,CAAC;QAAC,OAAO,EAAE,KAAK,CAAC,SAAS,CAAA;KAAE,EAAE,CAAC;CACzE,CAAC;AACF,MAAM,CAAC,OAAO,UAAU,oBAAoB,CAAE,EAC7C,QAAQ,GACR,EAAE,yBAAyB,+BAgJ3B"}

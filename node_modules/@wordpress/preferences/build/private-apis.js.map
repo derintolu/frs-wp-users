@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../src/private-apis.ts"],
+  "sourcesContent": ["/**\n * Internal dependencies\n */\nimport PreferenceBaseOption from './components/preference-base-option';\nimport PreferenceToggleControl from './components/preference-toggle-control';\nimport PreferencesModal from './components/preferences-modal';\nimport PreferencesModalSection from './components/preferences-modal-section';\nimport PreferencesModalTabs from './components/preferences-modal-tabs';\nimport { lock } from './lock-unlock';\n\nexport const privateApis = {};\nlock( privateApis, {\n\tPreferenceBaseOption,\n\tPreferenceToggleControl,\n\tPreferencesModal,\n\tPreferencesModalSection,\n\tPreferencesModalTabs,\n} );\n"],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAGA,oCAAiC;AACjC,uCAAoC;AACpC,+BAA6B;AAC7B,uCAAoC;AACpC,oCAAiC;AACjC,yBAAqB;AAEd,IAAM,cAAc,CAAC;AAAA,IAC5B,yBAAM,aAAa;AAAA,EAClB,oDAAAA;AAAA,EACA,0DAAAC;AAAA,EACA,2CAAAC;AAAA,EACA,0DAAAC;AAAA,EACA,oDAAAC;AACD,CAAE;",
+  "names": ["PreferenceBaseOption", "PreferenceToggleControl", "PreferencesModal", "PreferencesModalSection", "PreferencesModalTabs"]
+}

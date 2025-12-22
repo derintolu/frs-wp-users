@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/styles/color/background.ts"],
+  "sourcesContent": ["/**\n * Internal dependencies\n */\nimport type { Style, StyleOptions } from '../../types';\nimport { generateRule } from '../utils';\n\nconst background = {\n\tname: 'background',\n\tgenerate: ( style: Style, options: StyleOptions ) => {\n\t\treturn generateRule(\n\t\t\tstyle,\n\t\t\toptions,\n\t\t\t[ 'color', 'background' ],\n\t\t\t'backgroundColor'\n\t\t);\n\t},\n};\n\nexport default background;\n"],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAIA,mBAA6B;AAE7B,IAAM,aAAa;AAAA,EAClB,MAAM;AAAA,EACN,UAAU,CAAE,OAAc,YAA2B;AACpD,eAAO;AAAA,MACN;AAAA,MACA;AAAA,MACA,CAAE,SAAS,YAAa;AAAA,MACxB;AAAA,IACD;AAAA,EACD;AACD;AAEA,IAAO,qBAAQ;",
+  "names": []
+}

@@ -1,0 +1,28 @@
+{
+  "_index-bb125315.js": {
+    "css": [
+      "assets/index-0e5c3ad6.css"
+    ],
+    "file": "assets/index-bb125315.js"
+  },
+  "index.css": {
+    "file": "assets/index-0e5c3ad6.css",
+    "src": "index.css"
+  },
+  "src/frontend/portal/main.tsx": {
+    "file": "assets/portal-0ff46749.js",
+    "imports": [
+      "_index-bb125315.js"
+    ],
+    "isEntry": true,
+    "src": "src/frontend/portal/main.tsx"
+  },
+  "src/frontend/portal/public-main.tsx": {
+    "file": "assets/public-profile-d1cef8e4.js",
+    "imports": [
+      "_index-bb125315.js"
+    ],
+    "isEntry": true,
+    "src": "src/frontend/portal/public-main.tsx"
+  }
+}

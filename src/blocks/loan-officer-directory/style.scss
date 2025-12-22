@@ -1,0 +1,11 @@
+/**
+ * Frontend and editor styles for loan-officer-directory block
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.loan-officer-directory {
+	@apply antialiased;
+}

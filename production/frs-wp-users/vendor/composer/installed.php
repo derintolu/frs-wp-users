@@ -1,0 +1,41 @@
+<?php return array(
+    'root' => array(
+        'name' => 'frs/wp-users',
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => 'f3aff95409f0d1b7eb429f7d5e2a8440650cc037',
+        'type' => 'wordpress-plugin',
+        'install_path' => __DIR__ . '/../../',
+        'aliases' => array(),
+        'dev' => false,
+    ),
+    'versions' => array(
+        'frs/wp-users' => array(
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => 'f3aff95409f0d1b7eb429f7d5e2a8440650cc037',
+            'type' => 'wordpress-plugin',
+            'install_path' => __DIR__ . '/../../',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'htmlburger/carbon-fields' => array(
+            'pretty_version' => 'v3.6.9',
+            'version' => '3.6.9.0',
+            'reference' => 'f82e80e3e3469d6e86cc17a8950b918ad448a059',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../htmlburger/carbon-fields',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'prappo/wp-eloquent' => array(
+            'pretty_version' => 'v3.0.5',
+            'version' => '3.0.5.0',
+            'reference' => '394e285a573248b176f93dffd85f9d7256a2475b',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../prappo/wp-eloquent',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+    ),
+);

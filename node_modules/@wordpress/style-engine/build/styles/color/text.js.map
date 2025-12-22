@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/styles/color/text.ts"],
+  "sourcesContent": ["/**\n * Internal dependencies\n */\nimport type { Style, StyleOptions } from '../../types';\nimport { generateRule } from '../utils';\n\nconst text = {\n\tname: 'text',\n\tgenerate: ( style: Style, options: StyleOptions ) => {\n\t\treturn generateRule( style, options, [ 'color', 'text' ], 'color' );\n\t},\n};\n\nexport default text;\n"],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAIA,mBAA6B;AAE7B,IAAM,OAAO;AAAA,EACZ,MAAM;AAAA,EACN,UAAU,CAAE,OAAc,YAA2B;AACpD,eAAO,2BAAc,OAAO,SAAS,CAAE,SAAS,MAAO,GAAG,OAAQ;AAAA,EACnE;AACD;AAEA,IAAO,eAAQ;",
+  "names": []
+}

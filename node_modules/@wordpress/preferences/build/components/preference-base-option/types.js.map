@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/components/preference-base-option/types.ts"],
+  "sourcesContent": ["/**\n * WordPress dependencies\n */\nimport type { ToggleControl } from '@wordpress/components';\n\ntype ToggleControlProps = Parameters< typeof ToggleControl >[ 0 ];\nexport type BaseOptionProps = Pick<\n\tToggleControlProps,\n\t'help' | 'label' | 'onChange'\n> & { isChecked?: ToggleControlProps[ 'checked' ]; children?: React.ReactNode };\n"],
+  "mappings": ";;;;;;;;;;;;;;;;AAAA;AAAA;",
+  "names": []
+}

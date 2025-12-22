@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/styles/spacing/padding.ts"],
+  "sourcesContent": ["/**\n * Internal dependencies\n */\nimport type { Style, StyleOptions } from '../../types';\nimport { generateBoxRules } from '../utils';\n\nconst padding = {\n\tname: 'padding',\n\tgenerate: ( style: Style, options: StyleOptions ) => {\n\t\treturn generateBoxRules( style, options, [ 'spacing', 'padding' ], {\n\t\t\tdefault: 'padding',\n\t\t\tindividual: 'padding%s',\n\t\t} );\n\t},\n};\n\nexport default padding;\n"],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAIA,mBAAiC;AAEjC,IAAM,UAAU;AAAA,EACf,MAAM;AAAA,EACN,UAAU,CAAE,OAAc,YAA2B;AACpD,eAAO,+BAAkB,OAAO,SAAS,CAAE,WAAW,SAAU,GAAG;AAAA,MAClE,SAAS;AAAA,MACT,YAAY;AAAA,IACb,CAAE;AAAA,EACH;AACD;AAEA,IAAO,kBAAQ;",
+  "names": []
+}

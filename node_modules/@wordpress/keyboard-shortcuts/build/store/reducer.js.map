@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../src/store/reducer.js"],
+  "sourcesContent": ["/**\n * Reducer returning the registered shortcuts\n *\n * @param {Object} state  Current state.\n * @param {Object} action Dispatched action.\n *\n * @return {Object} Updated state.\n */\nfunction reducer( state = {}, action ) {\n\tswitch ( action.type ) {\n\t\tcase 'REGISTER_SHORTCUT':\n\t\t\treturn {\n\t\t\t\t...state,\n\t\t\t\t[ action.name ]: {\n\t\t\t\t\tcategory: action.category,\n\t\t\t\t\tkeyCombination: action.keyCombination,\n\t\t\t\t\taliases: action.aliases,\n\t\t\t\t\tdescription: action.description,\n\t\t\t\t},\n\t\t\t};\n\t\tcase 'UNREGISTER_SHORTCUT':\n\t\t\tconst { [ action.name ]: actionName, ...remainingState } = state;\n\t\t\treturn remainingState;\n\t}\n\n\treturn state;\n}\n\nexport default reducer;\n"],
+  "mappings": ";;;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAQA,SAAS,QAAS,QAAQ,CAAC,GAAG,QAAS;AACtC,UAAS,OAAO,MAAO;AAAA,IACtB,KAAK;AACJ,aAAO;AAAA,QACN,GAAG;AAAA,QACH,CAAE,OAAO,IAAK,GAAG;AAAA,UAChB,UAAU,OAAO;AAAA,UACjB,gBAAgB,OAAO;AAAA,UACvB,SAAS,OAAO;AAAA,UAChB,aAAa,OAAO;AAAA,QACrB;AAAA,MACD;AAAA,IACD,KAAK;AACJ,YAAM,EAAE,CAAE,OAAO,IAAK,GAAG,YAAY,GAAG,eAAe,IAAI;AAC3D,aAAO;AAAA,EACT;AAEA,SAAO;AACR;AAEA,IAAO,kBAAQ;",
+  "names": []
+}

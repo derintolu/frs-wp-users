@@ -1,0 +1,2 @@
+import{f as s,j as l,g as t,e as f}from"./index-bb125315.js";const o=document.getElementById("frs-public-profile-root");if(o){const e=o.dataset.profileSlug||"",i=o.dataset.profileId||"",r=window.frsPublicProfileConfig||{};console.log("Public Profile mounting with config:",r),console.log("Profile Slug:",e),console.log("Profile ID:",i),s(o).render(l.jsx(t,{children:l.jsx(f,{slug:e})})),console.log("Public Profile mounted successfully")}
+//# sourceMappingURL=public-profile-d1cef8e4.js.map

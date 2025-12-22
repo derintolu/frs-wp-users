@@ -1,0 +1,133 @@
+/**
+ * FRS Users Admin Styles
+ *
+ * @package FRSUsers
+ * @since 1.0.0
+ */
+
+/* Profile Type Badges */
+.profile-type-badge {
+	display: inline-block;
+	padding: 3px 8px;
+	margin: 2px;
+	background: #0073aa;
+	color: white;
+	border-radius: 3px;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+}
+
+/* Status Badges */
+.guest-badge,
+.linked-badge {
+	display: inline-block;
+	padding: 3px 8px;
+	border-radius: 3px;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+}
+
+.guest-badge {
+	background: #f0ad4e;
+	color: white;
+}
+
+.linked-badge {
+	background: #5cb85c;
+	color: white;
+}
+
+/* Create User Account Button */
+.create-user-btn {
+	white-space: nowrap;
+}
+
+.create-user-btn:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+/* List Table Enhancements */
+.wp-list-table .column-name {
+	width: 20%;
+}
+
+.wp-list-table .column-email {
+	width: 20%;
+}
+
+.wp-list-table .column-profile_types {
+	width: 20%;
+}
+
+.wp-list-table .column-status {
+	width: 15%;
+}
+
+.wp-list-table .column-created_at {
+	width: 12%;
+}
+
+.wp-list-table .column-actions {
+	width: 13%;
+}
+
+/* Filters */
+.tablenav .alignleft.actions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.tablenav .alignleft.actions select {
+	max-width: 200px;
+}
+
+.tablenav .alignleft.actions label {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	margin: 0;
+}
+
+/* Admin Notice Enhancements */
+.notice.inline {
+	margin: 15px 0;
+}
+
+/* Add New Profile Card */
+.card {
+	max-width: 800px;
+	margin-top: 20px;
+}
+
+.card h2 {
+	margin-top: 0;
+}
+
+.card code {
+	background: #f0f0f1;
+	padding: 3px 6px;
+	border-radius: 3px;
+	font-size: 13px;
+}
+
+/* Responsive */
+@media screen and (max-width: 782px) {
+	.wp-list-table .column-profile_types,
+	.wp-list-table .column-created_at {
+		display: none;
+	}
+
+	.tablenav .alignleft.actions {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.profile-type-badge {
+		font-size: 10px;
+		padding: 2px 6px;
+	}
+}

@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../src/store/index.ts"],
+  "sourcesContent": ["/**\n * WordPress dependencies\n */\nimport { createReduxStore, register } from '@wordpress/data';\n\n/**\n * Internal dependencies\n */\nimport reducer from './reducer';\nimport * as actions from './actions';\nimport * as selectors from './selectors';\nimport { STORE_NAME } from './constants';\nimport type { StoreState } from './types';\n\n/**\n * Store definition for the preferences namespace.\n *\n * @see https://github.com/WordPress/gutenberg/blob/HEAD/packages/data/README.md#createReduxStore\n */\nexport const store = createReduxStore<\n\tStoreState,\n\ttypeof actions,\n\ttypeof selectors\n>( STORE_NAME, {\n\treducer,\n\tactions,\n\tselectors,\n} );\n\nregister( store );\n"],
+  "mappings": ";AAGA,SAAS,kBAAkB,gBAAgB;AAK3C,OAAO,aAAa;AACpB,YAAY,aAAa;AACzB,YAAY,eAAe;AAC3B,SAAS,kBAAkB;AAQpB,IAAM,QAAQ,iBAIlB,YAAY;AAAA,EACd;AAAA,EACA;AAAA,EACA;AACD,CAAE;AAEF,SAAU,KAAM;",
+  "names": []
+}

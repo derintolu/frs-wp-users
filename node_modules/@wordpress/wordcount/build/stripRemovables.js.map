@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../src/stripRemovables.ts"],
+  "sourcesContent": ["/**\n * Internal dependencies\n */\nimport type { Settings } from './types';\n\n/**\n * Replaces items matched in the regex with spaces.\n *\n * @param settings The main settings object containing regular expressions\n * @param text     The string being counted.\n * @return The manipulated text.\n */\nexport default function stripRemovables(\n\tsettings: Settings,\n\ttext: string\n): string {\n\treturn text.replace( settings.removeRegExp, '' );\n}\n"],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAYe,SAAR,gBACN,UACA,MACS;AACT,SAAO,KAAK,QAAS,SAAS,cAAc,EAAG;AAChD;",
+  "names": []
+}

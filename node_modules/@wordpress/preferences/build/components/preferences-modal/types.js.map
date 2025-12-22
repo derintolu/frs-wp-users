@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/components/preferences-modal/types.ts"],
+  "sourcesContent": ["/**\n * WordPress dependencies\n */\nimport type { Modal } from '@wordpress/components';\n\ntype ModalProps = Parameters< typeof Modal >[ 0 ];\n\nexport type PreferencesModalProps = {\n\tcloseModal: ModalProps[ 'onRequestClose' ];\n\tchildren: React.ReactNode;\n};\n"],
+  "mappings": ";;;;;;;;;;;;;;;;AAAA;AAAA;",
+  "names": []
+}

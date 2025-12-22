@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../src/private-apis.js"],
+  "sourcesContent": ["/**\n * Internal dependencies\n */\nimport { default as useCommandContext } from './hooks/use-command-context';\nimport { lock } from './lock-unlock';\n\n/**\n * @private\n */\nexport const privateApis = {};\nlock( privateApis, {\n\tuseCommandContext,\n} );\n"],
+  "mappings": ";AAGA,SAAS,WAAW,yBAAyB;AAC7C,SAAS,YAAY;AAKd,IAAM,cAAc,CAAC;AAC5B,KAAM,aAAa;AAAA,EAClB;AACD,CAAE;",
+  "names": []
+}

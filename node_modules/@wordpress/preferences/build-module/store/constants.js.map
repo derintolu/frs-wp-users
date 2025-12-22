@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../src/store/constants.ts"],
+  "sourcesContent": ["/**\n * The identifier for the data store.\n */\nexport const STORE_NAME = 'core/preferences';\n"],
+  "mappings": ";AAGO,IAAM,aAAa;",
+  "names": []
+}

@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../src/stripHTMLEntities.ts"],
+  "sourcesContent": ["/**\n * Internal dependencies\n */\nimport type { Settings } from './types';\n\n/**\n * Removes items matched in the regex.\n *\n * @param settings The main settings object containing regular expressions\n * @param text     The string being counted.\n * @return The manipulated text.\n */\nexport default function stripHTMLEntities(\n\tsettings: Settings,\n\ttext: string\n): string {\n\treturn text.replace( settings.HTMLEntityRegExp, '' );\n}\n"],
+  "mappings": ";AAYe,SAAR,kBACN,UACA,MACS;AACT,SAAO,KAAK,QAAS,SAAS,kBAAkB,EAAG;AACpD;",
+  "names": []
+}

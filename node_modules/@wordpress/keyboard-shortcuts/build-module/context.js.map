@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../src/context.js"],
+  "sourcesContent": ["/**\n * WordPress dependencies\n */\nimport { createContext } from '@wordpress/element';\n\nconst globalShortcuts = new Set();\nconst globalListener = ( event ) => {\n\tfor ( const keyboardShortcut of globalShortcuts ) {\n\t\tkeyboardShortcut( event );\n\t}\n};\n\nexport const context = createContext( {\n\tadd: ( shortcut ) => {\n\t\tif ( globalShortcuts.size === 0 ) {\n\t\t\tdocument.addEventListener( 'keydown', globalListener );\n\t\t}\n\t\tglobalShortcuts.add( shortcut );\n\t},\n\tdelete: ( shortcut ) => {\n\t\tglobalShortcuts.delete( shortcut );\n\t\tif ( globalShortcuts.size === 0 ) {\n\t\t\tdocument.removeEventListener( 'keydown', globalListener );\n\t\t}\n\t},\n} );\n\ncontext.displayName = 'KeyboardShortcutsContext';\n"],
+  "mappings": ";AAGA,SAAS,qBAAqB;AAE9B,IAAM,kBAAkB,oBAAI,IAAI;AAChC,IAAM,iBAAiB,CAAE,UAAW;AACnC,aAAY,oBAAoB,iBAAkB;AACjD,qBAAkB,KAAM;AAAA,EACzB;AACD;AAEO,IAAM,UAAU,cAAe;AAAA,EACrC,KAAK,CAAE,aAAc;AACpB,QAAK,gBAAgB,SAAS,GAAI;AACjC,eAAS,iBAAkB,WAAW,cAAe;AAAA,IACtD;AACA,oBAAgB,IAAK,QAAS;AAAA,EAC/B;AAAA,EACA,QAAQ,CAAE,aAAc;AACvB,oBAAgB,OAAQ,QAAS;AACjC,QAAK,gBAAgB,SAAS,GAAI;AACjC,eAAS,oBAAqB,WAAW,cAAe;AAAA,IACzD;AAAA,EACD;AACD,CAAE;AAEF,QAAQ,cAAc;",
+  "names": []
+}

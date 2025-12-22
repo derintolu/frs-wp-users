@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/components/preferences-modal-section/index.tsx"],
+  "sourcesContent": ["export type SectionProps = {\n\tdescription?: React.ReactNode;\n\ttitle?: React.ReactNode;\n\tchildren?: React.ReactNode;\n};\n\nconst Section = ( { description, title, children }: SectionProps ) => (\n\t<fieldset className=\"preferences-modal__section\">\n\t\t<legend className=\"preferences-modal__section-legend\">\n\t\t\t<h2 className=\"preferences-modal__section-title\">{ title }</h2>\n\t\t\t{ description && (\n\t\t\t\t<p className=\"preferences-modal__section-description\">\n\t\t\t\t\t{ description }\n\t\t\t\t</p>\n\t\t\t) }\n\t\t</legend>\n\t\t<div className=\"preferences-modal__section-content\">{ children }</div>\n\t</fieldset>\n);\n\nexport default Section;\n"],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAQE;AAFF,IAAM,UAAU,CAAE,EAAE,aAAa,OAAO,SAAS,MAChD,6CAAC,cAAS,WAAU,8BACnB;AAAA,+CAAC,YAAO,WAAU,qCACjB;AAAA,gDAAC,QAAG,WAAU,oCAAqC,iBAAO;AAAA,IACxD,eACD,4CAAC,OAAE,WAAU,0CACV,uBACH;AAAA,KAEF;AAAA,EACA,4CAAC,SAAI,WAAU,sCAAuC,UAAU;AAAA,GACjE;AAGD,IAAO,oCAAQ;",
+  "names": []
+}

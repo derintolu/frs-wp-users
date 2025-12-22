@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../src/stripShortcodes.ts"],
+  "sourcesContent": ["/**\n * Internal dependencies\n */\nimport type { Settings } from './types';\n\n/**\n * Replaces items matched in the regex with a new line.\n *\n * @param settings The main settings object containing regular expressions\n * @param text     The string being counted.\n * @return The manipulated text.\n */\nexport default function stripShortcodes(\n\tsettings: Settings,\n\ttext: string\n): string {\n\tif ( settings.shortcodesRegExp ) {\n\t\treturn text.replace( settings.shortcodesRegExp, '\\n' );\n\t}\n\treturn text;\n}\n"],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAYe,SAAR,gBACN,UACA,MACS;AACT,MAAK,SAAS,kBAAmB;AAChC,WAAO,KAAK,QAAS,SAAS,kBAAkB,IAAK;AAAA,EACtD;AACA,SAAO;AACR;",
+  "names": []
+}

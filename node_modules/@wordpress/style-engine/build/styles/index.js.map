@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../src/styles/index.ts"],
+  "sourcesContent": ["/**\n * Internal dependencies\n */\nimport border from './border';\nimport color from './color';\nimport dimensions from './dimensions';\nimport background from './background';\nimport shadow from './shadow';\nimport outline from './outline';\nimport spacing from './spacing';\nimport typography from './typography';\n\nexport const styleDefinitions = [\n\t...border,\n\t...color,\n\t...dimensions,\n\t...outline,\n\t...spacing,\n\t...typography,\n\t...shadow,\n\t...background,\n];\n"],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAGA,oBAAmB;AACnB,mBAAkB;AAClB,wBAAuB;AACvB,wBAAuB;AACvB,oBAAmB;AACnB,qBAAoB;AACpB,qBAAoB;AACpB,wBAAuB;AAEhB,IAAM,mBAAmB;AAAA,EAC/B,GAAG,cAAAA;AAAA,EACH,GAAG,aAAAC;AAAA,EACH,GAAG,kBAAAC;AAAA,EACH,GAAG,eAAAC;AAAA,EACH,GAAG,eAAAC;AAAA,EACH,GAAG,kBAAAC;AAAA,EACH,GAAG,cAAAC;AAAA,EACH,GAAG,kBAAAC;AACJ;",
+  "names": ["border", "color", "dimensions", "outline", "spacing", "typography", "shadow", "background"]
+}

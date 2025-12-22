@@ -1,0 +1,14 @@
+{
+  "src/frontend/directory/index.css": {
+    "file": "assets/index-b867f392.css",
+    "src": "src/frontend/directory/index.css"
+  },
+  "src/frontend/directory/index.tsx": {
+    "css": [
+      "assets/index-b867f392.css"
+    ],
+    "file": "assets/directory-d2f2d248.js",
+    "isEntry": true,
+    "src": "src/frontend/directory/index.tsx"
+  }
+}

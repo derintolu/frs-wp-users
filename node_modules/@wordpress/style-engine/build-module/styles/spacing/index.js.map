@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/styles/spacing/index.ts"],
+  "sourcesContent": ["/**\n * Internal dependencies\n */\nimport padding from './padding';\nimport margin from './margin';\n\nexport default [ margin, padding ];\n"],
+  "mappings": ";AAGA,OAAO,aAAa;AACpB,OAAO,YAAY;AAEnB,IAAO,kBAAQ,CAAE,QAAQ,OAAQ;",
+  "names": []
+}

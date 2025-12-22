@@ -1,0 +1,913 @@
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { FloatingInput } from '../ui/floating-input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Calculator, Home, DollarSign, Percent, Calendar } from 'lucide-react';
+import {
+  calculateConventional,
+  calculateVA,
+  calculateFHA,
+  calculateRefinance,
+  calculateAffordability,
+  formatCurrency,
+  formatCurrencyWithCents,
+  formatPercent,
+  type ConventionalInputs,
+  type VAInputs,
+  type FHAInputs,
+  type RefinanceInputs,
+  type AffordabilityInputs,
+  type CalculationResults
+} from '../../utils/mortgageCalculations';
+
+export function MortgageCalculator() {
+  const [activeTab, setActiveTab] = useState('conventional');
+
+  return (
+    <div className="w-full max-w-7xl mx-auto p-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+          <Calculator className="h-8 w-8" />
+          Mortgage Calculator
+        </h1>
+        <p className="text-muted-foreground mt-2">
+          Calculate payments for different mortgage types
+        </p>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-5 mb-6">
+          <TabsTrigger value="conventional">Conventional</TabsTrigger>
+          <TabsTrigger value="va">VA Loan</TabsTrigger>
+          <TabsTrigger value="fha">FHA Loan</TabsTrigger>
+          <TabsTrigger value="refinance">Refinance</TabsTrigger>
+          <TabsTrigger value="affordability">Affordability</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="conventional">
+          <ConventionalCalculator />
+        </TabsContent>
+
+        <TabsContent value="va">
+          <VACalculator />
+        </TabsContent>
+
+        <TabsContent value="fha">
+          <FHACalculator />
+        </TabsContent>
+
+        <TabsContent value="refinance">
+          <RefinanceCalculator />
+        </TabsContent>
+
+        <TabsContent value="affordability">
+          <AffordabilityCalculator />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+// Conventional Calculator
+function ConventionalCalculator() {
+  const [inputs, setInputs] = useState<ConventionalInputs>({
+    homePrice: 300000,
+    downPayment: 60000,
+    interestRate: 6.5,
+    loanTerm: 30,
+    propertyTax: 3000,
+    insurance: 1200,
+    hoa: 0
+  });
+
+  const results = calculateConventional(inputs);
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Inputs Card - 2/3 width */}
+      <Card className="lg:col-span-2">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Home className="h-5 w-5" />
+            Loan Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FloatingInput
+            label="Home Price"
+            type="number"
+            icon={<DollarSign className="h-4 w-4" />}
+            value={inputs.homePrice}
+            onChange={(e) => setInputs({...inputs, homePrice: Number(e.target.value)})}
+          />
+
+          <div>
+            <FloatingInput
+              label="Down Payment"
+              type="number"
+              icon={<DollarSign className="h-4 w-4" />}
+              value={inputs.downPayment}
+              onChange={(e) => setInputs({...inputs, downPayment: Number(e.target.value)})}
+            />
+            <p className="text-xs text-muted-foreground -mt-2 ml-1">
+              {formatPercent((inputs.downPayment / inputs.homePrice) * 100)} of home price
+            </p>
+          </div>
+
+          <FloatingInput
+            label="Interest Rate (%)"
+            type="number"
+            step="0.1"
+            icon={<Percent className="h-4 w-4" />}
+            value={inputs.interestRate}
+            onChange={(e) => setInputs({...inputs, interestRate: Number(e.target.value)})}
+          />
+
+          <div className="space-y-2">
+            <Label htmlFor="loanTerm">Loan Term</Label>
+            <Select value={String(inputs.loanTerm)} onValueChange={(val) => setInputs({...inputs, loanTerm: Number(val)})}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="15">15 years</SelectItem>
+                <SelectItem value="20">20 years</SelectItem>
+                <SelectItem value="30">30 years</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="propertyTax">Property Tax (Annual)</Label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="propertyTax"
+                type="number"
+                className="pl-9"
+                value={inputs.propertyTax}
+                onChange={(e) => setInputs({...inputs, propertyTax: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="insurance">Insurance (Annual)</Label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="insurance"
+                type="number"
+                className="pl-9"
+                value={inputs.insurance}
+                onChange={(e) => setInputs({...inputs, insurance: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="hoa">HOA Fees (Monthly)</Label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="hoa"
+                type="number"
+                className="pl-9"
+                value={inputs.hoa}
+                onChange={(e) => setInputs({...inputs, hoa: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Results Card - 1/3 width */}
+      <ResultsCard results={results} />
+    </div>
+  );
+}
+
+// VA Calculator
+function VACalculator() {
+  const [inputs, setInputs] = useState<VAInputs>({
+    homePrice: 300000,
+    downPayment: 0,
+    interestRate: 6.25,
+    loanTerm: 30,
+    vaFundingFeePercent: 2.3,
+    propertyTax: 3000,
+    insurance: 1200
+  });
+
+  const results = calculateVA(inputs);
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <Card className="lg:col-span-2">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Home className="h-5 w-5" />
+            VA Loan Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="va-homePrice">Home Price</Label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="va-homePrice"
+                type="number"
+                className="pl-9"
+                value={inputs.homePrice}
+                onChange={(e) => setInputs({...inputs, homePrice: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="va-downPayment">Down Payment (Optional)</Label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="va-downPayment"
+                type="number"
+                className="pl-9"
+                value={inputs.downPayment}
+                onChange={(e) => setInputs({...inputs, downPayment: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="va-interestRate">Interest Rate (%)</Label>
+            <div className="relative">
+              <Percent className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="va-interestRate"
+                type="number"
+                step="0.1"
+                className="pl-9"
+                value={inputs.interestRate}
+                onChange={(e) => setInputs({...inputs, interestRate: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="va-loanTerm">Loan Term</Label>
+            <Select value={String(inputs.loanTerm)} onValueChange={(val) => setInputs({...inputs, loanTerm: Number(val)})}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="15">15 years</SelectItem>
+                <SelectItem value="20">20 years</SelectItem>
+                <SelectItem value="30">30 years</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="va-fundingFee">VA Funding Fee (%)</Label>
+            <div className="relative">
+              <Percent className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="va-fundingFee"
+                type="number"
+                step="0.1"
+                className="pl-9"
+                value={inputs.vaFundingFeePercent}
+                onChange={(e) => setInputs({...inputs, vaFundingFeePercent: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="va-propertyTax">Property Tax (Annual)</Label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="va-propertyTax"
+                type="number"
+                className="pl-9"
+                value={inputs.propertyTax}
+                onChange={(e) => setInputs({...inputs, propertyTax: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="va-insurance">Insurance (Annual)</Label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="va-insurance"
+                type="number"
+                className="pl-9"
+                value={inputs.insurance}
+                onChange={(e) => setInputs({...inputs, insurance: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <ResultsCard results={results} />
+    </div>
+  );
+}
+
+// FHA Calculator
+function FHACalculator() {
+  const [inputs, setInputs] = useState<FHAInputs>({
+    homePrice: 300000,
+    downPayment: 10500, // 3.5% minimum
+    interestRate: 6.5,
+    loanTerm: 30,
+    upfrontMIP: 1.75,
+    annualMIP: 0.85,
+    propertyTax: 3000,
+    insurance: 1200
+  });
+
+  const results = calculateFHA(inputs);
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <Card className="lg:col-span-2">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Home className="h-5 w-5" />
+            FHA Loan Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="fha-homePrice">Home Price</Label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="fha-homePrice"
+                type="number"
+                className="pl-9"
+                value={inputs.homePrice}
+                onChange={(e) => setInputs({...inputs, homePrice: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="fha-downPayment">Down Payment (Min 3.5%)</Label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="fha-downPayment"
+                type="number"
+                className="pl-9"
+                value={inputs.downPayment}
+                onChange={(e) => setInputs({...inputs, downPayment: Number(e.target.value)})}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {formatPercent((inputs.downPayment / inputs.homePrice) * 100)} of home price
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="fha-interestRate">Interest Rate (%)</Label>
+            <div className="relative">
+              <Percent className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="fha-interestRate"
+                type="number"
+                step="0.1"
+                className="pl-9"
+                value={inputs.interestRate}
+                onChange={(e) => setInputs({...inputs, interestRate: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="fha-loanTerm">Loan Term</Label>
+            <Select value={String(inputs.loanTerm)} onValueChange={(val) => setInputs({...inputs, loanTerm: Number(val)})}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="15">15 years</SelectItem>
+                <SelectItem value="20">20 years</SelectItem>
+                <SelectItem value="30">30 years</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="fha-upfrontMIP">Upfront MIP (%)</Label>
+            <div className="relative">
+              <Percent className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="fha-upfrontMIP"
+                type="number"
+                step="0.1"
+                className="pl-9"
+                value={inputs.upfrontMIP}
+                onChange={(e) => setInputs({...inputs, upfrontMIP: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="fha-annualMIP">Annual MIP (%)</Label>
+            <div className="relative">
+              <Percent className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="fha-annualMIP"
+                type="number"
+                step="0.1"
+                className="pl-9"
+                value={inputs.annualMIP}
+                onChange={(e) => setInputs({...inputs, annualMIP: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="fha-propertyTax">Property Tax (Annual)</Label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="fha-propertyTax"
+                type="number"
+                className="pl-9"
+                value={inputs.propertyTax}
+                onChange={(e) => setInputs({...inputs, propertyTax: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="fha-insurance">Insurance (Annual)</Label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="fha-insurance"
+                type="number"
+                className="pl-9"
+                value={inputs.insurance}
+                onChange={(e) => setInputs({...inputs, insurance: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <ResultsCard results={results} />
+    </div>
+  );
+}
+
+// Refinance Calculator
+function RefinanceCalculator() {
+  const [inputs, setInputs] = useState<RefinanceInputs>({
+    currentLoanBalance: 250000,
+    currentInterestRate: 7.5,
+    currentPayment: 1748,
+    newInterestRate: 6.0,
+    newLoanTerm: 30,
+    closingCosts: 5000
+  });
+
+  const results = calculateRefinance(inputs);
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <Card className="lg:col-span-2">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calculator className="h-5 w-5" />
+            Refinance Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2 md:col-span-2">
+            <h4 className="font-semibold text-sm">Current Loan</h4>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="refi-currentBalance">Current Balance</Label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="refi-currentBalance"
+                type="number"
+                className="pl-9"
+                value={inputs.currentLoanBalance}
+                onChange={(e) => setInputs({...inputs, currentLoanBalance: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="refi-currentRate">Current Rate (%)</Label>
+            <div className="relative">
+              <Percent className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="refi-currentRate"
+                type="number"
+                step="0.1"
+                className="pl-9"
+                value={inputs.currentInterestRate}
+                onChange={(e) => setInputs({...inputs, currentInterestRate: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="refi-currentPayment">Current Monthly Payment</Label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="refi-currentPayment"
+                type="number"
+                className="pl-9"
+                value={inputs.currentPayment}
+                onChange={(e) => setInputs({...inputs, currentPayment: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2 md:col-span-2">
+            <h4 className="font-semibold text-sm">New Loan</h4>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="refi-newRate">New Rate (%)</Label>
+            <div className="relative">
+              <Percent className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="refi-newRate"
+                type="number"
+                step="0.1"
+                className="pl-9"
+                value={inputs.newInterestRate}
+                onChange={(e) => setInputs({...inputs, newInterestRate: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="refi-newTerm">New Term</Label>
+            <Select value={String(inputs.newLoanTerm)} onValueChange={(val) => setInputs({...inputs, newLoanTerm: Number(val)})}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="15">15 years</SelectItem>
+                <SelectItem value="20">20 years</SelectItem>
+                <SelectItem value="30">30 years</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="refi-closingCosts">Closing Costs</Label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="refi-closingCosts"
+                type="number"
+                className="pl-9"
+                value={inputs.closingCosts}
+                onChange={(e) => setInputs({...inputs, closingCosts: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <RefinanceResultsCard results={results} />
+    </div>
+  );
+}
+
+// Affordability Calculator
+function AffordabilityCalculator() {
+  const [inputs, setInputs] = useState<AffordabilityInputs>({
+    monthlyIncome: 6000,
+    monthlyDebts: 500,
+    downPayment: 50000,
+    interestRate: 6.5,
+    loanTerm: 30,
+    propertyTax: 3000,
+    insurance: 1200
+  });
+
+  const results = calculateAffordability(inputs);
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <Card className="lg:col-span-2">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calculator className="h-5 w-5" />
+            Your Financial Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="afford-income">Monthly Income</Label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="afford-income"
+                type="number"
+                className="pl-9"
+                value={inputs.monthlyIncome}
+                onChange={(e) => setInputs({...inputs, monthlyIncome: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="afford-debts">Monthly Debts</Label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="afford-debts"
+                type="number"
+                className="pl-9"
+                value={inputs.monthlyDebts}
+                onChange={(e) => setInputs({...inputs, monthlyDebts: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="afford-downPayment">Down Payment</Label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="afford-downPayment"
+                type="number"
+                className="pl-9"
+                value={inputs.downPayment}
+                onChange={(e) => setInputs({...inputs, downPayment: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="afford-interestRate">Interest Rate (%)</Label>
+            <div className="relative">
+              <Percent className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="afford-interestRate"
+                type="number"
+                step="0.1"
+                className="pl-9"
+                value={inputs.interestRate}
+                onChange={(e) => setInputs({...inputs, interestRate: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="afford-loanTerm">Loan Term</Label>
+            <Select value={String(inputs.loanTerm)} onValueChange={(val) => setInputs({...inputs, loanTerm: Number(val)})}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="15">15 years</SelectItem>
+                <SelectItem value="20">20 years</SelectItem>
+                <SelectItem value="30">30 years</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="afford-propertyTax">Property Tax (Annual)</Label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="afford-propertyTax"
+                type="number"
+                className="pl-9"
+                value={inputs.propertyTax}
+                onChange={(e) => setInputs({...inputs, propertyTax: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="afford-insurance">Insurance (Annual)</Label>
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="afford-insurance"
+                type="number"
+                className="pl-9"
+                value={inputs.insurance}
+                onChange={(e) => setInputs({...inputs, insurance: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <AffordabilityResultsCard results={results} />
+    </div>
+  );
+}
+
+// Results Card Component
+function ResultsCard({ results }: { results: CalculationResults }) {
+  return (
+    <Card className="h-fit" style={{
+      background: 'linear-gradient(135deg, var(--brand-primary-blue) 0%, var(--brand-rich-teal) 100%)'
+    }}>
+      <CardHeader className="bg-black/20">
+        <CardTitle className="text-white">Payment Summary</CardTitle>
+      </CardHeader>
+      <CardContent className="pt-6 space-y-4 text-white">
+        <div className="text-center pb-4 border-b border-white/20">
+          <p className="text-sm opacity-90 mb-1">Monthly Payment</p>
+          <p className="text-4xl font-bold">
+            {formatCurrencyWithCents(results.monthlyPayment)}
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex justify-between text-sm">
+            <span className="opacity-90">Principal & Interest</span>
+            <span className="font-semibold">{formatCurrency(results.principalAndInterest)}</span>
+          </div>
+
+          {results.monthlyTax !== undefined && results.monthlyTax > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="opacity-90">Property Tax</span>
+              <span className="font-semibold">{formatCurrency(results.monthlyTax)}</span>
+            </div>
+          )}
+
+          {results.monthlyInsurance !== undefined && results.monthlyInsurance > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="opacity-90">Insurance</span>
+              <span className="font-semibold">{formatCurrency(results.monthlyInsurance)}</span>
+            </div>
+          )}
+
+          {results.monthlyHOA !== undefined && results.monthlyHOA > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="opacity-90">HOA Fees</span>
+              <span className="font-semibold">{formatCurrency(results.monthlyHOA)}</span>
+            </div>
+          )}
+
+          {results.monthlyPMI !== undefined && results.monthlyPMI > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="opacity-90">PMI/MIP</span>
+              <span className="font-semibold">{formatCurrency(results.monthlyPMI)}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="pt-4 border-t border-white/20 space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="opacity-90">Loan Amount</span>
+            <span className="font-semibold">{formatCurrency(results.loanAmount || 0)}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="opacity-90">Total Interest</span>
+            <span className="font-semibold">{formatCurrency(results.totalInterest)}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="opacity-90">Total Payment</span>
+            <span className="font-semibold">{formatCurrency(results.totalPayment)}</span>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="pt-4 space-y-2">
+          <div className="flex justify-between text-xs opacity-90">
+            <span>Principal</span>
+            <span>Interest</span>
+          </div>
+          <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+            <div
+              className="bg-white h-full rounded-full transition-all"
+              style={{
+                width: `${results.totalPayment > 0 ? ((results.loanAmount || 0) / results.totalPayment) * 100 : 0}%`
+              }}
+            />
+          </div>
+          <div className="flex justify-between text-xs opacity-90">
+            <span>{formatPercent(results.totalPayment > 0 ? ((results.loanAmount || 0) / results.totalPayment) * 100 : 0)}</span>
+            <span>{formatPercent(results.totalPayment > 0 ? (results.totalInterest / results.totalPayment) * 100 : 0)}</span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Refinance Results Card
+function RefinanceResultsCard({ results }: { results: ReturnType<typeof calculateRefinance> }) {
+  return (
+    <Card className="h-fit" style={{
+      background: 'linear-gradient(135deg, var(--brand-primary-blue) 0%, var(--brand-rich-teal) 100%)'
+    }}>
+      <CardHeader className="bg-black/20">
+        <CardTitle className="text-white">Refinance Summary</CardTitle>
+      </CardHeader>
+      <CardContent className="pt-6 space-y-4 text-white">
+        <div className="text-center pb-4 border-b border-white/20">
+          <p className="text-sm opacity-90 mb-1">New Monthly Payment</p>
+          <p className="text-4xl font-bold">
+            {formatCurrencyWithCents(results.monthlyPayment)}
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex justify-between text-sm">
+            <span className="opacity-90">Monthly Savings</span>
+            <span className="font-semibold text-green-300">{formatCurrency(results.monthlySavings)}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="opacity-90">Break-Even Point</span>
+            <span className="font-semibold">{results.breakEvenMonths} months</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="opacity-90">Lifetime Savings</span>
+            <span className="font-semibold text-green-300">{formatCurrency(results.lifetimeSavings)}</span>
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-white/20 space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="opacity-90">Total Interest</span>
+            <span className="font-semibold">{formatCurrency(results.totalInterest)}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="opacity-90">Total Payment</span>
+            <span className="font-semibold">{formatCurrency(results.totalPayment)}</span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Affordability Results Card
+function AffordabilityResultsCard({ results }: { results: ReturnType<typeof calculateAffordability> }) {
+  return (
+    <Card className="h-fit" style={{
+      background: 'linear-gradient(135deg, var(--brand-primary-blue) 0%, var(--brand-rich-teal) 100%)'
+    }}>
+      <CardHeader className="bg-black/20">
+        <CardTitle className="text-white">What You Can Afford</CardTitle>
+      </CardHeader>
+      <CardContent className="pt-6 space-y-4 text-white">
+        <div className="text-center pb-4 border-b border-white/20">
+          <p className="text-sm opacity-90 mb-1">Maximum Home Price</p>
+          <p className="text-4xl font-bold">
+            {formatCurrency(results.maxHomePrice)}
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex justify-between text-sm">
+            <span className="opacity-90">Monthly Payment</span>
+            <span className="font-semibold">{formatCurrencyWithCents(results.monthlyPayment)}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="opacity-90">Maximum Loan Amount</span>
+            <span className="font-semibold">{formatCurrency(results.maxLoanAmount)}</span>
+          </div>
+        </div>
+
+        <div className="pt-4 border-t border-white/20 space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="opacity-90">Principal & Interest</span>
+            <span className="font-semibold">{formatCurrency(results.principalAndInterest)}</span>
+          </div>
+          {results.monthlyTax !== undefined && results.monthlyTax > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="opacity-90">Property Tax</span>
+              <span className="font-semibold">{formatCurrency(results.monthlyTax)}</span>
+            </div>
+          )}
+          {results.monthlyInsurance !== undefined && results.monthlyInsurance > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="opacity-90">Insurance</span>
+              <span className="font-semibold">{formatCurrency(results.monthlyInsurance)}</span>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

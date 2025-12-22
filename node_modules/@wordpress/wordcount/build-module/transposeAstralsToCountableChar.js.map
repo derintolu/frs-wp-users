@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../src/transposeAstralsToCountableChar.ts"],
+  "sourcesContent": ["/**\n * Internal dependencies\n */\nimport type { Settings } from './types';\n\n/**\n * Replaces items matched in the regex with a single character.\n *\n * @param settings The main settings object containing regular expressions\n * @param text     The string being counted.\n * @return The manipulated text.\n */\nexport default function transposeAstralsToCountableChar(\n\tsettings: Settings,\n\ttext: string\n): string {\n\treturn text.replace( settings.astralRegExp, 'a' );\n}\n"],
+  "mappings": ";AAYe,SAAR,gCACN,UACA,MACS;AACT,SAAO,KAAK,QAAS,SAAS,cAAc,GAAI;AACjD;",
+  "names": []
+}

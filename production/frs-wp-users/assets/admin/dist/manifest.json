@@ -1,0 +1,14 @@
+{
+  "src/admin/main.css": {
+    "file": "assets/main-cec1aeeb.css",
+    "src": "src/admin/main.css"
+  },
+  "src/admin/main.jsx": {
+    "css": [
+      "assets/main-cec1aeeb.css"
+    ],
+    "file": "assets/main-049c8a2e.js",
+    "isEntry": true,
+    "src": "src/admin/main.jsx"
+  }
+}

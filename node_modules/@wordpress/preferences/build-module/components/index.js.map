@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../src/components/index.ts"],
+  "sourcesContent": ["export { default as PreferenceToggleMenuItem } from './preference-toggle-menu-item';\n"],
+  "mappings": ";AAAA,SAAoB,WAAXA,gBAA2C;",
+  "names": ["default"]
+}

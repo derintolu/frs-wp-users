@@ -1,0 +1,14 @@
+{
+  "src/frontend/profile-editor/main.css": {
+    "file": "assets/main-cec1aeeb.css",
+    "src": "src/frontend/profile-editor/main.css"
+  },
+  "src/frontend/profile-editor/main.tsx": {
+    "css": [
+      "assets/main-cec1aeeb.css"
+    ],
+    "file": "assets/main-3289cd89.js",
+    "isEntry": true,
+    "src": "src/frontend/profile-editor/main.tsx"
+  }
+}

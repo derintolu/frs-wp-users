@@ -1,0 +1,14 @@
+{
+  "src/frontend/public-profile/main.css": {
+    "file": "assets/main-ddd07208.css",
+    "src": "src/frontend/public-profile/main.css"
+  },
+  "src/frontend/public-profile/main.tsx": {
+    "css": [
+      "assets/main-ddd07208.css"
+    ],
+    "file": "assets/public-profile-8ac570a4.js",
+    "isEntry": true,
+    "src": "src/frontend/public-profile/main.tsx"
+  }
+}

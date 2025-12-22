@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../src/store/types.ts"],
+  "sourcesContent": ["export type StoreState = {\n\tpreferences: { [ k in string ]: { [ p in string ]: any } };\n\tdefaults: { [ k in string ]: { [ p in string ]: any } };\n};\n\nexport type OmitFirstArg< F > = F extends (\n\tx: any,\n\t...args: infer P\n) => infer R\n\t? ( ...args: P ) => R\n\t: never;\n\nexport interface WPPreferencesPersistenceLayer< D extends Object > {\n\t/**\n\t * An async function that gets data from the persistence layer.\n\t */\n\tget: () => Promise< D >;\n\t/**\n\t * A function that sets data in the persistence layer.\n\t */\n\tset: ( value: D ) => void;\n}\n\nexport type ActionObject<\n\tT extends string,\n\tD extends Record< Exclude< string, 'type' >, any > = {},\n> = {\n\ttype: T;\n} & D;\n"],
+  "mappings": ";;;;;;;;;;;;;;;;AAAA;AAAA;",
+  "names": []
+}

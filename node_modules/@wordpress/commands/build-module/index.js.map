@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../src/index.js"],
+  "sourcesContent": ["export { CommandMenu } from './components/command-menu';\nexport { privateApis } from './private-apis';\nexport { useCommand, useCommands } from './hooks/use-command';\nexport { default as useCommandLoader } from './hooks/use-command-loader';\nexport { store } from './store';\n"],
+  "mappings": ";AAAA,SAAS,mBAAmB;AAC5B,SAAS,mBAAmB;AAC5B,SAAS,YAAY,mBAAmB;AACxC,SAAoB,WAAXA,gBAAmC;AAC5C,SAAS,aAAa;",
+  "names": ["default"]
+}

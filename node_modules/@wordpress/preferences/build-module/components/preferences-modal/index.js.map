@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/components/preferences-modal/index.tsx"],
+  "sourcesContent": ["/**\n * WordPress dependencies\n */\nimport { Modal } from '@wordpress/components';\nimport { __ } from '@wordpress/i18n';\n/**\n * Internal dependencies\n */\nimport type { PreferencesModalProps } from './types';\n\nexport default function PreferencesModal( {\n\tcloseModal,\n\tchildren,\n}: PreferencesModalProps ) {\n\treturn (\n\t\t<Modal\n\t\t\tclassName=\"preferences-modal\"\n\t\t\ttitle={ __( 'Preferences' ) }\n\t\t\tonRequestClose={ closeModal }\n\t\t>\n\t\t\t{ children }\n\t\t</Modal>\n\t);\n}\n"],
+  "mappings": ";AAGA,SAAS,aAAa;AACtB,SAAS,UAAU;AAWjB;AALa,SAAR,iBAAmC;AAAA,EACzC;AAAA,EACA;AACD,GAA2B;AAC1B,SACC;AAAA,IAAC;AAAA;AAAA,MACA,WAAU;AAAA,MACV,OAAQ,GAAI,aAAc;AAAA,MAC1B,gBAAiB;AAAA,MAEf;AAAA;AAAA,EACH;AAEF;",
+  "names": []
+}

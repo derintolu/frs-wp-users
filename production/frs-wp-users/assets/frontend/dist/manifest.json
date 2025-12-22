@@ -1,0 +1,14 @@
+{
+  "src/frontend/main.css": {
+    "file": "assets/main-1072ab15.css",
+    "src": "src/frontend/main.css"
+  },
+  "src/frontend/main.jsx": {
+    "css": [
+      "assets/main-1072ab15.css"
+    ],
+    "file": "assets/main-50caba95.js",
+    "isEntry": true,
+    "src": "src/frontend/main.jsx"
+  }
+}

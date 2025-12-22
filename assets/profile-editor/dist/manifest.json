@@ -1,0 +1,14 @@
+{
+  "src/frontend/profile-editor/main.css": {
+    "file": "assets/main-429556b1.css",
+    "src": "src/frontend/profile-editor/main.css"
+  },
+  "src/frontend/profile-editor/main.tsx": {
+    "css": [
+      "assets/main-429556b1.css"
+    ],
+    "file": "assets/main-cecadfb6.js",
+    "isEntry": true,
+    "src": "src/frontend/profile-editor/main.tsx"
+  }
+}

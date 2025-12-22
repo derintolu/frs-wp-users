@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/styles/color/index.ts"],
+  "sourcesContent": ["/**\n * Internal dependencies\n */\nimport background from './background';\nimport gradient from './gradient';\nimport text from './text';\n\nexport default [ text, gradient, background ];\n"],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAGA,wBAAuB;AACvB,sBAAqB;AACrB,kBAAiB;AAEjB,IAAO,gBAAQ,CAAE,YAAAA,SAAM,gBAAAC,SAAU,kBAAAC,OAAW;",
+  "names": ["text", "gradient", "background"]
+}

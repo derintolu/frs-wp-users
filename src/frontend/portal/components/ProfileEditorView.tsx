@@ -104,6 +104,8 @@ import {
   Linkedin,
   Facebook,
   Smartphone,
+  Tablet,
+  Monitor,
   Edit,
   Link2,
   ExternalLink,
@@ -172,6 +174,7 @@ export function ProfileEditorView({ slug, userId }: ProfileEditorViewProps) {
   const [showSchedulingModal, setShowSchedulingModal] = useState(false);
   const [showMeetingRequestForm, setShowMeetingRequestForm] = useState(false);
   const [meetingFormSubmitted, setMeetingFormSubmitted] = useState(false);
+  const [viewport, setViewport] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
 
   const qrCodeRef = useRef<HTMLDivElement>(null);
 
@@ -601,12 +604,20 @@ export function ProfileEditorView({ slug, userId }: ProfileEditorViewProps) {
   console.log('[PublicProfileView] gradientUrl:', gradientUrl);
   console.log('[PublicProfileView] contentUrl:', contentUrl);
 
+  // Viewport width mapping
+  const viewportMaxWidth = {
+    desktop: '1290px',
+    tablet: '768px',
+    mobile: '375px'
+  };
+
   return (
     <div
-      className="mx-auto w-full max-w-[1290px] px-4 py-6 pb-24 duration-500 animate-in fade-in @container"
+      className="mx-auto w-full px-4 py-6 pb-24 duration-300 animate-in fade-in @container"
       style={{
+        maxWidth: viewportMaxWidth[viewport],
         opacity: loading ? 0 : 1,
-        transition: 'opacity 0.5s ease-in-out'
+        transition: 'max-width 0.3s ease-in-out, opacity 0.5s ease-in-out'
       }}
     >
       {/* Two Column Layout: Profile Card + Links & Social */}
@@ -1538,10 +1549,53 @@ export function ProfileEditorView({ slug, userId }: ProfileEditorViewProps) {
         </Card>
     </div>
 
-      {/* Bottom Bar - Edit or Save/Cancel */}
+      {/* Bottom Bar - Device Preview + Edit or Save/Cancel */}
       {!isPublicView && (
         <div className="fixed inset-x-0 bottom-0 z-[999] w-full border-t border-gray-200 bg-white shadow-lg">
-          <div className="mx-auto flex max-w-[1290px] items-center justify-end gap-3 px-4 py-3">
+          <div className="mx-auto flex max-w-[1290px] items-center justify-between gap-3 px-4 py-3">
+            {/* Device Preview Buttons - Left Side */}
+            <div className="flex items-center gap-1">
+              <span className="mr-2 text-xs font-medium uppercase tracking-wider text-gray-500">Preview</span>
+              <Button
+                className="size-9 p-0"
+                onClick={() => setViewport('desktop')}
+                size="sm"
+                style={viewport === 'desktop' ? {
+                  background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
+                  color: 'white'
+                } : {}}
+                variant={viewport === 'desktop' ? 'default' : 'outline'}
+              >
+                <Monitor className="size-4" />
+              </Button>
+              <Button
+                className="size-9 p-0"
+                onClick={() => setViewport('tablet')}
+                size="sm"
+                style={viewport === 'tablet' ? {
+                  background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
+                  color: 'white'
+                } : {}}
+                variant={viewport === 'tablet' ? 'default' : 'outline'}
+              >
+                <Tablet className="size-4" />
+              </Button>
+              <Button
+                className="size-9 p-0"
+                onClick={() => setViewport('mobile')}
+                size="sm"
+                style={viewport === 'mobile' ? {
+                  background: 'linear-gradient(135deg, #2563eb 0%, #2dd4da 100%)',
+                  color: 'white'
+                } : {}}
+                variant={viewport === 'mobile' ? 'default' : 'outline'}
+              >
+                <Smartphone className="size-4" />
+              </Button>
+            </div>
+
+            {/* Edit/Save Buttons - Right Side */}
+            <div className="flex items-center gap-3">
             {!activeSection ? (
               <Button
                 className="px-8 py-2 font-semibold text-white"
@@ -1642,6 +1696,7 @@ export function ProfileEditorView({ slug, userId }: ProfileEditorViewProps) {
                 </Button>
               </>
             )}
+            </div>
           </div>
         </div>
       )}

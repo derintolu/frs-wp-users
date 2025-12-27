@@ -444,7 +444,7 @@ class Shortcodes {
 		// Enqueue assets with config
 		self::enqueue_portal_assets( $config );
 
-		return '<div id="frs-users-portal-root" class="frs-content-only"></div>';
+		return '<div id="frs-users-portal-root" class="frs-content-only" style="width:100%;min-height:100vh;background-color:#f0f4f8;"></div>';
 	}
 
 	/**
@@ -485,7 +485,7 @@ class Shortcodes {
 		// Enqueue assets with config
 		self::enqueue_portal_assets( $config );
 
-		return '<div id="frs-users-portal-root" class="frs-content-only"></div>';
+		return '<div id="frs-users-portal-root" class="frs-content-only" style="width:100%;min-height:100vh;background-color:#f0f4f8;"></div>';
 	}
 
 	/**
@@ -526,6 +526,6 @@ class Shortcodes {
 		// Enqueue assets with config
 		self::enqueue_portal_assets( $config );
 
-		return '<div id="frs-users-portal-root" class="frs-content-only"></div>';
+		return '<div id="frs-users-portal-root" class="frs-content-only" style="width:100%;min-height:100vh;background-color:#f0f4f8;"></div>';
 	}
 }

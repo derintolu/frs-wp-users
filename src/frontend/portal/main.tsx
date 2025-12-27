@@ -1,66 +1,28 @@
 /**
- * Portal Entry Point - Simplified
+ * Portal Entry Point - Minimal
+ * Renders ProfileEditorView directly with userId from WordPress
  */
 
 import { createRoot } from "react-dom/client";
-import { useState, useEffect } from 'react';
-import { DataService, type User } from './utils/dataService';
 import { ProfileEditProvider } from './contexts/ProfileEditContext';
-import { MyProfile } from './components/MyProfile';
+import { ProfileEditorView } from './components/ProfileEditorView';
 import "./index.css";
 
 const portalRoot = document.getElementById("frs-users-portal-root");
 
-function ProfilePortal() {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const user = await DataService.getCurrentUser();
-        setCurrentUser(user);
-      } catch (err) {
-        setError('Failed to load user data');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadUser();
-  }, []);
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="animate-pulse text-gray-500">Loading...</div>
-      </div>
-    );
-  }
-
-  if (error || !currentUser) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <p className="mb-4 text-gray-600">{error || 'Unable to load user data'}</p>
-          <button
-            className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-            onClick={() => window.location.reload()}
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <ProfileEditProvider>
-      <MyProfile userId={currentUser.id} />
-    </ProfileEditProvider>
-  );
-}
-
 if (portalRoot) {
-  createRoot(portalRoot).render(<ProfilePortal />);
+  const config = (window as any).frsPortalConfig;
+  const userId = config?.userId?.toString() || config?.currentUser?.id?.toString();
+
+  createRoot(portalRoot).render(
+    userId ? (
+      <ProfileEditProvider>
+        <ProfileEditorView userId={userId} />
+      </ProfileEditProvider>
+    ) : (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-gray-600">Please <a href="/wp-login.php" className="text-blue-600 underline">log in</a> to view your profile</p>
+      </div>
+    )
+  );
 }

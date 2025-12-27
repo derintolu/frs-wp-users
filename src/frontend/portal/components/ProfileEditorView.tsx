@@ -613,9 +613,12 @@ export function ProfileEditorView({ slug, userId }: ProfileEditorViewProps) {
 
   return (
     <div
-      className="mx-auto min-h-screen w-full px-4 py-6 pb-24 duration-300 animate-in fade-in @container"
+      className="min-h-screen w-full"
+      style={{ backgroundColor: '#f0f4f8' }}
+    >
+    <div
+      className="mx-auto w-full px-4 py-6 pb-24 duration-300 animate-in fade-in @container"
       style={{
-        backgroundColor: '#f0f4f8',
         maxWidth: viewportMaxWidth[viewport],
         opacity: loading ? 0 : 1,
         transition: 'max-width 0.3s ease-in-out, opacity 0.5s ease-in-out'
@@ -1876,6 +1879,7 @@ export function ProfileEditorView({ slug, userId }: ProfileEditorViewProps) {
           </div>
         </div>
       )}
+    </div>
   </div>
   );
 }

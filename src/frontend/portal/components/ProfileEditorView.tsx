@@ -613,8 +613,8 @@ export function ProfileEditorView({ slug, userId }: ProfileEditorViewProps) {
 
   return (
     <div
-      className="min-h-screen w-full"
-      style={{ backgroundColor: '#f0f4f8' }}
+      className="h-full min-h-screen w-full"
+      style={{ backgroundColor: '#f0f4f8', width: '100%', height: '100%', minHeight: '100vh' }}
     >
     <div
       className="mx-auto w-full px-4 py-6 pb-24 duration-300 animate-in fade-in @container"

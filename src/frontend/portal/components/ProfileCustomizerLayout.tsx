@@ -747,42 +747,10 @@ export function ProfileCustomizerLayout({ currentUser, userId }: ProfileCustomiz
         zIndex: 1
       }}
     >
-      {/* Conditionally render sidebar based on view and contentOnly mode */}
-      {!contentOnly && (sidebarView === 'menu' ? (
-        <CollapsibleSidebar
-          activeItemBackground="linear-gradient(to right, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1))"
-          activeItemColor="hsl(var(--sidebar-foreground))"
-          activeItemId={location.pathname}
-          backgroundColor="hsl(var(--sidebar-background))"
-          collapsedWidth="4rem"
-          defaultCollapsed={sidebarCollapsed}
-          footer={sidebarFooter}
-          header={sidebarHeader}
-          menuItems={menuItems}
-          onCollapsedChange={setSidebarCollapsed}
-          onItemClick={handleItemClick}
-          position="left"
-          textColor="hsl(var(--sidebar-foreground))"
-          topOffset={headerHeight}
-          width="320px"
-        />
-      ) : (
-        <div
-          className="fixed left-0 overflow-y-auto border-r bg-white shadow-sm"
-          style={{
-            bottom: 0,
-            top: headerHeight,
-            width: '320px',
-            zIndex: 40
-          }}
-        >
-          {sidebarHeader}
-          {renderSidebarContent()}
-        </div>
-      ))}
+      {/* Sidebar removed - workspace theme provides navigation */}
 
-      {/* Main Content - ALWAYS shows profile preview in customizer style */}
-      <main className={contentOnly ? "m-0 flex min-h-screen items-center justify-center p-0" : "max-md:m-0 max-md:p-0 md:ml-[320px] md:mr-0 md:p-8"}>
+      {/* Main Content */}
+      <main className="m-0 p-0">
         <CustomizerPreview viewport={viewport}>
           <Outlet />
         </CustomizerPreview>

@@ -1551,7 +1551,7 @@ export function ProfileEditorView({ slug, userId }: ProfileEditorViewProps) {
 
       {/* Bottom Bar - Device Preview + Edit or Save/Cancel */}
       {!isPublicView && (
-        <div className="fixed inset-x-0 bottom-0 z-[999] w-full border-t border-gray-200 bg-white shadow-lg">
+        <div className="fixed bottom-0 right-0 left-[var(--workspace-sidebar-width,280px)] z-[999] border-t border-gray-200 bg-white shadow-lg">
           <div className="mx-auto flex max-w-[1290px] items-center justify-between gap-3 px-4 py-3">
             {/* Device Preview Buttons - Left Side */}
             <div className="flex items-center gap-1">

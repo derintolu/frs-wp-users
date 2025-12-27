@@ -58,6 +58,7 @@ interface PortalLayoutProps {
   userEmail?: string;
   userName?: string;
   userRole: 'loan_officer' | 'realtor_partner' | 'manager' | 'frs_admin';
+  workspaceSlug?: string;
 }
 
 export function PortalLayout({
@@ -67,10 +68,12 @@ export function PortalLayout({
   userEmail,
   userName,
   userRole,
+  workspaceSlug,
 }: PortalLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = React.useState(true);
 
   console.log('PortalLayout - window.location.pathname:', window.location.pathname);
+  console.log('PortalLayout - workspaceSlug:', workspaceSlug);
 
   return (
     <BrowserRouter basename="/hub">
@@ -82,6 +85,7 @@ export function PortalLayout({
           userEmail={userEmail}
           userName={userName}
           userRole={userRole}
+          workspaceSlug={workspaceSlug}
         />
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">

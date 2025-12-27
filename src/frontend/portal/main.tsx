@@ -5,13 +5,15 @@
  */
 
 import { createRoot } from "react-dom/client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { RouterProvider } from 'react-router-dom';
 import { createRouter } from './routes';
 import { DataService, type User } from './utils/dataService';
 import { ProfileEditProvider } from './contexts/ProfileEditContext';
-import { MyProfile } from './components/MyProfile';
 import "./index.css";
+
+// Lazy load heavy components
+const MyProfile = lazy(() => import('./components/MyProfile').then(m => ({ default: m.MyProfile })));
 
 // WordPress integration - look for the portal root element
 const portalRoot = document.getElementById("frs-users-portal-root");
@@ -66,7 +68,6 @@ function ProfilePortal() {
     const loadUser = async () => {
       try {
         const user = await DataService.getCurrentUser();
-        console.log('Loaded user from DataService:', user);
         setCurrentUser(user);
       } catch (error_) {
         setError('Failed to load user data');
@@ -188,7 +189,9 @@ function ProfilePortal() {
     return (
       <ProfileEditProvider>
         <div className="flex w-full justify-center">
-          <MyProfile userId={currentUser.id} />
+          <Suspense fallback={<div className="animate-pulse p-8">Loading...</div>}>
+            <MyProfile userId={currentUser.id} />
+          </Suspense>
         </div>
       </ProfileEditProvider>
     );
@@ -210,10 +213,5 @@ function ProfilePortal() {
 
 // Mount Profile Portal
 if (portalRoot) {
-  const config = (window as any).frsUsersData || {};
-  console.log('Profile Portal mounting with config:', config);
-
   createRoot(portalRoot).render(<ProfilePortal />);
-
-  console.log('Profile Portal mounted successfully');
 }

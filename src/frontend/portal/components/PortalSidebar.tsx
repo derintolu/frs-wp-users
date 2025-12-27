@@ -1,6 +1,6 @@
 /**
  * Portal Sidebar Component
- * Dynamic sidebar that loads WordPress menus based on user role
+ * Dynamic sidebar that loads WordPress menus based on workspace
  */
 
 import * as React from "react";
@@ -17,7 +17,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { fetchPortalMenuCached, getMenuLocationForRole } from "@/services/menuService";
+import { fetchWorkspaceMenuCached } from "@/services/menuService";
 import type { SidebarMenuItem } from "@/types/menu";
 
 interface PortalSidebarProps extends React.ComponentProps<typeof Sidebar> {
@@ -27,6 +27,7 @@ interface PortalSidebarProps extends React.ComponentProps<typeof Sidebar> {
   userEmail?: string;
   userName?: string;
   userRole: 'loan_officer' | 'realtor_partner' | 'manager' | 'frs_admin';
+  workspaceSlug?: string;
 }
 
 export function PortalSidebar({
@@ -36,6 +37,7 @@ export function PortalSidebar({
   userEmail = '',
   userName = 'User',
   userRole,
+  workspaceSlug,
   ...props
 }: PortalSidebarProps) {
   const [menuItems, setMenuItems] = useState<SidebarMenuItem[]>([]);
@@ -43,16 +45,22 @@ export function PortalSidebar({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('PortalSidebar mounted, userRole:', userRole);
+    // Skip if no workspace slug provided
+    if (!workspaceSlug) {
+      console.log('PortalSidebar: No workspace slug provided');
+      setLoading(false);
+      return;
+    }
+
+    console.log('PortalSidebar mounted, workspace:', workspaceSlug);
 
     async function loadMenu() {
       try {
         setLoading(true);
         setError(null);
 
-        const location = getMenuLocationForRole(userRole);
-        console.log('Fetching menu for location:', location);
-        const items = await fetchPortalMenuCached(location);
+        console.log('Fetching menu for workspace:', workspaceSlug);
+        const items = await fetchWorkspaceMenuCached(workspaceSlug);
 
         console.log('Menu items loaded:', items);
         setMenuItems(items);
@@ -66,7 +74,7 @@ export function PortalSidebar({
     }
 
     loadMenu();
-  }, [userRole]);
+  }, [workspaceSlug]);
 
   // User data for footer
   const userData = {
@@ -144,7 +152,10 @@ export function PortalSidebar({
           <div className="flex flex-col items-center justify-center p-4 text-center">
             <div className="mb-2 text-sm text-muted-foreground">No menu configured</div>
             <div className="text-xs text-muted-foreground">
-              Go to Appearance → Menus in WordPress admin to create a menu and assign it to &quot;Portal - {userRole === 'loan_officer' ? 'Loan Officer' : 'Realtor Partner'}&quot;
+              {workspaceSlug
+                ? `Go to Appearance → Menus to assign a menu to "Workspace: ${workspaceSlug}"`
+                : 'No workspace selected'
+              }
             </div>
           </div>
         )}

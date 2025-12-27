@@ -194,6 +194,7 @@ class Shortcodes {
 		$atts = shortcode_atts(
 			array(
 				'contentOnly' => 'false',
+				'workspace'   => '', // Workspace slug for dynamic sidebar menu
 			),
 			$atts,
 			'frs_profile'
@@ -210,6 +211,9 @@ class Shortcodes {
 		// Convert string boolean to actual boolean
 		$content_only = filter_var( $atts['contentOnly'], FILTER_VALIDATE_BOOLEAN );
 
+		// Determine workspace slug
+		$workspace_slug = self::get_current_workspace_slug( $atts['workspace'] );
+
 		// Enqueue assets
 		self::enqueue_portal_assets();
 
@@ -218,18 +222,19 @@ class Shortcodes {
 			'frs-profile-portal',
 			'frsPortalConfig',
 			array(
-				'restNonce'   => wp_create_nonce( 'wp_rest' ),
-				'userName'    => $user->display_name,
-				'userEmail'   => $user->user_email,
-				'userAvatar'  => get_avatar_url( $user->ID ),
-				'userRole'    => 'loan_officer', // TODO: Get from user meta
-				'siteName'    => get_bloginfo( 'name' ),
-				'siteLogo'    => '', // TODO: Get site logo
-				'apiUrl'      => rest_url( 'frs-users/v1' ),
-				'userId'      => $user->ID,
-				'gradientUrl' => FRS_USERS_URL . 'assets/images/Blue-Dark-Blue-Gradient-Color-and-Style-Video-Background-1.mp4',
-				'contentOnly' => $content_only,
-				'currentUser' => array(
+				'restNonce'     => wp_create_nonce( 'wp_rest' ),
+				'userName'      => $user->display_name,
+				'userEmail'     => $user->user_email,
+				'userAvatar'    => get_avatar_url( $user->ID ),
+				'userRole'      => 'loan_officer', // TODO: Get from user meta
+				'siteName'      => get_bloginfo( 'name' ),
+				'siteLogo'      => '', // TODO: Get site logo
+				'apiUrl'        => rest_url( 'frs-users/v1' ),
+				'userId'        => $user->ID,
+				'gradientUrl'   => FRS_USERS_URL . 'assets/images/Blue-Dark-Blue-Gradient-Color-and-Style-Video-Background-1.mp4',
+				'contentOnly'   => $content_only,
+				'workspaceSlug' => $workspace_slug, // For dynamic sidebar menu
+				'currentUser'   => array(
 					'id'    => $user->ID,
 					'name'  => $user->display_name,
 					'email' => $user->user_email,
@@ -240,6 +245,56 @@ class Shortcodes {
 
 		// Output React mount point
 		return '<div id="frs-users-portal-root"></div>';
+	}
+
+	/**
+	 * Get current workspace slug from various sources
+	 *
+	 * @param string $attr_workspace Workspace from shortcode attribute.
+	 * @return string Workspace slug or empty string.
+	 */
+	private static function get_current_workspace_slug( $attr_workspace = '' ) {
+		// 1. Check shortcode attribute
+		if ( ! empty( $attr_workspace ) ) {
+			return sanitize_text_field( $attr_workspace );
+		}
+
+		// 2. Check query parameter
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! empty( $_GET['workspace'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return sanitize_text_field( wp_unslash( $_GET['workspace'] ) );
+		}
+
+		// 3. Check if current post is a workspace_object and get its workspace
+		global $post;
+		if ( $post && 'workspace_object' === $post->post_type ) {
+			$workspaces = get_post_meta( $post->ID, '_object_workspaces', true );
+			if ( is_array( $workspaces ) && ! empty( $workspaces ) ) {
+				$workspace_term = get_term( $workspaces[0], 'workspace' );
+				if ( $workspace_term && ! is_wp_error( $workspace_term ) ) {
+					return $workspace_term->slug;
+				}
+			}
+			// Fallback to legacy single workspace
+			$single_workspace = get_post_meta( $post->ID, '_object_workspace', true );
+			if ( $single_workspace ) {
+				$workspace_term = get_term( $single_workspace, 'workspace' );
+				if ( $workspace_term && ! is_wp_error( $workspace_term ) ) {
+					return $workspace_term->slug;
+				}
+			}
+		}
+
+		// 4. Check if viewing a workspace taxonomy archive
+		if ( is_tax( 'workspace' ) ) {
+			$term = get_queried_object();
+			if ( $term && ! is_wp_error( $term ) ) {
+				return $term->slug;
+			}
+		}
+
+		return '';
 	}
 
 	/**

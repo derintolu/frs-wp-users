@@ -33,3 +33,7 @@ composer.lock
 git-error-*
 
 /vendor/
+
+# Local development files
+.claude/
+.playwright-mcp/

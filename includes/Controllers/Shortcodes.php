@@ -244,7 +244,7 @@ class Shortcodes {
 		);
 
 		// Output React mount point
-		return '<div id="frs-users-portal-root"></div>';
+		return '<div id="frs-users-portal-root" style="background:#f2f5f7;"></div>';
 	}
 
 	/**
@@ -444,7 +444,7 @@ class Shortcodes {
 		// Enqueue assets with config
 		self::enqueue_portal_assets( $config );
 
-		return '<div id="frs-users-portal-root" class="frs-content-only" style="width:100%;min-height:100vh;"></div>';
+		return '<div id="frs-users-portal-root" class="frs-content-only" style="width:100%;min-height:100vh;background:#f2f5f7;"></div>';
 	}
 
 	/**
@@ -485,7 +485,7 @@ class Shortcodes {
 		// Enqueue assets with config
 		self::enqueue_portal_assets( $config );
 
-		return '<div id="frs-users-portal-root" class="frs-content-only" style="width:100%;min-height:100vh;"></div>';
+		return '<div id="frs-users-portal-root" class="frs-content-only" style="width:100%;min-height:100vh;background:#f2f5f7;"></div>';
 	}
 
 	/**
@@ -526,6 +526,6 @@ class Shortcodes {
 		// Enqueue assets with config
 		self::enqueue_portal_assets( $config );
 
-		return '<div id="frs-users-portal-root" class="frs-content-only" style="width:100%;min-height:100vh;"></div>';
+		return '<div id="frs-users-portal-root" class="frs-content-only" style="width:100%;min-height:100vh;background:#f2f5f7;"></div>';
 	}
 }

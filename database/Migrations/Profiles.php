@@ -44,6 +44,8 @@ class Profiles implements Migration {
 
 		// Check if table already exists
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name ) {
+			// Table exists - run column upgrades
+			self::upgrade_columns( $table_name );
 			return;
 		}
 
@@ -113,6 +115,14 @@ class Profiles implements Migration {
 			service_areas JSON NULL,
 			directory_button_type VARCHAR(20) DEFAULT 'schedule',
 
+			-- Integration Settings
+			followupboss_api_key VARCHAR(500) NULL,
+			followupboss_status JSON NULL,
+
+			-- User Preferences
+			notification_settings JSON NULL,
+			privacy_settings JSON NULL,
+
 			-- Metadata
 			is_active BOOLEAN DEFAULT 1,
 			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -134,6 +144,34 @@ class Profiles implements Migration {
 		// Verify table was created
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) !== $table_name ) {
 			error_log( 'FRS Users: Failed to create profiles table' );
+		}
+	}
+
+	/**
+	 * Upgrade existing table with new columns.
+	 *
+	 * @param string $table_name Full table name.
+	 * @return void
+	 */
+	private static function upgrade_columns( $table_name ) {
+		global $wpdb;
+
+		// Define columns to add (column_name => column_definition)
+		$new_columns = array(
+			'followupboss_api_key'   => 'VARCHAR(500) NULL',
+			'followupboss_status'    => 'JSON NULL',
+			'notification_settings'  => 'JSON NULL',
+			'privacy_settings'       => 'JSON NULL',
+		);
+
+		// Get existing columns
+		$existing_columns = $wpdb->get_col( "DESCRIBE {$table_name}", 0 );
+
+		foreach ( $new_columns as $column_name => $column_definition ) {
+			if ( ! in_array( $column_name, $existing_columns, true ) ) {
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$wpdb->query( "ALTER TABLE {$table_name} ADD COLUMN {$column_name} {$column_definition}" );
+			}
 		}
 	}
 

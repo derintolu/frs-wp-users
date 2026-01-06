@@ -130,6 +130,12 @@ class Profile extends Model {
 		'qr_code_data',
 		'is_active',
 		'synced_to_fluentcrm_at',
+		// Integration settings
+		'followupboss_api_key',
+		'followupboss_status',
+		// User preferences
+		'notification_settings',
+		'privacy_settings',
 	];
 
 	/**
@@ -158,6 +164,11 @@ class Profile extends Model {
 		'created_at'             => 'datetime',
 		'updated_at'             => 'datetime',
 		'synced_to_fluentcrm_at' => 'datetime',
+		// Integration settings
+		'followupboss_status'    => 'array',
+		// User preferences
+		'notification_settings'  => 'array',
+		'privacy_settings'       => 'array',
 	];
 
 	/**

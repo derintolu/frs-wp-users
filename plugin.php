@@ -21,6 +21,7 @@ use FRSUsers\Admin\ProfileEdit;
 use FRSUsers\Assets\Admin;
 use FRSUsers\Integrations\FRSSync;
 use FRSUsers\Integrations\FluentCRMSync;
+use FRSUsers\Integrations\FollowUpBoss;
 use FRSUsers\Controllers\Blocks;
 use FRSUsers\Abilities\AbilitiesRegistry;
 use FRSUsers\Traits\Base;
@@ -100,6 +101,9 @@ final class FRSUsers {
 
 		// Initialize FluentCRM real-time sync integration
 		FluentCRMSync::get_instance()->init();
+
+		// Initialize Follow Up Boss integration
+		FollowUpBoss::init();
 
 		// Initialize WordPress Abilities API integration
 		AbilitiesRegistry::init();

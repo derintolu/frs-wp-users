@@ -3,6 +3,7 @@
 /.vscode
 /.claude
 /.cursor
+/.playwright-mcp
 /node_modules
 scripts/node_modules
 /src

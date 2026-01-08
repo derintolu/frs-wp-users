@@ -9,7 +9,12 @@
       "description": "Security implementation includes: ALLOWED_SCALAR_FIELDS (40 safe fields), ALLOWED_ARRAY_FIELDS (9 array fields), EXCLUDED_FIELDS (sensitive fields like followupboss_api_key, privacy_settings), is_field_allowed() validation method, get_allowed_fields() public accessor for documentation. Input sanitized with sanitize_key(), all output escaped.",
       "category": "security",
       "discovered_at": "2026-01-08T02:25:25.840630+00:00"
+    },
+    "composer.json": {
+      "description": "PSR-4 autoloading maps FRSUsers\\\\ to includes/ directory. New classes must have namespace matching directory structure (e.g., FRSUsers\\Integrations for includes/Integrations/)",
+      "category": "architecture",
+      "discovered_at": "2026-01-08T02:33:17.179596+00:00"
     }
   },
-  "last_updated": "2026-01-08T02:25:25.840642+00:00"
+  "last_updated": "2026-01-08T02:33:17.179604+00:00"
 }

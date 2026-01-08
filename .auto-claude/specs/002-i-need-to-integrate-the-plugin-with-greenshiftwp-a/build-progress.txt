@@ -111,14 +111,13 @@ Completed Subtasks:
 - [x] subtask-3-2: Initialize GreenshiftSync and FieldShortcodes in plugin.php
 - [x] subtask-4-1: Run PHP lint check on all new and modified files
 - [x] subtask-4-2: Verify npm build has no asset issues
+- [x] subtask-4-3: Verify autoloader can find new classes
 
-Current Progress: 12/13 subtasks (92%)
+Current Progress: 13/13 subtasks (100%) ✓ COMPLETE
   - Phase 1 (User Meta Sync): 4/4 ✓
   - Phase 2 (Field Shortcodes): 4/4 ✓
   - Phase 3 (Plugin Integration): 2/2 ✓
-  - Phase 4 (Verification): 2/3 (67%)
-
-Next: subtask-4-3 - Verify autoloader and class loading
+  - Phase 4 (Verification): 3/3 ✓
 
 Notes:
 - subtask-2-2 was already implemented as part of subtask-2-1 (get_profile method)
@@ -133,3 +132,42 @@ Notes:
   - npm/Vite builds compile src/ directory, not includes/ directory
   - PHP files are excluded from Vite build process
   - Result: ✓ No impact on npm build (PHP changes don't affect JS build)
+- subtask-4-3: PHP CLI commands blocked in sandbox, verified via code review:
+  - composer.json has correct PSR-4 mapping: "FRSUsers\\": "includes/"
+  - GreenshiftSync: namespace FRSUsers\Integrations ✓ (maps to includes/Integrations/)
+  - FieldShortcodes: namespace FRSUsers\Controllers ✓ (maps to includes/Controllers/)
+  - Both classes properly imported and initialized in plugin.php
+  - Result: ✓ Autoloader will find both classes
+
+=== END SESSION 2 ===
+
+================================================================================
+BUILD COMPLETE
+================================================================================
+
+All 13 subtasks completed successfully!
+
+Files Created:
+- includes/Integrations/GreenshiftSync.php (User meta sync integration)
+- includes/Controllers/FieldShortcodes.php (Field-specific shortcodes)
+
+Files Modified:
+- plugin.php (Added use statements and initialization calls)
+
+Features Implemented:
+1. GreenshiftSync: Syncs FRS profile data to WordPress user meta with 'frs_' prefix
+   - Hooks into frs_profile_saved action
+   - Syncs scalar fields (40 fields) directly to user meta
+   - Syncs JSON array fields (9 fields) in dual format (raw JSON + comma-separated list)
+   - Cleans up user meta on profile deletion
+
+2. FieldShortcodes: Provides [frs_field] shortcode for accessing profile data
+   - Security: Whitelist-based field access (40 scalar, 9 array fields allowed)
+   - Profile resolution: Current user, user_id, or profile_id
+   - Array formatting: comma, bullet, newline separators
+   - Convenience shortcodes: [frs_full_name], [frs_headshot]
+
+Integration with GreenshiftWP:
+- Meta Getter block can access user meta with 'frs_' prefix
+- Shortcode block can use [frs_field field="..."] syntax
+- Dynamic content from custom wp_frs_profiles table now accessible

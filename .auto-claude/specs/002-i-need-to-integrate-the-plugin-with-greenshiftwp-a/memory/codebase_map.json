@@ -1,0 +1,15 @@
+{
+  "discovered_files": {
+    "includes/Integrations/GreenshiftSync.php": {
+      "description": "GreenshiftSync integration class syncs FRS profile data to WordPress user meta with 'frs_' prefix. Hooks into frs_profile_saved action. Stores JSON fields in dual format (raw JSON and comma-separated list with '_list' suffix).",
+      "category": "integration",
+      "discovered_at": "2026-01-08T02:16:30.623949+00:00"
+    },
+    "includes/Controllers/FieldShortcodes.php": {
+      "description": "Security implementation includes: ALLOWED_SCALAR_FIELDS (40 safe fields), ALLOWED_ARRAY_FIELDS (9 array fields), EXCLUDED_FIELDS (sensitive fields like followupboss_api_key, privacy_settings), is_field_allowed() validation method, get_allowed_fields() public accessor for documentation. Input sanitized with sanitize_key(), all output escaped.",
+      "category": "security",
+      "discovered_at": "2026-01-08T02:25:25.840630+00:00"
+    }
+  },
+  "last_updated": "2026-01-08T02:25:25.840642+00:00"
+}

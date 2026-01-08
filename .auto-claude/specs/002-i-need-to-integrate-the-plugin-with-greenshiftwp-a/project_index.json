@@ -1,0 +1,66 @@
+{
+  "project_root": "/Users/cedarstone/Local Sites/tutorlms-exploration/app/public/wp-content/plugins/frs-wp-users",
+  "project_type": "monorepo",
+  "services": {
+    "documentation": {
+      "name": "documentation",
+      "path": "/Users/cedarstone/Local Sites/tutorlms-exploration/app/public/wp-content/plugins/frs-wp-users/documentation",
+      "language": "TypeScript",
+      "framework": "Next.js",
+      "type": "frontend",
+      "package_manager": "npm",
+      "default_port": 3000,
+      "styling": "Tailwind CSS",
+      "dev_command": "npm run dev",
+      "key_directories": {
+        "app": {
+          "path": "app",
+          "purpose": "Application code"
+        }
+      },
+      "dependencies": [
+        "@wp-playground/client",
+        "fumadocs-core",
+        "fumadocs-mdx",
+        "fumadocs-ui",
+        "next",
+        "react",
+        "react-dom",
+        "react-icons"
+      ],
+      "dev_dependencies": [
+        "@types/mdx",
+        "@types/node",
+        "@types/react",
+        "@types/react-dom",
+        "autoprefixer",
+        "postcss",
+        "tailwindcss",
+        "typescript"
+      ]
+    },
+    "scripts": {
+      "name": "scripts",
+      "path": "/Users/cedarstone/Local Sites/tutorlms-exploration/app/public/wp-content/plugins/frs-wp-users/scripts",
+      "language": "JavaScript",
+      "framework": null,
+      "type": "unknown",
+      "package_manager": "npm",
+      "dependencies": [
+        "qrcode"
+      ],
+      "dev_dependencies": []
+    }
+  },
+  "infrastructure": {
+    "ci": "GitHub Actions",
+    "ci_workflows": [
+      "publish.yml",
+      "mirror-to-org.yml"
+    ]
+  },
+  "conventions": {
+    "formatting": "Prettier",
+    "typescript": true
+  }
+}

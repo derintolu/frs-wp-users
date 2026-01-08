@@ -1,0 +1,119 @@
+=== AUTO-BUILD PROGRESS ===
+
+Project: GreenshiftWP Integration for FRS User Profiles
+Spec: 002-i-need-to-integrate-the-plugin-with-greenshiftwp-a
+Started: 2026-01-07
+
+Workflow Type: feature
+Rationale: New integration feature requiring new files (GreenshiftSync.php, FieldShortcodes.php)
+           and hooks into existing frs_profile_saved action.
+
+================================================================================
+SESSION 1 (Planner Agent) - COMPLETED
+================================================================================
+
+Completed Tasks:
+- [x] Investigated codebase structure and patterns
+- [x] Read pattern files (FluentCRMSync.php, Shortcodes.php, Profile.php, Base.php)
+- [x] Created/updated context.json with field categories and patterns
+- [x] Created implementation_plan.json with 4 phases, 12 subtasks
+- [x] Created init.sh setup script
+- [x] Created build-progress.txt
+
+Phase Summary:
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ Phase 1: User Meta Sync Integration                                          │
+│   - 4 subtasks, depends on: none                                             │
+│   - Creates: includes/Integrations/GreenshiftSync.php                        │
+│   - Implements: frs_profile_saved hook, user meta sync, cleanup on delete    │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ Phase 2: Field Shortcodes Controller                                         │
+│   - 4 subtasks, depends on: none                                             │
+│   - Creates: includes/Controllers/FieldShortcodes.php                        │
+│   - Implements: [frs_field] shortcode, profile resolution, formatting        │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ Phase 3: Plugin Integration                                                  │
+│   - 2 subtasks, depends on: Phase 1 + Phase 2                                │
+│   - Modifies: plugin.php                                                     │
+│   - Implements: Use statements and initialization calls                      │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ Phase 4: Integration Verification                                            │
+│   - 3 subtasks, depends on: Phase 3                                          │
+│   - Verifies: PHP lint, npm build, autoloader                                │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Services Involved:
+- frs-wp-users: Primary plugin being integrated with GreenshiftWP
+
+Files to Create:
+- includes/Integrations/GreenshiftSync.php
+- includes/Controllers/FieldShortcodes.php
+
+Files to Modify:
+- plugin.php
+
+Reference Patterns:
+- includes/Integrations/FluentCRMSync.php (integration hook pattern)
+- includes/Controllers/Shortcodes.php (shortcode registration pattern)
+- includes/Models/Profile.php (field list, Eloquent patterns)
+- includes/Traits/Base.php (singleton pattern)
+
+Parallelism Analysis:
+- Max parallel phases: 2
+- Recommended workers: 1 (small task size makes sequential practical)
+- Parallel groups: Phase 1 and Phase 2 can run together (no dependencies)
+
+Field Categories Identified:
+- Scalar fields: 27 fields (email, first_name, last_name, phone_number, etc.)
+- JSON array fields: 7 fields (languages, specialties, awards, etc.)
+- Excluded fields: 4 fields (followupboss_api_key, notification_settings, etc.)
+
+================================================================================
+STARTUP COMMAND
+================================================================================
+
+To continue building this spec, the coder agent should run:
+
+  cd /Users/cedarstone/Local\ Sites/tutorlms-exploration/app/public/wp-content/plugins/frs-wp-users
+
+  # Optional: Run init.sh to verify environment
+  ./.auto-claude/specs/002-i-need-to-integrate-the-plugin-with-greenshiftwp-a/init.sh
+
+  # Start implementation (if using auto-claude orchestrator)
+  source auto-claude/.venv/bin/activate && python auto-claude/run.py --spec 002 --parallel 1
+
+================================================================================
+NEXT STEPS FOR CODER AGENT
+================================================================================
+
+1. Read implementation_plan.json for subtask details
+2. Start with subtask-1-1 (Create GreenshiftSync class)
+3. Follow phase dependencies (Phase 3 requires 1 + 2)
+4. Run verification commands after each subtask
+5. Commit after each subtask completion
+
+=== END SESSION 1 ===
+
+================================================================================
+SESSION 2 (Coder Agent) - IN PROGRESS
+================================================================================
+
+Completed Subtasks:
+- [x] subtask-1-1: Create GreenshiftSync class with singleton pattern
+- [x] subtask-1-2: Implement handle_profile_saved hook
+- [x] subtask-1-3: Implement sync_user_meta method
+- [x] subtask-1-4: Implement handle_profile_deleted hook
+- [x] subtask-2-1: Create FieldShortcodes class structure
+- [x] subtask-2-2: Implement profile resolution logic (current user, user_id, profile_id)
+
+Current Progress: 6/13 subtasks (46%)
+  - Phase 1 (User Meta Sync): 4/4 ✓
+  - Phase 2 (Field Shortcodes): 2/4 (50%)
+  - Phase 3 (Plugin Integration): 0/2
+  - Phase 4 (Verification): 0/3
+
+Next: subtask-2-3 - Implement field value formatting for scalar and array fields
+
+Notes:
+- subtask-2-2 was already implemented as part of subtask-2-1 (get_profile method)
+- Profile resolution verified: 6 occurrences of resolution methods found

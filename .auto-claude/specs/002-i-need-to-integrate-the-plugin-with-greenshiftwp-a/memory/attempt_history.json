@@ -1,0 +1,117 @@
+{
+  "subtasks": {
+    "subtask-1-1": {
+      "attempts": [
+        {
+          "session": 1,
+          "timestamp": "2026-01-07T18:16:40.766953",
+          "approach": "Implemented: Create GreenshiftSync integration class with Base trait and frs_profile_saved hook",
+          "success": true,
+          "error": null
+        }
+      ],
+      "status": "completed"
+    },
+    "subtask-1-2": {
+      "attempts": [
+        {
+          "session": 2,
+          "timestamp": "2026-01-07T18:17:43.336650",
+          "approach": "Implemented: Implement scalar field sync with frs_ prefix to user meta",
+          "success": true,
+          "error": null
+        }
+      ],
+      "status": "completed"
+    },
+    "subtask-1-3": {
+      "attempts": [
+        {
+          "session": 3,
+          "timestamp": "2026-01-07T18:18:34.040254",
+          "approach": "Implemented: Implement JSON array field sync in dual format (JSON and comma-separated)",
+          "success": true,
+          "error": null
+        }
+      ],
+      "status": "completed"
+    },
+    "subtask-1-4": {
+      "attempts": [
+        {
+          "session": 4,
+          "timestamp": "2026-01-07T18:19:37.547557",
+          "approach": "Implemented: Add profile deletion hook to clean up user meta",
+          "success": true,
+          "error": null
+        }
+      ],
+      "status": "completed"
+    },
+    "subtask-2-1": {
+      "attempts": [
+        {
+          "session": 5,
+          "timestamp": "2026-01-07T18:21:56.677266",
+          "approach": "Implemented: Create FieldShortcodes controller class with shortcode registration",
+          "success": true,
+          "error": null
+        }
+      ],
+      "status": "completed"
+    },
+    "subtask-2-2": {
+      "attempts": [
+        {
+          "session": 6,
+          "timestamp": "2026-01-07T18:23:05.998835",
+          "approach": "Implemented: Implement profile resolution logic (current user, user_id, profile_id)",
+          "success": true,
+          "error": null
+        }
+      ],
+      "status": "completed"
+    },
+    "subtask-2-3": {
+      "attempts": [
+        {
+          "session": 7,
+          "timestamp": "2026-01-07T18:24:34.729363",
+          "approach": "Implemented: Implement field value formatting for scalar and array fields",
+          "success": true,
+          "error": null
+        }
+      ],
+      "status": "completed"
+    },
+    "subtask-2-4": {
+      "attempts": [
+        {
+          "session": 8,
+          "timestamp": "2026-01-07T18:25:34.244424",
+          "approach": "Implemented: Add valid field list and sanitization for security",
+          "success": true,
+          "error": null
+        }
+      ],
+      "status": "completed"
+    },
+    "subtask-3-1": {
+      "attempts": [
+        {
+          "session": 9,
+          "timestamp": "2026-01-07T18:26:40.603790",
+          "approach": "Implemented: Add GreenshiftSync initialization to plugin.php",
+          "success": true,
+          "error": null
+        }
+      ],
+      "status": "completed"
+    }
+  },
+  "stuck_subtasks": [],
+  "metadata": {
+    "created_at": "2026-01-07T18:14:41.794061",
+    "last_updated": "2026-01-07T18:26:40.603809"
+  }
+}

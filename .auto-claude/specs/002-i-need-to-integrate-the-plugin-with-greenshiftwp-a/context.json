@@ -1,0 +1,53 @@
+{
+  "task_description": "Integrate FRS User Profiles plugin with GreenshiftWP by syncing profile data to WordPress user meta and providing field-specific shortcodes for dynamic content",
+  "scoped_services": ["frs-wp-users"],
+  "files_to_modify": {
+    "frs-wp-users": [
+      "plugin.php"
+    ]
+  },
+  "files_to_create": {
+    "frs-wp-users": [
+      "includes/Integrations/GreenshiftSync.php",
+      "includes/Controllers/FieldShortcodes.php"
+    ]
+  },
+  "files_to_reference": [
+    "includes/Integrations/FluentCRMSync.php",
+    "includes/Controllers/Shortcodes.php",
+    "includes/Models/Profile.php",
+    "includes/Traits/Base.php"
+  ],
+  "patterns": {
+    "integration_pattern": "Use Base trait for singleton, hook into frs_profile_saved action, check user_id before processing",
+    "shortcode_pattern": "Static init() method on WordPress init, use shortcode_atts() for attributes, return HTML strings",
+    "meta_prefix": "All user meta keys should use 'frs_' prefix (e.g., frs_first_name, frs_job_title)",
+    "data_access": "Always use Eloquent ORM (Profile::find(), Profile::where()) - never raw SQL"
+  },
+  "existing_implementations": {
+    "description": "FluentCRMSync provides the template for integration classes. It already hooks into frs_profile_saved and demonstrates proper user_id checking.",
+    "relevant_files": [
+      "includes/Integrations/FluentCRMSync.php",
+      "includes/Models/Profile.php"
+    ]
+  },
+  "field_categories": {
+    "scalar_fields": [
+      "email", "first_name", "last_name", "display_name", "phone_number", "mobile_number",
+      "office", "job_title", "biography", "select_person_type", "nmls_number", "license_number",
+      "dre_license", "brand", "city_state", "region", "profile_slug", "profile_headline",
+      "facebook_url", "instagram_url", "linkedin_url", "twitter_url", "youtube_url", "tiktok_url",
+      "headshot_id", "company_name", "company_website"
+    ],
+    "json_array_fields": [
+      "languages", "specialties", "specialties_lo", "awards",
+      "nar_designations", "namb_certifications", "service_areas"
+    ],
+    "excluded_fields": [
+      "followupboss_api_key", "followupboss_status",
+      "notification_settings", "privacy_settings", "profile_visibility"
+    ]
+  },
+  "created_at": "2026-01-07T18:04:43.838872",
+  "updated_at": "2026-01-07T19:00:00.000000"
+}

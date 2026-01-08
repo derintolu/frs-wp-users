@@ -1,0 +1,85 @@
+{
+  "complexity": "standard",
+  "workflow_type": "feature",
+  "confidence": 0.80,
+  "reasoning": "Single external integration (GreenshiftWP) requiring research for correct API usage. The scope is contained to creating a bridge between the existing Profile model (~50 fields) and Greenshift's dynamic shortcode system. No database or infrastructure changes needed.",
+
+  "analysis": {
+    "scope": {
+      "estimated_files": 5,
+      "estimated_services": 1,
+      "is_cross_cutting": false,
+      "notes": "Will create 1-2 new integration files (Greenshift integration class), possibly modify main plugin bootstrap to conditionally load integration. ~50 profile fields need to be registered with Greenshift's shortcode system."
+    },
+    "integrations": {
+      "external_services": ["GreenshiftWP"],
+      "new_dependencies": [],
+      "research_needed": true,
+      "notes": "GreenshiftWP is a separate WordPress plugin. Need to research its dynamic shortcode API/hooks for registering custom data sources. No gspb_ or greenshift_ hooks currently exist in codebase - this is a new integration."
+    },
+    "infrastructure": {
+      "docker_changes": false,
+      "database_changes": false,
+      "config_changes": false,
+      "notes": "No infrastructure changes. Integration should gracefully degrade when Greenshift is not installed. May add optional toggle in existing settings."
+    },
+    "knowledge": {
+      "patterns_exist": false,
+      "research_required": true,
+      "unfamiliar_tech": ["Greenshift Dynamic Shortcodes API"],
+      "notes": "No existing Greenshift integration patterns in codebase. The existing libs/Utils/Shortcode.php is a generic WordPress shortcode helper, not Greenshift-specific. Need to research how Greenshift registers custom dynamic data sources."
+    },
+    "risk": {
+      "level": "low",
+      "concerns": [
+        "Need to verify Greenshift API stability",
+        "Should handle case where Greenshift is not installed",
+        "JSON fields (arrays like specialties, languages) may need special handling"
+      ],
+      "notes": "Additive feature that doesn't modify existing functionality. Low risk of breaking current behavior."
+    }
+  },
+
+  "recommended_phases": [
+    "discovery",
+    "requirements",
+    "research",
+    "context",
+    "spec_writing",
+    "planning",
+    "validation"
+  ],
+
+  "flags": {
+    "needs_research": true,
+    "needs_self_critique": false,
+    "needs_infrastructure_setup": false
+  },
+
+  "validation_recommendations": {
+    "risk_level": "low",
+    "skip_validation": false,
+    "minimal_mode": true,
+    "test_types_required": ["unit"],
+    "security_scan_required": false,
+    "staging_deployment_required": false,
+    "reasoning": "Low-risk additive integration with no security-sensitive areas touched. Minimal validation with unit tests for field registration logic if tests exist. Manual testing with Greenshift installed recommended."
+  },
+
+  "field_inventory": {
+    "total_fields": 50,
+    "categories": {
+      "contact_info": ["email", "first_name", "last_name", "display_name", "phone_number", "mobile_number", "office"],
+      "profile": ["headshot_id", "job_title", "biography", "date_of_birth", "select_person_type"],
+      "professional": ["nmls", "nmls_number", "license_number", "dre_license", "brand", "status"],
+      "json_fields": ["specialties_lo", "specialties", "languages", "awards", "nar_designations", "namb_certifications", "personal_branding_images", "profile_visibility", "custom_links", "service_areas"],
+      "location": ["city_state", "region"],
+      "social_media": ["facebook_url", "instagram_url", "linkedin_url", "twitter_url", "youtube_url", "tiktok_url"],
+      "tools": ["arrive", "canva_folder_link", "niche_bio_content"],
+      "public_profile": ["profile_slug", "profile_headline", "profile_theme", "directory_button_type"]
+    },
+    "notes": "JSON fields will require special handling to expose individual array items or formatted output"
+  },
+
+  "created_at": "2025-01-07T00:00:00Z"
+}

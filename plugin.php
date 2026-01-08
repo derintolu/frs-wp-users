@@ -15,6 +15,7 @@ use FRSUsers\Core\CORS;
 use FRSUsers\Core\DataKit;
 use FRSUsers\Core\EmbeddablePages;
 use FRSUsers\Controllers\Shortcodes;
+use FRSUsers\Controllers\FieldShortcodes;
 use FRSUsers\Routes\Api;
 use FRSUsers\Admin\ProfilesPage;
 use FRSUsers\Admin\ProfileEdit;
@@ -79,6 +80,9 @@ final class FRSUsers {
 
 		// Initialize frontend shortcodes
 		Shortcodes::init();
+
+		// Initialize field shortcodes for Greenshift integration
+		FieldShortcodes::init();
 
 		// Initialize template handler for public profiles
 		Template::get_instance()->init();

@@ -1,0 +1,538 @@
+{
+  "feature": "GreenshiftWP Integration for FRS User Profiles",
+  "workflow_type": "feature",
+  "workflow_rationale": "This is a new integration feature that requires creating new files (GreenshiftSync.php, FieldShortcodes.php), implementing sync logic, and connecting to existing hooks. It follows the feature workflow pattern: Backend implementation \u2192 Integration verification.",
+  "phases": [
+    {
+      "id": "phase-1-user-meta-sync",
+      "name": "User Meta Sync Integration",
+      "type": "implementation",
+      "description": "Create the GreenshiftSync integration class that syncs profile data to WordPress user meta on profile save",
+      "depends_on": [],
+      "parallel_safe": true,
+      "subtasks": [
+        {
+          "id": "subtask-1-1",
+          "description": "Create GreenshiftSync integration class with Base trait and frs_profile_saved hook",
+          "service": "frs-wp-users",
+          "files_to_modify": [],
+          "files_to_create": [
+            "includes/Integrations/GreenshiftSync.php"
+          ],
+          "patterns_from": [
+            "includes/Integrations/FluentCRMSync.php",
+            "includes/Traits/Base.php"
+          ],
+          "implementation_details": {
+            "class_name": "GreenshiftSync",
+            "namespace": "FRSUsers\\Integrations",
+            "uses_trait": "Base",
+            "hook": "frs_profile_saved",
+            "key_methods": [
+              "init() - Register hooks",
+              "sync_to_user_meta(int $profile_id, array $profile_data) - Main sync method",
+              "get_scalar_fields() - Return list of scalar fields to sync",
+              "get_json_fields() - Return list of JSON array fields to sync",
+              "sync_scalar_field(int $user_id, string $field, mixed $value) - Sync single field",
+              "sync_json_field(int $user_id, string $field, mixed $value) - Sync JSON field in both formats",
+              "cleanup_user_meta(int $user_id) - Remove frs_ meta on profile deletion"
+            ]
+          },
+          "verification": {
+            "type": "command",
+            "command": "cd /Users/cedarstone/Local\\ Sites/tutorlms-exploration/app/public/wp-content/plugins/frs-wp-users && php -l includes/Integrations/GreenshiftSync.php",
+            "expected": "No syntax errors detected"
+          },
+          "status": "completed",
+          "notes": "Created GreenshiftSync.php with Base trait, frs_profile_saved hook, scalar/JSON field mapping, and sync_to_user_meta() method. Committed and pushed to remote.",
+          "updated_at": "2026-01-08T02:16:24.804991+00:00"
+        },
+        {
+          "id": "subtask-1-2",
+          "description": "Implement scalar field sync with frs_ prefix to user meta",
+          "service": "frs-wp-users",
+          "files_to_modify": [
+            "includes/Integrations/GreenshiftSync.php"
+          ],
+          "files_to_create": [],
+          "patterns_from": [
+            "includes/Integrations/FluentCRMSync.php"
+          ],
+          "implementation_details": {
+            "fields_to_sync": [
+              "email \u2192 frs_email",
+              "first_name \u2192 frs_first_name",
+              "last_name \u2192 frs_last_name",
+              "display_name \u2192 frs_display_name",
+              "phone_number \u2192 frs_phone_number",
+              "mobile_number \u2192 frs_mobile_number",
+              "office \u2192 frs_office",
+              "job_title \u2192 frs_job_title",
+              "biography \u2192 frs_biography",
+              "select_person_type \u2192 frs_person_type",
+              "nmls_number \u2192 frs_nmls_number",
+              "license_number \u2192 frs_license_number",
+              "dre_license \u2192 frs_dre_license",
+              "brand \u2192 frs_brand",
+              "city_state \u2192 frs_city_state",
+              "region \u2192 frs_region",
+              "profile_slug \u2192 frs_profile_slug",
+              "profile_headline \u2192 frs_profile_headline",
+              "facebook_url \u2192 frs_facebook_url",
+              "instagram_url \u2192 frs_instagram_url",
+              "linkedin_url \u2192 frs_linkedin_url",
+              "twitter_url \u2192 frs_twitter_url",
+              "youtube_url \u2192 frs_youtube_url",
+              "tiktok_url \u2192 frs_tiktok_url",
+              "headshot_id \u2192 frs_headshot_id",
+              "company_name \u2192 frs_company_name",
+              "company_website \u2192 frs_company_website"
+            ],
+            "notes": "Use update_user_meta() for each field, handle null/empty values gracefully"
+          },
+          "verification": {
+            "type": "command",
+            "command": "cd /Users/cedarstone/Local\\ Sites/tutorlms-exploration/app/public/wp-content/plugins/frs-wp-users && grep -c 'update_user_meta' includes/Integrations/GreenshiftSync.php",
+            "expected": "At least 1 occurrence of update_user_meta"
+          },
+          "status": "completed",
+          "notes": "Scalar field sync already implemented. SCALAR_FIELDS constant maps 26 profile fields (email, first_name, last_name, display_name, phone_number, mobile_number, office, job_title, biography, select_person_type, nmls_number, license_number, dre_license, brand, city_state, region, profile_slug, profile_headline, social URLs, headshot_id) to user meta with frs_ prefix. sync_to_user_meta() loops through fields and calls update_user_meta(). Verification passed: 3 occurrences of update_user_meta found.",
+          "updated_at": "2026-01-08T02:17:34.013303+00:00"
+        },
+        {
+          "id": "subtask-1-3",
+          "description": "Implement JSON array field sync in dual format (JSON and comma-separated)",
+          "service": "frs-wp-users",
+          "files_to_modify": [
+            "includes/Integrations/GreenshiftSync.php"
+          ],
+          "files_to_create": [],
+          "patterns_from": [
+            "includes/Integrations/FluentCRMSync.php"
+          ],
+          "implementation_details": {
+            "fields_to_sync": [
+              "languages \u2192 frs_languages (JSON) + frs_languages_list (CSV)",
+              "specialties \u2192 frs_specialties + frs_specialties_list",
+              "specialties_lo \u2192 frs_specialties_lo + frs_specialties_lo_list",
+              "awards \u2192 frs_awards + frs_awards_list",
+              "nar_designations \u2192 frs_nar_designations + frs_nar_designations_list",
+              "namb_certifications \u2192 frs_namb_certifications + frs_namb_certifications_list",
+              "service_areas \u2192 frs_service_areas + frs_service_areas_list"
+            ],
+            "notes": "For each JSON field, store both wp_json_encode() version and implode(', ', $array) version. Handle arrays cast by Eloquent."
+          },
+          "verification": {
+            "type": "command",
+            "command": "cd /Users/cedarstone/Local\\ Sites/tutorlms-exploration/app/public/wp-content/plugins/frs-wp-users && grep -c 'wp_json_encode\\|implode' includes/Integrations/GreenshiftSync.php",
+            "expected": "At least 2 occurrences"
+          },
+          "status": "completed",
+          "notes": "JSON array field sync already implemented in sync_json_field() method with dual format: wp_json_encode for JSON storage (frs_{field}) and implode for comma-separated display (frs_{field}_list). Verification passed with 2 occurrences.",
+          "updated_at": "2026-01-08T02:18:20.979672+00:00"
+        },
+        {
+          "id": "subtask-1-4",
+          "description": "Add profile deletion hook to clean up user meta",
+          "service": "frs-wp-users",
+          "files_to_modify": [
+            "includes/Integrations/GreenshiftSync.php"
+          ],
+          "files_to_create": [],
+          "patterns_from": [],
+          "implementation_details": {
+            "hook": "Add deleted action hook if exists, or hook into Profile model deletion",
+            "method": "cleanup_user_meta(int $user_id) - Delete all frs_* meta keys for user",
+            "notes": "Use delete_user_meta() for each synced field"
+          },
+          "verification": {
+            "type": "command",
+            "command": "cd /Users/cedarstone/Local\\ Sites/tutorlms-exploration/app/public/wp-content/plugins/frs-wp-users && grep -c 'delete_user_meta' includes/Integrations/GreenshiftSync.php",
+            "expected": "At least 1 occurrence"
+          },
+          "status": "completed",
+          "notes": "Profile deletion hook was already implemented as part of subtask-1-1 (GreenshiftSync class creation). The cleanup_user_meta method exists with 3 delete_user_meta calls covering all scalar and JSON fields. Hook is registered on 'frs_profile_deleted' action. Verification passed: grep count shows 3 occurrences.",
+          "updated_at": "2026-01-08T02:19:25.475309+00:00"
+        }
+      ]
+    },
+    {
+      "id": "phase-2-field-shortcodes",
+      "name": "Field Shortcodes Controller",
+      "type": "implementation",
+      "description": "Create the FieldShortcodes controller that provides [frs_field] shortcode for accessing any profile field",
+      "depends_on": [],
+      "parallel_safe": true,
+      "subtasks": [
+        {
+          "id": "subtask-2-1",
+          "description": "Create FieldShortcodes controller class with shortcode registration",
+          "service": "frs-wp-users",
+          "files_to_modify": [],
+          "files_to_create": [
+            "includes/Controllers/FieldShortcodes.php"
+          ],
+          "patterns_from": [
+            "includes/Controllers/Shortcodes.php"
+          ],
+          "implementation_details": {
+            "class_name": "FieldShortcodes",
+            "namespace": "FRSUsers\\Controllers",
+            "shortcode": "frs_field",
+            "key_methods": [
+              "init() - Register shortcode on WordPress init action",
+              "register_shortcode() - Add frs_field shortcode",
+              "render_field($atts) - Main shortcode handler"
+            ],
+            "attributes": {
+              "name": "Field name (required)",
+              "user_id": "User ID or 'current' (default: current)",
+              "profile_id": "Profile ID for guest profiles (optional)",
+              "default": "Fallback value (optional)",
+              "format": "For arrays: 'list', 'json', 'count' (default: list)"
+            }
+          },
+          "verification": {
+            "type": "command",
+            "command": "cd /Users/cedarstone/Local\\ Sites/tutorlms-exploration/app/public/wp-content/plugins/frs-wp-users && php -l includes/Controllers/FieldShortcodes.php",
+            "expected": "No syntax errors detected"
+          },
+          "status": "completed",
+          "notes": "Created FieldShortcodes.php controller with: [frs_field] shortcode with name/user_id/profile_id/default/format attributes; [frs_full_name] and [frs_headshot] convenience shortcodes; profile resolution logic (current user, user_id, profile_id); array field formatting (list/json/count); field whitelist excluding sensitive fields (followupboss_api_key, etc.). Verification: 3 add_shortcode calls, 2 get_current_user_id, 2 Profile::find, 3 Profile::get_by_user_id. Committed and pushed to remote.",
+          "updated_at": "2026-01-08T02:21:45.861203+00:00"
+        },
+        {
+          "id": "subtask-2-2",
+          "description": "Implement profile resolution logic (current user, user_id, profile_id)",
+          "service": "frs-wp-users",
+          "files_to_modify": [
+            "includes/Controllers/FieldShortcodes.php"
+          ],
+          "files_to_create": [],
+          "patterns_from": [
+            "includes/Controllers/Shortcodes.php",
+            "includes/Models/Profile.php"
+          ],
+          "implementation_details": {
+            "resolution_order": [
+              "1. If profile_id provided, use Profile::find()",
+              "2. If user_id='current', use get_current_user_id() then Profile::get_by_user_id()",
+              "3. If user_id is numeric, use Profile::get_by_user_id()"
+            ],
+            "error_handling": [
+              "No user logged in when user_id='current' \u2192 return default or empty",
+              "Profile not found \u2192 return default or empty",
+              "Field doesn't exist on profile \u2192 return default or empty"
+            ]
+          },
+          "verification": {
+            "type": "command",
+            "command": "cd /Users/cedarstone/Local\\ Sites/tutorlms-exploration/app/public/wp-content/plugins/frs-wp-users && grep -c 'get_current_user_id\\|Profile::find\\|Profile::get_by_user_id' includes/Controllers/FieldShortcodes.php",
+            "expected": "At least 3 occurrences"
+          },
+          "status": "completed",
+          "notes": "Profile resolution logic already implemented in get_profile() method. Verified: 6 occurrences of get_current_user_id, Profile::find, and Profile::get_by_user_id (exceeds required 3). Resolution order: 1) Direct profile_id \u2192 Profile::find(), 2) user_id='current' \u2192 get_current_user_id(), 3) Numeric user_id \u2192 Profile::get_by_user_id()",
+          "updated_at": "2026-01-08T02:22:41.772131+00:00"
+        },
+        {
+          "id": "subtask-2-3",
+          "description": "Implement field value formatting for scalar and array fields",
+          "service": "frs-wp-users",
+          "files_to_modify": [
+            "includes/Controllers/FieldShortcodes.php"
+          ],
+          "files_to_create": [],
+          "patterns_from": [],
+          "implementation_details": {
+            "scalar_fields": "Return esc_html($value) directly",
+            "array_fields": {
+              "format_list": "implode(', ', $value) - comma-separated string",
+              "format_json": "wp_json_encode($value) - JSON string",
+              "format_count": "count($value) - numeric count"
+            },
+            "special_fields": {
+              "headshot_id": "Optionally add format='url' to return wp_get_attachment_url()",
+              "dates": "Optionally format date fields"
+            }
+          },
+          "verification": {
+            "type": "command",
+            "command": "cd /Users/cedarstone/Local\\ Sites/tutorlms-exploration/app/public/wp-content/plugins/frs-wp-users && grep -E 'format|esc_html|implode' includes/Controllers/FieldShortcodes.php | wc -l",
+            "expected": "At least 3 lines"
+          },
+          "status": "completed",
+          "notes": "Field value formatting already fully implemented in FieldShortcodes.php: Scalar fields use esc_html((string) $value); Array fields support three formats via format_array_value(): 'json' (wp_json_encode), 'count' (count()), 'list' (esc_html(implode(', ', ...))). Special handling for headshot_id/company_logo_id. Verification passed: 24 lines matching format|esc_html|implode (far exceeds required 3).",
+          "updated_at": "2026-01-08T02:24:20.583009+00:00"
+        },
+        {
+          "id": "subtask-2-4",
+          "description": "Add valid field list and sanitization for security",
+          "service": "frs-wp-users",
+          "files_to_modify": [
+            "includes/Controllers/FieldShortcodes.php"
+          ],
+          "files_to_create": [],
+          "patterns_from": [],
+          "implementation_details": {
+            "whitelist_fields": "Create array of allowed field names - exclude sensitive fields",
+            "excluded_fields": [
+              "followupboss_api_key",
+              "followupboss_status",
+              "notification_settings",
+              "privacy_settings"
+            ],
+            "sanitization": "Validate field name against whitelist before accessing"
+          },
+          "verification": {
+            "type": "command",
+            "command": "cd /Users/cedarstone/Local\\ Sites/tutorlms-exploration/app/public/wp-content/plugins/frs-wp-users && grep -c 'get_allowed_fields\\|followupboss_api_key' includes/Controllers/FieldShortcodes.php",
+            "expected": "At least 1 occurrence of field validation"
+          },
+          "status": "completed",
+          "notes": "Field validation and sanitization already implemented: ALLOWED_SCALAR_FIELDS (40 fields), ALLOWED_ARRAY_FIELDS (9 fields), EXCLUDED_FIELDS (includes followupboss_api_key and other sensitive fields), is_field_allowed() validation method, get_allowed_fields() public accessor, sanitize_key() input sanitization, esc_html()/esc_url()/esc_attr() output escaping. Verification passed (2 occurrences found).",
+          "updated_at": "2026-01-08T02:25:19.737733+00:00"
+        }
+      ]
+    },
+    {
+      "id": "phase-3-plugin-integration",
+      "name": "Plugin Integration",
+      "type": "implementation",
+      "description": "Wire the new integration and shortcodes into the main plugin initialization",
+      "depends_on": [
+        "phase-1-user-meta-sync",
+        "phase-2-field-shortcodes"
+      ],
+      "parallel_safe": false,
+      "subtasks": [
+        {
+          "id": "subtask-3-1",
+          "description": "Add GreenshiftSync initialization to plugin.php",
+          "service": "frs-wp-users",
+          "files_to_modify": [
+            "plugin.php"
+          ],
+          "files_to_create": [],
+          "patterns_from": [
+            "plugin.php"
+          ],
+          "implementation_details": {
+            "add_use_statement": "use FRSUsers\\Integrations\\GreenshiftSync;",
+            "add_initialization": "GreenshiftSync::get_instance()->init();",
+            "placement": "After FluentCRMSync initialization line (around line 103)"
+          },
+          "verification": {
+            "type": "command",
+            "command": "cd /Users/cedarstone/Local\\ Sites/tutorlms-exploration/app/public/wp-content/plugins/frs-wp-users && grep -c 'GreenshiftSync' plugin.php",
+            "expected": "At least 2 occurrences (use statement and init call)"
+          },
+          "status": "completed",
+          "notes": "Added use statement for FRSUsers\\Integrations\\GreenshiftSync and init call GreenshiftSync::get_instance()->init() in plugin.php. Verification passed with 2 occurrences found.",
+          "updated_at": "2026-01-08T02:26:32.815144+00:00"
+        },
+        {
+          "id": "subtask-3-2",
+          "description": "Add FieldShortcodes initialization to plugin.php",
+          "service": "frs-wp-users",
+          "files_to_modify": [
+            "plugin.php"
+          ],
+          "files_to_create": [],
+          "patterns_from": [
+            "plugin.php"
+          ],
+          "implementation_details": {
+            "add_use_statement": "use FRSUsers\\Controllers\\FieldShortcodes;",
+            "add_initialization": "FieldShortcodes::init();",
+            "placement": "After existing Shortcodes::init() call (around line 80)"
+          },
+          "verification": {
+            "type": "command",
+            "command": "cd /Users/cedarstone/Local\\ Sites/tutorlms-exploration/app/public/wp-content/plugins/frs-wp-users && grep -c 'FieldShortcodes' plugin.php",
+            "expected": "At least 2 occurrences"
+          },
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "phase-4-verification",
+      "name": "Integration Verification",
+      "type": "integration",
+      "description": "Verify the complete integration works end-to-end",
+      "depends_on": [
+        "phase-3-plugin-integration"
+      ],
+      "parallel_safe": false,
+      "subtasks": [
+        {
+          "id": "subtask-4-1",
+          "description": "Run PHP lint check on all new and modified files",
+          "service": "frs-wp-users",
+          "files_to_modify": [],
+          "files_to_create": [],
+          "patterns_from": [],
+          "verification": {
+            "type": "command",
+            "command": "cd /Users/cedarstone/Local\\ Sites/tutorlms-exploration/app/public/wp-content/plugins/frs-wp-users && php -l includes/Integrations/GreenshiftSync.php && php -l includes/Controllers/FieldShortcodes.php && php -l plugin.php",
+            "expected": "No syntax errors detected in all 3 files"
+          },
+          "status": "pending"
+        },
+        {
+          "id": "subtask-4-2",
+          "description": "Run npm build to verify no asset issues",
+          "service": "frs-wp-users",
+          "files_to_modify": [],
+          "files_to_create": [],
+          "patterns_from": [],
+          "verification": {
+            "type": "command",
+            "command": "cd /Users/cedarstone/Local\\ Sites/tutorlms-exploration/app/public/wp-content/plugins/frs-wp-users && npm run build",
+            "expected": "Build completes without errors"
+          },
+          "status": "pending"
+        },
+        {
+          "id": "subtask-4-3",
+          "description": "Verify autoloader can find new classes",
+          "service": "frs-wp-users",
+          "files_to_modify": [],
+          "files_to_create": [],
+          "patterns_from": [],
+          "verification": {
+            "type": "command",
+            "command": "cd /Users/cedarstone/Local\\ Sites/tutorlms-exploration/app/public/wp-content/plugins/frs-wp-users && php -r \"require_once 'vendor/autoload.php'; echo class_exists('FRSUsers\\\\Integrations\\\\GreenshiftSync') ? 'GreenshiftSync: OK' : 'GreenshiftSync: FAIL'; echo PHP_EOL; echo class_exists('FRSUsers\\\\Controllers\\\\FieldShortcodes') ? 'FieldShortcodes: OK' : 'FieldShortcodes: FAIL';\"",
+            "expected": "Both classes found (OK)"
+          },
+          "status": "pending"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "total_phases": 4,
+    "total_subtasks": 12,
+    "services_involved": [
+      "frs-wp-users"
+    ],
+    "files_to_create": [
+      "includes/Integrations/GreenshiftSync.php",
+      "includes/Controllers/FieldShortcodes.php"
+    ],
+    "files_to_modify": [
+      "plugin.php"
+    ],
+    "parallelism": {
+      "max_parallel_phases": 2,
+      "parallel_groups": [
+        {
+          "phases": [
+            "phase-1-user-meta-sync",
+            "phase-2-field-shortcodes"
+          ],
+          "reason": "Both phases have no dependencies and modify different files"
+        }
+      ],
+      "recommended_workers": 1,
+      "speedup_estimate": "Phases 1 and 2 can run in parallel, but small task size makes sequential execution practical"
+    },
+    "startup_command": "source auto-claude/.venv/bin/activate && python auto-claude/run.py --spec 002 --parallel 1"
+  },
+  "verification_strategy": {
+    "risk_level": "low",
+    "skip_validation": false,
+    "test_creation_phase": "post_implementation",
+    "test_types_required": [
+      "unit"
+    ],
+    "security_scanning_required": false,
+    "staging_deployment_required": false,
+    "acceptance_criteria": [
+      "PHP syntax check passes on all new/modified files",
+      "npm run build completes successfully",
+      "Autoloader can find both new classes",
+      "No PHP errors when plugin loads",
+      "frs_field shortcode is registered",
+      "Profile save triggers user meta sync"
+    ],
+    "verification_steps": [
+      {
+        "name": "PHP Lint Check",
+        "command": "php -l includes/Integrations/GreenshiftSync.php && php -l includes/Controllers/FieldShortcodes.php && php -l plugin.php",
+        "expected_outcome": "No syntax errors",
+        "type": "lint",
+        "required": true,
+        "blocking": true
+      },
+      {
+        "name": "Asset Build",
+        "command": "npm run build",
+        "expected_outcome": "Build completes without errors",
+        "type": "build",
+        "required": true,
+        "blocking": true
+      },
+      {
+        "name": "Autoloader Verification",
+        "command": "php -r \"require_once 'vendor/autoload.php'; var_dump(class_exists('FRSUsers\\\\Integrations\\\\GreenshiftSync'));\"",
+        "expected_outcome": "bool(true)",
+        "type": "test",
+        "required": true,
+        "blocking": false
+      }
+    ],
+    "reasoning": "Low-risk additive feature that doesn't modify existing functionality. Basic verification with lint checks and build confirms code quality."
+  },
+  "qa_acceptance": {
+    "unit_tests": {
+      "required": false,
+      "commands": [],
+      "minimum_coverage": null,
+      "notes": "No existing test infrastructure for PHP - manual verification required"
+    },
+    "integration_tests": {
+      "required": false,
+      "commands": [],
+      "services_to_test": []
+    },
+    "e2e_tests": {
+      "required": false,
+      "commands": [],
+      "flows": []
+    },
+    "browser_verification": {
+      "required": true,
+      "pages": [
+        {
+          "url": "Any page with [frs_field name='first_name'] shortcode",
+          "checks": [
+            "Field value renders correctly",
+            "No PHP errors in page"
+          ]
+        }
+      ]
+    },
+    "database_verification": {
+      "required": true,
+      "checks": [
+        "After profile save: SELECT * FROM wp_usermeta WHERE meta_key LIKE 'frs_%' AND user_id = X returns synced fields",
+        "Original profile data in wp_frs_profiles remains unchanged"
+      ]
+    },
+    "manual_verification": {
+      "required": true,
+      "steps": [
+        "1. Save a profile via admin or REST API",
+        "2. Verify frs_* user meta is populated via WP-CLI: wp user meta list <user_id> | grep frs_",
+        "3. Add [frs_field name='first_name'] to a page and verify it renders",
+        "4. If Greenshift installed: Add Meta Getter block, select frs_first_name, verify it works"
+      ]
+    }
+  },
+  "qa_signoff": null,
+  "status": "in_progress",
+  "planStatus": "in_progress",
+  "updated_at": "2026-01-08T02:14:14.214Z",
+  "last_updated": "2026-01-08T02:26:32.815193+00:00"
+}

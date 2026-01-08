@@ -1,0 +1,266 @@
+{
+  "integrations_researched": [
+    {
+      "name": "GreenshiftWP",
+      "type": "service",
+      "description": "WordPress page builder and animation blocks plugin with dynamic data capabilities",
+      "verified_package": {
+        "name": "greenshift-animation-and-page-builder-blocks",
+        "install_command": "WordPress Plugin - Install via WordPress dashboard or wp plugin install greenshift-animation-and-page-builder-blocks",
+        "version": "Latest (free base plugin)",
+        "verified": true,
+        "wordpress_org_url": "https://wordpress.org/plugins/greenshift-animation-and-page-builder-blocks/"
+      },
+      "api_patterns": {
+        "dynamic_data_sources": [
+          "WordPress post meta",
+          "WordPress user meta",
+          "Site options and transients",
+          "ACF (Advanced Custom Fields) fields",
+          "ACPT (All in One Custom Post Types) fields",
+          "JetEngine fields",
+          "MetaBox fields",
+          "Taxonomy meta",
+          "WooCommerce attributes",
+          "External feeds and repeaters"
+        ],
+        "key_blocks": [
+          "Meta Getter - Retrieves any meta field value",
+          "Query Loop Builder - Query and display posts/CPTs",
+          "Repeater Builder - Display repeatable data sources",
+          "Dynamic Chart - Display data from API/meta"
+        ],
+        "verified_filters": [
+          {
+            "filter": "gspb_local_font_array",
+            "purpose": "Register custom fonts in Greenshift font selector",
+            "example": "add_filter('gspb_local_font_array', function($localfont){ ... });"
+          },
+          {
+            "filter": "gspb_default_row_width_px",
+            "purpose": "Set default container width in pixels",
+            "example": "add_filter('gspb_default_row_width_px', function($row){ return 1200; });"
+          },
+          {
+            "filter": "greenshift_responsive_breakpoints",
+            "purpose": "Define custom breakpoint values",
+            "example": "add_filter('greenshift_responsive_breakpoints', function($array){ return ['mobile' => 576, 'tablet' => 768, 'desktop' => 992]; });"
+          },
+          {
+            "filter": "greenshift_hide_landscape_breakpoint",
+            "purpose": "Hide landscape orientation toggle",
+            "example": "add_filter('greenshift_hide_landscape_breakpoint', '__return_true');"
+          }
+        ],
+        "verified_against": "https://greenshiftwp.com/documentation/for-developers/theme-integration-with-greenshift/"
+      },
+      "configuration": {
+        "required_addons": [
+          {
+            "name": "Query Addon (premium)",
+            "purpose": "Required for dynamic data features including Meta Getter block",
+            "note": "Part of Greenshift All-in-One plan or sold separately"
+          }
+        ],
+        "meta_key_patterns": {
+          "standard_meta": "Use meta key directly: 'my_field_key'",
+          "acf_fields": "Use field key as-is",
+          "acpt_fields": "Include group in key: 'group_key_field_key' (underscore-separated)"
+        }
+      },
+      "infrastructure": {
+        "requires_docker": false,
+        "database": "Uses WordPress standard meta tables (postmeta, usermeta, options)",
+        "note": "Greenshift reads from WordPress meta storage - custom tables require integration layer"
+      },
+      "gotchas": [
+        "Greenshift Dynamic Fields work with WordPress meta (post_meta, user_meta) - NOT custom database tables",
+        "Query Addon (premium) required for Meta Getter and dynamic data features",
+        "FRS User Profiles stores data in custom table wp_frs_profiles - NOT in WordPress meta",
+        "To integrate, FRS data must be exposed via WordPress meta, shortcodes, or custom blocks",
+        "Dynamic shortcodes from other plugins may not render in Query Loop without special handling",
+        "ACPT field keys require group prefix (e.g., 'group_field' not just 'field')"
+      ],
+      "research_sources": [
+        "https://wordpress.org/plugins/greenshift-animation-and-page-builder-blocks/",
+        "https://greenshiftwp.com/documentation/for-developers/theme-integration-with-greenshift/",
+        "https://greenshiftwp.com/documentation/greenshift-extra/dynamic-options/",
+        "https://greenshiftwp.com/dynamic-fields/",
+        "https://greenshiftwp.com/meta-getter-block/",
+        "https://greenshiftwp.com/documentation/blocks/query-addon-and-dynamic-blocks/"
+      ]
+    },
+    {
+      "name": "FRS User Profiles Plugin",
+      "type": "library",
+      "description": "Existing plugin that needs to be integrated with Greenshift",
+      "verified_package": {
+        "name": "frs-wp-users",
+        "verified": true,
+        "note": "Local plugin - not from package repository"
+      },
+      "api_patterns": {
+        "data_storage": "Custom database table: wp_frs_profiles (Eloquent ORM)",
+        "rest_api_base": "/wp-json/frs-users/v1/",
+        "profile_model": "FRSUsers\\Models\\Profile",
+        "existing_shortcodes": [
+          "[frs_profile] - Full portal with sidebar",
+          "[frs_my_profile] - Profile content only",
+          "[frs_profile_settings] - Settings content only",
+          "[frs_welcome] - Welcome dashboard",
+          "[frs_profile_directory] - Directory listing"
+        ],
+        "profile_fields": [
+          "email", "first_name", "last_name", "display_name",
+          "phone_number", "mobile_number", "office",
+          "headshot_id", "job_title", "biography",
+          "select_person_type", "nmls", "nmls_number", "license_number", "dre_license",
+          "specialties_lo (JSON)", "specialties (JSON)", "languages (JSON)",
+          "awards (JSON)", "nar_designations (JSON)", "namb_certifications (JSON)",
+          "brand", "status", "city_state", "region",
+          "facebook_url", "instagram_url", "linkedin_url", "twitter_url", "youtube_url", "tiktok_url",
+          "arrive", "canva_folder_link", "niche_bio_content",
+          "personal_branding_images (JSON)", "profile_slug", "profile_headline",
+          "profile_visibility (JSON)", "profile_theme", "custom_links (JSON)", "service_areas (JSON)"
+        ],
+        "verified_against": "Local codebase: database/Migrations/Profiles.php, includes/Models/Profile.php"
+      },
+      "gotchas": [
+        "Data stored in custom table NOT WordPress meta - requires integration layer for Greenshift",
+        "Many fields are JSON type (arrays) - need special handling for Greenshift",
+        "Profile can exist without WordPress user (guest profiles)",
+        "Uses Eloquent ORM via prappo/wp-eloquent"
+      ],
+      "research_sources": [
+        "Local file: database/Migrations/Profiles.php",
+        "Local file: includes/Models/Profile.php",
+        "Local file: includes/Controllers/Shortcodes.php"
+      ]
+    }
+  ],
+  "integration_approaches": [
+    {
+      "approach": "Sync to User Meta",
+      "description": "Mirror FRS profile data to WordPress user meta so Greenshift can read it natively",
+      "pros": [
+        "Native Greenshift Meta Getter compatibility",
+        "Works with all Greenshift dynamic features",
+        "No custom blocks needed"
+      ],
+      "cons": [
+        "Data duplication",
+        "Must sync on every profile save",
+        "Guest profiles (no user_id) won't have user meta"
+      ],
+      "implementation_pattern": "Hook into 'frs_profile_saved' action to update_user_meta()"
+    },
+    {
+      "approach": "Custom Shortcodes for Individual Fields",
+      "description": "Create shortcodes like [frs_field name='first_name'] that output individual field values",
+      "pros": [
+        "Simple implementation",
+        "Works with Greenshift shortcode blocks",
+        "No Greenshift addon required"
+      ],
+      "cons": [
+        "Not true dynamic data - static shortcode output",
+        "May have issues in Query Loop context",
+        "Less flexible than native dynamic fields"
+      ],
+      "implementation_pattern": "Create new shortcodes that accept field name and profile identifier"
+    },
+    {
+      "approach": "Register as Custom Field Plugin",
+      "description": "Create integration that registers FRS fields as Greenshift-compatible custom fields",
+      "pros": [
+        "Full native Greenshift integration",
+        "Works in Meta Getter block"
+      ],
+      "cons": [
+        "Complex implementation",
+        "Requires deep understanding of Greenshift internals",
+        "May break with Greenshift updates"
+      ],
+      "implementation_pattern": "Unknown - no public API documentation for custom field sources"
+    },
+    {
+      "approach": "Hybrid: Shortcodes + User Meta Sync",
+      "description": "Combine user meta sync for logged-in users with shortcodes for flexibility",
+      "pros": [
+        "Best of both approaches",
+        "Works for both users and guests",
+        "Maximum Greenshift compatibility"
+      ],
+      "cons": [
+        "More code to maintain",
+        "Some data duplication"
+      ],
+      "implementation_pattern": "Sync core fields to user_meta + provide shortcodes for all fields"
+    }
+  ],
+  "unverified_claims": [
+    {
+      "claim": "Greenshift has PHP filters/hooks to register custom dynamic data sources",
+      "reason": "No documentation found for programmatically registering custom data sources. Official docs only cover UI-based field configuration.",
+      "risk_level": "medium",
+      "recommendation": "Use documented integration patterns (user meta, shortcodes) rather than undocumented internals"
+    },
+    {
+      "claim": "Query Addon is required for all dynamic features",
+      "reason": "Multiple sources indicate Query Addon is needed for Meta Getter and dynamic data, but couldn't verify exact feature split between free and premium",
+      "risk_level": "low",
+      "recommendation": "Confirm Query Addon is installed/licensed before implementing dynamic data integration"
+    }
+  ],
+  "recommendations": [
+    {
+      "priority": 1,
+      "recommendation": "Implement User Meta Sync for Core Fields",
+      "details": "Hook into 'frs_profile_saved' action to sync key profile fields (first_name, last_name, job_title, phone, email, social URLs, headshot_url) to WordPress user meta. This enables native Greenshift Meta Getter usage for logged-in users."
+    },
+    {
+      "priority": 2,
+      "recommendation": "Create Individual Field Shortcodes",
+      "details": "Create [frs_field name='field_name' profile_id='X'] shortcodes that output individual field values. This provides flexibility for any field and works with guest profiles."
+    },
+    {
+      "priority": 3,
+      "recommendation": "Verify Query Addon Installation",
+      "details": "Confirm Greenshift Query Addon is installed and licensed, as it's required for Meta Getter block and dynamic data features."
+    },
+    {
+      "priority": 4,
+      "recommendation": "Handle JSON Fields Specially",
+      "details": "Fields like languages, specialties, awards are JSON arrays. Create shortcodes that format these appropriately (comma-separated, list, etc.)."
+    },
+    {
+      "priority": 5,
+      "recommendation": "Test in Query Loop Context",
+      "details": "Greenshift's Query Loop has special context handling. Test shortcodes within Query Loop to ensure they receive proper post/user context."
+    }
+  ],
+  "field_mapping_for_user_meta": {
+    "description": "Recommended mapping from FRS profile fields to WordPress user meta for Greenshift compatibility",
+    "mappings": [
+      { "frs_field": "first_name", "user_meta_key": "first_name", "note": "Standard WP user field" },
+      { "frs_field": "last_name", "user_meta_key": "last_name", "note": "Standard WP user field" },
+      { "frs_field": "display_name", "user_meta_key": "display_name", "note": "Standard WP user field" },
+      { "frs_field": "job_title", "user_meta_key": "frs_job_title", "note": "Custom meta" },
+      { "frs_field": "phone_number", "user_meta_key": "frs_phone_number", "note": "Custom meta" },
+      { "frs_field": "mobile_number", "user_meta_key": "frs_mobile_number", "note": "Custom meta" },
+      { "frs_field": "biography", "user_meta_key": "description", "note": "Standard WP user field" },
+      { "frs_field": "headshot_url", "user_meta_key": "frs_headshot_url", "note": "Custom meta, computed from headshot_id" },
+      { "frs_field": "facebook_url", "user_meta_key": "frs_facebook_url", "note": "Custom meta" },
+      { "frs_field": "instagram_url", "user_meta_key": "frs_instagram_url", "note": "Custom meta" },
+      { "frs_field": "linkedin_url", "user_meta_key": "frs_linkedin_url", "note": "Custom meta" },
+      { "frs_field": "twitter_url", "user_meta_key": "frs_twitter_url", "note": "Custom meta" },
+      { "frs_field": "nmls", "user_meta_key": "frs_nmls", "note": "Custom meta" },
+      { "frs_field": "nmls_number", "user_meta_key": "frs_nmls_number", "note": "Custom meta" },
+      { "frs_field": "license_number", "user_meta_key": "frs_license_number", "note": "Custom meta" },
+      { "frs_field": "profile_slug", "user_meta_key": "frs_profile_slug", "note": "Custom meta" },
+      { "frs_field": "select_person_type", "user_meta_key": "frs_person_type", "note": "Custom meta" }
+    ]
+  },
+  "context7_libraries_used": [],
+  "created_at": "2025-01-07T00:00:00Z"
+}

@@ -22,6 +22,7 @@ use FRSUsers\Assets\Admin;
 use FRSUsers\Integrations\FRSSync;
 use FRSUsers\Integrations\FluentCRMSync;
 use FRSUsers\Integrations\FollowUpBoss;
+use FRSUsers\Integrations\GreenshiftSync;
 use FRSUsers\Controllers\Blocks;
 use FRSUsers\Abilities\AbilitiesRegistry;
 use FRSUsers\Traits\Base;
@@ -104,6 +105,9 @@ final class FRSUsers {
 
 		// Initialize Follow Up Boss integration
 		FollowUpBoss::init();
+
+		// Initialize Greenshift user meta sync integration
+		GreenshiftSync::get_instance()->init();
 
 		// Initialize WordPress Abilities API integration
 		AbilitiesRegistry::init();

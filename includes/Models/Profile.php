@@ -31,6 +31,13 @@ class Profile extends Model {
 	protected $table = 'frs_profiles';
 
 	/**
+	 * Flag to enable WordPress-native mode (reads from wp_users + wp_usermeta)
+	 *
+	 * @var bool
+	 */
+	protected static $use_wp_native = true;
+
+	/**
 	 * Get the table name.
 	 *
 	 * In multisite, profiles are stored in a single network-wide table.
@@ -258,10 +265,14 @@ class Profile extends Model {
 	/**
 	 * Get all active profiles.
 	 *
-	 * @param array $args Optional arguments (limit, offset).
-	 * @return \Illuminate\Database\Eloquent\Collection
+	 * @param array $args Optional arguments (limit, offset, type).
+	 * @return \Illuminate\Database\Eloquent\Collection|array
 	 */
 	public static function get_all( $args = array() ) {
+		if ( static::$use_wp_native ) {
+			return static::get_all_from_wp_users( $args );
+		}
+
 		$query = static::where( 'is_active', 1 )
 			->orderBy( 'first_name', 'asc' );
 
@@ -274,6 +285,38 @@ class Profile extends Model {
 		}
 
 		return $query->get();
+	}
+
+	/**
+	 * Get all profiles from WordPress users.
+	 *
+	 * @param array $args Optional arguments.
+	 * @return array Array of Profile objects.
+	 */
+	protected static function get_all_from_wp_users( $args = array() ) {
+		$wp_args = array(
+			'role__in' => array( 'loan_officer', 'realtor_partner', 'staff', 'leadership', 'assistant' ),
+			'orderby'  => 'meta_value',
+			'meta_key' => 'first_name',
+			'order'    => 'ASC',
+		);
+
+		// Handle type filter (map old type to role)
+		if ( ! empty( $args['type'] ) ) {
+			$wp_args['role__in'] = array( $args['type'] );
+		}
+
+		// Pagination
+		if ( isset( $args['limit'] ) ) {
+			$wp_args['number'] = $args['limit'];
+		}
+		if ( isset( $args['offset'] ) ) {
+			$wp_args['offset'] = $args['offset'];
+		}
+
+		$users = get_users( $wp_args );
+
+		return array_map( array( static::class, 'hydrate_from_user' ), $users );
 	}
 
 	/**
@@ -328,6 +371,9 @@ class Profile extends Model {
 	 * @return Profile|null
 	 */
 	public static function get_by_user_id( $user_id ) {
+		if ( static::$use_wp_native ) {
+			return static::find( $user_id );
+		}
 		return static::where( 'user_id', $user_id )->first();
 	}
 
@@ -338,6 +384,13 @@ class Profile extends Model {
 	 * @return Profile|null
 	 */
 	public static function get_by_email( $email ) {
+		if ( static::$use_wp_native ) {
+			$user = get_user_by( 'email', $email );
+			if ( ! $user ) {
+				return null;
+			}
+			return static::hydrate_from_user( $user );
+		}
 		return static::where( 'email', $email )->first();
 	}
 
@@ -348,6 +401,17 @@ class Profile extends Model {
 	 * @return Profile|null
 	 */
 	public static function get_by_frs_agent_id( $frs_agent_id ) {
+		if ( static::$use_wp_native ) {
+			$users = get_users( array(
+				'meta_key'   => 'frs_frs_agent_id',
+				'meta_value' => $frs_agent_id,
+				'number'     => 1,
+			) );
+			if ( empty( $users ) ) {
+				return null;
+			}
+			return static::hydrate_from_user( $users[0] );
+		}
 		return static::where( 'frs_agent_id', $frs_agent_id )->first();
 	}
 
@@ -358,6 +422,91 @@ class Profile extends Model {
 	 */
 	public function is_guest() {
 		return empty( $this->user_id );
+	}
+
+	/**
+	 * Save profile to WordPress users.
+	 *
+	 * In WordPress-native mode, saves to wp_users + wp_usermeta.
+	 *
+	 * @return bool
+	 */
+	public function save( array $options = array() ) {
+		if ( static::$use_wp_native && $this->user_id ) {
+			// Update wp_users core fields
+			$user_data = array(
+				'ID'           => $this->user_id,
+				'user_email'   => $this->email,
+				'display_name' => $this->display_name,
+			);
+
+			$result = wp_update_user( $user_data );
+			if ( is_wp_error( $result ) ) {
+				return false;
+			}
+
+			// Update all meta fields
+			update_user_meta( $this->user_id, 'first_name', $this->first_name );
+			update_user_meta( $this->user_id, 'last_name', $this->last_name );
+			update_user_meta( $this->user_id, 'frs_phone_number', $this->phone_number );
+			update_user_meta( $this->user_id, 'frs_mobile_number', $this->mobile_number );
+			update_user_meta( $this->user_id, 'frs_office', $this->office );
+			update_user_meta( $this->user_id, 'frs_company_name', $this->company_name );
+			update_user_meta( $this->user_id, 'frs_company_logo_id', $this->company_logo_id );
+			update_user_meta( $this->user_id, 'frs_company_website', $this->company_website );
+			update_user_meta( $this->user_id, 'frs_headshot_id', $this->headshot_id );
+			update_user_meta( $this->user_id, 'frs_job_title', $this->job_title );
+			update_user_meta( $this->user_id, 'frs_biography', $this->biography );
+			update_user_meta( $this->user_id, 'frs_date_of_birth', $this->date_of_birth );
+			update_user_meta( $this->user_id, 'frs_nmls', $this->nmls );
+			update_user_meta( $this->user_id, 'frs_nmls_number', $this->nmls_number );
+			update_user_meta( $this->user_id, 'frs_license_number', $this->license_number );
+			update_user_meta( $this->user_id, 'frs_dre_license', $this->dre_license );
+			update_user_meta( $this->user_id, 'frs_brand', $this->brand );
+			update_user_meta( $this->user_id, 'frs_status', $this->status );
+			update_user_meta( $this->user_id, 'frs_city_state', $this->city_state );
+			update_user_meta( $this->user_id, 'frs_region', $this->region );
+			update_user_meta( $this->user_id, 'frs_facebook_url', $this->facebook_url );
+			update_user_meta( $this->user_id, 'frs_instagram_url', $this->instagram_url );
+			update_user_meta( $this->user_id, 'frs_linkedin_url', $this->linkedin_url );
+			update_user_meta( $this->user_id, 'frs_twitter_url', $this->twitter_url );
+			update_user_meta( $this->user_id, 'frs_youtube_url', $this->youtube_url );
+			update_user_meta( $this->user_id, 'frs_tiktok_url', $this->tiktok_url );
+			update_user_meta( $this->user_id, 'frs_arrive', $this->arrive );
+			update_user_meta( $this->user_id, 'frs_canva_folder_link', $this->canva_folder_link );
+			update_user_meta( $this->user_id, 'frs_niche_bio_content', $this->niche_bio_content );
+			update_user_meta( $this->user_id, 'frs_loan_officer_profile', $this->loan_officer_profile );
+			update_user_meta( $this->user_id, 'frs_loan_officer_user', $this->loan_officer_user );
+			update_user_meta( $this->user_id, 'frs_profile_headline', $this->profile_headline );
+			update_user_meta( $this->user_id, 'frs_profile_theme', $this->profile_theme );
+			update_user_meta( $this->user_id, 'frs_directory_button_type', $this->directory_button_type );
+			update_user_meta( $this->user_id, 'frs_qr_code_data', $this->qr_code_data );
+			update_user_meta( $this->user_id, 'frs_is_active', $this->is_active );
+			update_user_meta( $this->user_id, 'frs_frs_agent_id', $this->frs_agent_id );
+
+			// JSON fields - encode to JSON
+			update_user_meta( $this->user_id, 'frs_specialties_lo', wp_json_encode( $this->specialties_lo ?: array() ) );
+			update_user_meta( $this->user_id, 'frs_specialties', wp_json_encode( $this->specialties ?: array() ) );
+			update_user_meta( $this->user_id, 'frs_languages', wp_json_encode( $this->languages ?: array() ) );
+			update_user_meta( $this->user_id, 'frs_awards', wp_json_encode( $this->awards ?: array() ) );
+			update_user_meta( $this->user_id, 'frs_nar_designations', wp_json_encode( $this->nar_designations ?: array() ) );
+			update_user_meta( $this->user_id, 'frs_namb_certifications', wp_json_encode( $this->namb_certifications ?: array() ) );
+			update_user_meta( $this->user_id, 'frs_personal_branding_images', wp_json_encode( $this->personal_branding_images ?: array() ) );
+			update_user_meta( $this->user_id, 'frs_profile_visibility', wp_json_encode( $this->profile_visibility ?: array() ) );
+			update_user_meta( $this->user_id, 'frs_custom_links', wp_json_encode( $this->custom_links ?: array() ) );
+			update_user_meta( $this->user_id, 'frs_service_areas', wp_json_encode( $this->service_areas ?: array() ) );
+
+			// Update timestamp
+			update_user_meta( $this->user_id, 'frs_updated_at', current_time( 'mysql' ) );
+			update_user_meta( $this->user_id, 'frs_synced_to_fluentcrm_at', $this->synced_to_fluentcrm_at );
+
+			// Fire same hooks as before for backwards compatibility
+			do_action( 'frs_profile_saved', $this->id, $this->toArray() );
+
+			return true;
+		}
+
+		return parent::save( $options );
 	}
 
 	/**
@@ -457,5 +606,131 @@ class Profile extends Model {
 		$array['is_guest'] = $this->is_guest();
 
 		return $array;
+	}
+
+	/**
+	 * Find profile by ID.
+	 *
+	 * In WordPress-native mode, ID is the user ID.
+	 * In legacy mode, checks for legacy profile ID mapping.
+	 *
+	 * @param int $id Profile or user ID.
+	 * @return Profile|null
+	 */
+	public static function find( $id ) {
+		if ( static::$use_wp_native ) {
+			// Try as user ID first
+			$user = get_userdata( $id );
+
+			// If not found, check if it's a legacy profile ID
+			if ( ! $user ) {
+				$user_id = get_option( "frs_legacy_profile_{$id}" );
+				if ( $user_id ) {
+					$user = get_userdata( $user_id );
+				}
+			}
+
+			if ( ! $user ) {
+				return null;
+			}
+
+			return static::hydrate_from_user( $user );
+		}
+
+		return parent::find( $id );
+	}
+
+	/**
+	 * Hydrate Profile object from WordPress user.
+	 *
+	 * Converts WP_User to Profile with same structure as database model.
+	 *
+	 * @param \WP_User $user WordPress user object.
+	 * @return Profile
+	 */
+	protected static function hydrate_from_user( $user ) {
+		$profile = new static();
+
+		// Core fields
+		$profile->id = $user->ID;
+		$profile->user_id = $user->ID;
+		$profile->email = $user->user_email;
+		$profile->display_name = $user->display_name;
+
+		// Meta fields
+		$profile->first_name = get_user_meta( $user->ID, 'first_name', true );
+		$profile->last_name = get_user_meta( $user->ID, 'last_name', true );
+		$profile->phone_number = get_user_meta( $user->ID, 'frs_phone_number', true );
+		$profile->mobile_number = get_user_meta( $user->ID, 'frs_mobile_number', true );
+		$profile->office = get_user_meta( $user->ID, 'frs_office', true );
+		$profile->company_name = get_user_meta( $user->ID, 'frs_company_name', true );
+		$profile->company_logo_id = (int) get_user_meta( $user->ID, 'frs_company_logo_id', true );
+		$profile->company_website = get_user_meta( $user->ID, 'frs_company_website', true );
+		$profile->headshot_id = (int) get_user_meta( $user->ID, 'frs_headshot_id', true );
+		$profile->job_title = get_user_meta( $user->ID, 'frs_job_title', true );
+		$profile->biography = get_user_meta( $user->ID, 'frs_biography', true );
+		$profile->date_of_birth = get_user_meta( $user->ID, 'frs_date_of_birth', true );
+		$profile->nmls = get_user_meta( $user->ID, 'frs_nmls', true );
+		$profile->nmls_number = get_user_meta( $user->ID, 'frs_nmls_number', true );
+		$profile->license_number = get_user_meta( $user->ID, 'frs_license_number', true );
+		$profile->dre_license = get_user_meta( $user->ID, 'frs_dre_license', true );
+		$profile->brand = get_user_meta( $user->ID, 'frs_brand', true );
+		$profile->status = get_user_meta( $user->ID, 'frs_status', true );
+		$profile->city_state = get_user_meta( $user->ID, 'frs_city_state', true );
+		$profile->region = get_user_meta( $user->ID, 'frs_region', true );
+
+		// Social media
+		$profile->facebook_url = get_user_meta( $user->ID, 'frs_facebook_url', true );
+		$profile->instagram_url = get_user_meta( $user->ID, 'frs_instagram_url', true );
+		$profile->linkedin_url = get_user_meta( $user->ID, 'frs_linkedin_url', true );
+		$profile->twitter_url = get_user_meta( $user->ID, 'frs_twitter_url', true );
+		$profile->youtube_url = get_user_meta( $user->ID, 'frs_youtube_url', true );
+		$profile->tiktok_url = get_user_meta( $user->ID, 'frs_tiktok_url', true );
+
+		// Additional fields
+		$profile->arrive = get_user_meta( $user->ID, 'frs_arrive', true );
+		$profile->canva_folder_link = get_user_meta( $user->ID, 'frs_canva_folder_link', true );
+		$profile->niche_bio_content = get_user_meta( $user->ID, 'frs_niche_bio_content', true );
+		$profile->loan_officer_profile = (int) get_user_meta( $user->ID, 'frs_loan_officer_profile', true );
+		$profile->loan_officer_user = (int) get_user_meta( $user->ID, 'frs_loan_officer_user', true );
+		$profile->profile_slug = $user->user_nicename;
+		$profile->profile_headline = get_user_meta( $user->ID, 'frs_profile_headline', true );
+		$profile->profile_theme = get_user_meta( $user->ID, 'frs_profile_theme', true );
+		$profile->directory_button_type = get_user_meta( $user->ID, 'frs_directory_button_type', true );
+		$profile->qr_code_data = get_user_meta( $user->ID, 'frs_qr_code_data', true );
+		$profile->is_active = (bool) get_user_meta( $user->ID, 'frs_is_active', true );
+		$profile->frs_agent_id = get_user_meta( $user->ID, 'frs_frs_agent_id', true );
+
+		// JSON fields - decode from meta
+		$profile->specialties_lo = json_decode( get_user_meta( $user->ID, 'frs_specialties_lo', true ) ?: '[]', true ) ?: array();
+		$profile->specialties = json_decode( get_user_meta( $user->ID, 'frs_specialties', true ) ?: '[]', true ) ?: array();
+		$profile->languages = json_decode( get_user_meta( $user->ID, 'frs_languages', true ) ?: '[]', true ) ?: array();
+		$profile->awards = json_decode( get_user_meta( $user->ID, 'frs_awards', true ) ?: '[]', true ) ?: array();
+		$profile->nar_designations = json_decode( get_user_meta( $user->ID, 'frs_nar_designations', true ) ?: '[]', true ) ?: array();
+		$profile->namb_certifications = json_decode( get_user_meta( $user->ID, 'frs_namb_certifications', true ) ?: '[]', true ) ?: array();
+		$profile->personal_branding_images = json_decode( get_user_meta( $user->ID, 'frs_personal_branding_images', true ) ?: '[]', true ) ?: array();
+		$profile->profile_visibility = json_decode( get_user_meta( $user->ID, 'frs_profile_visibility', true ) ?: '[]', true ) ?: array();
+		$profile->custom_links = json_decode( get_user_meta( $user->ID, 'frs_custom_links', true ) ?: '[]', true ) ?: array();
+		$profile->service_areas = json_decode( get_user_meta( $user->ID, 'frs_service_areas', true ) ?: '[]', true ) ?: array();
+
+		// Timestamps
+		$profile->synced_to_fluentcrm_at = get_user_meta( $user->ID, 'frs_synced_to_fluentcrm_at', true );
+		$profile->created_at = $user->user_registered;
+		$profile->updated_at = get_user_meta( $user->ID, 'frs_updated_at', true ) ?: $user->user_registered;
+
+		// Determine person type from role
+		$roles = $user->roles ?? array();
+		if ( in_array( 'loan_officer', $roles, true ) ) {
+			$profile->select_person_type = 'loan_officer';
+		} elseif ( in_array( 'realtor_partner', $roles, true ) ) {
+			$profile->select_person_type = 'realtor_partner';
+		} elseif ( in_array( 'leadership', $roles, true ) ) {
+			$profile->select_person_type = 'leadership';
+		} elseif ( in_array( 'staff', $roles, true ) || in_array( 'assistant', $roles, true ) ) {
+			$profile->select_person_type = 'staff';
+		}
+
+		$profile->exists = true;
+		return $profile;
 	}
 }

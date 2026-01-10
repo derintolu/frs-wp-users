@@ -113,6 +113,7 @@ final class FRSUsers {
 			ProfilesPage::get_instance()->init();
 			ProfileEdit::get_instance()->init();
 			\FRSUsers\Admin\ProfileMerge::get_instance()->init();
+			\FRSUsers\Admin\UserProfileFields::get_instance()->init();
 			Admin::get_instance()->bootstrap();
 		}
 

@@ -1,43 +1,63 @@
 <?php
 /**
- * Loan Officer Profile Template - Bento Card Layout
+ * LO Profile Template - Bento Card Layout
  *
  * Displays a single loan officer profile page with bento card design.
- * Uses WordPress native author archive with masked URL (/lo/{slug} instead of /author/{slug}).
  *
- * @package FRSUsers
- * @since 3.0.0
+ * @package FRSProfileDirectory
+ *
+ * @var array|null $profile Profile data from API.
  */
+
+declare(strict_types=1);
 
 defined('ABSPATH') || exit;
 
-// Get the author being viewed (WordPress sets this on author archive pages)
+// Prevent page caching - this page shows dynamic profile data
+if (!defined('DONOTCACHEPAGE')) {
+    define('DONOTCACHEPAGE', true);
+}
+nocache_headers();
+
+// Get WordPress author and build profile array from wp_users + wp_usermeta
 $author = get_queried_object();
-
-// 404 if no author or not a loan officer
-if (!$author || !($author instanceof \WP_User)) {
-    global $wp_query;
-    $wp_query->set_404();
-    status_header(404);
-    nocache_headers();
-    include get_404_template();
-    exit;
-}
-
-// Check if user has loan_officer role
-if (!in_array('loan_officer', $author->roles ?? [], true)) {
-    global $wp_query;
-    $wp_query->set_404();
-    status_header(404);
-    nocache_headers();
-    include get_404_template();
-    exit;
-}
-
-// Initialize UserProfile helper
-try {
+if ($author && ($author instanceof \WP_User) && in_array('loan_officer', $author->roles ?? [], true)) {
     $user_profile = new \FRSUsers\Models\UserProfile($author->ID);
-} catch (\Exception $e) {
+    $profile = [
+        'id' => $author->ID,
+        'user_id' => $author->ID,
+        'email' => $user_profile->get_email(),
+        'first_name' => $user_profile->get_first_name(),
+        'last_name' => $user_profile->get_last_name(),
+        'display_name' => $user_profile->get_display_name(),
+        'full_name' => $user_profile->get_full_name(),
+        'phone_number' => $user_profile->get_phone_number(),
+        'mobile_number' => $user_profile->get_mobile_number(),
+        'job_title' => $user_profile->get_job_title() ?: 'Loan Officer',
+        'nmls' => $user_profile->get_nmls(),
+        'city_state' => $user_profile->get_city_state(),
+        'biography' => $user_profile->get_biography(),
+        'headshot_url' => $user_profile->get_headshot_url(),
+        'profile_slug' => $author->user_nicename,
+        'qr_code_data' => $user_profile->get_qr_code_data(),
+        'arrive' => $user_profile->get_arrive_url(),
+        'apply_url' => $user_profile->get_arrive_url(),
+        'website' => $user_profile->get_website(),
+        'facebook_url' => $user_profile->get_facebook_url(),
+        'instagram_url' => $user_profile->get_instagram_url(),
+        'linkedin_url' => $user_profile->get_linkedin_url(),
+        'twitter_url' => $user_profile->get_twitter_url(),
+        'specialties_lo' => $user_profile->get_specialties_lo(),
+        'namb_certifications' => $user_profile->get_namb_certifications(),
+        'service_areas' => $user_profile->get_service_areas(),
+        'custom_links' => $user_profile->get_custom_links(),
+    ];
+} else {
+    $profile = null;
+}
+
+// 404 if no profile
+if (empty($profile)) {
     global $wp_query;
     $wp_query->set_404();
     status_header(404);
@@ -46,41 +66,47 @@ try {
     exit;
 }
 
-// Extract profile data from WordPress user + usermeta
-$first_name = $user_profile->get_first_name();
-$last_name = $user_profile->get_last_name();
-$full_name = $user_profile->get_full_name();
-$initials = $user_profile->get_initials();
-$job_title = $user_profile->get_job_title();
-$raw_nmls = $user_profile->get_nmls();
+// Profile data
+$first_name = $profile['first_name'] ?? '';
+$last_name = $profile['last_name'] ?? '';
+$full_name = trim($first_name . ' ' . $last_name);
+$initials = strtoupper(substr($first_name, 0, 1) . substr($last_name, 0, 1));
+$job_title = $profile['job_title'] ?? 'Loan Officer';
+$raw_nmls = $profile['nmls'] ?? '';
 // Hide fake placeholder NMLS (1994xxx range)
 $nmls = preg_match('/^1994\d{3}$/', $raw_nmls) ? '' : $raw_nmls;
-$email = $user_profile->get_email();
-$phone = $user_profile->get_phone_number() ?: $user_profile->get_mobile_number();
-$location = $user_profile->get_city_state();
-$bio = $user_profile->get_biography();
-$headshot_url = $user_profile->get_headshot_url();
-$profile_slug = $user_profile->get_profile_slug();
-$qr_code_data = $user_profile->get_qr_code_data();
+$email = $profile['email'] ?? '';
+$phone = $profile['phone_number'] ?? $profile['mobile_number'] ?? '';
+$location = $profile['city_state'] ?? '';
+$bio = $profile['biography'] ?? '';
+$headshot_url = $profile['headshot_url'] ?? '';
+$profile_slug = $profile['profile_slug'] ?? '';
+$qr_code_data = $profile['qr_code_data'] ?? '';
 
 // Apply link
-$apply_url = $user_profile->get_arrive_url();
+$apply_url = $profile['arrive'] ?? $profile['apply_url'] ?? '';
 
 // Social links
-$website = $user_profile->get_website();
-$facebook = $user_profile->get_facebook_url();
-$instagram = $user_profile->get_instagram_url();
-$linkedin = $user_profile->get_linkedin_url();
-$twitter = $user_profile->get_twitter_url();
+$website = $profile['website'] ?? '';
+$facebook = $profile['facebook_url'] ?? '';
+$instagram = $profile['instagram_url'] ?? '';
+$linkedin = $profile['linkedin_url'] ?? '';
+$twitter = $profile['twitter_url'] ?? '';
 
-// Professional data (arrays)
-$specialties = $user_profile->get_specialties_lo();
-$certifications = $user_profile->get_namb_certifications();
-$service_areas = $user_profile->get_service_areas();
-$custom_links = $user_profile->get_custom_links();
+// Professional data
+$specialties = $profile['specialties_lo'] ?? [];
+$certifications = $profile['namb_certifications'] ?? [];
+$service_areas = $profile['service_areas'] ?? [];
+$custom_links = $profile['custom_links'] ?? [];
 
-// Video URL - use plugin asset
-$video_url = defined('FRS_USERS_URL') ? FRS_USERS_URL . 'assets/images/Blue-Dark-Blue-Gradient-Color-and-Style-Video-Background-1.mp4' : '';
+// Ensure arrays
+if (!is_array($specialties)) $specialties = [];
+if (!is_array($certifications)) $certifications = [];
+if (!is_array($service_areas)) $service_areas = [];
+if (!is_array($custom_links)) $custom_links = [];
+
+// Video URL
+$video_url = defined('FRS_USERS_VIDEO_BG_URL') ? FRS_USERS_VIDEO_BG_URL : '';
 $hub_url = home_url();
 
 // State abbreviation to slug mapping for SVG URLs

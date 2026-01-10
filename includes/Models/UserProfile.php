@@ -357,13 +357,14 @@ class UserProfile {
     }
 
     public function get_headshot_url(): string {
-        $headshot_id = $this->get_headshot_id();
-        if ($headshot_id) {
-            $url = wp_get_attachment_url($headshot_id);
-            if ($url) {
-                return $url;
-            }
+        // Use WordPress native avatar system (Simple Local Avatars)
+        $avatar_url = get_avatar_url($this->user_id, array('size' => 512));
+
+        // Only return if it's not a Gravatar (means user has custom avatar)
+        if ($avatar_url && strpos($avatar_url, 'gravatar.com') === false) {
+            return $avatar_url;
         }
+
         return '';
     }
 

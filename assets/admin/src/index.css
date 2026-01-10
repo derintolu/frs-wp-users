@@ -1,0 +1,35 @@
+/**
+ * FRS Profiles Admin Styles
+ */
+
+.frs-profiles-admin {
+	margin: 20px 0;
+}
+
+.frs-profiles-header {
+	margin-bottom: 20px;
+}
+
+.frs-profiles-header h1 {
+	margin-bottom: 8px;
+}
+
+.frs-profiles-header .description {
+	margin-top: 8px;
+	color: #646970;
+}
+
+/* DataViews overrides for better FRS styling */
+.dataviews-view-table {
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+}
+
+.dataviews-view-table th {
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.dataviews-view-table td {
+	vertical-align: middle;
+}

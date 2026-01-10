@@ -110,11 +110,15 @@ final class FRSUsers {
 
 		// Initialize admin interface
 		if ( is_admin() ) {
-			ProfilesPage::get_instance()->init();
-			ProfileEdit::get_instance()->init();
-			\FRSUsers\Admin\ProfileMerge::get_instance()->init();
+			// New WordPress-native admin pages
+			\FRSUsers\Admin\ProfilesAdminPage::get_instance()->init();
 			\FRSUsers\Admin\UserProfileFields::get_instance()->init();
-			Admin::get_instance()->bootstrap();
+
+			// Legacy admin pages (to be removed)
+			// ProfilesPage::get_instance()->init();
+			// ProfileEdit::get_instance()->init();
+			// \FRSUsers\Admin\ProfileMerge::get_instance()->init();
+			// Admin::get_instance()->bootstrap();
 		}
 
 		// Initialize internationalization

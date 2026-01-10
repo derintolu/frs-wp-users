@@ -11,6 +11,7 @@ use FRSUsers\Core\CLI;
 use FRSUsers\Core\ProfileApi;
 use FRSUsers\Core\PluginDependencies;
 use FRSUsers\Core\Template;
+use FRSUsers\Core\TemplateLoader;
 use FRSUsers\Core\CORS;
 use FRSUsers\Core\DataKit;
 use FRSUsers\Core\EmbeddablePages;
@@ -78,8 +79,11 @@ final class FRSUsers {
 		// Initialize frontend shortcodes
 		Shortcodes::init();
 
-		// Initialize template handler for public profiles
+		// Initialize template handler for public profiles (legacy /profile/{slug})
 		Template::get_instance()->init();
+
+		// Initialize new template loader for WordPress author pages with URL masking
+		TemplateLoader::get_instance()->init();
 
 		// Initialize CORS handler for REST API
 		CORS::get_instance()->init();

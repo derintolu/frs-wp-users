@@ -121,9 +121,16 @@ class Install {
 	/**
 	 * Flush rewrite rules
 	 *
+	 * Sets a flag to trigger rewrite rules flush on next init.
+	 * This ensures custom rewrite rules are properly registered.
+	 *
 	 * @return void
 	 */
 	private function flush_rewrite_rules() {
+		// Set flag for TemplateLoader to flush rewrite rules on next init
+		update_option( 'frs_users_flush_rewrite_rules', true );
+
+		// Also flush immediately for legacy Template handler
 		flush_rewrite_rules();
 	}
 

@@ -10,6 +10,7 @@
 
 namespace FRSUsers\Admin;
 
+use FRSUsers\Core\Roles;
 use FRSUsers\Traits\Base;
 
 /**
@@ -48,8 +49,8 @@ class UserProfileFields {
 	 * @return void
 	 */
 	public function render_profile_fields( $user ) {
-		// Only show for FRS roles
-		$frs_roles = array( 'loan_officer', 'realtor_partner', 'staff', 'leadership', 'assistant' );
+		// Only show for FRS roles (use centralized Roles class)
+		$frs_roles = Roles::get_wp_role_slugs();
 		$user_roles = $user->roles ?? array();
 		$has_frs_role = ! empty( array_intersect( $frs_roles, $user_roles ) );
 

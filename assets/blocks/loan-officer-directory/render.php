@@ -67,9 +67,6 @@ $wrapper_attributes = get_block_wrapper_attributes([
             <div class="frs-hero__blob frs-hero__blob--3"></div>
         </div>
 
-        <!-- Avatar Clusters -->
-        <div class="frs-hero__avatars" id="frs-hero-avatars"></div>
-
         <!-- Top overlay -->
         <div class="frs-hero__overlay" aria-hidden="true"></div>
 

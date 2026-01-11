@@ -11,3 +11,7 @@ vendor/
 build/
 dist/
 .cache/
+
+# Development/testing files
+.playwright-mcp/
+test-*.php

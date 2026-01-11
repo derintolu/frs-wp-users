@@ -4,6 +4,9 @@
  * Full directory with hero, sidebar filters, state chips, and QR modal.
  */
 document.addEventListener('DOMContentLoaded', function() {
+    // Ensure page is scrollable
+    document.body.style.overflow = '';
+
     const container = document.getElementById('frs-directory');
     if (!container) return;
 
@@ -15,44 +18,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const heroSearchBtn = document.getElementById('frs-hero-search-btn');
     const scrollDownBtn = document.getElementById('frs-scroll-down');
     const directorySection = document.getElementById('frs-directory-section');
-    const heroAvatars = document.getElementById('frs-hero-avatars');
-
-    // Avatar positions - random scattered look
-    const avatarPositions = [
-        // Left side - scattered
-        { left: 3, top: 6, size: 52 },
-        { left: 10, top: 18, size: 68 },
-        { left: 5, top: 35, size: 58 },
-        { left: 14, top: 48, size: 64 },
-        { left: 6, top: 62, size: 56 },
-        { left: 11, top: 75, size: 62 },
-        { left: 4, top: 88, size: 60 },
-        // Right side - scattered
-        { left: 92, top: 8, size: 60 },
-        { left: 85, top: 22, size: 70 },
-        { left: 90, top: 38, size: 56 },
-        { left: 84, top: 52, size: 66 },
-        { left: 91, top: 65, size: 58 },
-        { left: 86, top: 78, size: 64 },
-        { left: 93, top: 92, size: 68 },
-        // Top center (above H1)
-        { left: 25, top: 2, size: 56 },
-        { left: 45, top: 3, size: 72 },
-        { left: 65, top: 2, size: 70 },
-        { left: 30, top: 11, size: 54 },
-        { left: 40, top: 9, size: 62 },
-        { left: 60, top: 8, size: 60 },
-        { left: 70, top: 11, size: 56 },
-        // Bottom center (below search)
-        { left: 25, top: 78, size: 56 },
-        { left: 38, top: 84, size: 64 },
-        { left: 52, top: 80, size: 58 },
-        { left: 66, top: 86, size: 62 },
-        { left: 30, top: 92, size: 68 },
-        { left: 45, top: 88, size: 54 },
-        { left: 60, top: 94, size: 66 },
-        { left: 75, top: 82, size: 60 },
-    ];
 
     // Directory elements
     const loading = document.getElementById('frs-loading');
@@ -210,13 +175,11 @@ document.addEventListener('DOMContentLoaded', function() {
         qrImage.src = qrData;
         qrName.textContent = name;
         qrPopup.classList.add('frs-qr-popup--open');
-        document.body.style.overflow = 'hidden';
     }
 
     function closeQrPopup() {
         if (!qrPopup) return;
         qrPopup.classList.remove('frs-qr-popup--open');
-        document.body.style.overflow = '';
     }
 
     if (qrBackdrop) qrBackdrop.addEventListener('click', closeQrPopup);
@@ -260,9 +223,6 @@ document.addEventListener('DOMContentLoaded', function() {
         dataLoaded = true;
         extractFilters();
         populateFilters();
-        if (heroAvatars && config.showHero !== false) {
-            populateHeroAvatars();
-        }
 
         if (searchQuery && searchInput) searchInput.value = searchQuery;
 
@@ -277,59 +237,26 @@ document.addEventListener('DOMContentLoaded', function() {
         if (profile.headshot_url && profile.headshot_url.trim() !== '') {
             return profile.headshot_url;
         }
+        // Use larger avatar (replace size in URL)
         if (profile.avatar_url && profile.avatar_url.trim() !== '' && !profile.avatar_url.includes('gravatar.com/avatar')) {
-            return profile.avatar_url;
+            // Try to get larger version by replacing size in URL
+            return profile.avatar_url.replace(/-\d+x\d+\./, '-512x512.');
         }
         return '';
     }
 
-    function populateHeroAvatars() {
-        if (!heroAvatars) return;
-
-        // Only use profiles with real images (headshot or avatar)
-        const withImages = profiles.filter(p => getProfileImage(p) !== '');
-        heroAvatars.innerHTML = '';
-
-        // Only show as many avatars as we have real images (up to position count)
-        const count = Math.min(withImages.length, avatarPositions.length);
-
-        for (let i = 0; i < count; i++) {
-            const p = withImages[i];
-            const pos = avatarPositions[i];
-            const imageUrl = getProfileImage(p);
-
-            const div = document.createElement('div');
-            div.className = 'frs-hero__avatar';
-
-            // Add position-based classes for responsive layouts
-            const isLeftEdge = pos.left <= 20;
-            const isRightEdge = pos.left >= 80;
-            const isTopArea = pos.top <= 25;
-            const isBottomArea = pos.top >= 75;
-            const isMiddleVertical = pos.top > 25 && pos.top < 75;
-
-            // Priority: edges + top/bottom always, edge-middle on tablet, center-middle desktop only
-            if ((isLeftEdge || isRightEdge) && (isTopArea || isBottomArea)) {
-                div.classList.add('frs-hero__avatar--edge');
-            } else if ((isLeftEdge || isRightEdge) && isMiddleVertical) {
-                div.classList.add('frs-hero__avatar--edge-middle');
-            } else if (isTopArea || isBottomArea) {
-                div.classList.add('frs-hero__avatar--center-outer');
-            } else if (isMiddleVertical) {
-                div.classList.add('frs-hero__avatar--center-middle');
-            }
-
-            div.style.left = pos.left + '%';
-            div.style.top = pos.top + '%';
-            div.style.width = pos.size + 'px';
-            div.style.height = pos.size + 'px';
-
-            const firstName = p.first_name || '';
-            const lastName = p.last_name || '';
-
-            div.innerHTML = `<img src="${imageUrl}" alt="${firstName} ${lastName}" loading="lazy">`;
-            heroAvatars.appendChild(div);
+    function formatPhone(phone) {
+        if (!phone) return '';
+        // Remove all non-digits
+        const digits = phone.replace(/\D/g, '');
+        // Format as (XXX) XXX-XXXX
+        if (digits.length === 10) {
+            return `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
         }
+        if (digits.length === 11 && digits[0] === '1') {
+            return `(${digits.slice(1,4)}) ${digits.slice(4,7)}-${digits.slice(7)}`;
+        }
+        return phone; // Return original if can't format
     }
 
     function extractFilters() {
@@ -392,13 +319,22 @@ document.addEventListener('DOMContentLoaded', function() {
     function applyFilters() {
         let filtered = [...profiles];
 
-        // Search filter
+        // Search filter - fuzzy matching
         if (searchQuery) {
-            const q = searchQuery.toLowerCase();
+            const q = searchQuery.toLowerCase().trim();
             filtered = filtered.filter(p => {
                 const name = `${p.first_name || ''} ${p.last_name || ''}`.toLowerCase();
                 const loc = (p.city_state || '').toLowerCase();
-                return name.includes(q) || loc.includes(q);
+                const region = (p.region || '').toLowerCase();
+                const title = (p.job_title || '').toLowerCase();
+                const areas = (p.service_areas || []).map(a => a.toLowerCase());
+                const areasText = areas.join(' ');
+                // Also get full state names for searching
+                const stateNames = areas.map(a => STATE_NAMES[a] || '').join(' ').toLowerCase();
+                const searchText = `${name} ${loc} ${region} ${title} ${areasText} ${stateNames}`;
+                // Check if ANY word matches (more fuzzy)
+                const words = q.split(/\s+/).filter(w => w.length > 0);
+                return words.some(word => searchText.includes(word));
             });
         }
 
@@ -477,12 +413,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
         const title = lo.job_title || 'Loan Officer';
         const nmls = lo.nmls || lo.nmls_number || '';
-        const titleNmls = nmls ? `${title} | NMLS ${nmls}` : title;
         const email = lo.email || '';
         const phone = lo.phone_number || lo.mobile_number || '';
+        const phoneFormatted = formatPhone(phone);
         const headshot = getProfileImage(lo);
         const slug = lo.profile_slug || lo.id;
-        const profileUrl = `${config.hubUrl}profile/${slug}`;
+        const profileUrl = `${config.hubUrl}${slug}/`;
         const videoUrl = config.videoUrl || '';
         const qrData = lo.qr_code_data || '';
         const serviceAreas = lo.service_areas || [];
@@ -516,10 +452,11 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="frs-card__content">
                 <h3 class="frs-card__name">${fullName}</h3>
-                <p class="frs-card__title-nmls">${titleNmls}</p>
+                <p class="frs-card__title">${title}</p>
+                ${nmls ? `<p class="frs-card__nmls">NMLS# ${nmls}</p>` : ''}
                 ${serviceAreasTags}
                 <div class="frs-card__contact">
-                    ${phone ? `<div class="frs-card__contact-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><a href="tel:${phone.replace(/[^\d+]/g, '')}">${phone}</a></div>` : ''}
+                    ${phoneFormatted ? `<div class="frs-card__contact-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><a href="tel:${phone.replace(/\D/g, '')}">${phoneFormatted}</a></div>` : ''}
                     ${email ? `<div class="frs-card__contact-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><a href="mailto:${email}">${email}</a></div>` : ''}
                 </div>
             </div>

@@ -67,7 +67,7 @@ class Categories {
 			'role-management',
 			array(
 				'label'       => __( 'Role Management', 'frs-wp-users' ),
-				'description' => __( 'Abilities for managing user roles and capabilities including loan_officer, realtor_partner, and custom role assignments.', 'frs-wp-users' ),
+				'description' => __( 'Abilities for managing user roles and capabilities including loan_officer, partner, and custom role assignments.', 'frs-wp-users' ),
 			)
 		);
 	}

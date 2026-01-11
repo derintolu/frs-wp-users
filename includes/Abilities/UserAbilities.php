@@ -49,7 +49,7 @@ class UserAbilities {
 						'role' => array(
 							'type'        => 'string',
 							'description' => __( 'Filter by user role.', 'frs-wp-users' ),
-							'enum'        => array( 'loan_officer', 'realtor_partner', 'administrator', 'subscriber' ),
+							'enum'        => array( 'loan_officer', 're_agent', 'escrow_officer', 'property_manager', 'dual_license', 'partner', 'staff', 'leadership', 'assistant', 'administrator', 'subscriber' ),
 						),
 						'search' => array(
 							'type'        => 'string',
@@ -255,7 +255,7 @@ class UserAbilities {
 						'role' => array(
 							'type'        => 'string',
 							'description' => __( 'User role.', 'frs-wp-users' ),
-							'enum'        => array( 'loan_officer', 'realtor_partner', 'subscriber' ),
+							'enum'        => array( 'loan_officer', 're_agent', 'escrow_officer', 'property_manager', 'dual_license', 'partner', 'staff', 'leadership', 'assistant', 'subscriber' ),
 							'default'     => 'subscriber',
 						),
 					),

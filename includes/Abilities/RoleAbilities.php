@@ -110,7 +110,7 @@ class RoleAbilities {
 			'frs-users/assign-role',
 			array(
 				'label'       => __( 'Assign Role', 'frs-wp-users' ),
-				'description' => __( 'Assigns a role to a user. Supports loan_officer, realtor_partner, and other WordPress roles.', 'frs-wp-users' ),
+				'description' => __( 'Assigns a role to a user. Supports loan_officer, partner, and other WordPress roles.', 'frs-wp-users' ),
 				'category'    => 'role-management',
 				'input_schema' => array(
 					'type'       => 'object',
@@ -122,7 +122,7 @@ class RoleAbilities {
 						'role' => array(
 							'type'        => 'string',
 							'description' => __( 'Role to assign.', 'frs-wp-users' ),
-							'enum'        => array( 'loan_officer', 'realtor_partner', 'subscriber', 'administrator' ),
+							'enum'        => array( 'loan_officer', 're_agent', 'escrow_officer', 'property_manager', 'dual_license', 'partner', 'staff', 'leadership', 'assistant', 'subscriber', 'administrator' ),
 						),
 					),
 					'required'             => array( 'user_id', 'role' ),

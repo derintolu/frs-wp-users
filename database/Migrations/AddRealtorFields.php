@@ -1,6 +1,6 @@
 <?php
 /**
- * Add Realtor Partner Fields Migration
+ * Add Partner Fields Migration
  *
  * Adds additional fields for realtor partners:
  * - office_address (separate from office name)

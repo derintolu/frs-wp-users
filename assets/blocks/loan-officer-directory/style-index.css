@@ -554,6 +554,8 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 1.5rem;
+    /* Ensure all cards in a row are same height */
+    align-items: stretch;
 }
 
 /* Card Styles */
@@ -564,6 +566,11 @@
     overflow: hidden;
     transition: box-shadow 0.2s, transform 0.2s, opacity 0.3s;
     animation: frs-fade-in 0.3s ease-out;
+    /* Uniform card heights */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 420px;
 }
 
 @keyframes frs-fade-in {
@@ -581,6 +588,7 @@
     background: linear-gradient(135deg, var(--frs-cyan), var(--frs-blue));
     overflow: hidden;
     position: relative;
+    flex-shrink: 0;
 }
 
 .frs-card__header video {
@@ -624,6 +632,7 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     overflow: hidden;
     background: var(--frs-bg);
+    flex-shrink: 0;
 }
 
 .frs-card__avatar img {
@@ -731,6 +740,10 @@
 .frs-card__content {
     padding: 1rem;
     text-align: center;
+    /* Grow to fill available space, pushing buttons to bottom */
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .frs-card__name {
@@ -741,21 +754,32 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    flex-shrink: 0;
 }
 
-.frs-card__title-nmls {
-    margin: 0 0 0.5rem;
+.frs-card__title {
+    margin: 0 0 0.25rem;
     font-size: 0.875rem;
     color: var(--frs-text);
-    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.frs-card__nmls {
+    margin: 0 0 0.5rem;
+    font-size: 0.75rem;
+    color: var(--frs-text-light);
+    flex-shrink: 0;
 }
 
 @supports (container-type: inline-size) {
     .frs-card {
         container-type: inline-size;
     }
-    .frs-card__title-nmls {
-        font-size: clamp(0.55rem, 4.5cqi, 0.875rem);
+    .frs-card__title {
+        font-size: clamp(0.6rem, 4.5cqi, 0.875rem);
+    }
+    .frs-card__nmls {
+        font-size: clamp(0.55rem, 4cqi, 0.75rem);
     }
 }
 
@@ -765,6 +789,7 @@
     gap: 0.25rem;
     justify-content: center;
     margin-bottom: 0.75rem;
+    flex-shrink: 0;
 }
 
 .frs-card__area-tag {
@@ -779,6 +804,11 @@
 .frs-card__contact {
     font-size: 0.8125rem;
     color: var(--frs-text);
+    /* Grow to fill remaining space */
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
 }
 
 .frs-card__contact-row {
@@ -809,6 +839,9 @@
     display: flex;
     gap: 0.5rem;
     padding: 0 1rem 1rem;
+    /* Keep at bottom, never shrink */
+    flex-shrink: 0;
+    margin-top: auto;
 }
 
 /* Buttons */

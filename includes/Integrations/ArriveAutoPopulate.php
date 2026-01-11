@@ -84,7 +84,7 @@ class ArriveAutoPopulate {
 		}
 
 		// Check if user is a loan officer type
-		$person_type = get_user_meta( $user_id, 'frs_select_person_type', true );
+		$person_type = get_user_meta( $user_id, 'frs_company_role', true );
 		$lo_types = array( 'loan_officer', 'leadership', 'staff' );
 
 		// Also check WordPress role

@@ -7,6 +7,7 @@
 
 namespace FRSUsers\Integrations;
 
+use FRSUsers\Core\Roles;
 use FRSUsers\Traits\Base;
 use FRSUsers\Models\Profile;
 
@@ -133,8 +134,10 @@ class FluentCRMSync {
             return false;
         }
 
-        // Only sync FRS personnel (loan officers, realtors, staff, etc)
-        $sync_roles = ['loan_officer', 'realtor_partner', 'administrator', 'staff', 'leadership'];
+        // Only sync FRS personnel (use centralized Roles class)
+        $sync_roles = Roles::get_wp_role_slugs();
+        // Also sync administrators
+        $sync_roles[] = 'administrator';
         $user_roles = (array) $user->roles;
 
         return !empty(array_intersect($sync_roles, $user_roles));
@@ -248,12 +251,18 @@ class FluentCRMSync {
     private function get_tags_for_user(\WP_User $user): array {
         $tags = ['FRS Personnel'];
 
+        // Map WordPress roles to FluentCRM tag names
         $role_tags = [
-            'loan_officer' => 'Loan Officer',
-            'realtor_partner' => 'Realtor Partner',
-            'administrator' => 'Administrator',
-            'staff' => 'Staff',
-            'leadership' => 'Leadership',
+            'loan_officer'     => 'Loan Officer',
+            're_agent'         => 'Real Estate Agent',
+            'escrow_officer'   => 'Escrow Officer',
+            'property_manager' => 'Property Manager',
+            'dual_license'     => 'Dual License',
+            'partner'          => 'Partner',
+            'staff'            => 'Staff',
+            'leadership'       => 'Leadership',
+            'assistant'        => 'Assistant',
+            'administrator'    => 'Administrator',
         ];
 
         foreach ($user->roles as $role) {

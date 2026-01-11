@@ -12,6 +12,8 @@
 
 defined('ABSPATH') || exit;
 
+use FRSUsers\Core\Roles;
+
 // Get user from query var
 $user = get_query_var('frs_qr_user');
 
@@ -45,17 +47,19 @@ if (!$headshot_url) {
     }
 }
 
-// Determine profile URL based on role
-$profile_url = home_url('/lo/' . $profile_slug);
+// Determine profile URL based on role (use centralized Roles class)
 $user_roles = $user->roles ?? [];
+$url_prefix = 'lo'; // Default
 
-if (in_array('realtor_partner', $user_roles)) {
-    $profile_url = home_url('/agent/' . $profile_slug);
-} elseif (in_array('staff', $user_roles) || in_array('assistant', $user_roles)) {
-    $profile_url = home_url('/staff/' . $profile_slug);
-} elseif (in_array('leadership', $user_roles)) {
-    $profile_url = home_url('/leader/' . $profile_slug);
+foreach ($user_roles as $role) {
+    $prefix = Roles::get_url_prefix($role);
+    if ($prefix) {
+        $url_prefix = $prefix;
+        break;
+    }
 }
+
+$profile_url = home_url('/' . $url_prefix . '/' . $profile_slug);
 
 // vCard URL
 $vcard_url = rest_url('frs-users/v1/vcard/' . $user_id);

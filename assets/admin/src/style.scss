@@ -499,3 +499,23 @@
 	border-top: 1px solid #dcdcde;
 	text-align: center;
 }
+
+/* Status cell with View button */
+.frs-status-cell {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+/* View Profile Button in DataViews */
+.frs-view-profile-btn {
+	font-size: 11px !important;
+	padding: 2px 8px !important;
+	white-space: nowrap;
+	text-decoration: none !important;
+	min-height: auto !important;
+
+	&:hover {
+		text-decoration: none !important;
+	}
+}

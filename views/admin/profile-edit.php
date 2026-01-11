@@ -105,11 +105,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 						<td>
 							<select name="select_person_type" id="select_person_type" class="regular-text">
 								<option value=""><?php esc_html_e( '-- Select Type --', 'frs-users' ); ?></option>
-								<option value="loan_officer" <?php selected( $profile->select_person_type ?? '', 'loan_officer' ); ?>><?php esc_html_e( 'Loan Officer', 'frs-users' ); ?></option>
-								<option value="realtor_partner" <?php selected( $profile->select_person_type ?? '', 'realtor_partner' ); ?>><?php esc_html_e( 'Realtor Partner', 'frs-users' ); ?></option>
-								<option value="staff" <?php selected( $profile->select_person_type ?? '', 'staff' ); ?>><?php esc_html_e( 'Staff', 'frs-users' ); ?></option>
+								<option value="loan_originator" <?php selected( $profile->select_person_type ?? '', 'loan_originator' ); ?>><?php esc_html_e( 'Loan Originator', 'frs-users' ); ?></option>
+								<option value="broker_associate" <?php selected( $profile->select_person_type ?? '', 'broker_associate' ); ?>><?php esc_html_e( 'Broker Associate', 'frs-users' ); ?></option>
+								<option value="sales_associate" <?php selected( $profile->select_person_type ?? '', 'sales_associate' ); ?>><?php esc_html_e( 'Sales Associate', 'frs-users' ); ?></option>
+								<option value="escrow_officer" <?php selected( $profile->select_person_type ?? '', 'escrow_officer' ); ?>><?php esc_html_e( 'Escrow Officer', 'frs-users' ); ?></option>
+								<option value="property_manager" <?php selected( $profile->select_person_type ?? '', 'property_manager' ); ?>><?php esc_html_e( 'Property Manager', 'frs-users' ); ?></option>
+								<option value="partner" <?php selected( $profile->select_person_type ?? '', 'partner' ); ?>><?php esc_html_e( 'Partner', 'frs-users' ); ?></option>
 								<option value="leadership" <?php selected( $profile->select_person_type ?? '', 'leadership' ); ?>><?php esc_html_e( 'Leadership', 'frs-users' ); ?></option>
-								<option value="assistant" <?php selected( $profile->select_person_type ?? '', 'assistant' ); ?>><?php esc_html_e( 'Assistant', 'frs-users' ); ?></option>
+								<option value="staff" <?php selected( $profile->select_person_type ?? '', 'staff' ); ?>><?php esc_html_e( 'Staff', 'frs-users' ); ?></option>
 							</select>
 						</td>
 					</tr>

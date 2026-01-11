@@ -15,7 +15,7 @@ use FRSUsers\Interfaces\Migration;
  * Class ProfileTypes
  *
  * Creates the profile_types junction table for many-to-many relationship
- * between profiles and their types (loan_officer, realtor_partner, etc.)
+ * between profiles and their types (loan_officer, partner, etc.)
  *
  * @package FRSUsers\Database\Migrations
  */

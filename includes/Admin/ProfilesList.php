@@ -649,20 +649,29 @@ class ProfilesList extends \WP_List_Table {
 		<div class="alignleft actions">
 			<select name="filter_type">
 				<option value=""><?php _e( 'All Profile Types', 'frs-users' ); ?></option>
-				<option value="loan_officer" <?php selected( isset( $_GET['filter_type'] ) && $_GET['filter_type'] === 'loan_officer' ); ?>>
-					<?php _e( 'Loan Officers', 'frs-users' ); ?>
+				<option value="loan_originator" <?php selected( isset( $_GET['filter_type'] ) && $_GET['filter_type'] === 'loan_originator' ); ?>>
+					<?php _e( 'Loan Originators', 'frs-users' ); ?>
 				</option>
-				<option value="realtor_partner" <?php selected( isset( $_GET['filter_type'] ) && $_GET['filter_type'] === 'realtor_partner' ); ?>>
-					<?php _e( 'Real Estate Partners', 'frs-users' ); ?>
+				<option value="broker_associate" <?php selected( isset( $_GET['filter_type'] ) && $_GET['filter_type'] === 'broker_associate' ); ?>>
+					<?php _e( 'Broker Associates', 'frs-users' ); ?>
 				</option>
-				<option value="staff" <?php selected( isset( $_GET['filter_type'] ) && $_GET['filter_type'] === 'staff' ); ?>>
-					<?php _e( 'Staff', 'frs-users' ); ?>
+				<option value="sales_associate" <?php selected( isset( $_GET['filter_type'] ) && $_GET['filter_type'] === 'sales_associate' ); ?>>
+					<?php _e( 'Sales Associates', 'frs-users' ); ?>
+				</option>
+				<option value="escrow_officer" <?php selected( isset( $_GET['filter_type'] ) && $_GET['filter_type'] === 'escrow_officer' ); ?>>
+					<?php _e( 'Escrow Officers', 'frs-users' ); ?>
+				</option>
+				<option value="property_manager" <?php selected( isset( $_GET['filter_type'] ) && $_GET['filter_type'] === 'property_manager' ); ?>>
+					<?php _e( 'Property Managers', 'frs-users' ); ?>
+				</option>
+				<option value="partner" <?php selected( isset( $_GET['filter_type'] ) && $_GET['filter_type'] === 'partner' ); ?>>
+					<?php _e( 'Partners', 'frs-users' ); ?>
 				</option>
 				<option value="leadership" <?php selected( isset( $_GET['filter_type'] ) && $_GET['filter_type'] === 'leadership' ); ?>>
 					<?php _e( 'Leadership', 'frs-users' ); ?>
 				</option>
-				<option value="assistant" <?php selected( isset( $_GET['filter_type'] ) && $_GET['filter_type'] === 'assistant' ); ?>>
-					<?php _e( 'Assistants', 'frs-users' ); ?>
+				<option value="staff" <?php selected( isset( $_GET['filter_type'] ) && $_GET['filter_type'] === 'staff' ); ?>>
+					<?php _e( 'Staff', 'frs-users' ); ?>
 				</option>
 			</select>
 

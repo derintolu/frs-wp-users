@@ -43,6 +43,7 @@ class ProfilesAdminPage {
 	 */
 	public function register_settings() {
 		register_setting( 'frs_profiles_settings', 'frs_site_context' );
+		register_setting( 'frs_profiles_settings', 'frs_marketing_site_url' );
 		register_setting( 'frs_profiles_settings', 'frs_directory_headline' );
 		register_setting( 'frs_profiles_settings', 'frs_directory_subheadline' );
 		register_setting( 'frs_profiles_settings', 'frs_directory_video_url' );
@@ -61,6 +62,18 @@ class ProfilesAdminPage {
 			'frs_site_context',
 			__( 'Site Context', 'frs-users' ),
 			array( $this, 'render_site_context_field' ),
+			'frs_profiles_settings',
+			'frs_site_context_section'
+		);
+
+		add_settings_field(
+			'frs_marketing_site_url',
+			__( 'Marketing Site URL', 'frs-users' ),
+			function() {
+				$value = get_option( 'frs_marketing_site_url', '' );
+				echo '<input type="url" name="frs_marketing_site_url" value="' . esc_attr( $value ) . '" class="regular-text" placeholder="https://21stcenturylending.com">';
+				echo '<p class="description">' . esc_html__( 'Production marketing site URL for profile links. Leave empty to use current site.', 'frs-users' ) . '</p>';
+			},
 			'frs_profiles_settings',
 			'frs_site_context_section'
 		);
@@ -271,6 +284,12 @@ class ProfilesAdminPage {
 			$asset['version']
 		);
 
+		// Get marketing site URL (fallback to current site)
+		$marketing_site_url = get_option( 'frs_marketing_site_url', '' );
+		if ( empty( $marketing_site_url ) ) {
+			$marketing_site_url = home_url();
+		}
+
 		// Localize script with data
 		wp_localize_script(
 			'frs-profiles-admin',
@@ -285,6 +304,8 @@ class ProfilesAdminPage {
 				'siteContextConfig'   => Roles::get_site_context_config(),
 				'activeCompanyRoles'  => Roles::get_active_company_roles(),
 				'isEditingEnabled'    => Roles::is_profile_editing_enabled(),
+				'marketingSiteUrl'    => trailingslashit( $marketing_site_url ),
+				'localSiteUrl'        => trailingslashit( home_url() ),
 			)
 		);
 	}

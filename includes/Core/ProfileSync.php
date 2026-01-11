@@ -342,6 +342,8 @@ class ProfileSync {
 			'twitter_url',
 			'youtube_url',
 			'tiktok_url',
+			'century21_url',
+			'zillow_url',
 			'is_active',
 			'select_person_type',
 			'profile_slug',

@@ -121,6 +121,8 @@ class Profile extends Model {
 		'twitter_url',
 		'youtube_url',
 		'tiktok_url',
+		'century21_url',
+		'zillow_url',
 		'arrive',
 		'canva_folder_link',
 		'niche_bio_content',
@@ -487,6 +489,8 @@ class Profile extends Model {
 			update_user_meta( $this->user_id, 'frs_twitter_url', $this->twitter_url );
 			update_user_meta( $this->user_id, 'frs_youtube_url', $this->youtube_url );
 			update_user_meta( $this->user_id, 'frs_tiktok_url', $this->tiktok_url );
+			update_user_meta( $this->user_id, 'frs_century21_url', $this->century21_url );
+			update_user_meta( $this->user_id, 'frs_zillow_url', $this->zillow_url );
 			update_user_meta( $this->user_id, 'frs_arrive', $this->arrive );
 			update_user_meta( $this->user_id, 'frs_canva_folder_link', $this->canva_folder_link );
 			update_user_meta( $this->user_id, 'frs_niche_bio_content', $this->niche_bio_content );
@@ -811,6 +815,10 @@ class Profile extends Model {
 		$profile->twitter_url = get_user_meta( $user->ID, 'frs_twitter_url', true );
 		$profile->youtube_url = get_user_meta( $user->ID, 'frs_youtube_url', true );
 		$profile->tiktok_url = get_user_meta( $user->ID, 'frs_tiktok_url', true );
+
+		// External profile URLs (for real estate agents)
+		$profile->century21_url = get_user_meta( $user->ID, 'frs_century21_url', true );
+		$profile->zillow_url = get_user_meta( $user->ID, 'frs_zillow_url', true );
 
 		// Additional fields
 		$profile->arrive = get_user_meta( $user->ID, 'frs_arrive', true );

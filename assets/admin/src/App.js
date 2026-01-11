@@ -184,7 +184,9 @@ function App() {
 					const role = window.frsProfilesAdmin.roles[item.select_person_type];
 					const slug = item.profile_slug || item.user_nicename;
 					const prefix = role ? role.url_prefix : 'lo';
-					const profileUrl = `/${prefix}/${slug}/`;
+					const marketingUrl = `${window.frsProfilesAdmin.marketingSiteUrl}${prefix}/${slug}/`;
+					const localUrl = `${window.frsProfilesAdmin.localSiteUrl}${prefix}/${slug}/`;
+					const isLocalDev = window.frsProfilesAdmin.marketingSiteUrl !== window.frsProfilesAdmin.localSiteUrl;
 					return (
 						<div className="frs-status-cell">
 							<span className={`frs-status-badge frs-status-badge--small ${statusClass}`}>
@@ -193,12 +195,25 @@ function App() {
 							<Button
 								variant="secondary"
 								size="small"
-								href={profileUrl}
+								href={marketingUrl}
 								target="_blank"
 								className="frs-view-profile-btn"
+								title={isLocalDev ? __('View on marketing site', 'frs-users') : __('View profile', 'frs-users')}
 							>
 								{__('View', 'frs-users')}
 							</Button>
+							{isLocalDev && (
+								<Button
+									variant="tertiary"
+									size="small"
+									href={localUrl}
+									target="_blank"
+									className="frs-view-local-btn"
+									title={__('View on local site', 'frs-users')}
+								>
+									{__('Local', 'frs-users')}
+								</Button>
+							)}
 						</div>
 					);
 				},
@@ -245,13 +260,14 @@ function App() {
 			},
 			{
 				id: 'view-profile',
-				label: __('View Profile', 'frs-users'),
+				label: __('View on Marketing Site', 'frs-users'),
 				callback: (items) => {
 					const item = items[0];
 					const role = window.frsProfilesAdmin.roles[item.select_person_type];
 					if (role) {
 						const slug = item.profile_slug || item.user_nicename;
-						window.open(`/${role.url_prefix}/${slug}`, '_blank');
+						const marketingUrl = `${window.frsProfilesAdmin.marketingSiteUrl}${role.url_prefix}/${slug}/`;
+						window.open(marketingUrl, '_blank');
 					}
 				},
 			},

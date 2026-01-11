@@ -150,7 +150,9 @@ function ProfileDetail({ profile: initialProfile, roles, editUrl, onClose, onSav
 
 	const avatarUrl = profile.headshot_url || profile.avatar_url || `https://www.gravatar.com/avatar/${profile.email}?s=80&d=mp`;
 	const role = roles?.[profile.select_person_type];
-	const profileUrl = role ? `/${role.url_prefix}/${profile.profile_slug || profile.user_nicename}` : null;
+	const slug = profile.profile_slug || profile.user_nicename;
+	const marketingSiteUrl = window.frsProfilesAdmin?.marketingSiteUrl || '';
+	const profileUrl = role && marketingSiteUrl ? `${marketingSiteUrl}${role.url_prefix}/${slug}/` : null;
 
 	return (
 		<div className="frs-profile-detail">
@@ -345,6 +347,26 @@ function ProfileDetail({ profile: initialProfile, roles, editUrl, onClose, onSav
 							type="url"
 							value={profile.twitter_url || ''}
 							onChange={(v) => updateField('twitter_url', v)}
+						/>
+
+						{/* External profile URLs for real estate agents */}
+						<hr style={{ margin: '20px 0', borderTop: '1px solid #ddd' }} />
+						<p className="components-base-control__help" style={{ marginBottom: '10px' }}>
+							{__('External Real Estate Profile Links', 'frs-users')}
+						</p>
+						<TextControl
+							label={__('Century 21 Profile', 'frs-users')}
+							type="url"
+							value={profile.century21_url || ''}
+							onChange={(v) => updateField('century21_url', v)}
+							placeholder="https://www.century21.com/real-estate-agent/..."
+						/>
+						<TextControl
+							label={__('Zillow Profile', 'frs-users')}
+							type="url"
+							value={profile.zillow_url || ''}
+							onChange={(v) => updateField('zillow_url', v)}
+							placeholder="https://www.zillow.com/profile/..."
 						/>
 					</div>
 				)}

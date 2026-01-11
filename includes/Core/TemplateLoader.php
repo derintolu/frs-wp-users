@@ -29,6 +29,13 @@ class TemplateLoader {
     ];
 
     /**
+     * QR landing query var
+     *
+     * @var string
+     */
+    const QR_QUERY_VAR = 'frs_qr_landing';
+
+    /**
      * Initialize template loader
      *
      * @return void
@@ -45,6 +52,23 @@ class TemplateLoader {
 
         // Legacy URL redirects
         add_action('template_redirect', [$this, 'redirect_legacy_urls'], 1);
+
+        // QR landing query var
+        add_filter('query_vars', [$this, 'add_query_vars']);
+
+        // QR landing template
+        add_action('template_redirect', [$this, 'handle_qr_landing'], 5);
+    }
+
+    /**
+     * Add custom query vars
+     *
+     * @param array $vars Existing query vars.
+     * @return array Modified query vars.
+     */
+    public function add_query_vars($vars) {
+        $vars[] = self::QR_QUERY_VAR;
+        return $vars;
     }
 
     /**
@@ -92,11 +116,108 @@ class TemplateLoader {
             );
         }
 
+        // QR landing page: /qr/{slug}
+        add_rewrite_rule(
+            '^qr/([^/]+)/?$',
+            'index.php?' . self::QR_QUERY_VAR . '=$matches[1]',
+            'top'
+        );
+
         // Flush rewrite rules if needed (only once after activation)
         if (get_option('frs_users_flush_rewrite_rules')) {
             flush_rewrite_rules();
             delete_option('frs_users_flush_rewrite_rules');
         }
+    }
+
+    /**
+     * Handle QR landing page route
+     *
+     * Displays mobile-friendly landing page when QR code is scanned.
+     *
+     * @return void
+     */
+    public function handle_qr_landing() {
+        $slug = get_query_var(self::QR_QUERY_VAR);
+
+        if (empty($slug)) {
+            return;
+        }
+
+        // Find user by slug (nicename or custom profile slug)
+        $user = get_user_by('slug', $slug);
+
+        if (!$user) {
+            // Try custom profile slug
+            $users = get_users([
+                'meta_key'   => 'frs_profile_slug',
+                'meta_value' => sanitize_title($slug),
+                'number'     => 1,
+            ]);
+            $user = $users ? $users[0] : null;
+        }
+
+        if (!$user) {
+            global $wp_query;
+            $wp_query->set_404();
+            status_header(404);
+            nocache_headers();
+            include get_404_template();
+            exit;
+        }
+
+        // Check if user is active
+        $is_active = get_user_meta($user->ID, 'frs_is_active', true);
+        if (!$is_active) {
+            global $wp_query;
+            $wp_query->set_404();
+            status_header(404);
+            nocache_headers();
+            include get_404_template();
+            exit;
+        }
+
+        // Set up fake post for template
+        global $wp_query, $post;
+
+        $first_name = get_user_meta($user->ID, 'first_name', true);
+        $last_name = get_user_meta($user->ID, 'last_name', true);
+        $full_name = trim($first_name . ' ' . $last_name);
+
+        $post = new \WP_Post((object) [
+            'ID'          => 0,
+            'post_type'   => 'frs_qr_landing',
+            'post_title'  => $full_name ?: 'Contact',
+            'post_status' => 'publish',
+            'post_name'   => $slug,
+        ]);
+        $wp_query->post = $post;
+        $wp_query->posts = [$post];
+        $wp_query->is_singular = true;
+        $wp_query->is_single = true;
+
+        // Prevent caching
+        if (!defined('DONOTCACHEPAGE')) {
+            define('DONOTCACHEPAGE', true);
+        }
+        nocache_headers();
+
+        // Load the QR landing template
+        $template = FRS_USERS_DIR . 'templates/profile/qr-landing.php';
+
+        if (file_exists($template)) {
+            // Pass user data to template
+            set_query_var('frs_qr_user', $user);
+            include $template;
+            exit;
+        }
+
+        // Fallback to 404 if template missing
+        global $wp_query;
+        $wp_query->set_404();
+        status_header(404);
+        include get_404_template();
+        exit;
     }
 
     /**
@@ -180,6 +301,13 @@ class TemplateLoader {
      */
     public function redirect_legacy_urls() {
         $request_uri = $_SERVER['REQUEST_URI'] ?? '';
+
+        // Redirect /directory/qr/{slug} → /qr/{slug}
+        if (preg_match('#^/directory/qr/([^/]+)#', $request_uri, $matches)) {
+            $slug = $matches[1];
+            wp_redirect(home_url("/qr/{$slug}"), 301);
+            exit;
+        }
 
         // Redirect /directory/lo/{slug} → /lo/{slug}
         if (preg_match('#^/directory/(lo|agent|staff|leader)/([^/]+)#', $request_uri, $matches)) {

@@ -58,20 +58,10 @@ class Blocks {
 	public static function register_blocks() {
 		$blocks_dir = plugin_dir_path( dirname( dirname( __FILE__ ) ) ) . 'assets/blocks/';
 
-		error_log( 'FRS Users: Registering blocks from ' . $blocks_dir );
-
-		// Register loan-officer-card block
-		// The render callback is handled by render.php in block.json
-		if ( file_exists( $blocks_dir . 'loan-officer-card' ) ) {
-			$result = register_block_type( $blocks_dir . 'loan-officer-card' );
-			error_log( 'FRS Users: loan-officer-card registration: ' . ( $result ? 'SUCCESS' : 'FAILED' ) );
-		}
-
-		// Register loan-officer-directory block
-		// The render callback is handled by render.php in block.json
+		// Register loan-officer-directory block (frs/lo-directory)
+		// Full directory with hero, sidebar filters, state chips, and QR modal
 		if ( file_exists( $blocks_dir . 'loan-officer-directory' ) ) {
-			$result = register_block_type( $blocks_dir . 'loan-officer-directory' );
-			error_log( 'FRS Users: loan-officer-directory registration: ' . ( $result ? 'SUCCESS (' . $result->name . ')' : 'FAILED' ) );
+			register_block_type( $blocks_dir . 'loan-officer-directory' );
 		}
 
 		// Allow other plugins to register additional FRS blocks

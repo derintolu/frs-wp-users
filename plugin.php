@@ -13,7 +13,6 @@ use FRSUsers\Core\PluginDependencies;
 use FRSUsers\Core\Template;
 use FRSUsers\Core\TemplateLoader;
 use FRSUsers\Core\CORS;
-use FRSUsers\Core\DataKit;
 use FRSUsers\Core\EmbeddablePages;
 use FRSUsers\Controllers\Shortcodes;
 use FRSUsers\Routes\Api;
@@ -91,10 +90,6 @@ final class FRSUsers {
 		// Initialize embeddable pages for Nextcloud integration
 		EmbeddablePages::get_instance()->init();
 
-		// Initialize DataKit integration if SDK is available
-		if ( class_exists( 'DataKit\DataViews\DataView\DataView' ) ) {
-			DataKit::get_instance()->init();
-		}
 
 		// Initialize WP-CLI commands
 		CLI::init();
@@ -105,6 +100,9 @@ final class FRSUsers {
 		// Initialize FluentCRM real-time sync integration
 		FluentCRMSync::get_instance()->init();
 
+		// Initialize Arrive URL auto-population for loan officers
+		\FRSUsers\Integrations\ArriveAutoPopulate::init();
+
 		// Initialize WordPress Abilities API integration
 		AbilitiesRegistry::init();
 
@@ -112,6 +110,8 @@ final class FRSUsers {
 		if ( is_admin() ) {
 			// New WordPress-native admin pages
 			\FRSUsers\Admin\ProfilesAdminPage::get_instance()->init();
+			\FRSUsers\Admin\ProfileEditPage::get_instance()->init();
+			\FRSUsers\Admin\ProfileAddPage::get_instance()->init();
 			\FRSUsers\Admin\UserProfileFields::get_instance()->init();
 
 			// Legacy admin pages (to be removed)

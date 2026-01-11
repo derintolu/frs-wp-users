@@ -37,47 +37,77 @@ class Actions {
 		$page        = $request->get_param( 'page' ) ?: 1;
 		$guests_only = $request->get_param( 'guests_only' );
 
-		// Build query using Eloquent
-		$query = Profile::active();
+		// Use WordPress-native query
+		$wp_args = array(
+			'role__in' => array(
+				'loan_originator',
+				'broker_associate',
+				'sales_associate',
+				'dual_license',
+				'leadership',
+				'staff',
+				// Legacy roles for backwards compatibility
+				'loan_officer',
+				'realtor_partner',
+				'assistant',
+			),
+			'orderby'  => 'meta_value',
+			'meta_key' => 'first_name',
+			'order'    => 'ASC',
+			'number'   => -1, // Get all, we'll paginate after filtering admins
+		);
 
-		if ( $guests_only ) {
-			$query->guests();
-		}
-
+		// Filter by type (role) - with legacy mapping
 		if ( $type ) {
-			$query->ofType( $type );
+			// Map legacy type names to current roles
+			$type_mapping = array(
+				'loan_officer' => array( 'loan_officer', 'loan_originator' ),
+				'realtor'      => array( 'realtor_partner', 'broker_associate' ),
+			);
+
+			if ( isset( $type_mapping[ $type ] ) ) {
+				$wp_args['role__in'] = $type_mapping[ $type ];
+			} else {
+				$wp_args['role__in'] = array( $type );
+			}
 		}
 
-		// Get all profiles, sort by first name alphabetically
-		$all_profiles = $query->orderBy( 'first_name', 'asc' )->get();
+		// Get users (this returns all active FRS users)
+		$users = get_users( $wp_args );
+
+		// Convert to Profile objects
+		$all_profiles = array_map( array( Profile::class, 'hydrate_from_user' ), $users );
 
 		// Filter out administrators
-		$filtered_profiles = $all_profiles->filter( function( $profile ) {
-			// If no user_id (guest profile), include it
+		$filtered_profiles = array_filter( $all_profiles, function( $profile ) {
 			if ( ! $profile->user_id ) {
 				return true;
 			}
 
-			// Check if user has administrator role
 			$user = get_user_by( 'ID', $profile->user_id );
 			if ( ! $user ) {
-				return true; // Include if user doesn't exist anymore
+				return true;
 			}
 
-			// Exclude if user is an administrator
 			return ! in_array( 'administrator', (array) $user->roles, true );
 		} );
 
 		// Get total count after filtering
-		$total = $filtered_profiles->count();
+		$total = count( $filtered_profiles );
 
-		// Apply pagination to filtered results
-		$profiles = $filtered_profiles->slice( ( $page - 1 ) * $limit, $limit )->values();
+		// Apply pagination
+		$offset = ( $page - 1 ) * $limit;
+		$profiles = array_slice( $filtered_profiles, $offset, $limit );
+
+		// Convert to arrays for response
+		$profiles_array = array_map( function( $profile ) {
+			return $profile->toArray();
+		}, $profiles );
 
 		return new WP_REST_Response(
 			array(
 				'success' => true,
-				'data'    => $profiles->toArray(),
+				'data'    => array_values( $profiles_array ),
 				'total'   => $total,
 				'page'    => $page,
 				'per_page' => $limit,
@@ -158,15 +188,29 @@ class Actions {
 
 		$slug = $request->get_param( 'slug' );
 
-		$profile = Profile::where( 'profile_slug', sanitize_title( $slug ) )->first();
+		// Use WordPress-native query by user_nicename
+		$user = get_user_by( 'slug', sanitize_title( $slug ) );
 
-		if ( ! $profile ) {
-			return new WP_Error(
-				'profile_not_found',
-				__( 'Profile not found', 'frs-users' ),
-				array( 'status' => 404 )
-			);
+		if ( ! $user ) {
+			// Also try custom frs_profile_slug meta
+			$users = get_users( array(
+				'meta_key'   => 'frs_profile_slug',
+				'meta_value' => sanitize_title( $slug ),
+				'number'     => 1,
+			) );
+
+			if ( empty( $users ) ) {
+				return new WP_Error(
+					'profile_not_found',
+					__( 'Profile not found', 'frs-users' ),
+					array( 'status' => 404 )
+				);
+			}
+
+			$user = $users[0];
 		}
+
+		$profile = Profile::hydrate_from_user( $user );
 
 		return new WP_REST_Response(
 			array(
@@ -271,21 +315,88 @@ class Actions {
 
 		error_log( 'UPDATE PROFILE - Profile found: ' . print_r( $profile->toArray(), true ) );
 
+		$user_id = $profile->user_id;
+
 		// Sanitize email if present
 		if ( isset( $data['email'] ) ) {
 			$data['email'] = sanitize_email( $data['email'] );
 		}
 
-		// Update using Eloquent
-		$result = $profile->update( $data );
+		// Update WordPress user data
+		$user_data = array( 'ID' => $user_id );
 
-		error_log( 'UPDATE PROFILE - Update result: ' . ( $result ? 'SUCCESS' : 'FAILED' ) );
-		error_log( 'UPDATE PROFILE - After update: ' . print_r( $profile->fresh()->toArray(), true ) );
+		if ( isset( $data['email'] ) ) {
+			$user_data['user_email'] = $data['email'];
+		}
+		if ( isset( $data['first_name'] ) ) {
+			$user_data['first_name'] = sanitize_text_field( $data['first_name'] );
+		}
+		if ( isset( $data['last_name'] ) ) {
+			$user_data['last_name'] = sanitize_text_field( $data['last_name'] );
+		}
+		if ( isset( $data['first_name'] ) || isset( $data['last_name'] ) ) {
+			$first = $data['first_name'] ?? $profile->first_name;
+			$last  = $data['last_name'] ?? $profile->last_name;
+			$user_data['display_name'] = trim( $first . ' ' . $last );
+		}
+
+		if ( count( $user_data ) > 1 ) {
+			wp_update_user( $user_data );
+		}
+
+		// Update user meta fields
+		$meta_fields = array(
+			'phone_number',
+			'mobile_number',
+			'job_title',
+			'nmls',
+			'dre_license',
+			'biography',
+			'city_state',
+			'region',
+			'office',
+			'linkedin_url',
+			'facebook_url',
+			'instagram_url',
+			'twitter_url',
+			'is_active',
+			'select_person_type',
+			'profile_slug',
+			'arrive',
+			'service_areas',
+		);
+
+		foreach ( $meta_fields as $field ) {
+			if ( isset( $data[ $field ] ) ) {
+				$value = $data[ $field ];
+				// Sanitize based on field type
+				if ( in_array( $field, array( 'linkedin_url', 'facebook_url', 'instagram_url', 'twitter_url', 'arrive' ), true ) ) {
+					$value = esc_url_raw( $value );
+				} elseif ( $field === 'biography' ) {
+					$value = wp_kses_post( $value );
+				} elseif ( $field === 'is_active' ) {
+					$value = (bool) $value ? 1 : 0;
+				} elseif ( $field === 'service_areas' ) {
+					// Ensure it's stored as array
+					if ( is_string( $value ) ) {
+						$value = array_filter( array_map( 'trim', explode( ',', $value ) ) );
+					}
+				} else {
+					$value = sanitize_text_field( $value );
+				}
+				update_user_meta( $user_id, 'frs_' . $field, $value );
+			}
+		}
+
+		error_log( 'UPDATE PROFILE - Update completed for user ' . $user_id );
+
+		// Re-fetch the profile
+		$updated_profile = Profile::find( $user_id );
 
 		return new WP_REST_Response(
 			array(
 				'success' => true,
-				'data'    => $profile->fresh()->toArray(),
+				'data'    => $updated_profile ? $updated_profile->toArray() : $profile->toArray(),
 				'message' => __( 'Profile updated successfully', 'frs-users' ),
 			),
 			200
@@ -756,15 +867,16 @@ class Actions {
 	 * @return WP_REST_Response
 	 */
 	public function get_service_areas( WP_REST_Request $request ) {
-		// Get all loan officers with service areas
-		$profiles = Profile::active()
-			->ofType( 'loan_officer' )
-			->whereNotNull( 'service_areas' )
-			->get();
+		// Use WordPress-native query to get loan officers
+		$users = get_users( array(
+			'role'   => 'loan_officer',
+			'number' => -1,
+		) );
 
-		// Collect all unique service areas
+		// Convert to Profile objects and collect service areas
 		$all_areas = array();
-		foreach ( $profiles as $profile ) {
+		foreach ( $users as $user ) {
+			$profile = Profile::hydrate_from_user( $user );
 			$areas = $profile->service_areas;
 			if ( is_array( $areas ) ) {
 				$all_areas = array_merge( $all_areas, $areas );

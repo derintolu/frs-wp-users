@@ -369,7 +369,71 @@ class Api {
 			)
 		);
 
+		// Download vCard for a profile (public endpoint)
+		register_rest_route(
+			self::$namespace,
+			'/vcard/(?P<id>\d+)',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_vcard' ),
+				'permission_callback' => '__return_true', // Public endpoint
+				'args'                => array(
+					'id' => array(
+						'description'       => 'User ID for vCard generation',
+						'type'              => 'integer',
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
 		// Allow hooks to add more custom API routes
 		do_action( 'frs_users_api_routes', self::$namespace );
+	}
+
+	/**
+	 * Generate and return vCard for a user
+	 *
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response|\WP_Error Response with vCard or error.
+	 */
+	public static function get_vcard( $request ) {
+		$user_id = $request->get_param( 'id' );
+
+		$user = get_userdata( $user_id );
+		if ( ! $user ) {
+			return new \WP_Error(
+				'user_not_found',
+				__( 'User not found.', 'frs-users' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		// Check if user is active
+		$is_active = get_user_meta( $user_id, 'frs_is_active', true );
+		if ( ! $is_active ) {
+			return new \WP_Error(
+				'profile_inactive',
+				__( 'This profile is not active.', 'frs-users' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		// Generate vCard
+		$vcard = \FRSUsers\Core\VCardGenerator::generate( $user_id );
+
+		// Get user name for filename
+		$first_name = get_user_meta( $user_id, 'first_name', true ) ?: 'contact';
+		$last_name  = get_user_meta( $user_id, 'last_name', true ) ?: 'card';
+		$filename   = sanitize_file_name( $first_name . '-' . $last_name . '.vcf' );
+
+		// Return vCard with proper headers
+		$response = new \WP_REST_Response( $vcard );
+		$response->header( 'Content-Type', 'text/vcard; charset=utf-8' );
+		$response->header( 'Content-Disposition', 'attachment; filename="' . $filename . '"' );
+		$response->header( 'Cache-Control', 'no-cache, no-store, must-revalidate' );
+
+		return $response;
 	}
 }

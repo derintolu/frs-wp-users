@@ -22,15 +22,9 @@ define( 'FRS_USERS_PLUGIN_FILE', __FILE__ );
 define( 'FRS_USERS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FRS_USERS_URL', plugin_dir_url( __FILE__ ) );
 define( 'FRS_USERS_ASSETS_URL', FRS_USERS_URL . 'assets' );
+define( 'FRS_USERS_VIDEO_BG_URL', FRS_USERS_URL . 'assets/images/Blue-Dark-Blue-Gradient-Color-and-Style-Video-Background-1.mp4' );
 
 require_once plugin_dir_path( __FILE__ ) . 'vendor/autoload.php';
-
-// Load DataKit SDK if available and not already loaded
-if ( ! class_exists( 'DataKit\DataViews\DataView\DataView' ) ) {
-	if ( file_exists( plugin_dir_path( __FILE__ ) . 'libs/datakit/vendor/autoload.php' ) ) {
-		require_once plugin_dir_path( __FILE__ ) . 'libs/datakit/vendor/autoload.php';
-	}
-}
 
 require_once plugin_dir_path( __FILE__ ) . 'plugin.php';
 

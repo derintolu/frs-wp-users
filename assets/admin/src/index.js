@@ -5,13 +5,11 @@
  */
 import { render } from '@wordpress/element';
 import App from './App';
-import './index.css';
+import './style.scss';
 
-// Wait for DOM ready
-document.addEventListener('DOMContentLoaded', () => {
-	const root = document.getElementById('frs-profiles-admin-root');
+// Render immediately (script loads in footer, so DOM is already ready)
+const root = document.getElementById('frs-profiles-admin-root');
 
-	if (root) {
-		render(<App />, root);
-	}
-});
+if (root) {
+	render(<App />, root);
+}

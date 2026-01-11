@@ -593,6 +593,22 @@ class Profile extends Model {
 	}
 
 	/**
+	 * Get avatar URL for this profile.
+	 *
+	 * Uses WordPress avatar system (Simple Local Avatars or Gravatar fallback).
+	 *
+	 * @param int $size Avatar size in pixels.
+	 * @return string
+	 */
+	public function get_avatar_url( $size = 96 ) {
+		if ( $this->user_id ) {
+			return get_avatar_url( $this->user_id, array( 'size' => $size ) );
+		}
+		// Fallback to Gravatar for email
+		return get_avatar_url( $this->email, array( 'size' => $size ) );
+	}
+
+	/**
 	 * Convert the model to an array for API responses.
 	 *
 	 * @return array
@@ -603,7 +619,16 @@ class Profile extends Model {
 		// Add computed attributes
 		$array['full_name'] = $this->full_name;
 		$array['headshot_url'] = $this->headshot_url;
+		$array['avatar_url'] = $this->get_avatar_url( 96 );
 		$array['is_guest'] = $this->is_guest();
+
+		// Add user_nicename for profile URL building
+		if ( $this->user_id ) {
+			$user = get_userdata( $this->user_id );
+			if ( $user ) {
+				$array['user_nicename'] = $user->user_nicename;
+			}
+		}
 
 		return $array;
 	}
@@ -641,6 +666,90 @@ class Profile extends Model {
 	}
 
 	/**
+	 * Parse states from a region string.
+	 *
+	 * @param string $region Region string (e.g., "Inland Empire, Texas, Colorado").
+	 * @return array Array of state abbreviations.
+	 */
+	public static function parse_states_from_region( $region ) {
+		$states = array();
+		$region_lower = strtolower( $region );
+
+		// California regions
+		$ca_regions = array( 'greater la', 'los angeles', 'orange county', 'san diego', 'bay area',
+			'inland empire', 'inand empire', 'inland empre', 'sacramento', 'central coast',
+			'san francisco', 'san jose', 'headquarters', 'california' );
+		foreach ( $ca_regions as $ca ) {
+			if ( strpos( $region_lower, $ca ) !== false ) {
+				$states[] = 'CA';
+				break;
+			}
+		}
+
+		// State name to abbreviation mapping
+		$state_map = array(
+			'alabama' => 'AL', 'alaska' => 'AK', 'arizona' => 'AZ', 'arkansas' => 'AR',
+			'colorado' => 'CO', 'connecticut' => 'CT', 'delaware' => 'DE', 'florida' => 'FL',
+			'georgia' => 'GA', 'hawaii' => 'HI', 'idaho' => 'ID', 'illinois' => 'IL',
+			'indiana' => 'IN', 'iowa' => 'IA', 'kansas' => 'KS', 'kentucky' => 'KY',
+			'louisiana' => 'LA', 'maine' => 'ME', 'maryland' => 'MD', 'massachusetts' => 'MA',
+			'michigan' => 'MI', 'minnesota' => 'MN', 'mississippi' => 'MS', 'missouri' => 'MO',
+			'montana' => 'MT', 'nebraska' => 'NE', 'nevada' => 'NV', 'new hampshire' => 'NH',
+			'new jersey' => 'NJ', 'new mexico' => 'NM', 'new york' => 'NY', 'north carolina' => 'NC',
+			'north dakota' => 'ND', 'ohio' => 'OH', 'oklahoma' => 'OK', 'oregon' => 'OR',
+			'pennsylvania' => 'PA', 'pennslyvania' => 'PA', 'rhode island' => 'RI',
+			'south carolina' => 'SC', 'south dakota' => 'SD', 'tennessee' => 'TN', 'tennesee' => 'TN',
+			'texas' => 'TX', 'utah' => 'UT', 'vermont' => 'VT', 'virginia' => 'VA', 'virgina' => 'VA',
+			'washington' => 'WA', 'west virginia' => 'WV', 'wisconsin' => 'WI', 'wyoming' => 'WY',
+		);
+
+		foreach ( $state_map as $name => $abbr ) {
+			// Use word boundary matching to avoid "arkansas" matching "kansas"
+			if ( preg_match( '/\b' . preg_quote( $name, '/' ) . '\b/', $region_lower ) && ! in_array( $abbr, $states, true ) ) {
+				$states[] = $abbr;
+			}
+		}
+
+		return array_unique( $states );
+	}
+
+	/**
+	 * Decode array value from meta - handles both serialized arrays and JSON strings.
+	 *
+	 * @param mixed $value Meta value (could be array, JSON string, or empty).
+	 * @return array
+	 */
+	protected static function maybe_decode_array( $value ) {
+		if ( is_array( $value ) ) {
+			return $value;
+		}
+		if ( empty( $value ) ) {
+			return array();
+		}
+		if ( is_string( $value ) ) {
+			$decoded = json_decode( $value, true );
+			return is_array( $decoded ) ? $decoded : array();
+		}
+		return array();
+	}
+
+	/**
+	 * Get user meta with fallback to legacy key.
+	 *
+	 * @param int $user_id User ID.
+	 * @param string $key Primary meta key.
+	 * @param string|null $fallback_key Fallback meta key (legacy).
+	 * @return mixed
+	 */
+	protected static function get_meta_with_fallback( $user_id, $key, $fallback_key = null ) {
+		$value = get_user_meta( $user_id, $key, true );
+		if ( empty( $value ) && $fallback_key ) {
+			$value = get_user_meta( $user_id, $fallback_key, true );
+		}
+		return $value;
+	}
+
+	/**
 	 * Hydrate Profile object from WordPress user.
 	 *
 	 * Converts WP_User to Profile with same structure as database model.
@@ -657,27 +766,27 @@ class Profile extends Model {
 		$profile->email = $user->user_email;
 		$profile->display_name = $user->display_name;
 
-		// Meta fields
+		// Meta fields - with fallbacks to legacy meta keys
 		$profile->first_name = get_user_meta( $user->ID, 'first_name', true );
 		$profile->last_name = get_user_meta( $user->ID, 'last_name', true );
-		$profile->phone_number = get_user_meta( $user->ID, 'frs_phone_number', true );
-		$profile->mobile_number = get_user_meta( $user->ID, 'frs_mobile_number', true );
-		$profile->office = get_user_meta( $user->ID, 'frs_office', true );
-		$profile->company_name = get_user_meta( $user->ID, 'frs_company_name', true );
-		$profile->company_logo_id = (int) get_user_meta( $user->ID, 'frs_company_logo_id', true );
-		$profile->company_website = get_user_meta( $user->ID, 'frs_company_website', true );
-		$profile->headshot_id = (int) get_user_meta( $user->ID, 'frs_headshot_id', true );
-		$profile->job_title = get_user_meta( $user->ID, 'frs_job_title', true );
-		$profile->biography = get_user_meta( $user->ID, 'frs_biography', true );
-		$profile->date_of_birth = get_user_meta( $user->ID, 'frs_date_of_birth', true );
-		$profile->nmls = get_user_meta( $user->ID, 'frs_nmls', true );
-		$profile->nmls_number = get_user_meta( $user->ID, 'frs_nmls_number', true );
-		$profile->license_number = get_user_meta( $user->ID, 'frs_license_number', true );
-		$profile->dre_license = get_user_meta( $user->ID, 'frs_dre_license', true );
-		$profile->brand = get_user_meta( $user->ID, 'frs_brand', true );
-		$profile->status = get_user_meta( $user->ID, 'frs_status', true );
-		$profile->city_state = get_user_meta( $user->ID, 'frs_city_state', true );
-		$profile->region = get_user_meta( $user->ID, 'frs_region', true );
+		$profile->phone_number = static::get_meta_with_fallback( $user->ID, 'frs_phone_number', 'phone_number' );
+		$profile->mobile_number = static::get_meta_with_fallback( $user->ID, 'frs_mobile_number', 'mobile_number' );
+		$profile->office = static::get_meta_with_fallback( $user->ID, 'frs_office', 'office' );
+		$profile->company_name = static::get_meta_with_fallback( $user->ID, 'frs_company_name', 'company_name' );
+		$profile->company_logo_id = (int) static::get_meta_with_fallback( $user->ID, 'frs_company_logo_id', 'company_logo_id' );
+		$profile->company_website = static::get_meta_with_fallback( $user->ID, 'frs_company_website', 'company_website' );
+		$profile->headshot_id = (int) static::get_meta_with_fallback( $user->ID, 'frs_headshot_id', 'headshot_id' );
+		$profile->job_title = static::get_meta_with_fallback( $user->ID, 'frs_job_title', 'job_title' );
+		$profile->biography = static::get_meta_with_fallback( $user->ID, 'frs_biography', 'biography' );
+		$profile->date_of_birth = static::get_meta_with_fallback( $user->ID, 'frs_date_of_birth', 'date_of_birth' ) ?: null;
+		$profile->nmls = static::get_meta_with_fallback( $user->ID, 'frs_nmls', 'nmls_id' );
+		$profile->nmls_number = static::get_meta_with_fallback( $user->ID, 'frs_nmls_number', 'nmls_number' );
+		$profile->license_number = static::get_meta_with_fallback( $user->ID, 'frs_license_number', 'license_number' );
+		$profile->dre_license = static::get_meta_with_fallback( $user->ID, 'frs_dre_license', 'dre_license' );
+		$profile->brand = static::get_meta_with_fallback( $user->ID, 'frs_brand', 'brand' );
+		$profile->status = static::get_meta_with_fallback( $user->ID, 'frs_status', 'status' );
+		$profile->city_state = static::get_meta_with_fallback( $user->ID, 'frs_city_state', 'city_state' );
+		$profile->region = static::get_meta_with_fallback( $user->ID, 'frs_region', 'region' );
 
 		// Social media
 		$profile->facebook_url = get_user_meta( $user->ID, 'frs_facebook_url', true );
@@ -701,33 +810,50 @@ class Profile extends Model {
 		$profile->is_active = (bool) get_user_meta( $user->ID, 'frs_is_active', true );
 		$profile->frs_agent_id = get_user_meta( $user->ID, 'frs_frs_agent_id', true );
 
-		// JSON fields - decode from meta
-		$profile->specialties_lo = json_decode( get_user_meta( $user->ID, 'frs_specialties_lo', true ) ?: '[]', true ) ?: array();
-		$profile->specialties = json_decode( get_user_meta( $user->ID, 'frs_specialties', true ) ?: '[]', true ) ?: array();
-		$profile->languages = json_decode( get_user_meta( $user->ID, 'frs_languages', true ) ?: '[]', true ) ?: array();
-		$profile->awards = json_decode( get_user_meta( $user->ID, 'frs_awards', true ) ?: '[]', true ) ?: array();
-		$profile->nar_designations = json_decode( get_user_meta( $user->ID, 'frs_nar_designations', true ) ?: '[]', true ) ?: array();
-		$profile->namb_certifications = json_decode( get_user_meta( $user->ID, 'frs_namb_certifications', true ) ?: '[]', true ) ?: array();
-		$profile->personal_branding_images = json_decode( get_user_meta( $user->ID, 'frs_personal_branding_images', true ) ?: '[]', true ) ?: array();
-		$profile->profile_visibility = json_decode( get_user_meta( $user->ID, 'frs_profile_visibility', true ) ?: '[]', true ) ?: array();
-		$profile->custom_links = json_decode( get_user_meta( $user->ID, 'frs_custom_links', true ) ?: '[]', true ) ?: array();
-		$profile->service_areas = json_decode( get_user_meta( $user->ID, 'frs_service_areas', true ) ?: '[]', true ) ?: array();
+		// JSON/array fields - handle both serialized arrays and JSON strings
+		$profile->specialties_lo = static::maybe_decode_array( get_user_meta( $user->ID, 'frs_specialties_lo', true ) );
+		$profile->specialties = static::maybe_decode_array( get_user_meta( $user->ID, 'frs_specialties', true ) );
+		$profile->languages = static::maybe_decode_array( get_user_meta( $user->ID, 'frs_languages', true ) );
+		$profile->awards = static::maybe_decode_array( get_user_meta( $user->ID, 'frs_awards', true ) );
+		$profile->nar_designations = static::maybe_decode_array( get_user_meta( $user->ID, 'frs_nar_designations', true ) );
+		$profile->namb_certifications = static::maybe_decode_array( get_user_meta( $user->ID, 'frs_namb_certifications', true ) );
+		$profile->personal_branding_images = static::maybe_decode_array( get_user_meta( $user->ID, 'frs_personal_branding_images', true ) );
+		$profile->profile_visibility = static::maybe_decode_array( get_user_meta( $user->ID, 'frs_profile_visibility', true ) );
+		$profile->custom_links = static::maybe_decode_array( get_user_meta( $user->ID, 'frs_custom_links', true ) );
+		$profile->service_areas = static::maybe_decode_array( get_user_meta( $user->ID, 'frs_service_areas', true ) );
+
+		// Derive service_areas from region if not set
+		if ( empty( $profile->service_areas ) && ! empty( $profile->region ) ) {
+			$profile->service_areas = static::parse_states_from_region( $profile->region );
+		}
 
 		// Timestamps
 		$profile->synced_to_fluentcrm_at = get_user_meta( $user->ID, 'frs_synced_to_fluentcrm_at', true );
 		$profile->created_at = $user->user_registered;
 		$profile->updated_at = get_user_meta( $user->ID, 'frs_updated_at', true ) ?: $user->user_registered;
 
-		// Determine person type from role
-		$roles = $user->roles ?? array();
-		if ( in_array( 'loan_officer', $roles, true ) ) {
-			$profile->select_person_type = 'loan_officer';
-		} elseif ( in_array( 'realtor_partner', $roles, true ) ) {
-			$profile->select_person_type = 'realtor_partner';
-		} elseif ( in_array( 'leadership', $roles, true ) ) {
-			$profile->select_person_type = 'leadership';
-		} elseif ( in_array( 'staff', $roles, true ) || in_array( 'assistant', $roles, true ) ) {
-			$profile->select_person_type = 'staff';
+		// Determine person type - check frs_select_person_type first, then fall back to WP role
+		$stored_type = get_user_meta( $user->ID, 'frs_select_person_type', true );
+		if ( ! empty( $stored_type ) ) {
+			$profile->select_person_type = $stored_type;
+		} else {
+			// Fall back to WordPress role mapping
+			$roles = $user->roles ?? array();
+			if ( in_array( 'loan_originator', $roles, true ) || in_array( 'loan_officer', $roles, true ) ) {
+				$profile->select_person_type = 'loan_originator';
+			} elseif ( in_array( 'broker_associate', $roles, true ) ) {
+				$profile->select_person_type = 'broker_associate';
+			} elseif ( in_array( 'sales_associate', $roles, true ) ) {
+				$profile->select_person_type = 'sales_associate';
+			} elseif ( in_array( 'realtor_partner', $roles, true ) ) {
+				$profile->select_person_type = 'broker_associate'; // Map legacy to broker
+			} elseif ( in_array( 'dual_license', $roles, true ) ) {
+				$profile->select_person_type = 'dual_license';
+			} elseif ( in_array( 'leadership', $roles, true ) ) {
+				$profile->select_person_type = 'leadership';
+			} elseif ( in_array( 'staff', $roles, true ) || in_array( 'assistant', $roles, true ) ) {
+				$profile->select_person_type = 'staff';
+			}
 		}
 
 		$profile->exists = true;

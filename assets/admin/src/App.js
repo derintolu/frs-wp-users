@@ -1,29 +1,33 @@
 /**
  * FRS Profiles Admin App
  *
- * Main admin interface using @wordpress/dataviews
+ * Main admin interface using @wordpress/dataviews with split-view layout
  */
-import { useState, useMemo } from '@wordpress/element';
-import { DataViews } from '@wordpress/dataviews';
+import { useState, useMemo, useEffect, useCallback } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
-import { useEffect } from '@wordpress/element';
-import { Button, Spinner } from '@wordpress/components';
+import { Button, Spinner, ToggleControl } from '@wordpress/components';
+import { DataViews } from '@wordpress/dataviews';
+import ProfileDetail from './ProfileDetail';
 
 const ROLE_LABELS = {
-	loan_officer: __('Loan Officer', 'frs-users'),
-	realtor_partner: __('Realtor Partner', 'frs-users'),
-	staff: __('Staff', 'frs-users'),
+	broker_associate: __('Broker Associate', 'frs-users'),
+	sales_associate: __('Sales Associate', 'frs-users'),
+	dual_license: __('Dual License', 'frs-users'),
+	loan_originator: __('Loan Originator', 'frs-users'),
 	leadership: __('Leadership', 'frs-users'),
-	assistant: __('Assistant', 'frs-users'),
+	staff: __('Staff', 'frs-users'),
 };
 
 function App() {
 	const [profiles, setProfiles] = useState([]);
 	const [isLoading, setIsLoading] = useState(true);
+	const [selectedProfile, setSelectedProfile] = useState(null);
+	const [selection, setSelection] = useState([]);
+	const [splitView, setSplitView] = useState(true);
 	const [view, setView] = useState({
-		type: 'table',
-		perPage: 20,
+		type: 'list',
+		perPage: 50,
 		page: 1,
 		sort: {
 			field: 'name',
@@ -31,16 +35,18 @@ function App() {
 		},
 		search: '',
 		filters: [],
+		fields: ['avatar', 'name', 'role', 'status'],
 	});
 
 	// Fetch profiles from REST API
 	useEffect(() => {
 		setIsLoading(true);
 		apiFetch({
-			path: '/frs-users/v1/profiles',
+			path: '/frs-users/v1/profiles?per_page=1000',
 		})
-			.then((data) => {
-				setProfiles(data);
+			.then((response) => {
+				const profilesData = response.data || response;
+				setProfiles(Array.isArray(profilesData) ? profilesData : []);
 				setIsLoading(false);
 			})
 			.catch((error) => {
@@ -49,21 +55,41 @@ function App() {
 			});
 	}, []);
 
-	// Define fields for DataViews
+
+	// Define fields for DataViews - simplified for list view
 	const fields = useMemo(
 		() => [
+			{
+				id: 'avatar',
+				header: '',
+				getValue: ({ item }) => item.avatar_url || '',
+				render: ({ item }) => {
+					const avatarUrl = item.avatar_url || `https://www.gravatar.com/avatar/${item.email}?s=40&d=mp`;
+					return (
+						<div className="frs-avatar">
+							<img src={avatarUrl} alt="" />
+						</div>
+					);
+				},
+				enableHiding: false,
+				enableSorting: false,
+				width: 50,
+			},
 			{
 				id: 'name',
 				header: __('Name', 'frs-users'),
 				getValue: ({ item }) => item.display_name || `${item.first_name} ${item.last_name}`,
 				render: ({ item }) => {
-					const editUrl = `${window.frsProfilesAdmin.userEditUrl}${item.user_id}`;
+					const isSelected = selection.includes(String(item.user_id)) || selection.includes(item.user_id);
 					return (
-						<strong>
-							<a href={editUrl}>
+						<div className={`frs-list-item ${isSelected ? 'frs-list-item--selected' : ''}`}>
+							<span className="frs-list-item__name">
 								{item.display_name || `${item.first_name} ${item.last_name}`}
-							</a>
-						</strong>
+							</span>
+							{item.job_title && (
+								<span className="frs-list-item__subtitle">{item.job_title}</span>
+							)}
+						</div>
 					);
 				},
 				enableHiding: false,
@@ -73,12 +99,22 @@ function App() {
 				id: 'email',
 				header: __('Email', 'frs-users'),
 				getValue: ({ item }) => item.email,
+				render: ({ item }) => (
+					<a href={`mailto:${item.email}`} className="frs-email-link">
+						{item.email}
+					</a>
+				),
 				enableSorting: true,
 			},
 			{
 				id: 'role',
 				header: __('Role', 'frs-users'),
 				getValue: ({ item }) => ROLE_LABELS[item.select_person_type] || item.select_person_type,
+				render: ({ item }) => {
+					const roleLabel = ROLE_LABELS[item.select_person_type] || item.select_person_type;
+					if (!roleLabel) return <span className="frs-empty">—</span>;
+					return <span className="frs-role-badge frs-role-badge--small">{roleLabel}</span>;
+				},
 				elements: Object.keys(ROLE_LABELS).map((role) => ({
 					value: role,
 					label: ROLE_LABELS[role],
@@ -110,24 +146,35 @@ function App() {
 				id: 'phone',
 				header: __('Phone', 'frs-users'),
 				getValue: ({ item }) => item.phone_number || item.mobile_number || '—',
+				render: ({ item }) => {
+					const phone = item.phone_number || item.mobile_number;
+					if (!phone) return <span className="frs-empty">—</span>;
+					return (
+						<a href={`tel:${phone}`} className="frs-phone-link">
+							{phone}
+						</a>
+					);
+				},
+			},
+			{
+				id: 'branch',
+				header: __('Branch/Region', 'frs-users'),
+				getValue: ({ item }) => item.region || item.city_state || item.office || '—',
+				render: ({ item }) => {
+					const branch = item.region || item.city_state || item.office;
+					if (!branch) return <span className="frs-empty">—</span>;
+					return <span>{branch}</span>;
+				},
+				enableSorting: true,
 			},
 			{
 				id: 'status',
 				header: __('Status', 'frs-users'),
 				getValue: ({ item }) => (item.is_active ? __('Active', 'frs-users') : __('Inactive', 'frs-users')),
 				render: ({ item }) => {
+					const statusClass = item.is_active ? 'frs-status-badge--active' : 'frs-status-badge--inactive';
 					return (
-						<span
-							style={{
-								display: 'inline-block',
-								padding: '2px 8px',
-								borderRadius: '4px',
-								fontSize: '12px',
-								fontWeight: '500',
-								backgroundColor: item.is_active ? '#e7f5e9' : '#f0f0f1',
-								color: item.is_active ? '#1e7e34' : '#646970',
-							}}
-						>
+						<span className={`frs-status-badge frs-status-badge--small ${statusClass}`}>
 							{item.is_active ? __('Active', 'frs-users') : __('Inactive', 'frs-users')}
 						</span>
 					);
@@ -142,19 +189,35 @@ function App() {
 				enableSorting: true,
 			},
 		],
-		[]
+		[selection]
 	);
 
-	// Define actions
+	// Handle selection change from DataViews
+	const onChangeSelection = useCallback(
+		(newSelection) => {
+			setSelection(newSelection);
+			if (newSelection.length > 0) {
+				const selectedId = newSelection[0];
+				const profile = profiles.find((p) => String(p.user_id) === String(selectedId) || String(p.id) === String(selectedId));
+				setSelectedProfile(profile || null);
+			} else {
+				setSelectedProfile(null);
+			}
+		},
+		[profiles]
+	);
+
+	// Define actions - need supportsBulk for selection to work
 	const actions = useMemo(
 		() => [
 			{
 				id: 'edit',
 				label: __('Edit', 'frs-users'),
 				isPrimary: true,
+				supportsBulk: true,
 				callback: (items) => {
 					const item = items[0];
-					window.location.href = `${window.frsProfilesAdmin.userEditUrl}${item.user_id}`;
+					window.location.href = `${window.frsProfilesAdmin.profileEditUrl}${item.user_id}`;
 				},
 			},
 			{
@@ -173,6 +236,79 @@ function App() {
 		[]
 	);
 
+	// Process data: filter, sort, paginate
+	const processedData = useMemo(() => {
+		let result = [...profiles];
+
+		// Apply search filter
+		if (view.search) {
+			const searchLower = view.search.toLowerCase();
+			result = result.filter((item) => {
+				const name = (item.display_name || `${item.first_name} ${item.last_name}`).toLowerCase();
+				const email = (item.email || '').toLowerCase();
+				return name.includes(searchLower) || email.includes(searchLower);
+			});
+		}
+
+		// Apply filters
+		if (view.filters && view.filters.length > 0) {
+			view.filters.forEach((filter) => {
+				if (filter.field === 'role' && filter.value) {
+					const values = Array.isArray(filter.value) ? filter.value : [filter.value];
+					result = result.filter((item) => values.includes(item.select_person_type));
+				}
+				if (filter.field === 'status' && filter.value !== undefined) {
+					const values = Array.isArray(filter.value) ? filter.value : [filter.value];
+					result = result.filter((item) => values.includes(item.is_active ? 1 : 0));
+				}
+			});
+		}
+
+		// Apply sorting
+		if (view.sort) {
+			const { field, direction } = view.sort;
+			result.sort((a, b) => {
+				let aVal, bVal;
+				switch (field) {
+					case 'name':
+						aVal = a.display_name || `${a.first_name} ${a.last_name}`;
+						bVal = b.display_name || `${b.first_name} ${b.last_name}`;
+						break;
+					case 'email':
+						aVal = a.email || '';
+						bVal = b.email || '';
+						break;
+					case 'role':
+						aVal = a.select_person_type || '';
+						bVal = b.select_person_type || '';
+						break;
+					case 'status':
+						aVal = a.is_active ? 1 : 0;
+						bVal = b.is_active ? 1 : 0;
+						break;
+					default:
+						aVal = a[field] || '';
+						bVal = b[field] || '';
+				}
+				if (typeof aVal === 'string') {
+					return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+				}
+				return direction === 'asc' ? aVal - bVal : bVal - aVal;
+			});
+		}
+
+		return result;
+	}, [profiles, view.search, view.filters, view.sort]);
+
+	// Paginate data
+	const paginatedData = useMemo(() => {
+		const start = (view.page - 1) * view.perPage;
+		return processedData.slice(start, start + view.perPage);
+	}, [processedData, view.page, view.perPage]);
+
+	// Get item ID for DataViews
+	const getItemId = useCallback((item) => item.user_id || item.id, []);
+
 	if (isLoading) {
 		return (
 			<div style={{ padding: '40px', textAlign: 'center' }}>
@@ -183,28 +319,66 @@ function App() {
 	}
 
 	return (
-		<div className="frs-profiles-admin">
-			<div className="frs-profiles-header" style={{ marginBottom: '20px' }}>
-				<h1 className="wp-heading-inline">{__('FRS Profiles', 'frs-users')}</h1>
-				<a href="/wp-admin/user-new.php" className="page-title-action">
-					{__('Add New', 'frs-users')}
-				</a>
-				<p className="description">
-					{__('Manage loan officers, agents, staff, and leadership profiles.', 'frs-users')}
-				</p>
+		<div className={`frs-profiles-admin ${splitView ? 'frs-profiles-admin--split' : ''}`}>
+			<div className="frs-profiles-header">
+				<div className="frs-profiles-header__top">
+					<h1 className="wp-heading-inline">{__('FRS Profiles', 'frs-users')}</h1>
+					<span className="frs-profiles-count">{profiles.length} {__('total', 'frs-users')}</span>
+					<a href={window.frsProfilesAdmin.addNewUrl} className="page-title-action">
+						{__('Add New', 'frs-users')}
+					</a>
+				</div>
+				<div className="frs-profiles-header__controls">
+					<ToggleControl
+						label={__('Split View', 'frs-users')}
+						checked={splitView}
+						onChange={setSplitView}
+					/>
+				</div>
 			</div>
 
-			<DataViews
-				data={profiles}
-				fields={fields}
-				view={view}
-				onChangeView={setView}
-				actions={actions}
-				paginationInfo={{
-					totalItems: profiles.length,
-					totalPages: Math.ceil(profiles.length / view.perPage),
-				}}
-			/>
+			<div className="frs-profiles-content">
+				<div className="frs-profiles-list">
+					<DataViews
+						data={paginatedData}
+						fields={fields}
+						view={view}
+						onChangeView={setView}
+						actions={actions}
+						paginationInfo={{
+							totalItems: processedData.length,
+							totalPages: Math.ceil(processedData.length / view.perPage),
+						}}
+						getItemId={getItemId}
+						selection={selection}
+						onChangeSelection={onChangeSelection}
+						defaultLayouts={{
+							list: {},
+							table: {},
+						}}
+					/>
+				</div>
+
+				{splitView && (
+					<div className="frs-profiles-detail">
+						<ProfileDetail
+							profile={selectedProfile}
+							roles={window.frsProfilesAdmin.roles}
+							editUrl={window.frsProfilesAdmin.profileEditUrl}
+							onClose={() => setSelectedProfile(null)}
+							onSave={(updatedProfile) => {
+								// Update profile in list
+								setProfiles((prev) =>
+									prev.map((p) =>
+										p.user_id === updatedProfile.user_id ? updatedProfile : p
+									)
+								);
+								setSelectedProfile(updatedProfile);
+							}}
+						/>
+					</div>
+				)}
+			</div>
 		</div>
 	);
 }

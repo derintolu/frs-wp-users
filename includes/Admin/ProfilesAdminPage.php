@@ -31,7 +31,62 @@ class ProfilesAdminPage {
 	 */
 	public function init() {
 		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
+		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
+	}
+
+	/**
+	 * Register settings.
+	 *
+	 * @return void
+	 */
+	public function register_settings() {
+		register_setting( 'frs_profiles_settings', 'frs_directory_headline' );
+		register_setting( 'frs_profiles_settings', 'frs_directory_subheadline' );
+		register_setting( 'frs_profiles_settings', 'frs_directory_video_url' );
+
+		add_settings_section(
+			'frs_directory_section',
+			__( 'Directory Settings', 'frs-users' ),
+			function() {
+				echo '<p>' . esc_html__( 'Configure the loan officer directory display.', 'frs-users' ) . '</p>';
+			},
+			'frs_profiles_settings'
+		);
+
+		add_settings_field(
+			'frs_directory_headline',
+			__( 'Directory Headline', 'frs-users' ),
+			function() {
+				$value = get_option( 'frs_directory_headline', 'Find Your Loan Officer' );
+				echo '<input type="text" name="frs_directory_headline" value="' . esc_attr( $value ) . '" class="regular-text">';
+			},
+			'frs_profiles_settings',
+			'frs_directory_section'
+		);
+
+		add_settings_field(
+			'frs_directory_subheadline',
+			__( 'Directory Subheadline', 'frs-users' ),
+			function() {
+				$value = get_option( 'frs_directory_subheadline', 'Connect with a mortgage professional in your area' );
+				echo '<input type="text" name="frs_directory_subheadline" value="' . esc_attr( $value ) . '" class="regular-text">';
+			},
+			'frs_profiles_settings',
+			'frs_directory_section'
+		);
+
+		add_settings_field(
+			'frs_directory_video_url',
+			__( 'Background Video URL', 'frs-users' ),
+			function() {
+				$value = get_option( 'frs_directory_video_url', '' );
+				echo '<input type="url" name="frs_directory_video_url" value="' . esc_attr( $value ) . '" class="regular-text">';
+				echo '<p class="description">' . esc_html__( 'MP4 video URL for card backgrounds.', 'frs-users' ) . '</p>';
+			},
+			'frs_profiles_settings',
+			'frs_directory_section'
+		);
 	}
 
 	/**
@@ -59,14 +114,8 @@ class ProfilesAdminPage {
 			array( $this, 'render_page' )
 		);
 
-		add_submenu_page(
-			'frs-profiles',
-			__( 'Add New', 'frs-users' ),
-			__( 'Add New', 'frs-users' ),
-			'manage_options',
-			'frs-profiles&action=new',
-			array( $this, 'render_page' )
-		);
+		// Note: "Add New" is handled by ProfileAddPage.php
+		// Note: "Edit Profile" is handled by ProfileEditPage.php (hidden page)
 
 		add_submenu_page(
 			'frs-profiles',
@@ -150,7 +199,7 @@ class ProfilesAdminPage {
 
 		wp_enqueue_style(
 			'frs-profiles-admin',
-			FRS_USERS_URL . 'assets/admin/build/index.css',
+			FRS_USERS_URL . 'assets/admin/build/style-index.css',
 			array( 'wp-components' ),
 			$asset['version']
 		);
@@ -160,10 +209,11 @@ class ProfilesAdminPage {
 			'frs-profiles-admin',
 			'frsProfilesAdmin',
 			array(
-				'apiUrl'    => rest_url( 'frs-users/v1' ),
-				'nonce'     => wp_create_nonce( 'wp_rest' ),
-				'roles'     => $this->get_frs_roles(),
-				'userEditUrl' => admin_url( 'user-edit.php?user_id=' ),
+				'apiUrl'         => rest_url( 'frs-users/v1' ),
+				'nonce'          => wp_create_nonce( 'wp_rest' ),
+				'roles'          => $this->get_frs_roles(),
+				'profileEditUrl' => admin_url( 'admin.php?page=frs-profile-edit&user_id=' ),
+				'addNewUrl'      => admin_url( 'admin.php?page=frs-profile-add' ),
 			)
 		);
 	}

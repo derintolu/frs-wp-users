@@ -143,8 +143,8 @@ $state_map = [
     'wisconsin' => 'WI', 'wyoming' => 'WY', 'district of columbia' => 'DC'
 ];
 
-// Base URL for state SVGs from frs-lrg plugin
-$state_svg_base = content_url('/plugins/frs-lrg/assets/images/states/');
+// Base URL for state SVGs
+$state_svg_base = FRS_USERS_URL . 'assets/images/states/';
 
 get_header();
 ?>

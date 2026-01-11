@@ -41,6 +41,8 @@ class CLI {
 		\WP_CLI::add_command( 'frs-users sync-suredash-avatars', array( __CLASS__, 'sync_suredash_avatars' ) );
 		\WP_CLI::add_command( 'frs-users generate-qr-codes', array( __CLASS__, 'generate_qr_codes' ) );
 		\WP_CLI::add_command( 'frs-users generate-vcards', array( __CLASS__, 'generate_vcards' ) );
+		\WP_CLI::add_command( 'frs-users migrate-fields', array( __CLASS__, 'migrate_fields' ) );
+		\WP_CLI::add_command( 'frs-users cleanup-fields', array( __CLASS__, 'cleanup_fields' ) );
 	}
 
 	/**
@@ -388,30 +390,35 @@ class CLI {
 	/**
 	 * Generate QR codes for all profiles
 	 *
-	 * Generates styled QR codes linking to /directory/lo/{slug} and saves them
-	 * as SVG files in wp-content/uploads/frs-qr-codes/. Stores the URL in qr_code_data.
+	 * Generates styled QR codes linking to /qr/{slug} and saves them
+	 * as SVG files in wp-content/uploads/frs-qr-codes/. Stores the URL in user meta.
 	 *
 	 * ## OPTIONS
 	 *
 	 * [--force]
 	 * : Regenerate QR codes even if they already exist
 	 *
-	 * [--id=<profile_id>]
-	 * : Generate for a specific profile ID only
+	 * [--id=<user_id>]
+	 * : Generate for a specific user ID only
+	 *
+	 * [--type=<type>]
+	 * : Profile type to generate for (loan_officer, realtor_partner, staff, leadership). Default: all active users
 	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp frs-users generate-qr-codes
 	 *     wp frs-users generate-qr-codes --force
 	 *     wp frs-users generate-qr-codes --id=123
+	 *     wp frs-users generate-qr-codes --type=loan_officer
 	 *
 	 * @when after_wp_load
 	 */
 	public static function generate_qr_codes( $args, $assoc_args ) {
-		$force      = isset( $assoc_args['force'] );
-		$profile_id = isset( $assoc_args['id'] ) ? intval( $assoc_args['id'] ) : null;
+		$force   = isset( $assoc_args['force'] );
+		$user_id = isset( $assoc_args['id'] ) ? intval( $assoc_args['id'] ) : null;
+		$type    = isset( $assoc_args['type'] ) ? sanitize_text_field( $assoc_args['type'] ) : null;
 
-		\WP_CLI::line( 'Generating QR codes for profiles...' );
+		\WP_CLI::line( 'Generating QR codes for user profiles...' );
 
 		// Check if Node.js is available
 		$node_check = shell_exec( 'which node' );
@@ -420,36 +427,67 @@ class CLI {
 		}
 
 		// Setup QR codes directory in uploads
-		$upload_dir = wp_upload_dir();
-		$qr_dir     = $upload_dir['basedir'] . '/frs-qr-codes';
+		$upload_dir  = wp_upload_dir();
+		$qr_dir      = $upload_dir['basedir'] . '/frs-qr-codes';
 		$qr_url_base = $upload_dir['baseurl'] . '/frs-qr-codes';
 
 		if ( ! file_exists( $qr_dir ) ) {
 			wp_mkdir_p( $qr_dir );
 		}
 
-		// Get profiles
-		if ( $profile_id ) {
-			$profiles = Profile::where( 'id', $profile_id )->get();
-		} elseif ( $force ) {
-			$profiles = Profile::whereNotNull( 'profile_slug' )->get();
-		} else {
-			$profiles = Profile::whereNotNull( 'profile_slug' )
-				->where( function( $query ) {
-					$query->whereNull( 'qr_code_data' )
-						  ->orWhere( 'qr_code_data', '' );
-				} )
-				->get();
+		// Build user query args
+		$user_args = array(
+			'meta_query' => array(
+				array(
+					'key'     => 'frs_is_active',
+					'value'   => '1',
+					'compare' => '=',
+				),
+			),
+			'number' => 500,
+		);
+
+		// Filter by specific user
+		if ( $user_id ) {
+			$user_args['include'] = array( $user_id );
+			unset( $user_args['meta_query'] );
 		}
 
-		$total = count( $profiles );
+		// Filter by type
+		if ( $type ) {
+			$user_args['meta_query'][] = array(
+				'key'     => 'frs_select_person_type',
+				'value'   => $type,
+				'compare' => '=',
+			);
+		}
+
+		// Only get users without QR codes unless force is set
+		if ( ! $force && ! $user_id ) {
+			$user_args['meta_query']['relation'] = 'AND';
+			$user_args['meta_query'][]           = array(
+				'relation' => 'OR',
+				array(
+					'key'     => 'frs_qr_code_data',
+					'compare' => 'NOT EXISTS',
+				),
+				array(
+					'key'     => 'frs_qr_code_data',
+					'value'   => '',
+					'compare' => '=',
+				),
+			);
+		}
+
+		$users = get_users( $user_args );
+		$total = count( $users );
 
 		if ( $total === 0 ) {
-			\WP_CLI::success( 'No profiles need QR codes generated.' );
+			\WP_CLI::success( 'No users need QR codes generated.' );
 			return;
 		}
 
-		\WP_CLI::line( sprintf( 'Found %d profiles to process.', $total ) );
+		\WP_CLI::line( sprintf( 'Found %d users to process.', $total ) );
 
 		// Path to the QR generator script
 		$script_path = FRS_USERS_DIR . 'scripts/generate-qr.js';
@@ -458,20 +496,34 @@ class CLI {
 			\WP_CLI::error( sprintf( 'QR generator script not found at: %s', $script_path ) );
 		}
 
+		// Make sure node_modules are installed
+		$node_modules = FRS_USERS_DIR . 'scripts/node_modules';
+		if ( ! file_exists( $node_modules ) ) {
+			\WP_CLI::line( 'Installing Node.js dependencies...' );
+			$install_cmd = sprintf( 'cd %s && npm install 2>&1', escapeshellarg( FRS_USERS_DIR . 'scripts' ) );
+			shell_exec( $install_cmd );
+		}
+
 		$generated = 0;
 		$errors    = 0;
 
 		$progress = \WP_CLI\Utils\make_progress_bar( 'Generating QR codes', $total );
 
-		foreach ( $profiles as $profile ) {
-			if ( empty( $profile->profile_slug ) ) {
+		foreach ( $users as $user ) {
+			// Get profile slug (custom or nicename)
+			$profile_slug = get_user_meta( $user->ID, 'frs_profile_slug', true );
+			if ( empty( $profile_slug ) ) {
+				$profile_slug = $user->user_nicename;
+			}
+
+			if ( empty( $profile_slug ) ) {
 				$errors++;
 				$progress->tick();
 				continue;
 			}
 
-			// Build URL for QR code content
-			$qr_content_url = home_url( '/directory/lo/' . $profile->profile_slug );
+			// Build URL for QR code content - points to /qr/{slug} landing page
+			$qr_content_url = home_url( '/qr/' . $profile_slug );
 
 			// Call Node.js script to generate QR code SVG
 			$cmd = sprintf(
@@ -484,24 +536,20 @@ class CLI {
 
 			if ( $svg_output && strpos( $svg_output, '<svg' ) !== false ) {
 				// Save SVG to file
-				$filename = $profile->profile_slug . '.svg';
+				$filename = $profile_slug . '.svg';
 				$filepath = $qr_dir . '/' . $filename;
 				$file_url = $qr_url_base . '/' . $filename;
 
 				if ( file_put_contents( $filepath, $svg_output ) ) {
-					// Store URL in database
-					$profile->qr_code_data = $file_url;
-					if ( $profile->save() ) {
-						$generated++;
-					} else {
-						$errors++;
-					}
+					// Store URL in user meta
+					update_user_meta( $user->ID, 'frs_qr_code_data', $file_url );
+					$generated++;
 				} else {
-					\WP_CLI::warning( sprintf( 'Failed to save QR file for %s', $profile->profile_slug ) );
+					\WP_CLI::warning( sprintf( 'Failed to save QR file for %s', $profile_slug ) );
 					$errors++;
 				}
 			} else {
-				\WP_CLI::warning( sprintf( 'Failed to generate QR for %s: %s', $profile->profile_slug, substr( $svg_output ?? '', 0, 100 ) ) );
+				\WP_CLI::warning( sprintf( 'Failed to generate QR for %s: %s', $profile_slug, substr( $svg_output ?? '', 0, 100 ) ) );
 				$errors++;
 			}
 
@@ -830,5 +878,128 @@ class CLI {
 			'type' => $type,
 			'data' => base64_encode( $image_data ),
 		];
+	}
+
+	/**
+	 * Migrate legacy fields to frs_ prefixed fields
+	 *
+	 * Consolidates redundant user meta fields and updates WordPress roles.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--dry-run]
+	 * : Run without making changes, just report what would be done.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     # Preview migration
+	 *     wp frs-users migrate-fields --dry-run
+	 *
+	 *     # Run migration
+	 *     wp frs-users migrate-fields
+	 *
+	 * @param array $args       Positional arguments.
+	 * @param array $assoc_args Associative arguments.
+	 */
+	public static function migrate_fields( $args, $assoc_args ) {
+		$dry_run = isset( $assoc_args['dry-run'] );
+
+		if ( $dry_run ) {
+			\WP_CLI::log( '=== DRY RUN MODE - No changes will be made ===' );
+		}
+
+		\WP_CLI::log( '' );
+		\WP_CLI::log( 'Starting field migration...' );
+		\WP_CLI::log( '' );
+
+		// Register new roles first
+		\WP_CLI::log( 'Registering new WordPress roles...' );
+		Migration::register_roles();
+		\WP_CLI::success( 'Roles registered: loan_originator, broker_associate, sales_associate, dual_license' );
+		\WP_CLI::log( '' );
+
+		// Run the migration
+		$results = Migration::run( $dry_run );
+
+		\WP_CLI::log( '=== MIGRATION RESULTS ===' );
+		\WP_CLI::log( '' );
+		\WP_CLI::log( sprintf( 'Users processed:      %d', $results['users_processed'] ) );
+		\WP_CLI::log( sprintf( 'Fields migrated:      %d', $results['fields_migrated'] ) );
+		\WP_CLI::log( sprintf( 'Roles updated:        %d (loan_officer -> loan_originator)', $results['roles_updated'] ) );
+		\WP_CLI::log( sprintf( 'Profile types set:    %d', $results['types_set'] ) );
+		\WP_CLI::log( sprintf( 'Unused fields deleted: %d', $results['fields_deleted'] ) );
+		\WP_CLI::log( '' );
+
+		if ( ! empty( $results['errors'] ) ) {
+			\WP_CLI::warning( 'Errors encountered:' );
+			foreach ( $results['errors'] as $error ) {
+				\WP_CLI::log( '  - ' . $error );
+			}
+		}
+
+		if ( $dry_run ) {
+			\WP_CLI::log( '' );
+			\WP_CLI::log( 'This was a dry run. Run without --dry-run to apply changes.' );
+		} else {
+			\WP_CLI::success( 'Migration complete!' );
+			\WP_CLI::log( '' );
+			\WP_CLI::log( 'Next step: Run "wp frs-users cleanup-fields" to remove legacy fields.' );
+		}
+	}
+
+	/**
+	 * Clean up legacy fields after migration
+	 *
+	 * Removes legacy meta keys after data has been migrated to frs_ keys.
+	 * WARNING: Only run this after verifying the migration was successful!
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--dry-run]
+	 * : Run without making changes, just report what would be done.
+	 *
+	 * [--yes]
+	 * : Skip confirmation prompt.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     # Preview cleanup
+	 *     wp frs-users cleanup-fields --dry-run
+	 *
+	 *     # Run cleanup
+	 *     wp frs-users cleanup-fields --yes
+	 *
+	 * @param array $args       Positional arguments.
+	 * @param array $assoc_args Associative arguments.
+	 */
+	public static function cleanup_fields( $args, $assoc_args ) {
+		$dry_run = isset( $assoc_args['dry-run'] );
+
+		if ( $dry_run ) {
+			\WP_CLI::log( '=== DRY RUN MODE - No changes will be made ===' );
+			\WP_CLI::log( '' );
+		} else {
+			\WP_CLI::warning( 'This will permanently delete legacy meta fields!' );
+			\WP_CLI::warning( 'Make sure you have run "wp frs-users migrate-fields" first.' );
+			\WP_CLI::log( '' );
+
+			if ( ! isset( $assoc_args['yes'] ) ) {
+				\WP_CLI::confirm( 'Are you sure you want to proceed?' );
+			}
+		}
+
+		\WP_CLI::log( 'Cleaning up legacy fields...' );
+		\WP_CLI::log( '' );
+
+		$cleaned = Migration::cleanup_legacy_fields( $dry_run );
+
+		\WP_CLI::log( sprintf( 'Legacy field records %s: %d', $dry_run ? 'to delete' : 'deleted', $cleaned ) );
+		\WP_CLI::log( '' );
+
+		if ( $dry_run ) {
+			\WP_CLI::log( 'This was a dry run. Run without --dry-run to apply changes.' );
+		} else {
+			\WP_CLI::success( 'Cleanup complete!' );
+		}
 	}
 }

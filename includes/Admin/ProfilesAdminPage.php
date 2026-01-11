@@ -43,7 +43,8 @@ class ProfilesAdminPage {
 	 */
 	public function register_settings() {
 		register_setting( 'frs_profiles_settings', 'frs_site_context' );
-		register_setting( 'frs_profiles_settings', 'frs_marketing_site_url' );
+		register_setting( 'frs_profiles_settings', 'frs_lending_site_url' );
+		register_setting( 'frs_profiles_settings', 'frs_realestate_site_url' );
 		register_setting( 'frs_profiles_settings', 'frs_directory_headline' );
 		register_setting( 'frs_profiles_settings', 'frs_directory_subheadline' );
 		register_setting( 'frs_profiles_settings', 'frs_directory_video_url' );
@@ -67,12 +68,24 @@ class ProfilesAdminPage {
 		);
 
 		add_settings_field(
-			'frs_marketing_site_url',
-			__( 'Marketing Site URL', 'frs-users' ),
+			'frs_lending_site_url',
+			__( 'Lending Site URL', 'frs-users' ),
 			function() {
-				$value = get_option( 'frs_marketing_site_url', '' );
-				echo '<input type="url" name="frs_marketing_site_url" value="' . esc_attr( $value ) . '" class="regular-text" placeholder="https://21stcenturylending.com">';
-				echo '<p class="description">' . esc_html__( 'Production marketing site URL for profile links. Leave empty to use current site.', 'frs-users' ) . '</p>';
+				$value = get_option( 'frs_lending_site_url', '' );
+				echo '<input type="url" name="frs_lending_site_url" value="' . esc_attr( $value ) . '" class="regular-text" placeholder="https://21stcenturylending.com">';
+				echo '<p class="description">' . esc_html__( 'URL for loan officer profiles (loan_originator role).', 'frs-users' ) . '</p>';
+			},
+			'frs_profiles_settings',
+			'frs_site_context_section'
+		);
+
+		add_settings_field(
+			'frs_realestate_site_url',
+			__( 'Real Estate Site URL', 'frs-users' ),
+			function() {
+				$value = get_option( 'frs_realestate_site_url', '' );
+				echo '<input type="url" name="frs_realestate_site_url" value="' . esc_attr( $value ) . '" class="regular-text" placeholder="https://c21masters.com">';
+				echo '<p class="description">' . esc_html__( 'URL for real estate agent profiles (broker_associate, sales_associate roles).', 'frs-users' ) . '</p>';
 			},
 			'frs_profiles_settings',
 			'frs_site_context_section'
@@ -284,11 +297,10 @@ class ProfilesAdminPage {
 			$asset['version']
 		);
 
-		// Get marketing site URL (fallback to current site)
-		$marketing_site_url = get_option( 'frs_marketing_site_url', '' );
-		if ( empty( $marketing_site_url ) ) {
-			$marketing_site_url = home_url();
-		}
+		// Get marketing site URLs (fallback to current site)
+		$lending_site_url = get_option( 'frs_lending_site_url', '' );
+		$realestate_site_url = get_option( 'frs_realestate_site_url', '' );
+		$local_site_url = home_url();
 
 		// Localize script with data
 		wp_localize_script(
@@ -304,8 +316,9 @@ class ProfilesAdminPage {
 				'siteContextConfig'   => Roles::get_site_context_config(),
 				'activeCompanyRoles'  => Roles::get_active_company_roles(),
 				'isEditingEnabled'    => Roles::is_profile_editing_enabled(),
-				'marketingSiteUrl'    => trailingslashit( $marketing_site_url ),
-				'localSiteUrl'        => trailingslashit( home_url() ),
+				'lendingSiteUrl'      => $lending_site_url ? trailingslashit( $lending_site_url ) : '',
+				'realestateSiteUrl'   => $realestate_site_url ? trailingslashit( $realestate_site_url ) : '',
+				'localSiteUrl'        => trailingslashit( $local_site_url ),
 			)
 		);
 	}

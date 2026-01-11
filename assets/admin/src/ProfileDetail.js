@@ -151,8 +151,12 @@ function ProfileDetail({ profile: initialProfile, roles, editUrl, onClose, onSav
 	const avatarUrl = profile.headshot_url || profile.avatar_url || `https://www.gravatar.com/avatar/${profile.email}?s=80&d=mp`;
 	const role = roles?.[profile.select_person_type];
 	const slug = profile.profile_slug || profile.user_nicename;
-	const marketingSiteUrl = window.frsProfilesAdmin?.marketingSiteUrl || '';
-	const profileUrl = role && marketingSiteUrl ? `${marketingSiteUrl}${role.url_prefix}/${slug}/` : null;
+	const companyRole = profile.select_person_type || '';
+	const isRealEstateRole = ['broker_associate', 'sales_associate'].includes(companyRole);
+	const siteUrl = isRealEstateRole
+		? (window.frsProfilesAdmin?.realestateSiteUrl || window.frsProfilesAdmin?.localSiteUrl || '')
+		: (window.frsProfilesAdmin?.lendingSiteUrl || window.frsProfilesAdmin?.localSiteUrl || '');
+	const profileUrl = role && siteUrl ? `${siteUrl}${role.url_prefix}/${slug}/` : null;
 
 	return (
 		<div className="frs-profile-detail">

@@ -184,34 +184,55 @@ function App() {
 					const role = window.frsProfilesAdmin.roles[item.select_person_type];
 					const slug = item.profile_slug || item.user_nicename;
 					const prefix = role ? role.url_prefix : 'lo';
-					const marketingUrl = `${window.frsProfilesAdmin.marketingSiteUrl}${prefix}/${slug}/`;
+					const companyRole = item.select_person_type || '';
+
+					// Determine which marketing site based on company role
+					const isRealEstateRole = ['broker_associate', 'sales_associate'].includes(companyRole);
+					const marketingSiteUrl = isRealEstateRole
+						? window.frsProfilesAdmin.realestateSiteUrl
+						: window.frsProfilesAdmin.lendingSiteUrl;
+
 					const localUrl = `${window.frsProfilesAdmin.localSiteUrl}${prefix}/${slug}/`;
-					const isLocalDev = window.frsProfilesAdmin.marketingSiteUrl !== window.frsProfilesAdmin.localSiteUrl;
+					const marketingUrl = marketingSiteUrl ? `${marketingSiteUrl}${prefix}/${slug}/` : localUrl;
+					const hasMarketingSite = !!marketingSiteUrl && marketingSiteUrl !== window.frsProfilesAdmin.localSiteUrl;
+
 					return (
 						<div className="frs-status-cell">
 							<span className={`frs-status-badge frs-status-badge--small ${statusClass}`}>
 								{item.is_active ? __('Active', 'frs-users') : __('Inactive', 'frs-users')}
 							</span>
-							<Button
-								variant="secondary"
-								size="small"
-								href={marketingUrl}
-								target="_blank"
-								className="frs-view-profile-btn"
-								title={isLocalDev ? __('View on marketing site', 'frs-users') : __('View profile', 'frs-users')}
-							>
-								{__('View', 'frs-users')}
-							</Button>
-							{isLocalDev && (
+							{hasMarketingSite ? (
+								<>
+									<Button
+										variant="secondary"
+										size="small"
+										href={marketingUrl}
+										target="_blank"
+										className="frs-view-profile-btn"
+										title={isRealEstateRole ? 'c21masters.com' : '21stcenturylending.com'}
+									>
+										{__('View', 'frs-users')}
+									</Button>
+									<Button
+										variant="tertiary"
+										size="small"
+										href={localUrl}
+										target="_blank"
+										className="frs-view-local-btn"
+										title={__('View on local site', 'frs-users')}
+									>
+										{__('Local', 'frs-users')}
+									</Button>
+								</>
+							) : (
 								<Button
-									variant="tertiary"
+									variant="secondary"
 									size="small"
 									href={localUrl}
 									target="_blank"
-									className="frs-view-local-btn"
-									title={__('View on local site', 'frs-users')}
+									className="frs-view-profile-btn"
 								>
-									{__('Local', 'frs-users')}
+									{__('View', 'frs-users')}
 								</Button>
 							)}
 						</div>
@@ -266,8 +287,12 @@ function App() {
 					const role = window.frsProfilesAdmin.roles[item.select_person_type];
 					if (role) {
 						const slug = item.profile_slug || item.user_nicename;
-						const marketingUrl = `${window.frsProfilesAdmin.marketingSiteUrl}${role.url_prefix}/${slug}/`;
-						window.open(marketingUrl, '_blank');
+						const companyRole = item.select_person_type || '';
+						const isRealEstateRole = ['broker_associate', 'sales_associate'].includes(companyRole);
+						const siteUrl = isRealEstateRole
+							? (window.frsProfilesAdmin.realestateSiteUrl || window.frsProfilesAdmin.localSiteUrl)
+							: (window.frsProfilesAdmin.lendingSiteUrl || window.frsProfilesAdmin.localSiteUrl);
+						window.open(`${siteUrl}${role.url_prefix}/${slug}/`, '_blank');
 					}
 				},
 			},

@@ -68,16 +68,46 @@ Key endpoints:
 ### WP-CLI Commands
 
 ```bash
+# Profile management
 wp frs-users list-profiles [--type=<type>] [--format=<format>]
 wp frs-users list-guests
 wp frs-users create-user <profile_id> [--username=<name>] [--send-email]
 wp frs-users generate-slugs
 wp frs-users generate-qr-codes [--force] [--id=<user_id>]
 wp frs-users generate-vcards [--type=<type>]
+
+# Site context and sync
+wp frs-users site-context                    # Show current site context
+wp frs-users setup-sync --hub-url=<url>      # Configure hub URL
+wp frs-users setup-sync --generate-secret    # Generate webhook secret
+wp frs-users sync-from-hub [--type=<type>]   # Pull profiles from hub
+
+# Migrations
 wp frs-users migrate-fields [--dry-run]
 wp frs-users cleanup-fields [--dry-run]
 wp frs-users sync-suredash-avatars [--force]
 wp frs-users migrate-person-cpt
+```
+
+### Multi-Site Architecture
+
+This plugin supports deployment across multiple WordPress sites with synchronized profile data.
+
+**See:** `docs/MULTI-SITE-ARCHITECTURE.md` for full documentation.
+
+**Site Contexts** (set via `FRS_SITE_CONTEXT` constant in wp-config.php):
+- `development` - All roles visible, editing enabled (default)
+- `hub` - Central hub (myhub21.com), all roles, editing enabled
+- `21stcenturylending` - Marketing site, LO + Leadership only, read-only
+- `c21masters` - Marketing site, Agents + Leadership only, read-only
+
+**Synchronization:**
+- **Development**: Use `wp frs-users sync-from-hub` CLI command
+- **Production**: Webhooks automatically sync on profile save
+
+```php
+// wp-config.php example
+define( 'FRS_SITE_CONTEXT', 'hub' );  // or '21stcenturylending', 'c21masters', etc.
 ```
 
 ### Profile Types / Roles

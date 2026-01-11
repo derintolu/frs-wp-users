@@ -11,6 +11,7 @@
 
 namespace FRSUsers\Admin;
 
+use FRSUsers\Core\Roles;
 use FRSUsers\Traits\Base;
 
 /**
@@ -41,10 +42,30 @@ class ProfilesAdminPage {
 	 * @return void
 	 */
 	public function register_settings() {
+		register_setting( 'frs_profiles_settings', 'frs_site_context' );
 		register_setting( 'frs_profiles_settings', 'frs_directory_headline' );
 		register_setting( 'frs_profiles_settings', 'frs_directory_subheadline' );
 		register_setting( 'frs_profiles_settings', 'frs_directory_video_url' );
 
+		// Site Context Section.
+		add_settings_section(
+			'frs_site_context_section',
+			__( 'Site Context', 'frs-users' ),
+			function() {
+				echo '<p>' . esc_html__( 'Configure which site this plugin instance serves. This controls which profiles appear in directories and whether editing is enabled.', 'frs-users' ) . '</p>';
+			},
+			'frs_profiles_settings'
+		);
+
+		add_settings_field(
+			'frs_site_context',
+			__( 'Site Context', 'frs-users' ),
+			array( $this, 'render_site_context_field' ),
+			'frs_profiles_settings',
+			'frs_site_context_section'
+		);
+
+		// Directory Section.
 		add_settings_section(
 			'frs_directory_section',
 			__( 'Directory Settings', 'frs-users' ),
@@ -87,6 +108,52 @@ class ProfilesAdminPage {
 			'frs_profiles_settings',
 			'frs_directory_section'
 		);
+	}
+
+	/**
+	 * Render the site context field.
+	 *
+	 * @return void
+	 */
+	public function render_site_context_field() {
+		$contexts        = Roles::get_site_contexts();
+		$current_context = Roles::get_site_context();
+		$is_locked       = Roles::is_context_locked();
+
+		if ( $is_locked ) {
+			$config = Roles::get_site_context_config();
+			echo '<p><strong>' . esc_html( $config['label'] ) . '</strong></p>';
+			echo '<p class="description">' . esc_html__( 'Site context is locked via FRS_SITE_CONTEXT constant in wp-config.php', 'frs-users' ) . '</p>';
+			return;
+		}
+
+		echo '<select name="frs_site_context" id="frs_site_context">';
+		foreach ( $contexts as $slug => $config ) {
+			printf(
+				'<option value="%s" %s>%s</option>',
+				esc_attr( $slug ),
+				selected( $current_context, $slug, false ),
+				esc_html( $config['label'] )
+			);
+		}
+		echo '</select>';
+
+		$config = Roles::get_site_context_config( $current_context );
+		echo '<p class="description">' . esc_html( $config['description'] ) . '</p>';
+
+		// Show what roles are active.
+		$active_roles = Roles::get_active_company_roles();
+		echo '<p class="description"><strong>' . esc_html__( 'Active company roles:', 'frs-users' ) . '</strong> ';
+		echo esc_html( implode( ', ', $active_roles ) );
+		echo '</p>';
+
+		// Show editing status.
+		$editing_status = Roles::is_profile_editing_enabled()
+			? __( 'Enabled', 'frs-users' )
+			: __( 'Disabled (read-only)', 'frs-users' );
+		echo '<p class="description"><strong>' . esc_html__( 'Profile editing:', 'frs-users' ) . '</strong> ';
+		echo esc_html( $editing_status );
+		echo '</p>';
 	}
 
 	/**
@@ -209,11 +276,15 @@ class ProfilesAdminPage {
 			'frs-profiles-admin',
 			'frsProfilesAdmin',
 			array(
-				'apiUrl'         => rest_url( 'frs-users/v1' ),
-				'nonce'          => wp_create_nonce( 'wp_rest' ),
-				'roles'          => $this->get_frs_roles(),
-				'profileEditUrl' => admin_url( 'admin.php?page=frs-profile-edit&user_id=' ),
-				'addNewUrl'      => admin_url( 'admin.php?page=frs-profile-add' ),
+				'apiUrl'              => rest_url( 'frs-users/v1' ),
+				'nonce'               => wp_create_nonce( 'wp_rest' ),
+				'roles'               => $this->get_frs_roles(),
+				'profileEditUrl'      => admin_url( 'admin.php?page=frs-profile-edit&user_id=' ),
+				'addNewUrl'           => admin_url( 'admin.php?page=frs-profile-add' ),
+				'siteContext'         => Roles::get_site_context(),
+				'siteContextConfig'   => Roles::get_site_context_config(),
+				'activeCompanyRoles'  => Roles::get_active_company_roles(),
+				'isEditingEnabled'    => Roles::is_profile_editing_enabled(),
 			)
 		);
 	}
@@ -221,30 +292,11 @@ class ProfilesAdminPage {
 	/**
 	 * Get FRS roles configuration.
 	 *
+	 * Returns WordPress roles with URL prefixes for admin interface.
+	 *
 	 * @return array
 	 */
 	protected function get_frs_roles() {
-		return array(
-			'loan_officer' => array(
-				'label' => __( 'Loan Officer', 'frs-users' ),
-				'url_prefix' => 'lo',
-			),
-			'realtor_partner' => array(
-				'label' => __( 'Realtor Partner', 'frs-users' ),
-				'url_prefix' => 'agent',
-			),
-			'staff' => array(
-				'label' => __( 'Staff', 'frs-users' ),
-				'url_prefix' => 'staff',
-			),
-			'leadership' => array(
-				'label' => __( 'Leadership', 'frs-users' ),
-				'url_prefix' => 'leader',
-			),
-			'assistant' => array(
-				'label' => __( 'Assistant', 'frs-users' ),
-				'url_prefix' => 'staff',
-			),
-		);
+		return Roles::get_wp_roles_for_admin();
 	}
 }

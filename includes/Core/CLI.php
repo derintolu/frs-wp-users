@@ -43,6 +43,9 @@ class CLI {
 		\WP_CLI::add_command( 'frs-users generate-vcards', array( __CLASS__, 'generate_vcards' ) );
 		\WP_CLI::add_command( 'frs-users migrate-fields', array( __CLASS__, 'migrate_fields' ) );
 		\WP_CLI::add_command( 'frs-users cleanup-fields', array( __CLASS__, 'cleanup_fields' ) );
+		\WP_CLI::add_command( 'frs-users site-context', array( __CLASS__, 'site_context' ) );
+		\WP_CLI::add_command( 'frs-users sync-from-hub', array( __CLASS__, 'sync_from_hub' ) );
+		\WP_CLI::add_command( 'frs-users setup-sync', array( __CLASS__, 'setup_sync' ) );
 	}
 
 	/**
@@ -80,7 +83,7 @@ class CLI {
 	 * ## OPTIONS
 	 *
 	 * [--type=<type>]
-	 * : Filter by profile type (loan_officer, realtor_partner, staff, leadership, assistant)
+	 * : Filter by profile type (loan_officer, partner, staff, leadership, assistant)
 	 *
 	 * [--format=<format>]
 	 * : Output format (table, json, csv). Default: table
@@ -402,7 +405,7 @@ class CLI {
 	 * : Generate for a specific user ID only
 	 *
 	 * [--type=<type>]
-	 * : Profile type to generate for (loan_officer, realtor_partner, staff, leadership). Default: all active users
+	 * : Profile type to generate for (loan_officer, partner, staff, leadership). Default: all active users
 	 *
 	 * ## EXAMPLES
 	 *
@@ -456,7 +459,7 @@ class CLI {
 		// Filter by type
 		if ( $type ) {
 			$user_args['meta_query'][] = array(
-				'key'     => 'frs_select_person_type',
+				'key'     => 'frs_company_role',
 				'value'   => $type,
 				'compare' => '=',
 			);
@@ -1001,5 +1004,383 @@ class CLI {
 		} else {
 			\WP_CLI::success( 'Cleanup complete!' );
 		}
+	}
+
+	/**
+	 * Display current site context configuration
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp frs-users site-context
+	 *
+	 * @when after_wp_load
+	 */
+	public static function site_context( $args, $assoc_args ) {
+		$context = Roles::get_site_context();
+		$config  = Roles::get_site_context_config();
+		$locked  = Roles::is_context_locked();
+
+		\WP_CLI::log( '' );
+		\WP_CLI::log( '=== FRS Site Context ===' );
+		\WP_CLI::log( '' );
+		\WP_CLI::log( sprintf( 'Current Context:    %s', $context ) );
+		\WP_CLI::log( sprintf( 'Label:              %s', $config['label'] ) );
+		\WP_CLI::log( sprintf( 'Locked by constant: %s', $locked ? 'Yes (FRS_SITE_CONTEXT)' : 'No' ) );
+		\WP_CLI::log( sprintf( 'Profile Editing:    %s', $config['profile_editing'] ? 'Enabled' : 'Disabled (read-only)' ) );
+		\WP_CLI::log( '' );
+		\WP_CLI::log( 'Active Company Roles:' );
+		foreach ( $config['company_roles'] as $role ) {
+			\WP_CLI::log( sprintf( '  - %s', $role ) );
+		}
+		\WP_CLI::log( '' );
+		\WP_CLI::log( 'Active URL Prefixes:' );
+		foreach ( $config['url_prefixes'] as $prefix ) {
+			\WP_CLI::log( sprintf( '  - /%s/', $prefix ) );
+		}
+		\WP_CLI::log( '' );
+
+		// Show sync settings
+		$hub_url = get_option( 'frs_hub_url', '' );
+		$webhook_secret = get_option( 'frs_webhook_secret', '' );
+
+		\WP_CLI::log( '=== Sync Settings ===' );
+		\WP_CLI::log( '' );
+		\WP_CLI::log( sprintf( 'Hub URL:        %s', $hub_url ?: '(not configured)' ) );
+		\WP_CLI::log( sprintf( 'Webhook Secret: %s', $webhook_secret ? '****' . substr( $webhook_secret, -4 ) : '(not configured)' ) );
+		\WP_CLI::log( '' );
+	}
+
+	/**
+	 * Sync profiles from the hub site
+	 *
+	 * Pulls profile data from the hub's REST API and creates/updates local users.
+	 * Use this in development to sync data without webhooks.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--hub-url=<url>]
+	 * : Hub site URL. Uses saved option if not provided.
+	 *
+	 * [--type=<type>]
+	 * : Only sync profiles of this company role type.
+	 *
+	 * [--limit=<number>]
+	 * : Maximum profiles to sync. Default: all.
+	 *
+	 * [--dry-run]
+	 * : Preview changes without making them.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     # Sync all profiles from hub
+	 *     wp frs-users sync-from-hub --hub-url=https://myhub21.com
+	 *
+	 *     # Sync only loan originators
+	 *     wp frs-users sync-from-hub --type=loan_originator
+	 *
+	 *     # Preview what would be synced
+	 *     wp frs-users sync-from-hub --dry-run
+	 *
+	 * @when after_wp_load
+	 */
+	public static function sync_from_hub( $args, $assoc_args ) {
+		$hub_url = $assoc_args['hub-url'] ?? get_option( 'frs_hub_url', '' );
+		$type    = $assoc_args['type'] ?? '';
+		$limit   = isset( $assoc_args['limit'] ) ? intval( $assoc_args['limit'] ) : 0;
+		$dry_run = isset( $assoc_args['dry-run'] );
+
+		if ( empty( $hub_url ) ) {
+			\WP_CLI::error( 'Hub URL not configured. Use --hub-url or run: wp frs-users setup-sync' );
+		}
+
+		// Save hub URL for future use
+		if ( ! empty( $assoc_args['hub-url'] ) ) {
+			update_option( 'frs_hub_url', $hub_url );
+		}
+
+		if ( $dry_run ) {
+			\WP_CLI::log( '=== DRY RUN MODE ===' );
+		}
+
+		\WP_CLI::log( '' );
+		\WP_CLI::log( sprintf( 'Syncing profiles from: %s', $hub_url ) );
+		\WP_CLI::log( '' );
+
+		// Build API URL
+		$api_url = trailingslashit( $hub_url ) . 'wp-json/frs-users/v1/profiles';
+		$query_args = array( 'per_page' => 1000 );
+		if ( $type ) {
+			$query_args['type'] = $type;
+		}
+		$api_url = add_query_arg( $query_args, $api_url );
+
+		\WP_CLI::log( sprintf( 'Fetching from: %s', $api_url ) );
+
+		// Fetch profiles from hub
+		$response = wp_remote_get( $api_url, array(
+			'timeout' => 60,
+			'headers' => array(
+				'Accept' => 'application/json',
+			),
+		) );
+
+		if ( is_wp_error( $response ) ) {
+			\WP_CLI::error( sprintf( 'Failed to fetch from hub: %s', $response->get_error_message() ) );
+		}
+
+		$status_code = wp_remote_retrieve_response_code( $response );
+		if ( $status_code !== 200 ) {
+			\WP_CLI::error( sprintf( 'Hub returned HTTP %d', $status_code ) );
+		}
+
+		$body = wp_remote_retrieve_body( $response );
+		$data = json_decode( $body, true );
+
+		if ( ! isset( $data['data'] ) || ! is_array( $data['data'] ) ) {
+			\WP_CLI::error( 'Invalid response from hub API' );
+		}
+
+		$profiles = $data['data'];
+		$total    = count( $profiles );
+
+		if ( $limit > 0 && $total > $limit ) {
+			$profiles = array_slice( $profiles, 0, $limit );
+			$total    = count( $profiles );
+		}
+
+		\WP_CLI::log( sprintf( 'Found %d profiles to sync', $total ) );
+		\WP_CLI::log( '' );
+
+		if ( $total === 0 ) {
+			\WP_CLI::success( 'No profiles to sync.' );
+			return;
+		}
+
+		$created  = 0;
+		$updated  = 0;
+		$skipped  = 0;
+		$errors   = 0;
+
+		$progress = \WP_CLI\Utils\make_progress_bar( 'Syncing profiles', $total );
+
+		foreach ( $profiles as $profile ) {
+			$result = self::sync_single_profile( $profile, $dry_run );
+
+			switch ( $result ) {
+				case 'created':
+					$created++;
+					break;
+				case 'updated':
+					$updated++;
+					break;
+				case 'skipped':
+					$skipped++;
+					break;
+				case 'error':
+					$errors++;
+					break;
+			}
+
+			$progress->tick();
+		}
+
+		$progress->finish();
+
+		\WP_CLI::log( '' );
+		\WP_CLI::log( '=== SYNC RESULTS ===' );
+		\WP_CLI::log( sprintf( 'Created: %d', $created ) );
+		\WP_CLI::log( sprintf( 'Updated: %d', $updated ) );
+		\WP_CLI::log( sprintf( 'Skipped: %d', $skipped ) );
+		\WP_CLI::log( sprintf( 'Errors:  %d', $errors ) );
+		\WP_CLI::log( '' );
+
+		if ( $dry_run ) {
+			\WP_CLI::log( 'This was a dry run. Run without --dry-run to apply changes.' );
+		} else {
+			\WP_CLI::success( 'Sync complete!' );
+		}
+	}
+
+	/**
+	 * Sync a single profile from hub data
+	 *
+	 * @param array $profile Profile data from hub API.
+	 * @param bool  $dry_run Whether this is a dry run.
+	 * @return string Result: 'created', 'updated', 'skipped', or 'error'.
+	 */
+	private static function sync_single_profile( array $profile, bool $dry_run ): string {
+		$email = $profile['email'] ?? '';
+
+		if ( empty( $email ) ) {
+			return 'skipped';
+		}
+
+		// Check if user exists by email
+		$existing_user = get_user_by( 'email', $email );
+
+		if ( $dry_run ) {
+			return $existing_user ? 'updated' : 'created';
+		}
+
+		// Prepare user data
+		$first_name   = $profile['first_name'] ?? '';
+		$last_name    = $profile['last_name'] ?? '';
+		$display_name = $profile['display_name'] ?? trim( $first_name . ' ' . $last_name );
+
+		if ( $existing_user ) {
+			// Update existing user
+			$user_id = $existing_user->ID;
+
+			wp_update_user( array(
+				'ID'           => $user_id,
+				'first_name'   => $first_name,
+				'last_name'    => $last_name,
+				'display_name' => $display_name,
+			) );
+
+			$result = 'updated';
+		} else {
+			// Create new user
+			$username = sanitize_user( strtolower( $first_name . '.' . $last_name ) );
+			$username = str_replace( ' ', '', $username );
+
+			if ( username_exists( $username ) ) {
+				$username .= wp_rand( 1, 999 );
+			}
+
+			$user_id = wp_insert_user( array(
+				'user_login'   => $username,
+				'user_email'   => $email,
+				'first_name'   => $first_name,
+				'last_name'    => $last_name,
+				'display_name' => $display_name,
+				'user_pass'    => wp_generate_password(),
+				'role'         => 'subscriber',
+			) );
+
+			if ( is_wp_error( $user_id ) ) {
+				return 'error';
+			}
+
+			$result = 'created';
+		}
+
+		// Sync FRS meta fields
+		$meta_fields = array(
+			'phone_number',
+			'mobile_number',
+			'job_title',
+			'nmls',
+			'dre_license',
+			'biography',
+			'city_state',
+			'region',
+			'office',
+			'linkedin_url',
+			'facebook_url',
+			'instagram_url',
+			'twitter_url',
+			'youtube_url',
+			'tiktok_url',
+			'is_active',
+			'select_person_type',
+			'profile_slug',
+			'arrive',
+			'service_areas',
+			'specialties',
+			'languages',
+			'company_roles',
+		);
+
+		foreach ( $meta_fields as $field ) {
+			if ( isset( $profile[ $field ] ) ) {
+				$value = $profile[ $field ];
+
+				// Handle arrays
+				if ( is_array( $value ) ) {
+					$value = $value;
+				}
+
+				update_user_meta( $user_id, 'frs_' . $field, $value );
+			}
+		}
+
+		// Set WordPress role based on company role
+		if ( ! empty( $profile['select_person_type'] ) ) {
+			$wp_role = Roles::get_wp_role_for_company_role( $profile['select_person_type'] );
+			if ( $wp_role ) {
+				$user = new \WP_User( $user_id );
+				$user->set_role( $wp_role );
+			}
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Configure sync settings for this site
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--hub-url=<url>]
+	 * : Set the hub URL to sync from.
+	 *
+	 * [--webhook-secret=<secret>]
+	 * : Set the webhook secret for authentication.
+	 *
+	 * [--generate-secret]
+	 * : Generate a new webhook secret.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     # Configure hub URL
+	 *     wp frs-users setup-sync --hub-url=https://myhub21.com
+	 *
+	 *     # Generate webhook secret
+	 *     wp frs-users setup-sync --generate-secret
+	 *
+	 *     # Full setup
+	 *     wp frs-users setup-sync --hub-url=https://myhub21.com --generate-secret
+	 *
+	 * @when after_wp_load
+	 */
+	public static function setup_sync( $args, $assoc_args ) {
+		\WP_CLI::log( '' );
+		\WP_CLI::log( '=== FRS Sync Setup ===' );
+		\WP_CLI::log( '' );
+
+		// Hub URL
+		if ( isset( $assoc_args['hub-url'] ) ) {
+			$hub_url = esc_url_raw( $assoc_args['hub-url'] );
+			update_option( 'frs_hub_url', $hub_url );
+			\WP_CLI::success( sprintf( 'Hub URL set to: %s', $hub_url ) );
+		}
+
+		// Webhook secret
+		if ( isset( $assoc_args['generate-secret'] ) ) {
+			$secret = wp_generate_password( 32, false );
+			update_option( 'frs_webhook_secret', $secret );
+			\WP_CLI::success( 'Generated new webhook secret.' );
+			\WP_CLI::log( '' );
+			\WP_CLI::log( 'Add this secret to your hub site\'s webhook configuration:' );
+			\WP_CLI::log( sprintf( '  Secret: %s', $secret ) );
+			\WP_CLI::log( '' );
+		} elseif ( isset( $assoc_args['webhook-secret'] ) ) {
+			$secret = sanitize_text_field( $assoc_args['webhook-secret'] );
+			update_option( 'frs_webhook_secret', $secret );
+			\WP_CLI::success( 'Webhook secret saved.' );
+		}
+
+		// Show current settings
+		\WP_CLI::log( '' );
+		\WP_CLI::log( 'Current Settings:' );
+		\WP_CLI::log( sprintf( '  Hub URL:        %s', get_option( 'frs_hub_url', '(not set)' ) ) );
+		\WP_CLI::log( sprintf( '  Webhook Secret: %s', get_option( 'frs_webhook_secret' ) ? '(configured)' : '(not set)' ) );
+		\WP_CLI::log( '' );
+
+		// Show webhook endpoint for this site
+		\WP_CLI::log( 'Webhook Endpoint (for hub to send updates to this site):' );
+		\WP_CLI::log( sprintf( '  %s', rest_url( 'frs-users/v1/webhook/profile-updated' ) ) );
+		\WP_CLI::log( '' );
 	}
 }

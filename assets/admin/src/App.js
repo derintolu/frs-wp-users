@@ -10,11 +10,19 @@ import { Button, Spinner, ToggleControl } from '@wordpress/components';
 import { DataViews } from '@wordpress/dataviews';
 import ProfileDetail from './ProfileDetail';
 
-const ROLE_LABELS = {
+/**
+ * FRS Company Role Labels
+ *
+ * These are company roles (directory categorization), NOT WordPress roles.
+ * Company roles determine where users appear in directories.
+ */
+const COMPANY_ROLE_LABELS = {
+	loan_originator: __('Loan Originator', 'frs-users'),
 	broker_associate: __('Broker Associate', 'frs-users'),
 	sales_associate: __('Sales Associate', 'frs-users'),
-	dual_license: __('Dual License', 'frs-users'),
-	loan_originator: __('Loan Originator', 'frs-users'),
+	escrow_officer: __('Escrow Officer', 'frs-users'),
+	property_manager: __('Property Manager', 'frs-users'),
+	partner: __('Partner', 'frs-users'),
 	leadership: __('Leadership', 'frs-users'),
 	staff: __('Staff', 'frs-users'),
 };
@@ -109,15 +117,15 @@ function App() {
 			{
 				id: 'role',
 				header: __('Role', 'frs-users'),
-				getValue: ({ item }) => ROLE_LABELS[item.select_person_type] || item.select_person_type,
+				getValue: ({ item }) => COMPANY_ROLE_LABELS[item.select_person_type] || item.select_person_type,
 				render: ({ item }) => {
-					const roleLabel = ROLE_LABELS[item.select_person_type] || item.select_person_type;
+					const roleLabel = COMPANY_ROLE_LABELS[item.select_person_type] || item.select_person_type;
 					if (!roleLabel) return <span className="frs-empty">—</span>;
 					return <span className="frs-role-badge frs-role-badge--small">{roleLabel}</span>;
 				},
-				elements: Object.keys(ROLE_LABELS).map((role) => ({
+				elements: Object.keys(COMPANY_ROLE_LABELS).map((role) => ({
 					value: role,
-					label: ROLE_LABELS[role],
+					label: COMPANY_ROLE_LABELS[role],
 				})),
 				filterBy: {
 					operators: ['isAny'],
@@ -173,10 +181,25 @@ function App() {
 				getValue: ({ item }) => (item.is_active ? __('Active', 'frs-users') : __('Inactive', 'frs-users')),
 				render: ({ item }) => {
 					const statusClass = item.is_active ? 'frs-status-badge--active' : 'frs-status-badge--inactive';
+					const role = window.frsProfilesAdmin.roles[item.select_person_type];
+					const slug = item.profile_slug || item.user_nicename;
+					const prefix = role ? role.url_prefix : 'lo';
+					const profileUrl = `/${prefix}/${slug}/`;
 					return (
-						<span className={`frs-status-badge frs-status-badge--small ${statusClass}`}>
-							{item.is_active ? __('Active', 'frs-users') : __('Inactive', 'frs-users')}
-						</span>
+						<div className="frs-status-cell">
+							<span className={`frs-status-badge frs-status-badge--small ${statusClass}`}>
+								{item.is_active ? __('Active', 'frs-users') : __('Inactive', 'frs-users')}
+							</span>
+							<Button
+								variant="secondary"
+								size="small"
+								href={profileUrl}
+								target="_blank"
+								className="frs-view-profile-btn"
+							>
+								{__('View', 'frs-users')}
+							</Button>
+						</div>
 					);
 				},
 				elements: [

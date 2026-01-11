@@ -12,6 +12,7 @@
 namespace FRSUsers\Controllers\Profiles;
 
 use FRSUsers\Models\Profile;
+use FRSUsers\Core\Roles;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_Error;
@@ -37,38 +38,53 @@ class Actions {
 		$page        = $request->get_param( 'page' ) ?: 1;
 		$guests_only = $request->get_param( 'guests_only' );
 
+		// Get active company roles for current site context.
+		$active_company_roles = Roles::get_active_company_role_slugs();
+
 		// Use WordPress-native query
 		$wp_args = array(
-			'role__in' => array(
-				'loan_originator',
-				'broker_associate',
-				'sales_associate',
-				'dual_license',
-				'leadership',
-				'staff',
-				// Legacy roles for backwards compatibility
-				'loan_officer',
-				'realtor_partner',
-				'assistant',
-			),
+			'role__in' => Roles::get_wp_role_slugs(),
 			'orderby'  => 'meta_value',
 			'meta_key' => 'first_name',
 			'order'    => 'ASC',
 			'number'   => -1, // Get all, we'll paginate after filtering admins
 		);
 
-		// Filter by type (role) - with legacy mapping
+		// Filter by type (person type stored in user meta)
+		// If type is provided, validate it's in active roles for this site.
 		if ( $type ) {
-			// Map legacy type names to current roles
-			$type_mapping = array(
-				'loan_officer' => array( 'loan_officer', 'loan_originator' ),
-				'realtor'      => array( 'realtor_partner', 'broker_associate' ),
+			// Only allow filtering by types active for this site context.
+			if ( ! in_array( $type, $active_company_roles, true ) ) {
+				return new WP_REST_Response(
+					array(
+						'success' => true,
+						'data'    => array(),
+						'total'   => 0,
+						'page'    => $page,
+						'per_page' => $limit,
+						'pages'   => 0,
+					),
+					200
+				);
+			}
+			$wp_args['meta_query'] = array(
+				array(
+					'key'   => 'frs_company_role',
+					'value' => $type,
+				),
 			);
-
-			if ( isset( $type_mapping[ $type ] ) ) {
-				$wp_args['role__in'] = $type_mapping[ $type ];
-			} else {
-				$wp_args['role__in'] = array( $type );
+		} else {
+			// No specific type requested - filter by ALL active company roles for this site.
+			// This ensures marketing sites only show their configured roles.
+			$wp_args['meta_query'] = array(
+				'relation' => 'OR',
+			);
+			foreach ( $active_company_roles as $role ) {
+				$wp_args['meta_query'][] = array(
+					'key'     => 'frs_company_role',
+					'value'   => $role,
+					'compare' => '=',
+				);
 			}
 		}
 
@@ -861,16 +877,30 @@ class Actions {
 	}
 
 	/**
-	 * Get all unique service areas from loan officer profiles
+	 * Get all unique service areas from profiles active for this site context
 	 *
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response
 	 */
 	public function get_service_areas( WP_REST_Request $request ) {
-		// Use WordPress-native query to get loan officers
+		// Get active company roles for current site context.
+		$active_company_roles = Roles::get_active_company_role_slugs();
+
+		// Build meta query to get users with active company roles.
+		$meta_query = array( 'relation' => 'OR' );
+		foreach ( $active_company_roles as $role ) {
+			$meta_query[] = array(
+				'key'     => 'frs_company_role',
+				'value'   => $role,
+				'compare' => '=',
+			);
+		}
+
+		// Use WordPress-native query to get users with active company roles.
 		$users = get_users( array(
-			'role'   => 'loan_officer',
-			'number' => -1,
+			'role__in'   => Roles::get_wp_role_slugs(),
+			'meta_query' => $meta_query,
+			'number'     => -1,
 		) );
 
 		// Convert to Profile objects and collect service areas
@@ -900,9 +930,18 @@ class Actions {
 	 * Permission callback for write operations
 	 *
 	 * @param WP_REST_Request $request Request object.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function check_write_permissions( $request = null ) {
+		// Check if profile editing is enabled for this site context.
+		if ( ! Roles::is_profile_editing_enabled() ) {
+			return new WP_Error(
+				'editing_disabled',
+				__( 'Profile editing is disabled for this site. Profiles can only be edited on the hub.', 'frs-users' ),
+				array( 'status' => 403 )
+			);
+		}
+
 		// Administrators can edit any profile
 		if ( current_user_can( 'edit_users' ) ) {
 			return true;

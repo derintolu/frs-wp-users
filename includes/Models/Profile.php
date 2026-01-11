@@ -295,15 +295,30 @@ class Profile extends Model {
 	 */
 	protected static function get_all_from_wp_users( $args = array() ) {
 		$wp_args = array(
-			'role__in' => array( 'loan_officer', 'realtor_partner', 'staff', 'leadership', 'assistant' ),
+			'role__in' => array(
+				'loan_officer',
+				're_agent',
+				'escrow_officer',
+				'property_manager',
+				'dual_license',
+				'partner',
+				'staff',
+				'leadership',
+				'assistant',
+			),
 			'orderby'  => 'meta_value',
 			'meta_key' => 'first_name',
 			'order'    => 'ASC',
 		);
 
-		// Handle type filter (map old type to role)
+		// Handle type filter (filter by frs_company_role meta)
 		if ( ! empty( $args['type'] ) ) {
-			$wp_args['role__in'] = array( $args['type'] );
+			$wp_args['meta_query'] = array(
+				array(
+					'key'   => 'frs_company_role',
+					'value' => $args['type'],
+				),
+			);
 		}
 
 		// Pagination
@@ -619,8 +634,9 @@ class Profile extends Model {
 		// Add computed attributes
 		$array['full_name'] = $this->full_name;
 		$array['headshot_url'] = $this->headshot_url;
-		$array['avatar_url'] = $this->get_avatar_url( 96 );
+		$array['avatar_url'] = $this->get_avatar_url( 512 );
 		$array['is_guest'] = $this->is_guest();
+		$array['company_roles'] = $this->company_roles ?? array();
 
 		// Add user_nicename for profile URL building
 		if ( $this->user_id ) {
@@ -832,27 +848,34 @@ class Profile extends Model {
 		$profile->created_at = $user->user_registered;
 		$profile->updated_at = get_user_meta( $user->ID, 'frs_updated_at', true ) ?: $user->user_registered;
 
-		// Determine person type - check frs_select_person_type first, then fall back to WP role
-		$stored_type = get_user_meta( $user->ID, 'frs_select_person_type', true );
-		if ( ! empty( $stored_type ) ) {
-			$profile->select_person_type = $stored_type;
+		// Get company roles (supports multiple values)
+		$company_roles = get_user_meta( $user->ID, 'frs_company_role', false );
+		$profile->company_roles = ! empty( $company_roles ) ? $company_roles : array();
+
+		// For backwards compatibility, select_person_type is the first company role
+		if ( ! empty( $company_roles ) ) {
+			$profile->select_person_type = $company_roles[0];
 		} else {
 			// Fall back to WordPress role mapping
 			$roles = $user->roles ?? array();
-			if ( in_array( 'loan_originator', $roles, true ) || in_array( 'loan_officer', $roles, true ) ) {
+			if ( in_array( 'loan_officer', $roles, true ) ) {
 				$profile->select_person_type = 'loan_originator';
+				$profile->company_roles = array( 'loan_originator' );
 			} elseif ( in_array( 'broker_associate', $roles, true ) ) {
 				$profile->select_person_type = 'broker_associate';
+				$profile->company_roles = array( 'broker_associate' );
 			} elseif ( in_array( 'sales_associate', $roles, true ) ) {
 				$profile->select_person_type = 'sales_associate';
-			} elseif ( in_array( 'realtor_partner', $roles, true ) ) {
-				$profile->select_person_type = 'broker_associate'; // Map legacy to broker
+				$profile->company_roles = array( 'sales_associate' );
 			} elseif ( in_array( 'dual_license', $roles, true ) ) {
 				$profile->select_person_type = 'dual_license';
+				$profile->company_roles = array( 'dual_license' );
 			} elseif ( in_array( 'leadership', $roles, true ) ) {
 				$profile->select_person_type = 'leadership';
+				$profile->company_roles = array( 'leadership' );
 			} elseif ( in_array( 'staff', $roles, true ) || in_array( 'assistant', $roles, true ) ) {
 				$profile->select_person_type = 'staff';
+				$profile->company_roles = array( 'staff' );
 			}
 		}
 

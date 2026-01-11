@@ -100,6 +100,9 @@ final class FRSUsers {
 		// Initialize FluentCRM real-time sync integration
 		FluentCRMSync::get_instance()->init();
 
+		// Initialize profile sync between hub and marketing sites
+		\FRSUsers\Core\ProfileSync::init();
+
 		// Initialize Arrive URL auto-population for loan officers
 		\FRSUsers\Integrations\ArriveAutoPopulate::init();
 

@@ -16,16 +16,23 @@ namespace FRSUsers\Core;
 class TemplateLoader {
 
     /**
-     * Role to URL prefix mapping
+     * WordPress role to URL prefix mapping
+     *
+     * Maps WP roles to their public URL prefixes.
+     * Partner has null because they don't have public URLs.
      *
      * @var array
      */
     private $role_urls = [
-        'loan_officer' => 'lo',
-        'realtor_partner' => 'agent',
-        'staff' => 'staff',
-        'leadership' => 'leader',
-        'assistant' => 'staff', // Assistants use staff URL
+        'loan_officer'     => 'lo',
+        're_agent'         => 'agent',
+        'escrow_officer'   => 'escrow',
+        'property_manager' => 'pm',
+        'dual_license'     => 'lo',     // Default to LO, context can override.
+        'partner'          => null,     // No public URL.
+        'staff'            => 'staff',
+        'leadership'       => 'leader',
+        'assistant'        => 'staff',
     ];
 
     /**
@@ -87,11 +94,11 @@ class TemplateLoader {
             return $link;
         }
 
-        // Check if user has FRS role
-        foreach ($this->role_urls as $role => $url_prefix) {
-            if (in_array($role, $user->roles)) {
-                return str_replace('/author/', "/{$url_prefix}/", $link);
-            }
+        // Check user's FRS person type (stored in user meta)
+        $person_type = get_user_meta($author_id, 'frs_company_role', true);
+        if ($person_type && isset($this->role_urls[$person_type])) {
+            $url_prefix = $this->role_urls[$person_type];
+            return str_replace('/author/', "/{$url_prefix}/", $link);
         }
 
         return $link;

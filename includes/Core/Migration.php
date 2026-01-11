@@ -125,21 +125,23 @@ class Migration {
 		'_headshot' => 'frs_headshot_id',
 
 		// Profile type
-		'select_person_type' => 'frs_select_person_type',
+		'select_person_type' => 'frs_company_role',
 	);
 
 	/**
-	 * WordPress role to profile type mapping
+	 * WordPress role to default company role mapping
+	 *
+	 * Maps WP roles (capabilities) to default FRS company roles (directory categorization).
 	 *
 	 * @var array
 	 */
 	private static $role_to_type = array(
-		'loan_officer'    => 'loan_originator',
-		'loan_originator' => 'loan_originator',
-		'realtor_partner' => 'broker_associate', // Default real estate to broker
-		'broker_associate' => 'broker_associate',
-		'sales_associate'  => 'sales_associate',
-		'dual_license'     => 'dual_license',
+		'loan_officer'     => 'loan_originator',
+		're_agent'         => 'broker_associate',
+		'escrow_officer'   => 'escrow_officer',
+		'property_manager' => 'property_manager',
+		'dual_license'     => 'loan_originator', // Default to LO, can have multiple.
+		'partner'          => 'partner',
 		'leadership'       => 'leadership',
 		'staff'            => 'staff',
 		'assistant'        => 'staff',
@@ -193,7 +195,7 @@ class Migration {
 				$results['roles_updated']++;
 			}
 
-			// 3. Set frs_select_person_type from WordPress role
+			// 3. Set frs_company_role from WordPress role
 			$type_set = self::set_person_type_from_role( $user_id, $dry_run );
 			if ( $type_set ) {
 				$results['types_set']++;
@@ -272,7 +274,7 @@ class Migration {
 	}
 
 	/**
-	 * Set frs_select_person_type based on WordPress role
+	 * Set frs_company_role based on WordPress role
 	 *
 	 * @param int  $user_id User ID.
 	 * @param bool $dry_run Dry run mode.
@@ -280,7 +282,7 @@ class Migration {
 	 */
 	private static function set_person_type_from_role( $user_id, $dry_run ) {
 		// Check if already set
-		$current_type = get_user_meta( $user_id, 'frs_select_person_type', true );
+		$current_type = get_user_meta( $user_id, 'frs_company_role', true );
 		if ( ! empty( $current_type ) ) {
 			return false;
 		}
@@ -303,7 +305,7 @@ class Migration {
 
 		if ( $profile_type ) {
 			if ( ! $dry_run ) {
-				update_user_meta( $user_id, 'frs_select_person_type', $profile_type );
+				update_user_meta( $user_id, 'frs_company_role', $profile_type );
 			}
 			return true;
 		}
@@ -374,28 +376,25 @@ class Migration {
 	}
 
 	/**
-	 * Register the loan_originator role if it doesn't exist
+	 * Register WordPress roles for FRS users.
+	 *
+	 * These are WordPress roles (capabilities), NOT company roles (directory categorization).
 	 */
 	public static function register_roles() {
-		// Add loan_originator role if it doesn't exist
-		if ( ! get_role( 'loan_originator' ) ) {
-			add_role(
-				'loan_originator',
-				__( 'Loan Originator', 'frs-users' ),
-				array(
-					'read' => true,
-				)
-			);
-		}
-
-		// Add other new roles
-		$new_roles = array(
-			'broker_associate' => __( 'Broker Associate', 'frs-users' ),
-			'sales_associate'  => __( 'Sales Associate', 'frs-users' ),
+		// All WordPress roles that need to be registered.
+		$wp_roles = array(
+			'loan_officer'     => __( 'Loan Officer', 'frs-users' ),
+			're_agent'         => __( 'Real Estate Agent', 'frs-users' ),
+			'escrow_officer'   => __( 'Escrow Officer', 'frs-users' ),
+			'property_manager' => __( 'Property Manager', 'frs-users' ),
 			'dual_license'     => __( 'Dual License', 'frs-users' ),
+			'partner'          => __( 'Partner', 'frs-users' ),
+			'staff'            => __( 'Staff', 'frs-users' ),
+			'leadership'       => __( 'Leadership', 'frs-users' ),
+			'assistant'        => __( 'Assistant', 'frs-users' ),
 		);
 
-		foreach ( $new_roles as $role_slug => $role_name ) {
+		foreach ( $wp_roles as $role_slug => $role_name ) {
 			if ( ! get_role( $role_slug ) ) {
 				add_role( $role_slug, $role_name, array( 'read' => true ) );
 			}

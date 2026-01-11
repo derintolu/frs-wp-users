@@ -10,6 +10,7 @@
 
 namespace FRSUsers\Admin;
 
+use FRSUsers\Core\Roles;
 use FRSUsers\Traits\Base;
 
 /**
@@ -122,14 +123,7 @@ class ProfileAddPage {
 	 * @return array
 	 */
 	protected function get_frs_roles() {
-		return array(
-			'broker_associate' => __( 'Broker Associate', 'frs-users' ),
-			'sales_associate'  => __( 'Sales Associate', 'frs-users' ),
-			'dual_license'     => __( 'Dual License', 'frs-users' ),
-			'loan_originator'  => __( 'Loan Originator', 'frs-users' ),
-			'leadership'       => __( 'Leadership', 'frs-users' ),
-			'staff'            => __( 'Staff', 'frs-users' ),
-		);
+		return Roles::get_company_roles();
 	}
 
 	/**

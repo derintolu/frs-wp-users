@@ -457,7 +457,7 @@ class UserProfile {
     }
 
     public function is_realtor(): bool {
-        return $this->has_role('realtor_partner');
+        return $this->has_role('partner');
     }
 
     public function is_staff(): bool {
@@ -476,7 +476,7 @@ class UserProfile {
         $roles = $this->get_roles();
         $type_map = [
             'loan_officer' => 'loan_officer',
-            'realtor_partner' => 'realtor_partner',
+            'partner' => 'partner',
             'staff' => 'staff',
             'leadership' => 'leadership',
             'assistant' => 'assistant',
@@ -608,7 +608,17 @@ class UserProfile {
      */
     public static function get_all(array $args = []): array {
         $defaults = [
-            'role__in' => ['loan_officer', 'realtor_partner', 'staff', 'leadership', 'assistant'],
+            'role__in' => [
+                'loan_officer',
+                're_agent',
+                'escrow_officer',
+                'property_manager',
+                'dual_license',
+                'partner',
+                'staff',
+                'leadership',
+                'assistant',
+            ],
             'number' => -1,
             'orderby' => 'display_name',
             'order' => 'ASC',

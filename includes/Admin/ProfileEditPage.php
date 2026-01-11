@@ -10,6 +10,7 @@
 
 namespace FRSUsers\Admin;
 
+use FRSUsers\Core\Roles;
 use FRSUsers\Traits\Base;
 use FRSUsers\Models\Profile;
 
@@ -198,13 +199,7 @@ class ProfileEditPage {
 	 * @return array
 	 */
 	protected function get_frs_roles() {
-		return array(
-			'loan_officer' => __( 'Loan Officer', 'frs-users' ),
-			'realtor_partner' => __( 'Realtor Partner', 'frs-users' ),
-			'staff' => __( 'Staff', 'frs-users' ),
-			'leadership' => __( 'Leadership', 'frs-users' ),
-			'assistant' => __( 'Assistant', 'frs-users' ),
-		);
+		return Roles::get_wp_roles_for_dropdown();
 	}
 
 	/**

@@ -43,6 +43,7 @@ class ProfilesAdminPage {
 	 */
 	public function register_settings() {
 		register_setting( 'frs_profiles_settings', 'frs_site_context' );
+		register_setting( 'frs_profiles_settings', 'frs_hub_site_url' );
 		register_setting( 'frs_profiles_settings', 'frs_lending_site_url' );
 		register_setting( 'frs_profiles_settings', 'frs_realestate_site_url' );
 		register_setting( 'frs_profiles_settings', 'frs_directory_headline' );
@@ -86,6 +87,18 @@ class ProfilesAdminPage {
 				$value = get_option( 'frs_realestate_site_url', '' );
 				echo '<input type="url" name="frs_realestate_site_url" value="' . esc_attr( $value ) . '" class="regular-text" placeholder="https://c21masters.com">';
 				echo '<p class="description">' . esc_html__( 'URL for real estate agent profiles (broker_associate, sales_associate roles).', 'frs-users' ) . '</p>';
+			},
+			'frs_profiles_settings',
+			'frs_site_context_section'
+		);
+
+		add_settings_field(
+			'frs_hub_site_url',
+			__( 'Hub Site URL', 'frs-users' ),
+			function() {
+				$value = get_option( 'frs_hub_site_url', '' );
+				echo '<input type="url" name="frs_hub_site_url" value="' . esc_attr( $value ) . '" class="regular-text" placeholder="https://myhub21.com">';
+				echo '<p class="description">' . esc_html__( 'URL for internal hub site (myhub21.com). Used for "View on Hub" links.', 'frs-users' ) . '</p>';
 			},
 			'frs_profiles_settings',
 			'frs_site_context_section'
@@ -297,10 +310,11 @@ class ProfilesAdminPage {
 			$asset['version']
 		);
 
-		// Get marketing site URLs (fallback to current site)
-		$lending_site_url = get_option( 'frs_lending_site_url', '' );
+		// Get site URLs
+		$hub_site_url        = get_option( 'frs_hub_site_url', '' );
+		$lending_site_url    = get_option( 'frs_lending_site_url', '' );
 		$realestate_site_url = get_option( 'frs_realestate_site_url', '' );
-		$local_site_url = home_url();
+		$local_site_url      = home_url();
 
 		// Localize script with data
 		wp_localize_script(
@@ -316,6 +330,7 @@ class ProfilesAdminPage {
 				'siteContextConfig'   => Roles::get_site_context_config(),
 				'activeCompanyRoles'  => Roles::get_active_company_roles(),
 				'isEditingEnabled'    => Roles::is_profile_editing_enabled(),
+				'hubSiteUrl'          => $hub_site_url ? trailingslashit( $hub_site_url ) : '',
 				'lendingSiteUrl'      => $lending_site_url ? trailingslashit( $lending_site_url ) : '',
 				'realestateSiteUrl'   => $realestate_site_url ? trailingslashit( $realestate_site_url ) : '',
 				'localSiteUrl'        => trailingslashit( $local_site_url ),

@@ -153,10 +153,23 @@ function ProfileDetail({ profile: initialProfile, roles, editUrl, onClose, onSav
 	const slug = profile.profile_slug || profile.user_nicename;
 	const companyRole = profile.select_person_type || '';
 	const isRealEstateRole = ['broker_associate', 'sales_associate'].includes(companyRole);
-	const siteUrl = isRealEstateRole
-		? (window.frsProfilesAdmin?.realestateSiteUrl || window.frsProfilesAdmin?.localSiteUrl || '')
-		: (window.frsProfilesAdmin?.lendingSiteUrl || window.frsProfilesAdmin?.localSiteUrl || '');
-	const profileUrl = role && siteUrl ? `${siteUrl}${role.url_prefix}/${slug}/` : null;
+	const urlPrefix = role?.url_prefix || 'lo';
+
+	// Get site URLs
+	const hubSiteUrl = window.frsProfilesAdmin?.hubSiteUrl;
+	const marketingSiteUrl = isRealEstateRole
+		? window.frsProfilesAdmin?.realestateSiteUrl
+		: window.frsProfilesAdmin?.lendingSiteUrl;
+	const localSiteUrl = window.frsProfilesAdmin?.localSiteUrl;
+
+	// Build profile URLs
+	const hubUrl = hubSiteUrl && slug ? `${hubSiteUrl}${urlPrefix}/${slug}/` : null;
+	const marketingUrl = marketingSiteUrl && slug ? `${marketingSiteUrl}${urlPrefix}/${slug}/` : null;
+	const localUrl = localSiteUrl && slug ? `${localSiteUrl}${urlPrefix}/${slug}/` : null;
+
+	// Determine which buttons to show
+	const hasHub = !!hubSiteUrl;
+	const hasMarketing = !!marketingSiteUrl && marketingSiteUrl !== hubSiteUrl;
 
 	return (
 		<div className="frs-profile-detail">
@@ -181,11 +194,33 @@ function ProfileDetail({ profile: initialProfile, roles, editUrl, onClose, onSav
 					>
 						{__('Save', 'frs-users')}
 					</Button>
-					{profileUrl && (
+					{hasHub && hubUrl && (
 						<Button
 							variant="secondary"
 							icon={external}
-							href={profileUrl}
+							href={hubUrl}
+							target="_blank"
+							title={__('View on hub site', 'frs-users')}
+						>
+							{__('Hub', 'frs-users')}
+						</Button>
+					)}
+					{hasMarketing && marketingUrl && (
+						<Button
+							variant={hasHub ? 'tertiary' : 'secondary'}
+							icon={external}
+							href={marketingUrl}
+							target="_blank"
+							title={isRealEstateRole ? 'c21masters.com' : '21stcenturylending.com'}
+						>
+							{__('Public', 'frs-users')}
+						</Button>
+					)}
+					{!hasHub && !hasMarketing && localUrl && (
+						<Button
+							variant="secondary"
+							icon={external}
+							href={localUrl}
 							target="_blank"
 						>
 							{__('View', 'frs-users')}

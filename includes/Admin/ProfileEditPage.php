@@ -129,18 +129,29 @@ class ProfileEditPage {
 		// Get profile data
 		$profile = $this->get_profile_data( $user_id );
 
+		// Get site URLs
+		$hub_site_url        = get_option( 'frs_hub_site_url', '' );
+		$lending_site_url    = get_option( 'frs_lending_site_url', '' );
+		$realestate_site_url = get_option( 'frs_realestate_site_url', '' );
+		$local_site_url      = home_url();
+
 		// Localize script with data
 		wp_localize_script(
 			'frs-profile-edit',
 			'frsProfileEdit',
 			array(
-				'apiUrl'      => rest_url( 'frs-users/v1' ),
-				'nonce'       => wp_create_nonce( 'wp_rest' ),
-				'userId'      => $user_id,
-				'profile'     => $profile,
-				'roles'       => $this->get_frs_roles(),
-				'listUrl'     => admin_url( 'admin.php?page=frs-profiles' ),
-				'states'      => $this->get_us_states(),
+				'apiUrl'            => rest_url( 'frs-users/v1' ),
+				'nonce'             => wp_create_nonce( 'wp_rest' ),
+				'userId'            => $user_id,
+				'profile'           => $profile,
+				'roles'             => $this->get_frs_roles(),
+				'rolesWithPrefixes' => Roles::get_wp_roles_for_admin(),
+				'listUrl'           => admin_url( 'admin.php?page=frs-profiles' ),
+				'states'            => $this->get_us_states(),
+				'hubSiteUrl'        => $hub_site_url ? trailingslashit( $hub_site_url ) : '',
+				'lendingSiteUrl'    => $lending_site_url ? trailingslashit( $lending_site_url ) : '',
+				'realestateSiteUrl' => $realestate_site_url ? trailingslashit( $realestate_site_url ) : '',
+				'localSiteUrl'      => trailingslashit( $local_site_url ),
 			)
 		);
 	}
@@ -163,6 +174,7 @@ class ProfileEditPage {
 			'user_id'            => $user_id,
 			'email'              => $user->user_email,
 			'display_name'       => $user->display_name,
+			'user_nicename'      => $user->user_nicename,
 			'first_name'         => $profile->first_name,
 			'last_name'          => $profile->last_name,
 			'phone_number'       => $profile->phone_number,

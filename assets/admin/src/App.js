@@ -186,45 +186,53 @@ function App() {
 					const prefix = role ? role.url_prefix : 'lo';
 					const companyRole = item.select_person_type || '';
 
-					// Determine which marketing site based on company role
+					// Get site URLs
+					const hubSiteUrl = window.frsProfilesAdmin.hubSiteUrl;
 					const isRealEstateRole = ['broker_associate', 'sales_associate'].includes(companyRole);
 					const marketingSiteUrl = isRealEstateRole
 						? window.frsProfilesAdmin.realestateSiteUrl
 						: window.frsProfilesAdmin.lendingSiteUrl;
+					const localSiteUrl = window.frsProfilesAdmin.localSiteUrl;
 
-					const localUrl = `${window.frsProfilesAdmin.localSiteUrl}${prefix}/${slug}/`;
-					const marketingUrl = marketingSiteUrl ? `${marketingSiteUrl}${prefix}/${slug}/` : localUrl;
-					const hasMarketingSite = !!marketingSiteUrl && marketingSiteUrl !== window.frsProfilesAdmin.localSiteUrl;
+					// Build URLs
+					const hubUrl = hubSiteUrl ? `${hubSiteUrl}${prefix}/${slug}/` : null;
+					const marketingUrl = marketingSiteUrl ? `${marketingSiteUrl}${prefix}/${slug}/` : null;
+					const localUrl = `${localSiteUrl}${prefix}/${slug}/`;
+
+					// Determine which buttons to show
+					const hasHub = !!hubSiteUrl;
+					const hasMarketing = !!marketingSiteUrl && marketingSiteUrl !== hubSiteUrl;
 
 					return (
 						<div className="frs-status-cell">
 							<span className={`frs-status-badge frs-status-badge--small ${statusClass}`}>
 								{item.is_active ? __('Active', 'frs-users') : __('Inactive', 'frs-users')}
 							</span>
-							{hasMarketingSite ? (
-								<>
-									<Button
-										variant="secondary"
-										size="small"
-										href={marketingUrl}
-										target="_blank"
-										className="frs-view-profile-btn"
-										title={isRealEstateRole ? 'c21masters.com' : '21stcenturylending.com'}
-									>
-										{__('View', 'frs-users')}
-									</Button>
-									<Button
-										variant="tertiary"
-										size="small"
-										href={localUrl}
-										target="_blank"
-										className="frs-view-local-btn"
-										title={__('View on local site', 'frs-users')}
-									>
-										{__('Local', 'frs-users')}
-									</Button>
-								</>
-							) : (
+							{hasHub && (
+								<Button
+									variant="secondary"
+									size="small"
+									href={hubUrl}
+									target="_blank"
+									className="frs-view-profile-btn"
+									title={__('View on hub site', 'frs-users')}
+								>
+									{__('Hub', 'frs-users')}
+								</Button>
+							)}
+							{hasMarketing && (
+								<Button
+									variant={hasHub ? 'tertiary' : 'secondary'}
+									size="small"
+									href={marketingUrl}
+									target="_blank"
+									className="frs-view-profile-btn"
+									title={isRealEstateRole ? 'c21masters.com' : '21stcenturylending.com'}
+								>
+									{__('Public', 'frs-users')}
+								</Button>
+							)}
+							{!hasHub && !hasMarketing && (
 								<Button
 									variant="secondary"
 									size="small"

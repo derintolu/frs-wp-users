@@ -24,8 +24,20 @@ import {
 	BaseControl,
 	CheckboxControl,
 } from '@wordpress/components';
+import { external } from '@wordpress/icons';
 
-const { profile: initialProfile, roles, listUrl, states, userId } = window.frsProfileEdit;
+const {
+	profile: initialProfile,
+	roles,
+	rolesWithPrefixes,
+	listUrl,
+	states,
+	userId,
+	hubSiteUrl,
+	lendingSiteUrl,
+	realestateSiteUrl,
+	localSiteUrl,
+} = window.frsProfileEdit;
 
 function ProfileEdit() {
 	const [profile, setProfile] = useState(initialProfile);
@@ -416,6 +428,73 @@ function ProfileEdit() {
 							<Button variant="tertiary" href={listUrl}>
 								{__('Back to List', 'frs-users')}
 							</Button>
+							{(() => {
+								// Determine URLs based on profile type
+								const companyRole = profile.select_person_type || '';
+								const isRealEstateRole = ['broker_associate', 'sales_associate'].includes(companyRole);
+								const marketingSiteUrl = isRealEstateRole
+									? realestateSiteUrl
+									: lendingSiteUrl;
+								const roleConfig = rolesWithPrefixes?.[companyRole];
+								const urlPrefix = roleConfig?.url_prefix || 'lo';
+								const slug = profile.profile_slug || profile.user_nicename;
+
+								if (!slug) return null;
+
+								const buttons = [];
+
+								// Hub site button (if hub URL is configured)
+								if (hubSiteUrl) {
+									const hubProfileUrl = `${hubSiteUrl}${urlPrefix}/${slug}/`;
+									buttons.push(
+										<Button
+											key="hub"
+											variant="secondary"
+											icon={external}
+											href={hubProfileUrl}
+											target="_blank"
+											title={__('View on internal hub site', 'frs-users')}
+										>
+											{__('Hub', 'frs-users')}
+										</Button>
+									);
+								}
+
+								// Marketing site button (if marketing URL is configured and different from hub)
+								if (marketingSiteUrl && marketingSiteUrl !== hubSiteUrl) {
+									const marketingProfileUrl = `${marketingSiteUrl}${urlPrefix}/${slug}/`;
+									buttons.push(
+										<Button
+											key="marketing"
+											variant="secondary"
+											icon={external}
+											href={marketingProfileUrl}
+											target="_blank"
+											title={isRealEstateRole ? 'c21masters.com' : '21stcenturylending.com'}
+										>
+											{__('Public', 'frs-users')}
+										</Button>
+									);
+								}
+
+								// Fallback to local site if no other URLs configured
+								if (buttons.length === 0 && localSiteUrl) {
+									const localProfileUrl = `${localSiteUrl}${urlPrefix}/${slug}/`;
+									buttons.push(
+										<Button
+											key="local"
+											variant="secondary"
+											icon={external}
+											href={localProfileUrl}
+											target="_blank"
+										>
+											{__('View', 'frs-users')}
+										</Button>
+									);
+								}
+
+								return buttons;
+							})()}
 							<Button variant="primary" onClick={handleSave} disabled={isSaving}>
 								{isSaving ? <Spinner /> : __('Save Profile', 'frs-users')}
 							</Button>

@@ -284,7 +284,7 @@ class Actions {
 		// Sanitize email
 		$data['email'] = sanitize_email( $data['email'] );
 
-		// Create profile using Eloquent
+		// Create profile
 		$profile = Profile::create( $data );
 
 		if ( ! $profile ) {

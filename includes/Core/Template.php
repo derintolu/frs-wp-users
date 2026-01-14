@@ -80,7 +80,7 @@ class Template {
 		}
 
 		// Get profile by slug
-		$profile = Profile::where( 'profile_slug', sanitize_title( $profile_slug ) )->first();
+		$profile = Profile::get_by_slug( sanitize_title( $profile_slug ) );
 
 		if ( ! $profile ) {
 			global $wp_query;
@@ -167,7 +167,7 @@ class Template {
 		);
 
 		// Get profile for localization
-		$profile = Profile::where( 'profile_slug', sanitize_title( $profile_slug ) )->first();
+		$profile = Profile::get_by_slug( sanitize_title( $profile_slug ) );
 
 		if ( $profile ) {
 			// Localize script with profile data and settings

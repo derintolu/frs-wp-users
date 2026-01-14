@@ -25,7 +25,7 @@ FRS User Profiles manages **loan officer, real estate agent, staff, and leadersh
 │   All profiles live here. This is the source of truth.     │
 │   Staff edit profiles here.                                 │
 │                                                             │
-│   Profiles: Loan Officers, Agents, Staff, Leadership        │
+│   Profiles: All 8 company roles (LO, Agents, Escrow, etc)   │
 │                                                             │
 └──────────────────────────┬──────────────────────────────────┘
                            │
@@ -57,26 +57,41 @@ FRS User Profiles manages **loan officer, real estate agent, staff, and leadersh
 
 ## Profile Types (Roles)
 
-### Who Appears Where
+### Company Roles - Who Appears Where
 
-| Role | Hub | 21st Century Lending | C21 Masters |
-|------|-----|---------------------|-------------|
-| Loan Officers | ✓ | ✓ | - |
-| Real Estate Agents | ✓ | - | ✓ |
-| Sales Associates | ✓ | - | ✓ |
+| Company Role | Hub | 21st Century Lending | C21 Masters |
+|--------------|-----|----------------------|-------------|
+| Loan Originator | ✓ | ✓ | - |
+| Broker Associate | ✓ | - | ✓ |
+| Sales Associate | ✓ | - | ✓ |
+| Escrow Officer | ✓ | - | - |
+| Property Manager | ✓ | - | - |
+| Partner | ✓ | - | - |
 | Leadership | ✓ | ✓ | ✓ |
 | Staff | ✓ | - | - |
 
-### URL Structure
+### WordPress Roles - URL Prefixes
 
-Each role has a URL prefix for profile pages:
+| WP Role | URL Prefix | Example |
+|---------|------------|---------|
+| Loan Officer | `/lo/` | `/lo/john-smith` |
+| Real Estate Agent | `/agent/` | `/agent/jane-doe` |
+| Escrow Officer | `/escrow/` | `/escrow/kim-lee` |
+| Property Manager | `/pm/` | `/pm/alex-chen` |
+| Dual License | `/lo/` | `/lo/sam-garcia` |
+| Leadership | `/leader/` | `/leader/bob-jones` |
+| Staff | `/staff/` | `/staff/mary-williams` |
+| Assistant | `/staff/` | `/staff/pat-taylor` |
+| Partner | (none) | No public profile URL |
 
-| Role | URL Example |
-|------|-------------|
-| Loan Officer | `/lo/john-smith` |
-| Real Estate Agent | `/agent/jane-doe` |
-| Leadership | `/leader/bob-jones` |
-| Staff | `/staff/mary-williams` |
+### Two Role Systems
+
+The plugin uses **two separate role systems**:
+
+1. **WordPress Roles** - Determine permissions and URL prefixes
+2. **Company Roles** - Determine which directories a profile appears in
+
+A user has ONE WordPress role but can have MULTIPLE company roles (stored in `frs_company_role` meta).
 
 ---
 
@@ -162,12 +177,12 @@ define( 'FRS_SITE_CONTEXT', 'c21masters' );
 
 ### What Each Context Does
 
-| Context | Can Edit Profiles | Roles Shown |
-|---------|-------------------|-------------|
-| `hub` | Yes | All roles |
-| `21stcenturylending` | No | Loan Officers, Leadership |
-| `c21masters` | No | Agents, Sales, Leadership |
-| `development` | Yes | All roles (for testing) |
+| Context | Can Edit | Company Roles Shown |
+|---------|----------|---------------------|
+| `hub` | Yes | All 8 roles |
+| `21stcenturylending` | No | loan_originator, leadership |
+| `c21masters` | No | broker_associate, sales_associate, leadership |
+| `development` | Yes | All 8 roles (for testing) |
 
 ---
 

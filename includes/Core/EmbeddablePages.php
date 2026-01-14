@@ -112,7 +112,7 @@ class EmbeddablePages {
 	 * @return void
 	 */
 	private function render_personal_landing( string $slug ): void {
-		$profile = Profile::where( 'profile_slug', $slug )->first();
+		$profile = Profile::get_by_slug( $slug );
 
 		if ( ! $profile ) {
 			$this->render_404();

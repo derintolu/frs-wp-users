@@ -1,24 +1,21 @@
 {
   "name": "frs/wp-users",
-  "description": "Advanced user profile management system with guest profiles and REST API",
+  "description": "WordPress-native user profile management system with REST API",
   "type": "wordpress-plugin",
   "license": "GPL-2.0-or-later",
   "autoload": {
     "psr-4": {
       "FRSUsers\\": "includes/",
-      "FRSUsers\\Database\\": "database/",
       "FRSUsers\\Libs\\": "libs/",
       "FRSUsers\\DataKit\\": "includes/DataKit/",
       "DataKit\\DataViews\\": "libs/datakit/src/"
     },
     "files": [
-      "libs/db.php",
       "libs/assets.php"
     ]
   },
   "require": {
-    "php": ">=8.1",
-    "prappo/wp-eloquent": "^3.0"
+    "php": ">=8.1"
   },
   "require-dev": {
     "squizlabs/php_codesniffer": "^3.7",

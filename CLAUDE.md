@@ -1,157 +1,211 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Technical reference for Claude Code when working with FRS User Profiles.
 
 ## Overview
 
-FRS User Profiles is a WordPress plugin for managing loan officer, realtor, staff, and leadership profiles. It supports both a legacy custom database table (`frs_profiles`) and a WordPress-native mode that stores profile data in `wp_users` + `wp_usermeta`.
+WordPress plugin for managing professional profiles (loan officers, real estate agents, staff, leadership) across multiple sites with synchronized data.
+
+**Human-readable documentation:** See `docs/README.md`
 
 ## Build Commands
 
 ```bash
-# PHP dependencies
+# PHP
 composer install
-composer lint          # Run PHPCS
-composer lint:fix      # Run PHPCBF auto-fix
-composer test          # Run PHPUnit
+composer lint          # PHPCS
+composer lint:fix      # PHPCBF
+composer test          # PHPUnit
 
-# Admin React interface (assets/admin/)
-cd assets/admin && npm install
-npm run build          # Build for production
-npm run start          # Watch mode for development
+# Admin React (assets/admin/)
+cd assets/admin && npm install && npm run build
 
 # Gutenberg blocks (assets/blocks/)
-cd assets/blocks && npm install
-npm run build          # Build blocks
-npm run start          # Watch mode
+cd assets/blocks && npm install && npm run build
 ```
 
 ## Architecture
 
-### Data Storage (Dual Mode)
+### Data Storage
 
-The `Profile` model (`includes/Models/Profile.php`) operates in two modes controlled by `$use_wp_native`:
+WordPress-native mode (default): `wp_users` + `wp_usermeta` with `frs_` prefix.
 
-1. **WordPress-native mode** (default): Reads/writes to `wp_users` + `wp_usermeta` with `frs_` prefixed meta keys
-2. **Legacy mode**: Uses custom `frs_profiles` table via Eloquent ORM (prappo/wp-eloquent)
+### Key Classes
 
-Profile fields are stored as user meta with `frs_` prefix (e.g., `frs_phone_number`, `frs_nmls`). JSON fields like `specialties`, `languages`, `service_areas` are encoded/decoded automatically.
+| Class | Location | Purpose |
+|-------|----------|---------|
+| `Roles` | `includes/Core/Roles.php` | Centralized role/context config |
+| `Profile` | `includes/Models/Profile.php` | Profile data model |
+| `ProfileSync` | `includes/Core/ProfileSync.php` | Webhook synchronization |
+| `ProfileApi` | `includes/Core/ProfileApi.php` | REST API handler |
+| `CLI` | `includes/Core/CLI.php` | WP-CLI commands |
+| `Template` | `includes/Core/Template.php` | URL routing |
+| `FluentCRMSync` | `includes/Integrations/FluentCRMSync.php` | CRM integration |
 
-### Key Directories
+### Directory Structure
 
-- `includes/` - PSR-4 autoloaded PHP classes (namespace `FRSUsers\`)
-- `includes/Models/` - Eloquent models (Profile, UserProfile)
-- `includes/Routes/Api.php` - REST API endpoints under `frs-users/v1`
-- `includes/Controllers/` - Block registration, shortcodes, API actions
-- `includes/Admin/` - WordPress admin pages (DataViews-based)
-- `includes/Core/` - Core services (CLI, Template, CORS, VCard)
-- `includes/Integrations/` - FluentCRM sync, FRS sync, Arrive auto-populate
-- `assets/admin/` - React admin interface using @wordpress/dataviews
-- `assets/blocks/` - Gutenberg blocks (directory-grid, directory-search, loan-officer-directory)
-- `database/Migrations/` - Database schema migrations
-- `templates/profile/` - Frontend profile templates (loan-officer.php, qr-landing.php)
+```
+includes/
+├── Core/           # Core services (Roles, ProfileSync, CLI, Template)
+├── Models/         # Data models (Profile, UserProfile)
+├── Admin/          # Admin pages (DataViews-based)
+├── Controllers/    # Blocks, shortcodes
+├── Routes/         # REST API (Api.php)
+├── Integrations/   # FluentCRM, Arrive
+├── Abilities/      # WordPress Abilities API
+└── DataKit/        # DataViews integration
 
-### REST API
+assets/
+├── admin/          # React admin interface
+└── blocks/         # Gutenberg blocks
+
+templates/profile/  # Frontend templates
+database/Migrations/ # Schema migrations
+```
+
+## Two Role Systems
+
+### WordPress Roles (Capabilities)
+
+Define permissions and URL prefixes. Stored in `wp_usermeta` as `wp_capabilities`.
+
+| Role | URL Prefix |
+|------|------------|
+| `loan_officer` | `/lo/` |
+| `re_agent` | `/agent/` |
+| `escrow_officer` | `/escrow/` |
+| `property_manager` | `/pm/` |
+| `dual_license` | `/lo/` |
+| `staff` | `/staff/` |
+| `leadership` | `/leader/` |
+| `assistant` | `/staff/` |
+| `partner` | (none) |
+
+### Company Roles (Directory Categorization)
+
+Define where profiles appear. Stored as multi-value `frs_company_role` meta.
+
+| Company Role | Maps to WP Role |
+|--------------|-----------------|
+| `loan_originator` | `loan_officer` |
+| `broker_associate` | `re_agent` |
+| `sales_associate` | `re_agent` |
+| `escrow_officer` | `escrow_officer` |
+| `property_manager` | `property_manager` |
+| `partner` | `partner` |
+| `leadership` | `leadership` |
+| `staff` | `staff` |
+
+## Site Contexts
+
+Set via `FRS_SITE_CONTEXT` constant in wp-config.php.
+
+| Context | Company Roles | Editing |
+|---------|---------------|---------|
+| `development` | All 8 | Yes |
+| `hub` | All 8 | Yes |
+| `21stcenturylending` | loan_originator, leadership | No |
+| `c21masters` | broker_associate, sales_associate, leadership | No |
+
+**Precedence:** Constant → Filter (`frs_site_context`) → Option → Default (`development`)
+
+## REST API
 
 Base: `/wp-json/frs-users/v1/`
 
-Key endpoints:
-- `GET/POST /profiles` - List/create profiles
-- `GET/PUT/DELETE /profiles/{id}` - Single profile CRUD
-- `GET /profiles/slug/{slug}` - Public profile by slug
-- `GET /profiles/user/{user_id|me}` - Profile by user ID
-- `POST /profiles/{id}/create-user` - Create WP user for guest profile
-- `GET /vcard/{id}` - Download vCard
-- `GET /service-areas` - List unique service areas
-- `POST /meeting-request` - Public contact form
+| Endpoint | Method | Auth |
+|----------|--------|------|
+| `/profiles` | GET | Public |
+| `/profiles` | POST | Editor |
+| `/profiles/{id}` | GET/PUT/DELETE | Public/Editor |
+| `/profiles/slug/{slug}` | GET | Public |
+| `/profiles/user/{id\|me}` | GET | Public |
+| `/service-areas` | GET | Public |
+| `/vcard/{id}` | GET | Public |
+| `/meeting-request` | POST | Public |
+| `/webhook/profile-updated` | POST | HMAC signed |
 
-### WP-CLI Commands
+## WP-CLI Commands
 
 ```bash
-# Profile management
-wp frs-users list-profiles [--type=<type>] [--format=<format>]
-wp frs-users list-guests
-wp frs-users create-user <profile_id> [--username=<name>] [--send-email]
-wp frs-users generate-slugs
-wp frs-users generate-qr-codes [--force] [--id=<user_id>]
-wp frs-users generate-vcards [--type=<type>]
+# Context
+wp frs-users site-context
 
-# Site context and sync
-wp frs-users site-context                    # Show current site context
-wp frs-users setup-sync --hub-url=<url>      # Configure hub URL
-wp frs-users setup-sync --generate-secret    # Generate webhook secret
-wp frs-users sync-from-hub [--type=<type>]   # Pull profiles from hub
+# Sync
+wp frs-users setup-sync --hub-url=<url>
+wp frs-users setup-sync --generate-secret
+wp frs-users sync-from-hub [--type=<type>] [--dry-run]
+
+# Profiles
+wp frs-users list-profiles [--type=<type>]
+wp frs-users list-guests
+wp frs-users create-user <profile_id>
+wp frs-users generate-slugs
+wp frs-users generate-qr-codes [--force]
+wp frs-users generate-vcards [--type=<type>]
 
 # Migrations
 wp frs-users migrate-fields [--dry-run]
 wp frs-users cleanup-fields [--dry-run]
-wp frs-users sync-suredash-avatars [--force]
-wp frs-users migrate-person-cpt
 ```
 
-### Multi-Site Architecture
+## User Meta Keys
 
-This plugin supports deployment across multiple WordPress sites with synchronized profile data.
+All prefixed with `frs_`:
 
-**See:** `docs/MULTI-SITE-ARCHITECTURE.md` for full documentation.
+**Core:** `phone_number`, `mobile_number`, `job_title`, `biography`, `headshot_id`
 
-**Site Contexts** (set via `FRS_SITE_CONTEXT` constant in wp-config.php):
-- `development` - All roles visible, editing enabled (default)
-- `hub` - Central hub (myhub21.com), all roles, editing enabled
-- `21stcenturylending` - Marketing site, LO + Leadership only, read-only
-- `c21masters` - Marketing site, Agents + Leadership only, read-only
+**Licensing:** `nmls`, `nmls_number`, `license_number`, `dre_license`
 
-**Synchronization:**
-- **Development**: Use `wp frs-users sync-from-hub` CLI command
-- **Production**: Webhooks automatically sync on profile save
+**Location:** `office`, `city_state`, `region`, `service_areas` (JSON)
 
-```php
-// wp-config.php example
-define( 'FRS_SITE_CONTEXT', 'hub' );  // or '21stcenturylending', 'c21masters', etc.
+**Social:** `facebook_url`, `instagram_url`, `linkedin_url`, `twitter_url`, `youtube_url`, `tiktok_url`
+
+**Profile:** `profile_slug`, `profile_headline`, `profile_theme`, `is_active`, `qr_code_data`
+
+**JSON arrays:** `specialties`, `specialties_lo`, `languages`, `custom_links`, `service_areas`
+
+**Sync:** `company_role` (multi-value), `select_person_type`, `frs_agent_id`, `synced_to_fluentcrm_at`
+
+## Hooks
+
+| Hook | Type | Description |
+|------|------|-------------|
+| `frs_profile_saved` | Action | After profile save. Args: `$profile_id`, `$profile_data` |
+| `frs_users_loaded` | Action | After plugin init |
+| `frs_users_api_routes` | Action | Add custom REST routes |
+| `frs_site_context` | Filter | Override site context |
+
+## Webhook Sync
+
+**Hub → Marketing Sites**
+
+1. Profile saved on hub
+2. `frs_profile_saved` fires
+3. POST to registered endpoints with HMAC-SHA256 signature
+4. Marketing site verifies signature
+5. Filters by site context company roles
+6. Creates/updates user if role matches
+
+**Payload:**
+```json
+{
+  "event": "profile_updated",
+  "timestamp": 1704931200,
+  "profile": { ... }
+}
 ```
 
-### Profile Types / Roles
+## Gutenberg Blocks
 
-Profiles have a `select_person_type` field mapped to WordPress roles:
-- `loan_originator` / `loan_officer` - Loan officers
-- `broker_associate` / `realtor_partner` - Real estate agents
-- `sales_associate` - Sales staff
-- `dual_license` - Both mortgage and real estate
-- `leadership` - Company leadership
-- `staff` / `assistant` - Support staff
+| Block | Description |
+|-------|-------------|
+| `frs/lo-directory` | Searchable directory with service area filtering |
 
-### Gutenberg Blocks
+Uses WordPress Interactivity API (`view.js`).
 
-Registered in `includes/Controllers/Blocks.php`:
-- `frs/lo-directory` - Searchable loan officer directory with service area filtering
-- `frs/directory-grid` - Grid display of profiles
-- `frs/directory-search` - Search component
-- `frs/loan-officer-card` - Individual profile card
+## Integrations
 
-Blocks use WordPress Interactivity API for frontend behavior (`view.js` stores).
-
-### Integrations
-
-- **FluentCRM**: Real-time sync on user create/update/role change (`includes/Integrations/FluentCRMSync.php`)
-- **Simple Local Avatars**: Uses WP avatar system for profile photos
-- **Arrive**: Auto-populates Arrive loan application URLs (`includes/Integrations/ArriveAutoPopulate.php`)
-
-### Multisite Support
-
-Uses `$wpdb->base_prefix` for network-wide profile tables (configured in `libs/db.php`).
-
-### Hooks
-
-- `frs_profile_saved` - Fires after profile create/update with `($profile_id, $profile_data)`
-- `frs_users_loaded` - Fires after plugin initialization
-- `frs_users_api_routes` - Add custom REST routes
-- `frs_users_register_blocks` - Register additional blocks
-
-### User Meta Keys
-
-All FRS fields use `frs_` prefix:
-- Core: `frs_phone_number`, `frs_mobile_number`, `frs_job_title`, `frs_biography`
-- Licensing: `frs_nmls`, `frs_nmls_number`, `frs_license_number`, `frs_dre_license`
-- Social: `frs_facebook_url`, `frs_instagram_url`, `frs_linkedin_url`, `frs_twitter_url`
-- Profile: `frs_profile_headline`, `frs_profile_theme`, `frs_is_active`, `frs_qr_code_data`
-- JSON arrays: `frs_specialties`, `frs_languages`, `frs_service_areas`, `frs_custom_links`
+- **FluentCRM:** Real-time sync on user create/update/role change
+- **Simple Local Avatars:** Avatar system for headshots
+- **Arrive:** Auto-populate loan application URLs

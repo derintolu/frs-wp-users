@@ -157,7 +157,7 @@ class FluentCRMSync {
             }
 
             // Get FRS profile data
-            $profile = Profile::where('user_id', $user_id)->first();
+            $profile = Profile::get_by_user_id($user_id);
 
             // Prepare contact data
             $contact_data = [

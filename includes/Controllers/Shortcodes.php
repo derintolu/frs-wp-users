@@ -81,22 +81,7 @@ class Shortcodes {
 		if ( $atts['profile_id'] ) {
 			$profile = Profile::find( absint( $atts['profile_id'] ) );
 		} else {
-			$profile = Profile::where( 'user_id', $user_id )->first();
-		}
-
-		// Create guest profile if none exists
-		if ( ! $profile ) {
-			$user = get_user_by( 'ID', $user_id );
-			if ( $user ) {
-				$profile = Profile::create(
-					array(
-						'user_id'    => $user_id,
-						'email'      => $user->user_email,
-						'first_name' => $user->first_name ?: $user->display_name,
-						'last_name'  => $user->last_name,
-					)
-				);
-			}
+			$profile = Profile::get_by_user_id( $user_id );
 		}
 
 		if ( ! $profile ) {
@@ -134,9 +119,9 @@ class Shortcodes {
 
 		// Get profile
 		if ( $atts['slug'] ) {
-			$profile = Profile::where( 'profile_slug', sanitize_title( $atts['slug'] ) )->first();
+			$profile = Profile::get_by_slug( sanitize_title( $atts['slug'] ) );
 		} elseif ( $atts['user_id'] ) {
-			$profile = Profile::where( 'user_id', absint( $atts['user_id'] ) )->first();
+			$profile = Profile::get_by_user_id( absint( $atts['user_id'] ) );
 		} elseif ( $atts['profile_id'] ) {
 			$profile = Profile::find( absint( $atts['profile_id'] ) );
 		} else {

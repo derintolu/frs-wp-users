@@ -11,7 +11,6 @@
 
 namespace FRSUsers\Core;
 
-use FRSUsers\Database\Migrations\MigratePersonCPT;
 use FRSUsers\Models\Profile;
 
 /**
@@ -33,10 +32,7 @@ class CLI {
 			return;
 		}
 
-		\WP_CLI::add_command( 'frs-users migrate-person-cpt', array( __CLASS__, 'migrate_person_cpt' ) );
 		\WP_CLI::add_command( 'frs-users list-profiles', array( __CLASS__, 'list_profiles' ) );
-		\WP_CLI::add_command( 'frs-users list-guests', array( __CLASS__, 'list_guests' ) );
-		\WP_CLI::add_command( 'frs-users create-user', array( __CLASS__, 'create_user_account' ) );
 		\WP_CLI::add_command( 'frs-users generate-slugs', array( __CLASS__, 'generate_profile_slugs' ) );
 		\WP_CLI::add_command( 'frs-users sync-suredash-avatars', array( __CLASS__, 'sync_suredash_avatars' ) );
 		\WP_CLI::add_command( 'frs-users generate-qr-codes', array( __CLASS__, 'generate_qr_codes' ) );
@@ -49,41 +45,12 @@ class CLI {
 	}
 
 	/**
-	 * Migrate Person CPT to profiles table
-	 *
-	 * ## EXAMPLES
-	 *
-	 *     wp frs-users migrate-person-cpt
-	 *
-	 * @when after_wp_load
-	 */
-	public static function migrate_person_cpt( $args, $assoc_args ) {
-		\WP_CLI::line( 'Starting Person CPT migration...' );
-
-		// Check if already migrated
-		if ( get_option( 'frs_users_person_cpt_migrated' ) ) {
-			\WP_CLI::confirm( 'Migration has already been run. Do you want to run it again? (This may create duplicates)' );
-		}
-
-		MigratePersonCPT::up();
-
-		$stats = get_option( 'frs_users_migration_stats', array() );
-
-		\WP_CLI::success( sprintf(
-			'Migration complete! Migrated: %d, Skipped: %d, Errors: %d',
-			$stats['migrated'] ?? 0,
-			$stats['skipped'] ?? 0,
-			$stats['errors'] ?? 0
-		) );
-	}
-
-	/**
 	 * List all profiles
 	 *
 	 * ## OPTIONS
 	 *
 	 * [--type=<type>]
-	 * : Filter by profile type (loan_officer, partner, staff, leadership, assistant)
+	 * : Filter by company role (loan_originator, broker_associate, staff, leadership, etc.)
 	 *
 	 * [--format=<format>]
 	 * : Output format (table, json, csv). Default: table
@@ -91,7 +58,7 @@ class CLI {
 	 * ## EXAMPLES
 	 *
 	 *     wp frs-users list-profiles
-	 *     wp frs-users list-profiles --type=loan_officer
+	 *     wp frs-users list-profiles --type=loan_originator
 	 *     wp frs-users list-profiles --format=json
 	 *
 	 * @when after_wp_load
@@ -103,7 +70,7 @@ class CLI {
 		if ( $type ) {
 			$profiles = Profile::get_by_type( $type, array( 'limit' => 9999 ) );
 		} else {
-			$profiles = Profile::get_guests( array( 'limit' => 9999 ) );
+			$profiles = Profile::get_all( array( 'number' => 9999 ) );
 		}
 
 		if ( empty( $profiles ) ) {
@@ -116,137 +83,12 @@ class CLI {
 				'ID'           => $profile->id,
 				'Name'         => $profile->first_name . ' ' . $profile->last_name,
 				'Email'        => $profile->email,
-				'User ID'      => $profile->user_id ?? 'Guest',
+				'User ID'      => $profile->user_id,
 				'Types'        => implode( ', ', $profile->get_types() ),
-				'Created'      => $profile->created_at,
 			);
 		}, $profiles );
 
-		\WP_CLI\Utils\format_items( $format, $data, array( 'ID', 'Name', 'Email', 'User ID', 'Types', 'Created' ) );
-	}
-
-	/**
-	 * List Profile Only profiles (no user account)
-	 *
-	 * ## OPTIONS
-	 *
-	 * [--format=<format>]
-	 * : Output format (table, json, csv). Default: table
-	 *
-	 * ## EXAMPLES
-	 *
-	 *     wp frs-users list-guests
-	 *     wp frs-users list-guests --format=json
-	 *
-	 * @when after_wp_load
-	 */
-	public static function list_guests( $args, $assoc_args ) {
-		$format = $assoc_args['format'] ?? 'table';
-
-		$profiles = Profile::get_guests( array( 'limit' => 9999 ) );
-
-		if ( empty( $profiles ) ) {
-			\WP_CLI::warning( 'No Profile Only profiles found' );
-			return;
-		}
-
-		$data = array_map( function( $profile ) {
-			return array(
-				'ID'      => $profile->id,
-				'Name'    => $profile->first_name . ' ' . $profile->last_name,
-				'Email'   => $profile->email,
-				'Types'   => implode( ', ', $profile->get_types() ),
-				'Created' => $profile->created_at,
-			);
-		}, $profiles );
-
-		\WP_CLI\Utils\format_items( $format, $data, array( 'ID', 'Name', 'Email', 'Types', 'Created' ) );
-	}
-
-	/**
-	 * Create user account for a Profile Only profile (upgrade to Profile+)
-	 *
-	 * ## OPTIONS
-	 *
-	 * <profile_id>
-	 * : Profile ID
-	 *
-	 * [--username=<username>]
-	 * : Custom username (auto-generated if not provided)
-	 *
-	 * [--send-email]
-	 * : Send password reset email to the user
-	 *
-	 * ## EXAMPLES
-	 *
-	 *     wp frs-users create-user 123
-	 *     wp frs-users create-user 123 --username=john.doe --send-email
-	 *
-	 * @when after_wp_load
-	 */
-	public static function create_user_account( $args, $assoc_args ) {
-		$profile_id = absint( $args[0] );
-		$username   = $assoc_args['username'] ?? '';
-		$send_email = isset( $assoc_args['send-email'] );
-
-		if ( ! $profile_id ) {
-			\WP_CLI::error( 'Invalid profile ID' );
-		}
-
-		$profile = Profile::find( $profile_id );
-
-		if ( ! $profile ) {
-			\WP_CLI::error( 'Profile not found' );
-		}
-
-		if ( ! $profile->is_guest() ) {
-			\WP_CLI::error( sprintf( 'Profile is already linked to user ID %d', $profile->user_id ) );
-		}
-
-		// Generate username if not provided
-		if ( empty( $username ) ) {
-			$username = sanitize_user( strtolower( $profile->first_name . '.' . $profile->last_name ) );
-			$username = str_replace( ' ', '', $username );
-		}
-
-		// Check if username exists
-		if ( username_exists( $username ) ) {
-			$username = $username . wp_rand( 1, 999 );
-			\WP_CLI::warning( sprintf( 'Username already exists, using: %s', $username ) );
-		}
-
-		// Create user
-		$user_data = array(
-			'user_login' => $username,
-			'user_email' => $profile->email,
-			'first_name' => $profile->first_name,
-			'last_name'  => $profile->last_name,
-			'role'       => 'subscriber',
-		);
-
-		$user_id = wp_insert_user( $user_data );
-
-		if ( is_wp_error( $user_id ) ) {
-			\WP_CLI::error( $user_id->get_error_message() );
-		}
-
-		// Add profile types as roles
-		$profile_types = $profile->get_types();
-		$user = new \WP_User( $user_id );
-		foreach ( $profile_types as $type ) {
-			$user->add_role( $type );
-		}
-
-		// Link profile
-		$profile->link_user( $user_id );
-
-		// Send email
-		if ( $send_email ) {
-			wp_send_new_user_notifications( $user_id, 'user' );
-			\WP_CLI::success( sprintf( 'User account created (ID: %d, Username: %s) and password reset email sent', $user_id, $username ) );
-		} else {
-			\WP_CLI::success( sprintf( 'User account created (ID: %d, Username: %s)', $user_id, $username ) );
-		}
+		\WP_CLI\Utils\format_items( $format, $data, array( 'ID', 'Name', 'Email', 'User ID', 'Types' ) );
 	}
 
 	/**
@@ -261,12 +103,25 @@ class CLI {
 	public static function generate_profile_slugs( $args, $assoc_args ) {
 		\WP_CLI::line( 'Generating profile slugs...' );
 
-		// Get profiles without slugs
-		$profiles = Profile::whereNull( 'profile_slug' )
-			->orWhere( 'profile_slug', '' )
-			->get();
+		// Get all users with FRS roles that don't have profile slugs
+		$users = get_users( array(
+			'role__in'   => Roles::get_all_wp_roles(),
+			'number'     => 500,
+			'meta_query' => array(
+				'relation' => 'OR',
+				array(
+					'key'     => 'frs_profile_slug',
+					'compare' => 'NOT EXISTS',
+				),
+				array(
+					'key'     => 'frs_profile_slug',
+					'value'   => '',
+					'compare' => '=',
+				),
+			),
+		) );
 
-		$total = count( $profiles );
+		$total = count( $users );
 
 		if ( $total === 0 ) {
 			\WP_CLI::success( 'All profiles already have slugs!' );
@@ -278,23 +133,22 @@ class CLI {
 		$generated = 0;
 		$errors = 0;
 
-		foreach ( $profiles as $profile ) {
-			if ( empty( $profile->first_name ) || empty( $profile->last_name ) ) {
-				\WP_CLI::warning( sprintf( 'Skipping profile ID %d - missing first/last name', $profile->id ) );
+		foreach ( $users as $user ) {
+			$first_name = $user->first_name;
+			$last_name  = $user->last_name;
+
+			if ( empty( $first_name ) || empty( $last_name ) ) {
+				\WP_CLI::warning( sprintf( 'Skipping user ID %d - missing first/last name', $user->ID ) );
 				$errors++;
 				continue;
 			}
 
 			// Generate unique slug
-			$profile->profile_slug = Profile::generate_unique_slug( $profile->first_name, $profile->last_name, $profile->id );
+			$slug = Profile::generate_unique_slug( $first_name, $last_name, $user->ID );
+			update_user_meta( $user->ID, 'frs_profile_slug', $slug );
 
-			if ( $profile->save() ) {
-				\WP_CLI::line( sprintf( 'Generated slug for %s %s: %s', $profile->first_name, $profile->last_name, $profile->profile_slug ) );
-				$generated++;
-			} else {
-				\WP_CLI::error( sprintf( 'Failed to save slug for profile ID %d', $profile->id ) );
-				$errors++;
-			}
+			\WP_CLI::line( sprintf( 'Generated slug for %s %s: %s', $first_name, $last_name, $slug ) );
+			$generated++;
 		}
 
 		\WP_CLI::success( sprintf( 'Generated %d slugs. Errors: %d', $generated, $errors ) );
@@ -303,7 +157,7 @@ class CLI {
 	/**
 	 * Sync FRS profile headshots to SureDash avatars
 	 *
-	 * Copies headshot_url from FRS profiles to user_profile_photo user meta
+	 * Copies headshot from FRS profiles to user_profile_photo user meta
 	 * so SureDash displays the correct avatar instead of initials.
 	 *
 	 * ## OPTIONS
@@ -327,17 +181,26 @@ class CLI {
 
 		\WP_CLI::line( 'Syncing FRS profile headshots to SureDash avatars...' );
 
-		// Get all profiles with user accounts
-		$profiles = Profile::whereNotNull( 'user_id' )->get();
+		// Get all users with FRS roles that have headshots
+		$users = get_users( array(
+			'role__in'   => Roles::get_all_wp_roles(),
+			'number'     => 500,
+			'meta_query' => array(
+				array(
+					'key'     => 'frs_headshot_id',
+					'compare' => 'EXISTS',
+				),
+			),
+		) );
 
-		$total = count( $profiles );
+		$total = count( $users );
 
 		if ( $total === 0 ) {
-			\WP_CLI::warning( 'No profiles with user accounts found.' );
+			\WP_CLI::warning( 'No profiles with headshots found.' );
 			return;
 		}
 
-		\WP_CLI::line( sprintf( 'Found %d profiles with user accounts.', $total ) );
+		\WP_CLI::line( sprintf( 'Found %d profiles with headshots.', $total ) );
 
 		$synced   = 0;
 		$skipped  = 0;
@@ -345,9 +208,18 @@ class CLI {
 
 		$progress = \WP_CLI\Utils\make_progress_bar( 'Syncing avatars', $total );
 
-		foreach ( $profiles as $profile ) {
+		foreach ( $users as $user ) {
+			$headshot_id = get_user_meta( $user->ID, 'frs_headshot_id', true );
+
 			// Check if profile has headshot
-			if ( empty( $profile->headshot_url ) ) {
+			if ( empty( $headshot_id ) ) {
+				$skipped++;
+				$progress->tick();
+				continue;
+			}
+
+			$headshot_url = wp_get_attachment_url( $headshot_id );
+			if ( empty( $headshot_url ) ) {
 				$skipped++;
 				$progress->tick();
 				continue;
@@ -355,7 +227,7 @@ class CLI {
 
 			// Check if user already has SureDash avatar (unless --force)
 			if ( ! $force ) {
-				$existing_avatar = get_user_meta( $profile->user_id, 'user_profile_photo', true );
+				$existing_avatar = get_user_meta( $user->ID, 'user_profile_photo', true );
 				if ( ! empty( $existing_avatar ) ) {
 					$skipped++;
 					$progress->tick();
@@ -364,12 +236,12 @@ class CLI {
 			}
 
 			// Sync avatar
-			$result = update_user_meta( $profile->user_id, 'user_profile_photo', $profile->headshot_url );
+			$result = update_user_meta( $user->ID, 'user_profile_photo', $headshot_url );
 
 			if ( $result !== false ) {
 				$synced++;
 			} else {
-				\WP_CLI::warning( sprintf( 'Failed to sync avatar for %s %s (User ID: %d)', $profile->first_name, $profile->last_name, $profile->user_id ) );
+				\WP_CLI::warning( sprintf( 'Failed to sync avatar for %s %s (User ID: %d)', $user->first_name, $user->last_name, $user->ID ) );
 				$errors++;
 			}
 
@@ -574,7 +446,7 @@ class CLI {
 	 * ## OPTIONS
 	 *
 	 * [--type=<type>]
-	 * : Profile type to generate for. Default: loan_officer
+	 * : Company role to generate for. Default: loan_originator
 	 *
 	 * [--output=<path>]
 	 * : Custom output directory path
@@ -582,13 +454,13 @@ class CLI {
 	 * ## EXAMPLES
 	 *
 	 *     wp frs-users generate-vcards
-	 *     wp frs-users generate-vcards --type=loan_officer
+	 *     wp frs-users generate-vcards --type=loan_originator
 	 *     wp frs-users generate-vcards --output=/path/to/folder
 	 *
 	 * @when after_wp_load
 	 */
 	public static function generate_vcards( $args, $assoc_args ) {
-		$type = $assoc_args['type'] ?? 'loan_officer';
+		$type = $assoc_args['type'] ?? 'loan_originator';
 
 		\WP_CLI::line( sprintf( 'Generating vCards for %s profiles...', $type ) );
 
@@ -613,11 +485,8 @@ class CLI {
 			'Keith Thompson',
 		];
 
-		// Get profiles
-		$profiles = Profile::where( 'select_person_type', $type )
-			->whereNotNull( 'first_name' )
-			->whereNotNull( 'last_name' )
-			->get();
+		// Get profiles by company role
+		$profiles = Profile::get_by_type( $type, array( 'limit' => 500 ) );
 
 		$total = count( $profiles );
 
@@ -635,12 +504,25 @@ class CLI {
 		$progress = \WP_CLI\Utils\make_progress_bar( 'Generating vCards', $total );
 
 		foreach ( $profiles as $profile ) {
+			// Skip profiles without names
+			if ( empty( $profile->first_name ) || empty( $profile->last_name ) ) {
+				$skipped++;
+				$progress->tick();
+				continue;
+			}
+
 			// Check if excluded
 			$full_name = trim( $profile->first_name . ' ' . $profile->last_name );
 			if ( in_array( $full_name, $exclude_names, true ) ) {
 				$skipped++;
 				$progress->tick();
 				continue;
+			}
+
+			// Get headshot URL from attachment ID
+			$headshot_url = '';
+			if ( ! empty( $profile->headshot_id ) ) {
+				$headshot_url = wp_get_attachment_url( $profile->headshot_id );
 			}
 
 			// Build profile data array for vCard generator
@@ -665,7 +547,7 @@ class CLI {
 				'instagram_url'  => $profile->instagram_url,
 				'twitter_url'    => $profile->twitter_url,
 				'youtube_url'    => $profile->youtube_url ?? '',
-				'headshot_url'   => $profile->headshot_url,
+				'headshot_url'   => $headshot_url,
 			];
 
 			// Generate filename

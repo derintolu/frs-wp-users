@@ -317,7 +317,7 @@ class ProfileApi {
 		$email = $request->get_param( 'email' );
 
 		// Check if profile already exists
-		$existing = Profile::where( 'email', $email )->first();
+		$existing = Profile::get_by_email( $email );
 		if ( $existing ) {
 			return new WP_Error( 'profile_exists', 'Profile with this email already exists', array( 'status' => 409 ) );
 		}

@@ -16,8 +16,6 @@ use FRSUsers\Core\CORS;
 use FRSUsers\Core\EmbeddablePages;
 use FRSUsers\Controllers\Shortcodes;
 use FRSUsers\Routes\Api;
-use FRSUsers\Admin\ProfilesPage;
-use FRSUsers\Admin\ProfileEdit;
 use FRSUsers\Assets\Admin;
 use FRSUsers\Integrations\FRSSync;
 use FRSUsers\Integrations\FluentCRMSync;
@@ -116,12 +114,6 @@ final class FRSUsers {
 			\FRSUsers\Admin\ProfileEditPage::get_instance()->init();
 			\FRSUsers\Admin\ProfileAddPage::get_instance()->init();
 			\FRSUsers\Admin\UserProfileFields::get_instance()->init();
-
-			// Legacy admin pages (to be removed)
-			// ProfilesPage::get_instance()->init();
-			// ProfileEdit::get_instance()->init();
-			// \FRSUsers\Admin\ProfileMerge::get_instance()->init();
-			// Admin::get_instance()->bootstrap();
 		}
 
 		// Initialize internationalization

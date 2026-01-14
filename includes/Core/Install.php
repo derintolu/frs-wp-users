@@ -12,13 +12,6 @@
 
 namespace FRSUsers\Core;
 
-use FRSUsers\Database\Migrations\Profiles;
-use FRSUsers\Database\Migrations\ProfileTypes;
-use FRSUsers\Database\Migrations\AddServiceAreasToProfiles;
-use FRSUsers\Database\Migrations\AddDisplayNameToProfiles;
-use FRSUsers\Database\Migrations\AddProfileSlug;
-use FRSUsers\Database\Migrations\AddCompanyAndLogo;
-use FRSUsers\Database\Migrations\AddQRCodeData;
 use FRSUsers\Traits\Base;
 
 /**
@@ -63,24 +56,12 @@ class Install {
 	/**
 	 * Install the database tables
 	 *
-	 * Tables are created on the main site (using base_prefix) so they're
-	 * shared across all sites in the network.
+	 * No custom tables needed - WordPress-native storage uses wp_users + wp_usermeta.
 	 *
 	 * @return void
 	 */
 	private function install_tables() {
-		// Create profiles table (network-wide)
-		Profiles::up();
-
-		// Create profile types junction table (network-wide)
-		ProfileTypes::up();
-
-		// Run column migrations
-		AddServiceAreasToProfiles::up();
-		AddDisplayNameToProfiles::up();
-		AddProfileSlug::up();
-		AddCompanyAndLogo::up();
-		AddQRCodeData::up();
+		// No custom tables needed - uses wp_users + wp_usermeta
 	}
 
 	/**

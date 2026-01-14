@@ -176,7 +176,6 @@ final class FRSUsers {
 	 * @return void
 	 */
 	private function maybe_run_migrations() {
-		// Run QR code data migration if column doesn't exist
-		\FRSUsers\Database\Migrations\AddQRCodeData::up();
+		// No migrations needed - WordPress-native storage uses wp_users + wp_usermeta
 	}
 }

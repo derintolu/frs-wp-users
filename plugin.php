@@ -113,6 +113,7 @@ final class FRSUsers {
 			\FRSUsers\Admin\ProfileEditPage::get_instance()->init();
 			\FRSUsers\Admin\ProfileAddPage::get_instance()->init();
 			\FRSUsers\Admin\UserProfileFields::get_instance()->init();
+			\FRSUsers\Admin\CsvImportExport::get_instance()->init();
 		}
 
 		// Initialize internationalization

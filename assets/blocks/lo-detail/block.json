@@ -4,7 +4,7 @@
   "name": "frs/lo-detail",
   "version": "1.0.0",
   "title": "Loan Officer Profile",
-  "category": "widgets",
+  "category": "frs-blocks",
   "icon": "businessperson",
   "description": "Display a full loan officer profile page.",
   "keywords": [

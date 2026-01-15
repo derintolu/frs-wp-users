@@ -4,7 +4,7 @@
   "name": "frs/lo-search",
   "version": "1.0.0",
   "title": "LO Directory Search",
-  "category": "widgets",
+  "category": "frs-blocks",
   "icon": "search",
   "description": "Search bar for filtering loan officer directory.",
   "keywords": [

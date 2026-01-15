@@ -64,6 +64,12 @@ class Blocks {
 			register_block_type( $blocks_dir . 'loan-officer-directory' );
 		}
 
+		// Register lo-grid block (frs/lo-grid)
+		// Directory grid only - no hero, design your own hero above this block
+		if ( file_exists( $blocks_dir . 'lo-grid' ) ) {
+			register_block_type( $blocks_dir . 'lo-grid' );
+		}
+
 		// Register profile-editor block (frs/profile-editor)
 		// Bento-grid profile editor with Interactivity API for edit/preview
 		// Built blocks go to build/ subdirectory

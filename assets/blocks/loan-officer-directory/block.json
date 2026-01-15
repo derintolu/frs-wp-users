@@ -6,32 +6,23 @@
   "title": "Loan Officer Directory",
   "category": "frs-blocks",
   "icon": "businessperson",
-  "description": "Display a searchable directory of loan officers with service area filtering.",
+  "description": "Display a searchable directory of loan officers with hero, sidebar filters, state chips, and QR modal.",
   "keywords": [
     "directory",
     "loan officer",
     "team",
     "mortgage"
   ],
-  "textdomain": "frs-profile-directory",
+  "textdomain": "frs-users",
   "supports": {
     "align": [
       "wide",
       "full"
     ],
-    "html": false,
-    "interactivity": true
+    "html": false
   },
   "attributes": {
-    "hubUrl": {
-      "type": "string",
-      "default": ""
-    },
-    "showSearch": {
-      "type": "boolean",
-      "default": true
-    },
-    "showServiceAreaFilter": {
+    "showHero": {
       "type": "boolean",
       "default": true
     },
@@ -45,7 +36,7 @@
     }
   },
   "editorScript": "file:./index.js",
-  "viewScriptModule": "file:./view.js",
+  "viewScript": "file:./view.js",
   "style": "file:./style-index.css",
   "render": "file:./render.php"
 }

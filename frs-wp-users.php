@@ -24,7 +24,23 @@ define( 'FRS_USERS_URL', plugin_dir_url( __FILE__ ) );
 define( 'FRS_USERS_ASSETS_URL', FRS_USERS_URL . 'assets' );
 define( 'FRS_USERS_VIDEO_BG_URL', FRS_USERS_URL . 'assets/images/Blue-Dark-Blue-Gradient-Color-and-Style-Video-Background-1.mp4' );
 
-require_once plugin_dir_path( __FILE__ ) . 'vendor/autoload.php';
+// PSR-4 Autoloader for FRSUsers namespace
+spl_autoload_register( function ( $class ) {
+	$prefix = 'FRSUsers\\';
+	$base_dir = __DIR__ . '/includes/';
+
+	$len = strlen( $prefix );
+	if ( strncmp( $prefix, $class, $len ) !== 0 ) {
+		return;
+	}
+
+	$relative_class = substr( $class, $len );
+	$file = $base_dir . str_replace( '\\', '/', $relative_class ) . '.php';
+
+	if ( file_exists( $file ) ) {
+		require $file;
+	}
+} );
 
 require_once plugin_dir_path( __FILE__ ) . 'plugin.php';
 

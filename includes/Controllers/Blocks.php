@@ -58,10 +58,35 @@ class Blocks {
 	public static function register_blocks() {
 		$blocks_dir = plugin_dir_path( dirname( dirname( __FILE__ ) ) ) . 'assets/blocks/';
 
-		// Register loan-officer-directory block (frs/lo-directory)
-		// Full directory with hero, sidebar filters, state chips, and QR modal
-		if ( file_exists( $blocks_dir . 'loan-officer-directory' ) ) {
-			register_block_type( $blocks_dir . 'loan-officer-directory' );
+		// Register lo-directory block (frs/lo-directory)
+		// Main directory with search and state filtering
+		if ( file_exists( $blocks_dir . 'lo-directory' ) ) {
+			register_block_type( $blocks_dir . 'lo-directory' );
+		}
+
+		// Register lo-search block (frs/lo-search)
+		// Standalone search input for directory
+		if ( file_exists( $blocks_dir . 'lo-search' ) ) {
+			register_block_type( $blocks_dir . 'lo-search' );
+		}
+
+		// Register lo-state-filter block (frs/lo-state-filter)
+		// State chip filter for directory
+		if ( file_exists( $blocks_dir . 'lo-state-filter' ) ) {
+			register_block_type( $blocks_dir . 'lo-state-filter' );
+		}
+
+		// Register lo-detail block (frs/lo-detail)
+		// Individual loan officer detail/profile view
+		if ( file_exists( $blocks_dir . 'lo-detail' ) ) {
+			register_block_type( $blocks_dir . 'lo-detail' );
+		}
+
+		// Register profile-editor block (frs/profile-editor)
+		// Bento-grid profile editor with Interactivity API for edit/preview
+		// Built blocks go to build/ subdirectory
+		if ( file_exists( $blocks_dir . 'build/profile-editor' ) ) {
+			register_block_type( $blocks_dir . 'build/profile-editor' );
 		}
 
 		// Allow other plugins to register additional FRS blocks

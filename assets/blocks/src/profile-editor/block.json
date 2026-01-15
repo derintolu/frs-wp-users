@@ -1,0 +1,26 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "frs/profile-editor",
+	"version": "1.0.0",
+	"title": "Profile Editor",
+	"category": "frs-blocks",
+	"icon": "businessperson",
+	"description": "Displays the current user's editable profile with responsive preview.",
+	"keywords": ["profile", "user", "edit", "loan officer"],
+	"textdomain": "frs-users",
+	"supports": {
+		"align": ["wide", "full"],
+		"html": false
+	},
+	"attributes": {
+		"contentOnly": {
+			"type": "boolean",
+			"default": false
+		}
+	},
+	"editorScript": "file:./index.js",
+	"viewScript": "file:./view.js",
+	"style": "file:./style-index.css",
+	"render": "file:./render.php"
+}

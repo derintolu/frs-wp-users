@@ -6,13 +6,8 @@
   "autoload": {
     "psr-4": {
       "FRSUsers\\": "includes/",
-      "FRSUsers\\Libs\\": "libs/",
-      "FRSUsers\\DataKit\\": "includes/DataKit/",
-      "DataKit\\DataViews\\": "libs/datakit/src/"
-    },
-    "files": [
-      "libs/assets.php"
-    ]
+      "FRSUsers\\DataKit\\": "includes/DataKit/"
+    }
   },
   "require": {
     "php": ">=8.1"

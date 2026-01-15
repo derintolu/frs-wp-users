@@ -1,18 +1,9 @@
 /**
  * WordPress Scripts webpack configuration for FRS Directory Blocks
+ * 
+ * Uses default wp-scripts configuration which auto-detects blocks in src/
+ * and outputs to build/
  */
 const defaultConfig = require('@wordpress/scripts/config/webpack.config');
-const path = require('path');
 
-module.exports = {
-    ...defaultConfig,
-    entry: {
-        'directory-search/index': path.resolve(__dirname, 'directory-search/edit.js'),
-        'directory-grid/index': path.resolve(__dirname, 'directory-grid/edit.js'),
-    },
-    output: {
-        ...defaultConfig.output,
-        path: path.resolve(__dirname),
-        filename: '[name].js',
-    },
-};
+module.exports = defaultConfig;

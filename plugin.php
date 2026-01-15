@@ -16,7 +16,6 @@ use FRSUsers\Core\CORS;
 use FRSUsers\Core\EmbeddablePages;
 use FRSUsers\Controllers\Shortcodes;
 use FRSUsers\Routes\Api;
-use FRSUsers\Assets\Admin;
 use FRSUsers\Integrations\FRSSync;
 use FRSUsers\Integrations\FluentCRMSync;
 use FRSUsers\Controllers\Blocks;

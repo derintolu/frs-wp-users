@@ -5,30 +5,10 @@
   "license": "GPL-2.0-or-later",
   "autoload": {
     "psr-4": {
-      "FRSUsers\\": "includes/",
-      "FRSUsers\\DataKit\\": "includes/DataKit/"
+      "FRSUsers\\": "includes/"
     }
   },
   "require": {
     "php": ">=8.1"
-  },
-  "require-dev": {
-    "squizlabs/php_codesniffer": "^3.7",
-    "wp-coding-standards/wpcs": "^3.0",
-    "phpcompatibility/phpcompatibility-wp": "^2.1",
-    "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
-    "phpunit/phpunit": "^10.0",
-    "yoast/phpunit-polyfills": "^2.0"
-  },
-  "scripts": {
-    "lint": "phpcs",
-    "lint:fix": "phpcbf",
-    "test": "phpunit",
-    "test:coverage": "phpunit --coverage-html coverage"
-  },
-  "config": {
-    "allow-plugins": {
-      "dealerdirect/phpcodesniffer-composer-installer": true
-    }
   }
 }

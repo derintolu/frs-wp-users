@@ -5,12 +5,12 @@
 
 declare(strict_types=1);
 
-use FRSProfileDirectory\Blocks;
+use FRSUsers\Controllers\BlockHelpers;
 
-$hub_url = !empty($attributes['hubUrl']) ? $attributes['hubUrl'] : Blocks::get_hub_url();
+$hub_url = !empty($attributes['hubUrl']) ? $attributes['hubUrl'] : BlockHelpers::get_hub_url();
 $per_page = $attributes['perPage'] ?? 12;
 $columns = $attributes['columns'] ?? 4;
-$video_url = Blocks::get_video_url();
+$video_url = BlockHelpers::get_video_url();
 
 // Fetch profiles
 $api_url = trailingslashit($hub_url) . 'wp-json/frs-users/v1/profiles?type=loan_officer&per_page=200';
@@ -51,7 +51,7 @@ $states = [];
 foreach ($profiles as $p) {
     if (!empty($p['service_areas']) && is_array($p['service_areas'])) {
         foreach ($p['service_areas'] as $area) {
-            $abbr = Blocks::normalize_state($area);
+            $abbr = BlockHelpers::normalize_state($area);
             if ($abbr && !in_array($abbr, $states)) $states[] = $abbr;
         }
     }
@@ -104,7 +104,7 @@ $wrapper_attributes = get_block_wrapper_attributes(['class' => 'frs-lo-directory
             // Normalize service areas for filtering
             $normalized_areas = [];
             foreach ($areas as $area) {
-                $abbr = Blocks::normalize_state($area);
+                $abbr = BlockHelpers::normalize_state($area);
                 if ($abbr) $normalized_areas[] = $abbr;
             }
 
@@ -165,7 +165,7 @@ $wrapper_attributes = get_block_wrapper_attributes(['class' => 'frs-lo-directory
                 <?php if (!empty($areas)) : ?>
                     <div class="frs-lo-card__service-areas">
                         <?php foreach (array_slice($areas, 0, 4) as $area) : ?>
-                            <span class="frs-lo-card__area-tag"><?php echo esc_html(Blocks::normalize_state($area)); ?></span>
+                            <span class="frs-lo-card__area-tag"><?php echo esc_html(BlockHelpers::normalize_state($area)); ?></span>
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>

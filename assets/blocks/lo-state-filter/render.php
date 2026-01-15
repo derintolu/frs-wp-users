@@ -5,9 +5,9 @@
 
 declare(strict_types=1);
 
-use FRSProfileDirectory\Blocks;
+use FRSUsers\Controllers\BlockHelpers;
 
-$hub_url = !empty($attributes['hubUrl']) ? $attributes['hubUrl'] : Blocks::get_hub_url();
+$hub_url = !empty($attributes['hubUrl']) ? $attributes['hubUrl'] : BlockHelpers::get_hub_url();
 $label = $attributes['label'] ?? 'Filter by State';
 
 // Fetch profiles to get available states
@@ -22,7 +22,7 @@ if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 2
     foreach ($profiles as $p) {
         if (!empty($p['service_areas']) && is_array($p['service_areas'])) {
             foreach ($p['service_areas'] as $area) {
-                $abbr = Blocks::normalize_state($area);
+                $abbr = BlockHelpers::normalize_state($area);
                 if ($abbr && !in_array($abbr, $states)) {
                     $states[] = $abbr;
                 }

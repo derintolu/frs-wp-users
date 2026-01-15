@@ -2,7 +2,7 @@
 /**
  * Loan Officer Detail Block - Server-side Render
  *
- * @package FRSProfileDirectory
+ * @package FRSUsers
  *
  * @var array    $attributes Block attributes.
  * @var string   $content    Block content.
@@ -11,13 +11,12 @@
 
 declare(strict_types=1);
 
-use FRSProfileDirectory\ApiClient;
-use FRSProfileDirectory\Blocks;
-use FRSProfileDirectory\VCardGenerator;
+use FRSUsers\Controllers\BlockHelpers;
+use FRSUsers\Models\Profile;
 
 // Get attributes
-$hub_url = !empty($attributes['hubUrl']) ? $attributes['hubUrl'] : Blocks::get_hub_url();
-$is_spoke = Blocks::is_spoke_site();
+$hub_url = !empty($attributes['hubUrl']) ? $attributes['hubUrl'] : BlockHelpers::get_hub_url();
+$is_spoke = BlockHelpers::is_spoke_site();
 
 // Get slug from URL if not set in attributes
 $slug = $attributes['slug'] ?? '';
@@ -32,15 +31,17 @@ if (empty($slug)) {
     }
 }
 
-// Fetch the loan officer profile
-$response = ApiClient::get_profile_by_slug($slug);
-$lo = isset($response['data']) ? $response['data'] : $response;
+// Fetch the loan officer profile using local model
+$lo = null;
+if (!empty($slug)) {
+    $lo = Profile::get_by_slug($slug);
+}
 
 if (empty($lo)) {
     echo '<div class="frs-lo-detail frs-lo-detail--not-found">';
-    echo '<h1>' . esc_html__('Profile Not Found', 'frs-profile-directory') . '</h1>';
-    echo '<p>' . esc_html__('The loan officer profile you are looking for does not exist.', 'frs-profile-directory') . '</p>';
-    echo '<a href="' . esc_url(home_url('/')) . '" class="frs-lo-detail__back-link">' . esc_html__('Return to Directory', 'frs-profile-directory') . '</a>';
+    echo '<h1>' . esc_html__('Profile Not Found', 'frs-users') . '</h1>';
+    echo '<p>' . esc_html__('The loan officer profile you are looking for does not exist.', 'frs-users') . '</p>';
+    echo '<a href="' . esc_url(home_url('/')) . '" class="frs-lo-detail__back-link">' . esc_html__('Return to Directory', 'frs-users') . '</a>';
     echo '</div>';
     return;
 }
@@ -56,15 +57,15 @@ $mobile = esc_attr($lo['mobile_number'] ?? '');
 $office_phone = esc_attr($lo['office_phone'] ?? '');
 $fax = esc_attr($lo['fax_number'] ?? '');
 $headshot = esc_url($lo['headshot_url'] ?? '');
-$bio = wp_kses_post($lo['bio'] ?? '');
+$bio = wp_kses_post($lo['biography'] ?? $lo['bio'] ?? '');
 $city_state = esc_html($lo['city_state'] ?? '');
 $address = esc_html($lo['address'] ?? '');
 $zip = esc_html($lo['zip_code'] ?? $lo['zip'] ?? '');
-$website = esc_url($lo['website_url'] ?? '');
-$apply_url = esc_url($lo['apply_now_url'] ?? '');
+$website = esc_url($lo['website_url'] ?? $lo['website'] ?? '');
+$apply_url = esc_url($lo['apply_now_url'] ?? $lo['arrive'] ?? '');
 $calendly = esc_url($lo['calendly_link'] ?? '');
 $profile_slug = esc_attr($lo['profile_slug'] ?? '');
-$profile_url = $hub_url . 'profile/' . $profile_slug;
+$profile_url = $hub_url . 'lo/' . $profile_slug;
 
 // Social links
 $linkedin = esc_url($lo['linkedin_url'] ?? '');
@@ -77,8 +78,13 @@ $languages = $lo['languages'] ?? [];
 $specialties = $lo['specialties_lo'] ?? $lo['specialties'] ?? [];
 $service_areas = $lo['service_areas'] ?? [];
 
+// Ensure arrays
+if (is_string($languages)) $languages = json_decode($languages, true) ?: [];
+if (is_string($specialties)) $specialties = json_decode($specialties, true) ?: [];
+if (is_string($service_areas)) $service_areas = json_decode($service_areas, true) ?: [];
+
 // Video URL
-$video_url = Blocks::get_video_url();
+$video_url = BlockHelpers::get_video_url();
 
 // Set up interactivity state
 wp_interactivity_state('frs/lo-detail', [
@@ -133,7 +139,7 @@ $wrapper_attributes = get_block_wrapper_attributes([
                     <!-- Toggle Button -->
                     <button class="frs-lo-detail__qr-toggle"
                             data-wp-on--click="actions.toggleQRCode"
-                            aria-label="<?php esc_attr_e('Toggle QR code', 'frs-profile-directory'); ?>">
+                            aria-label="<?php esc_attr_e('Toggle QR code', 'frs-users'); ?>">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="3" width="7" height="7"/>
                             <rect x="14" y="3" width="7" height="7"/>
@@ -149,7 +155,7 @@ $wrapper_attributes = get_block_wrapper_attributes([
 
             <!-- Name & Title -->
             <h1 class="frs-lo-detail__name"><?php echo $full_name; ?></h1>
-            <p class="frs-lo-detail__title"><?php esc_html_e('Loan Officer', 'frs-profile-directory'); ?></p>
+            <p class="frs-lo-detail__title"><?php esc_html_e('Loan Officer', 'frs-users'); ?></p>
             <?php if ($nmls) : ?>
             <p class="frs-lo-detail__nmls">NMLS# <?php echo $nmls; ?></p>
             <?php endif; ?>
@@ -275,7 +281,7 @@ $wrapper_attributes = get_block_wrapper_attributes([
                         <line x1="2" y1="12" x2="22" y2="12"/>
                         <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
                     </svg>
-                    <a href="<?php echo $website; ?>" target="_blank"><?php esc_html_e('Website', 'frs-profile-directory'); ?></a>
+                    <a href="<?php echo $website; ?>" target="_blank"><?php esc_html_e('Website', 'frs-users'); ?></a>
                 </div>
                 <?php endif; ?>
             </div>
@@ -325,7 +331,7 @@ $wrapper_attributes = get_block_wrapper_attributes([
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                     </svg>
-                    <?php esc_html_e('Edit on Hub', 'frs-profile-directory'); ?>
+                    <?php esc_html_e('Edit on Hub', 'frs-users'); ?>
                 </a>
             </div>
             <?php endif; ?>

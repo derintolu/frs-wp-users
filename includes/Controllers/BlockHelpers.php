@@ -25,7 +25,13 @@ class BlockHelpers {
 	 * @return string Hub URL or current site URL.
 	 */
 	public static function get_hub_url(): string {
+		// Check multiple possible option names for hub URL
 		$hub_url = get_option( 'frs_hub_url', '' );
+
+		if ( empty( $hub_url ) ) {
+			$hub_url = get_option( 'frs_directory_hub_url', '' );
+		}
+
 		return ! empty( $hub_url ) ? trailingslashit( $hub_url ) : trailingslashit( home_url() );
 	}
 

@@ -58,22 +58,10 @@ class Blocks {
 	public static function register_blocks() {
 		$blocks_dir = plugin_dir_path( dirname( dirname( __FILE__ ) ) ) . 'assets/blocks/';
 
-		// Register loan-officer-directory block (frs/lo-directory)
-		// Main directory with hero, sidebar filters, state chips, QR modal
-		if ( file_exists( $blocks_dir . 'loan-officer-directory' ) ) {
-			register_block_type( $blocks_dir . 'loan-officer-directory' );
-		}
-
-		// Register lo-grid block (frs/lo-grid)
-		// Directory grid only - no hero, design your own hero above this block
-		if ( file_exists( $blocks_dir . 'build/lo-grid' ) ) {
-			register_block_type( $blocks_dir . 'build/lo-grid' );
-		}
-
-		// Register lo-search block (frs/lo-search)
-		// Search bar that communicates with the lo-grid block
-		if ( file_exists( $blocks_dir . 'build/lo-search' ) ) {
-			register_block_type( $blocks_dir . 'build/lo-search' );
+		// Register lo-directory block (frs/lo-directory)
+		// Directory with customizable hero (InnerBlocks), search bar, sidebar filters, QR modal
+		if ( file_exists( $blocks_dir . 'build/lo-directory' ) ) {
+			register_block_type( $blocks_dir . 'build/lo-directory' );
 		}
 
 		// Register profile-editor block (frs/profile-editor)

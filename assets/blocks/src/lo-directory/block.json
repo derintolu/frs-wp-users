@@ -1,16 +1,15 @@
 {
   "$schema": "https://schemas.wp.org/trunk/block.json",
   "apiVersion": 3,
-  "name": "frs/lo-grid",
+  "name": "frs/lo-directory",
   "version": "1.0.0",
-  "title": "Loan Officer Grid",
+  "title": "Loan Officer Directory",
   "category": "frs-blocks",
-  "icon": "grid-view",
-  "description": "Searchable loan officer directory grid with sidebar filters and state chips. Design your own hero above this block.",
+  "icon": "businessperson",
+  "description": "Searchable loan officer directory with customizable hero section. Add any blocks to the hero area.",
   "keywords": [
     "directory",
     "loan officer",
-    "grid",
     "team",
     "mortgage"
   ],
@@ -31,13 +30,14 @@
       "type": "number",
       "default": 4
     },
-    "showSidebar": {
-      "type": "boolean",
-      "default": true
+    "searchPlaceholder": {
+      "type": "string",
+      "default": "Search by name, city, or state..."
     }
   },
   "editorScript": "file:./index.js",
   "editorStyle": "file:./index.css",
   "viewScript": "file:./view.js",
+  "style": "file:./style.css",
   "render": "file:./render.php"
 }

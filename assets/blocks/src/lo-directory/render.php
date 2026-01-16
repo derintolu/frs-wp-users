@@ -2,12 +2,13 @@
 /**
  * Loan Officer Directory Block - Server-side Render
  *
- * Full directory with hero, sidebar filters, state chips, and QR modal.
+ * Directory with customizable hero (InnerBlocks), search bar, sidebar filters, 
+ * state chips, and QR modal.
  *
  * @package FRSUsers
  *
  * @var array    $attributes Block attributes.
- * @var string   $content    Block content.
+ * @var string   $content    Block content (InnerBlocks).
  * @var WP_Block $block      Block instance.
  */
 
@@ -18,16 +19,13 @@ defined('ABSPATH') || exit;
 // Get attributes with defaults
 $per_page = $attributes['perPage'] ?? 12;
 $columns = $attributes['columns'] ?? 4;
-$show_hero = $attributes['showHero'] ?? true;
+$search_placeholder = $attributes['searchPlaceholder'] ?? 'Search by name, city, or state...';
 
 // Get video URL for cards
 $video_url = get_option('frs_directory_video_url', '');
 if (empty($video_url)) {
     $video_url = defined('FRS_USERS_VIDEO_BG_URL') ? FRS_USERS_VIDEO_BG_URL : '';
 }
-
-$headline = get_option('frs_directory_headline', 'Find Your Loan Officer');
-$subheadline = get_option('frs_directory_subheadline', 'Connect with a mortgage professional in your area');
 
 // Preload profiles server-side
 $profiles_data = [];
@@ -45,7 +43,7 @@ $config = [
     'videoUrl' => $video_url,
     'perPage' => $per_page,
     'profiles' => $profiles_data,
-    'showHero' => $show_hero,
+    'showHero' => true,
 ];
 
 $wrapper_attributes = get_block_wrapper_attributes([
@@ -56,8 +54,7 @@ $wrapper_attributes = get_block_wrapper_attributes([
 ?>
 
 <div <?php echo $wrapper_attributes; ?>>
-    <?php if ($show_hero) : ?>
-    <!-- Hero Section -->
+    <!-- Hero Section - InnerBlocks Content -->
     <section class="frs-hero" id="frs-hero">
         <!-- Background Decoration -->
         <div class="frs-hero__bg-decoration" aria-hidden="true">
@@ -71,18 +68,11 @@ $wrapper_attributes = get_block_wrapper_attributes([
         <div class="frs-hero__overlay" aria-hidden="true"></div>
 
         <div class="frs-hero__content">
-            <div class="frs-hero__headline-wrap">
-                <?php if ($video_url) : ?>
-                <video class="frs-hero__headline-video" autoplay loop muted playsinline>
-                    <source src="<?php echo esc_url($video_url); ?>" type="video/mp4">
-                </video>
-                <?php endif; ?>
-                <h1 class="frs-hero__headline"><?php echo esc_html($headline); ?></h1>
-            </div>
-            <p class="frs-hero__subheadline"><?php echo esc_html($subheadline); ?></p>
+            <?php echo $content; // InnerBlocks content ?>
 
+            <!-- Search Bar -->
             <form class="frs-search" id="frs-hero-search-form">
-                <input class="frs-search__input" type="search" id="frs-hero-search" placeholder="<?php esc_attr_e('Search by name, city, or state...', 'frs-users'); ?>">
+                <input class="frs-search__input" type="search" id="frs-hero-search" placeholder="<?php echo esc_attr($search_placeholder); ?>">
                 <button class="frs-search__btn" type="submit" id="frs-hero-search-btn">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
                     <span><?php esc_html_e('Search', 'frs-users'); ?></span>
@@ -97,7 +87,6 @@ $wrapper_attributes = get_block_wrapper_attributes([
             </svg>
         </button>
     </section>
-    <?php endif; ?>
 
     <!-- Directory Section -->
     <section class="frs-directory-section" id="frs-directory-section">

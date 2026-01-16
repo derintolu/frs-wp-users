@@ -66,8 +66,8 @@ class Blocks {
 
 		// Register lo-grid block (frs/lo-grid)
 		// Directory grid only - no hero, design your own hero above this block
-		if ( file_exists( $blocks_dir . 'lo-grid' ) ) {
-			register_block_type( $blocks_dir . 'lo-grid' );
+		if ( file_exists( $blocks_dir . 'build/lo-grid' ) ) {
+			register_block_type( $blocks_dir . 'build/lo-grid' );
 		}
 
 		// Register profile-editor block (frs/profile-editor)

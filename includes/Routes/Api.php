@@ -388,6 +388,70 @@ class Api {
 			)
 		);
 
+		// Get all user settings for current user
+		register_rest_route(
+			self::$namespace,
+			'/profiles/me/settings',
+			array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( self::$actions, 'get_user_settings' ),
+					'permission_callback' => array( self::$actions, 'check_authenticated' ),
+				),
+				array(
+					'methods'             => 'PUT',
+					'callback'            => array( self::$actions, 'update_user_settings' ),
+					'permission_callback' => array( self::$actions, 'check_authenticated' ),
+				),
+			)
+		);
+
+		// Notification settings
+		register_rest_route(
+			self::$namespace,
+			'/profiles/me/settings/notifications',
+			array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( self::$actions, 'get_notification_settings' ),
+					'permission_callback' => array( self::$actions, 'check_authenticated' ),
+				),
+				array(
+					'methods'             => 'PUT',
+					'callback'            => array( self::$actions, 'update_notification_settings' ),
+					'permission_callback' => array( self::$actions, 'check_authenticated' ),
+				),
+			)
+		);
+
+		// Privacy settings
+		register_rest_route(
+			self::$namespace,
+			'/profiles/me/settings/privacy',
+			array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( self::$actions, 'get_privacy_settings' ),
+					'permission_callback' => array( self::$actions, 'check_authenticated' ),
+				),
+				array(
+					'methods'             => 'PUT',
+					'callback'            => array( self::$actions, 'update_privacy_settings' ),
+					'permission_callback' => array( self::$actions, 'check_authenticated' ),
+				),
+			)
+		);
+
+		// Get integrations overview for current user
+		register_rest_route(
+			self::$namespace,
+			'/profiles/me/integrations',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( self::$actions, 'get_integrations' ),
+				'permission_callback' => array( self::$actions, 'check_authenticated' ),
+			)
+		);
 		// Allow hooks to add more custom API routes
 		do_action( 'frs_users_api_routes', self::$namespace );
 	}

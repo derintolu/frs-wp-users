@@ -963,4 +963,310 @@ class Actions {
 		// Default: deny access
 		return false;
 	}
+
+	/**
+	 * Permission callback for authenticated users
+	 *
+	 * @return bool
+	 */
+	public function check_authenticated() {
+		return is_user_logged_in();
+	}
+
+	/**
+	 * Get current user's profile helper
+	 *
+	 * @return Profile|null
+	 */
+	private function get_current_user_profile() {
+		$user_id = get_current_user_id();
+		if ( ! $user_id ) {
+			return null;
+		}
+
+		return Profile::get_by_user_id( $user_id );
+	}
+
+	/**
+	 * Get all user settings for current user
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function get_user_settings( WP_REST_Request $request ) {
+		$profile = $this->get_current_user_profile();
+
+		if ( ! $profile ) {
+			return new WP_Error(
+				'profile_not_found',
+				__( 'Profile not found for current user', 'frs-users' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'data'    => array(
+					'notifications' => $profile->notification_settings ?? $this->get_default_notification_settings(),
+					'privacy'       => $profile->privacy_settings ?? $this->get_default_privacy_settings(),
+				),
+			),
+			200
+		);
+	}
+
+	/**
+	 * Update all user settings for current user
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function update_user_settings( WP_REST_Request $request ) {
+		$profile = $this->get_current_user_profile();
+
+		if ( ! $profile ) {
+			return new WP_Error(
+				'profile_not_found',
+				__( 'Profile not found for current user', 'frs-users' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		$data = $request->get_json_params();
+
+		if ( isset( $data['notifications'] ) ) {
+			$profile->notification_settings = $this->sanitize_notification_settings( $data['notifications'] );
+		}
+
+		if ( isset( $data['privacy'] ) ) {
+			$profile->privacy_settings = $this->sanitize_privacy_settings( $data['privacy'] );
+		}
+
+		$profile->save();
+
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'message' => __( 'Settings updated successfully', 'frs-users' ),
+				'data'    => array(
+					'notifications' => $profile->notification_settings,
+					'privacy'       => $profile->privacy_settings,
+				),
+			),
+			200
+		);
+	}
+
+	/**
+	 * Get notification settings for current user
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function get_notification_settings( WP_REST_Request $request ) {
+		$profile = $this->get_current_user_profile();
+
+		if ( ! $profile ) {
+			return new WP_Error(
+				'profile_not_found',
+				__( 'Profile not found for current user', 'frs-users' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'data'    => $profile->notification_settings ?? $this->get_default_notification_settings(),
+			),
+			200
+		);
+	}
+
+	/**
+	 * Update notification settings for current user
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function update_notification_settings( WP_REST_Request $request ) {
+		$profile = $this->get_current_user_profile();
+
+		if ( ! $profile ) {
+			return new WP_Error(
+				'profile_not_found',
+				__( 'Profile not found for current user', 'frs-users' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		$data = $request->get_json_params();
+		$profile->notification_settings = $this->sanitize_notification_settings( $data );
+		$profile->save();
+
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'message' => __( 'Notification settings updated successfully', 'frs-users' ),
+				'data'    => $profile->notification_settings,
+			),
+			200
+		);
+	}
+
+	/**
+	 * Get privacy settings for current user
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function get_privacy_settings( WP_REST_Request $request ) {
+		$profile = $this->get_current_user_profile();
+
+		if ( ! $profile ) {
+			return new WP_Error(
+				'profile_not_found',
+				__( 'Profile not found for current user', 'frs-users' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'data'    => $profile->privacy_settings ?? $this->get_default_privacy_settings(),
+			),
+			200
+		);
+	}
+
+	/**
+	 * Update privacy settings for current user
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function update_privacy_settings( WP_REST_Request $request ) {
+		$profile = $this->get_current_user_profile();
+
+		if ( ! $profile ) {
+			return new WP_Error(
+				'profile_not_found',
+				__( 'Profile not found for current user', 'frs-users' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		$data = $request->get_json_params();
+		$profile->privacy_settings = $this->sanitize_privacy_settings( $data );
+		$profile->save();
+
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'message' => __( 'Privacy settings updated successfully', 'frs-users' ),
+				'data'    => $profile->privacy_settings,
+			),
+			200
+		);
+	}
+
+	/**
+	 * Get integrations overview for current user
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function get_integrations( WP_REST_Request $request ) {
+		$user_id = get_current_user_id();
+		$profile = $this->get_current_user_profile();
+
+		if ( ! $profile ) {
+			return new WP_Error(
+				'profile_not_found',
+				__( 'Profile not found for current user', 'frs-users' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		// Get Follow Up Boss status
+		$fub_status = \FRSUsers\Integrations\FollowUpBoss::get_status( $user_id );
+
+		return new WP_REST_Response(
+			array(
+				'success' => true,
+				'data'    => array(
+					'followupboss' => $fub_status,
+					// Add more integrations here as needed
+				),
+			),
+			200
+		);
+	}
+
+	/**
+	 * Get default notification settings
+	 *
+	 * @return array
+	 */
+	private function get_default_notification_settings() {
+		return array(
+			'lead_notifications'     => true,
+			'meeting_notifications'  => true,
+			'marketing_emails'       => true,
+			'system_updates'         => true,
+			'weekly_digest'          => false,
+		);
+	}
+
+	/**
+	 * Get default privacy settings
+	 *
+	 * @return array
+	 */
+	private function get_default_privacy_settings() {
+		return array(
+			'profile_visible'      => true,
+			'show_phone'           => true,
+			'show_email'           => true,
+			'show_social_links'    => true,
+			'allow_contact_form'   => true,
+			'show_in_directory'    => true,
+		);
+	}
+
+	/**
+	 * Sanitize notification settings
+	 *
+	 * @param array $settings Settings to sanitize.
+	 * @return array
+	 */
+	private function sanitize_notification_settings( $settings ) {
+		$defaults = $this->get_default_notification_settings();
+		$sanitized = array();
+
+		foreach ( $defaults as $key => $default_value ) {
+			$sanitized[ $key ] = isset( $settings[ $key ] ) ? (bool) $settings[ $key ] : $default_value;
+		}
+
+		return $sanitized;
+	}
+
+	/**
+	 * Sanitize privacy settings
+	 *
+	 * @param array $settings Settings to sanitize.
+	 * @return array
+	 */
+	private function sanitize_privacy_settings( $settings ) {
+		$defaults = $this->get_default_privacy_settings();
+		$sanitized = array();
+
+		foreach ( $defaults as $key => $default_value ) {
+			$sanitized[ $key ] = isset( $settings[ $key ] ) ? (bool) $settings[ $key ] : $default_value;
+		}
+
+		return $sanitized;
+	}
 }

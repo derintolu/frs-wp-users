@@ -18,6 +18,7 @@ use FRSUsers\Controllers\Shortcodes;
 use FRSUsers\Routes\Api;
 use FRSUsers\Integrations\FRSSync;
 use FRSUsers\Integrations\FluentCRMSync;
+use FRSUsers\Integrations\FollowUpBoss;
 use FRSUsers\Controllers\Blocks;
 use FRSUsers\Abilities\AbilitiesRegistry;
 use FRSUsers\Traits\Base;
@@ -102,6 +103,9 @@ final class FRSUsers {
 
 		// Initialize Arrive URL auto-population for loan officers
 		\FRSUsers\Integrations\ArriveAutoPopulate::init();
+
+		// Initialize Follow Up Boss integration
+		FollowUpBoss::init();
 
 		// Initialize WordPress Abilities API integration
 		AbilitiesRegistry::init();

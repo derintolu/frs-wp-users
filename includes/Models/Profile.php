@@ -428,6 +428,34 @@ class Profile {
 	public $created_at;
 
 	/**
+	 * Follow Up Boss API key.
+	 *
+	 * @var string
+	 */
+	public $followupboss_api_key;
+
+	/**
+	 * Follow Up Boss integration status.
+	 *
+	 * @var array
+	 */
+	public $followupboss_status;
+
+	/**
+	 * User notification settings.
+	 *
+	 * @var array
+	 */
+	public $notification_settings;
+
+	/**
+	 * User privacy settings.
+	 *
+	 * @var array
+	 */
+	public $privacy_settings;
+
+	/**
 	 * Updated at timestamp.
 	 *
 	 * @var string

@@ -70,6 +70,12 @@ class Blocks {
 			register_block_type( $blocks_dir . 'build/lo-grid' );
 		}
 
+		// Register lo-search block (frs/lo-search)
+		// Search bar that communicates with the lo-grid block
+		if ( file_exists( $blocks_dir . 'build/lo-search' ) ) {
+			register_block_type( $blocks_dir . 'build/lo-search' );
+		}
+
 		// Register profile-editor block (frs/profile-editor)
 		// Bento-grid profile editor with Interactivity API for edit/preview
 		// Built blocks go to build/ subdirectory

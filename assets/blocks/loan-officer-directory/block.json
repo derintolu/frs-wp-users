@@ -6,7 +6,7 @@
   "title": "Loan Officer Directory",
   "category": "frs-blocks",
   "icon": "businessperson",
-  "description": "Searchable loan officer directory with customizable hero section. Add any blocks to the hero area.",
+  "description": "Display a searchable directory of loan officers with hero, sidebar filters, state chips, and QR modal.",
   "keywords": [
     "directory",
     "loan officer",
@@ -22,6 +22,10 @@
     "html": false
   },
   "attributes": {
+    "showHero": {
+      "type": "boolean",
+      "default": true
+    },
     "perPage": {
       "type": "number",
       "default": 12
@@ -29,15 +33,10 @@
     "columns": {
       "type": "number",
       "default": 4
-    },
-    "searchPlaceholder": {
-      "type": "string",
-      "default": "Search by name, city, or state..."
     }
   },
   "editorScript": "file:./index.js",
-  "editorStyle": "file:./index.css",
   "viewScript": "file:./view.js",
-  "style": "file:./style.css",
+  "style": "file:./style-index.css",
   "render": "file:./render.php"
 }

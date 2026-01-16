@@ -146,6 +146,13 @@ $state_map = [
 // Base URL for state SVGs
 $state_svg_base = FRS_USERS_URL . 'assets/images/states/';
 
+// Enqueue Interactivity API script for profile
+wp_enqueue_script_module(
+    'frs-profile-view',
+    FRS_USERS_URL . 'assets/js/profile-view.js',
+    array( '@wordpress/interactivity' )
+);
+
 get_header();
 ?>
 
@@ -166,38 +173,54 @@ get_header();
             </div>
 
             <!-- Avatar with QR Flip -->
-            <div class="frs-profile__avatar-wrap">
-                <div class="frs-profile__avatar-inner" id="avatar-flip">
-                    <!-- Front: Photo -->
+            <div 
+                class="frs-profile__avatar-wrap"
+                data-wp-interactive="frs/profile"
+                data-wp-context='{"isFlipped": false}'
+            >
+                <div 
+                    class="frs-profile__avatar-inner"
+                    data-wp-class--frs-profile__avatar-inner--flipped="context.isFlipped"
+                >
+                    <!-- Front: Photo with QR button -->
                     <div class="frs-profile__avatar-front">
                         <?php if ($headshot_url) : ?>
                             <img src="<?php echo esc_url($headshot_url); ?>" alt="<?php echo esc_attr($full_name); ?>">
                         <?php else : ?>
                             <div class="frs-profile__avatar-placeholder"><?php echo esc_html($initials); ?></div>
                         <?php endif; ?>
+                        <!-- QR button on front face -->
+                        <button 
+                            class="frs-profile__qr-toggle"
+                            data-wp-on--click="actions.flip"
+                            aria-label="Show QR code"
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="url(#qr-grad)" stroke-width="2">
+                                <defs><linearGradient id="qr-grad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#2dd4da"/><stop offset="100%" style="stop-color:#2563eb"/></linearGradient></defs>
+                                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/>
+                            </svg>
+                        </button>
                     </div>
-                    <!-- Back: QR Code -->
+                    <!-- Back: QR Code with Avatar button -->
                     <div class="frs-profile__avatar-back">
                         <?php if ($qr_code_data) : ?>
                             <img src="<?php echo esc_attr($qr_code_data); ?>" alt="QR Code" width="90" height="90">
                         <?php else : ?>
                             <div class="frs-profile__no-qr">QR</div>
                         <?php endif; ?>
+                        <!-- Avatar button on back face -->
+                        <button 
+                            class="frs-profile__qr-toggle"
+                            data-wp-on--click="actions.flip"
+                            aria-label="Show avatar"
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="url(#av-grad)" stroke-width="2">
+                                <defs><linearGradient id="av-grad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#2dd4da"/><stop offset="100%" style="stop-color:#2563eb"/></linearGradient></defs>
+                                <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
+                            </svg>
+                        </button>
                     </div>
                 </div>
-                <!-- QR Toggle Button -->
-                <button class="frs-profile__qr-toggle frs-profile__qr-btn" id="qr-btn" aria-label="Show QR code">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="url(#qr-grad)" stroke-width="2">
-                        <defs><linearGradient id="qr-grad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#2dd4da"/><stop offset="100%" style="stop-color:#2563eb"/></linearGradient></defs>
-                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/>
-                    </svg>
-                </button>
-                <button class="frs-profile__qr-toggle frs-profile__avatar-btn" id="avatar-btn" aria-label="Show avatar" style="display:none;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="url(#av-grad)" stroke-width="2">
-                        <defs><linearGradient id="av-grad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#2dd4da"/><stop offset="100%" style="stop-color:#2563eb"/></linearGradient></defs>
-                        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/>
-                    </svg>
-                </button>
             </div>
 
             <!-- Profile Info -->
@@ -494,6 +517,11 @@ get_header();
     padding: 2rem 1rem;
 }
 
+/* Utility */
+.frs-profile .hidden {
+    display: none;
+}
+
 /* Rows */
 .frs-profile__row {
     display: grid;
@@ -555,50 +583,58 @@ get_header();
     background: linear-gradient(135deg, var(--frs-cyan), var(--frs-blue));
 }
 
-/* Avatar */
-.frs-profile__avatar-wrap {
-    width: 148px;
-    height: 148px;
-    margin: -74px 0 0 2rem;
+/* Avatar - scoped to .frs-profile to avoid conflict with profile-editor block */
+.frs-profile .frs-profile__avatar-wrap {
+    width: 148px !important;
+    height: 148px !important;
+    margin: -74px 0 0 2rem !important;
     perspective: 1000px;
-    position: relative;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
     z-index: 10;
 }
 
-.frs-profile__avatar-inner {
-    width: 148px;
-    height: 148px;
+.frs-profile .frs-profile__avatar-inner {
+    width: 148px !important;
+    height: 148px !important;
     position: relative;
     transition: transform 0.7s;
     transform-style: preserve-3d;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    overflow: visible !important;
 }
 
-.frs-profile__avatar-inner--flipped {
-    transform: rotateY(180deg);
+.frs-profile .frs-profile__avatar-inner--flipped {
+    transform: rotateY(-180deg);
 }
 
-.frs-profile__avatar-front,
-.frs-profile__avatar-back {
+.frs-profile .frs-profile__avatar-front,
+.frs-profile .frs-profile__avatar-back {
     position: absolute;
     width: 148px;
     height: 148px;
     backface-visibility: hidden;
     border-radius: 50%;
-    overflow: hidden;
+    overflow: visible;
     background: linear-gradient(white, white), linear-gradient(135deg, var(--frs-blue), var(--frs-cyan));
     background-clip: padding-box, border-box;
     background-origin: border-box;
     border: 3px solid transparent;
 }
 
-.frs-profile__avatar-front img {
+.frs-profile .frs-profile__avatar-front img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     border-radius: 50%;
 }
 
-.frs-profile__avatar-placeholder {
+.frs-profile .frs-profile__avatar-placeholder {
     width: 100%;
     height: 100%;
     display: flex;
@@ -610,7 +646,7 @@ get_header();
     font-weight: 600;
 }
 
-.frs-profile__avatar-back {
+.frs-profile .frs-profile__avatar-back {
     transform: rotateY(180deg);
     background: white;
     border: 1px solid var(--frs-border);
@@ -619,13 +655,13 @@ get_header();
     justify-content: center;
 }
 
-.frs-profile__no-qr {
+.frs-profile .frs-profile__no-qr {
     color: #ccc;
     font-size: 1.5rem;
 }
 
 /* QR Toggle Button */
-.frs-profile__qr-toggle {
+.frs-profile .frs-profile__qr-toggle {
     position: absolute;
     top: 4px;
     right: -4px;
@@ -637,14 +673,14 @@ get_header();
     background-clip: padding-box, border-box;
     background-origin: padding-box, border-box;
     cursor: pointer;
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     z-index: 20;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.frs-profile__qr-toggle svg {
+.frs-profile .frs-profile__qr-toggle svg {
     width: 20px;
     height: 20px;
 }
@@ -1225,25 +1261,6 @@ get_header();
 
 <script>
 (function() {
-    // QR Toggle
-    const avatarFlip = document.getElementById('avatar-flip');
-    const qrBtn = document.getElementById('qr-btn');
-    const avatarBtn = document.getElementById('avatar-btn');
-
-    if (qrBtn && avatarBtn && avatarFlip) {
-        qrBtn.addEventListener('click', function() {
-            avatarFlip.classList.add('frs-profile__avatar-inner--flipped');
-            qrBtn.style.display = 'none';
-            avatarBtn.style.display = 'flex';
-        });
-
-        avatarBtn.addEventListener('click', function() {
-            avatarFlip.classList.remove('frs-profile__avatar-inner--flipped');
-            avatarBtn.style.display = 'none';
-            qrBtn.style.display = 'flex';
-        });
-    }
-
     // Save Contact (vCard)
     const saveBtn = document.getElementById('save-contact-btn');
     if (saveBtn) {

@@ -28,6 +28,7 @@ class Blocks {
 	public static function init() {
 		add_action( 'init', array( __CLASS__, 'register_blocks' ) );
 		add_filter( 'block_categories_all', array( __CLASS__, 'add_block_category' ), 10, 2 );
+		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_profile_editor_data' ) );
 	}
 
 	/**
@@ -73,6 +74,33 @@ class Blocks {
 
 		// Allow other plugins to register additional FRS blocks
 		do_action( 'frs_users_register_blocks', $blocks_dir );
+	}
+
+	/**
+	 * Enqueue profile editor nonce and configuration data
+	 *
+	 * @return void
+	 */
+	public static function enqueue_profile_editor_data() {
+		// Only enqueue if user is logged in (profile editor requires login)
+		if ( ! is_user_logged_in() ) {
+			return;
+		}
+
+		// Add inline script with nonce for REST API authentication
+		// Use wp_footer to ensure it's available before the module runs
+		add_action( 'wp_footer', function() {
+			printf(
+				'<script>window.frsProfileEditor = %s;</script>',
+				wp_json_encode(
+					array(
+						'nonce'   => wp_create_nonce( 'wp_rest' ),
+						'restUrl' => rest_url( 'frs-users/v1/' ),
+						'userId'  => get_current_user_id(),
+					)
+				)
+			);
+		}, 5 ); // Priority 5 to run before modules
 	}
 
 	/**

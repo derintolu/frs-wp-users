@@ -1,0 +1,12 @@
+{
+  "mcp": {
+    "chrome-devtools": {
+      "type": "local",
+      "command": [
+        "npx",
+        "@anthropic-ai/mcp-server-chrome-devtools"
+      ]
+    }
+  },
+  "$schema": "https://opencode.ai/config.json"
+}

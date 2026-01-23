@@ -258,7 +258,7 @@ class Roles {
 			'hub'                => array(
 				'label'                  => __( 'Hub / Intranet (myhub21.com)', 'frs-users' ),
 				'description'            => __( 'All profiles including partners. Full editing enabled.', 'frs-users' ),
-				'company_roles'          => array( 'loan_originator', 'broker_associate', 'sales_associate', 'escrow_officer', 'property_manager', 'partner', 'leadership', 'staff' ),
+				'company_roles'          => array( 'loan_originator', 'broker_associate', 'sales_associate', 'escrow_officer', 'property_manager', 'leadership', 'staff' ),
 				'profile_editing'        => true,
 				'url_prefixes'           => array( 'lo', 'agent', 'escrow', 'pm', 'staff', 'leader' ),
 			),

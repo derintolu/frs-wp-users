@@ -93,15 +93,21 @@
 @container profile (max-width: 480px) {
     .frs-profile__name {
         font-size: 1.5rem;
+        text-align: center;
+        width: 100%;
     }
 
-    .frs-profile__avatar-wrap {
-        margin-left: auto !important;
-        margin-right: auto !important;
+    .frs-profile__name-row {
+        justify-content: center;
+    }
+
+    .frs-profile .frs-profile__avatar-wrap {
+        margin: -74px auto 0 auto !important;
     }
 
     .frs-profile__info {
         text-align: center;
+        padding: 1rem !important;
     }
 
     .frs-profile__title-location {

@@ -58,6 +58,33 @@
     margin: 0 auto;
 }
 
+/* Mobile preview centering */
+.frs-profile__preview-content--mobile .frs-profile__avatar-wrap {
+    margin: -74px auto 0 auto !important;
+}
+
+.frs-profile__preview-content--mobile .frs-profile__name {
+    text-align: center;
+    width: 100%;
+}
+
+.frs-profile__preview-content--mobile .frs-profile__name-row {
+    justify-content: center;
+}
+
+.frs-profile__preview-content--mobile .frs-profile__info {
+    text-align: center;
+    padding: 1rem;
+}
+
+.frs-profile__preview-content--mobile .frs-profile__title-location {
+    justify-content: center;
+}
+
+.frs-profile__preview-content--mobile .frs-profile__contact {
+    justify-content: center;
+}
+
 /* Utility */
 .frs-profile .hidden {
     display: none;

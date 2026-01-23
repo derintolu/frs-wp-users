@@ -262,6 +262,42 @@ class Roles {
 				'profile_editing'        => true,
 				'url_prefixes'           => array( 'lo', 'agent', 'escrow', 'pm', 'staff', 'leader' ),
 			),
+			// Hub Multisite Subsites (editing enabled per vertical)
+			'lending'            => array(
+				'label'                  => __( 'Lending (Hub Subsite)', 'frs-users' ),
+				'description'            => __( 'Loan officers subsite. Profile editing enabled.', 'frs-users' ),
+				'company_roles'          => array( 'loan_originator', 'leadership', 'staff' ),
+				'profile_editing'        => true,
+				'url_prefixes'           => array( 'lo', 'leader', 'staff' ),
+			),
+			'realestate'         => array(
+				'label'                  => __( 'Real Estate (Hub Subsite)', 'frs-users' ),
+				'description'            => __( 'Real estate agents subsite. Profile editing enabled.', 'frs-users' ),
+				'company_roles'          => array( 'broker_associate', 'sales_associate', 'leadership', 'staff' ),
+				'profile_editing'        => true,
+				'url_prefixes'           => array( 'agent', 'leader', 'staff' ),
+			),
+			'partners'           => array(
+				'label'                  => __( 'Partners (Hub Subsite)', 'frs-users' ),
+				'description'            => __( 'Partners subsite. Profile editing enabled.', 'frs-users' ),
+				'company_roles'          => array( 'partner' ),
+				'profile_editing'        => true,
+				'url_prefixes'           => array(),
+			),
+			'escrow'             => array(
+				'label'                  => __( 'Escrow (Hub Subsite)', 'frs-users' ),
+				'description'            => __( 'Escrow officers subsite. Profile editing enabled.', 'frs-users' ),
+				'company_roles'          => array( 'escrow_officer', 'leadership', 'staff' ),
+				'profile_editing'        => true,
+				'url_prefixes'           => array( 'escrow', 'leader', 'staff' ),
+			),
+			'property'           => array(
+				'label'                  => __( 'Property Management (Hub Subsite)', 'frs-users' ),
+				'description'            => __( 'Property managers subsite. Profile editing enabled.', 'frs-users' ),
+				'company_roles'          => array( 'property_manager', 'leadership', 'staff' ),
+				'profile_editing'        => true,
+				'url_prefixes'           => array( 'pm', 'leader', 'staff' ),
+			),
 		);
 	}
 

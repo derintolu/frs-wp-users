@@ -119,6 +119,8 @@ final class FRSUsers {
 			// UserProfileFields disabled - React ProfileEditPage handles all FRS fields.
 			// The PHP fields were breaking app passwords on profile.php.
 			\FRSUsers\Admin\CsvImportExport::get_instance()->init();
+			// Multisite user sync (only loads in multisite)
+			\FRSUsers\Admin\MultisiteSync::get_instance()->init();
 		}
 
 		// Initialize internationalization

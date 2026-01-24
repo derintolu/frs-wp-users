@@ -493,6 +493,11 @@ class Profile {
 			'order'    => 'ASC',
 		);
 
+		// In multisite, query users from main site where roles are assigned
+		if ( is_multisite() ) {
+			$wp_args['blog_id'] = get_main_site_id();
+		}
+
 		// Handle type filter (filter by frs_company_role meta)
 		if ( ! empty( $args['type'] ) ) {
 			$wp_args['meta_query'] = array(
@@ -535,6 +540,11 @@ class Profile {
 			'meta_key' => 'first_name',
 			'order'    => 'ASC',
 		);
+
+		// In multisite, query users from main site where roles are assigned
+		if ( is_multisite() ) {
+			$wp_args['blog_id'] = get_main_site_id();
+		}
 
 		if ( isset( $args['limit'] ) ) {
 			$wp_args['number'] = $args['limit'];
@@ -585,11 +595,18 @@ class Profile {
 		}
 
 		// Fallback to custom profile_slug meta
-		$users = get_users( array(
+		$wp_args = array(
 			'meta_key'   => 'frs_profile_slug',
 			'meta_value' => $slug,
 			'number'     => 1,
-		) );
+		);
+
+		// In multisite, query users from main site
+		if ( is_multisite() ) {
+			$wp_args['blog_id'] = get_main_site_id();
+		}
+
+		$users = get_users( $wp_args );
 
 		if ( ! empty( $users ) ) {
 			return static::hydrate_from_user( $users[0] );
@@ -605,11 +622,18 @@ class Profile {
 	 * @return Profile|null
 	 */
 	public static function get_by_frs_agent_id( $frs_agent_id ) {
-		$users = get_users( array(
+		$wp_args = array(
 			'meta_key'   => 'frs_frs_agent_id',
 			'meta_value' => $frs_agent_id,
 			'number'     => 1,
-		) );
+		);
+
+		// In multisite, query users from main site
+		if ( is_multisite() ) {
+			$wp_args['blog_id'] = get_main_site_id();
+		}
+
+		$users = get_users( $wp_args );
 
 		if ( empty( $users ) ) {
 			return null;

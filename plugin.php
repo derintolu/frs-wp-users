@@ -138,23 +138,28 @@ final class FRSUsers {
 	 * @return void
 	 */
 	public function check_dependencies() {
+		// In multisite, FluentCRM runs on main site only - don't show notice on subsites
+		if ( is_multisite() && ! is_main_site() ) {
+			return;
+		}
+
 		$missing = array();
 
-		// Check for FluentCRM (optional)
-		if ( !function_exists('FluentCrmApi') ) {
+		// Check for FluentCRM (optional) - only on main site
+		if ( ! function_exists( 'FluentCrmApi' ) ) {
 			$missing[] = 'FluentCRM (optional - required for automatic contact sync)';
 		}
 
 		// Show notice if optional dependencies are missing
-		if ( !empty($missing) ) {
+		if ( ! empty( $missing ) ) {
 			?>
 			<div class="notice notice-info is-dismissible">
 				<p>
 					<strong>FRS User Profiles</strong> - Optional integrations:
 				</p>
 				<ul style="list-style: disc; margin-left: 20px;">
-					<?php foreach ($missing as $plugin): ?>
-						<li><?php echo esc_html($plugin); ?></li>
+					<?php foreach ( $missing as $plugin ) : ?>
+						<li><?php echo esc_html( $plugin ); ?></li>
 					<?php endforeach; ?>
 				</ul>
 			</div>

@@ -50,6 +50,11 @@ class Actions {
 			'number'   => -1, // Get all, we'll paginate after filtering admins
 		);
 
+		// In multisite, query users from main site where roles are assigned
+		if ( is_multisite() ) {
+			$wp_args['blog_id'] = get_main_site_id();
+		}
+
 		// Filter by type (person type stored in user meta)
 		// If type is provided, validate it's in active roles for this site.
 		if ( $type ) {
@@ -209,11 +214,16 @@ class Actions {
 
 		if ( ! $user ) {
 			// Also try custom frs_profile_slug meta
-			$users = get_users( array(
+			$slug_args = array(
 				'meta_key'   => 'frs_profile_slug',
 				'meta_value' => sanitize_title( $slug ),
 				'number'     => 1,
-			) );
+			);
+			// In multisite, query users from main site
+			if ( is_multisite() ) {
+				$slug_args['blog_id'] = get_main_site_id();
+			}
+			$users = get_users( $slug_args );
 
 			if ( empty( $users ) ) {
 				return new WP_Error(
@@ -897,11 +907,16 @@ class Actions {
 		}
 
 		// Use WordPress-native query to get users with active company roles.
-		$users = get_users( array(
+		$user_args = array(
 			'role__in'   => Roles::get_wp_role_slugs(),
 			'meta_query' => $meta_query,
 			'number'     => -1,
-		) );
+		);
+		// In multisite, query users from main site
+		if ( is_multisite() ) {
+			$user_args['blog_id'] = get_main_site_id();
+		}
+		$users = get_users( $user_args );
 
 		// Convert to Profile objects and collect service areas
 		$all_areas = array();

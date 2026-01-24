@@ -156,11 +156,16 @@ class TemplateLoader {
 
         if (!$user) {
             // Try custom profile slug
-            $users = get_users([
+            $user_args = [
                 'meta_key'   => 'frs_profile_slug',
                 'meta_value' => sanitize_title($slug),
                 'number'     => 1,
-            ]);
+            ];
+            // In multisite, query users from main site
+            if ( is_multisite() ) {
+                $user_args['blog_id'] = get_main_site_id();
+            }
+            $users = get_users($user_args);
             $user = $users ? $users[0] : null;
         }
 
@@ -333,11 +338,16 @@ class TemplateLoader {
 
             if (!$user) {
                 // Try custom slug
-                $users = get_users([
+                $user_args = [
                     'meta_key' => 'frs_custom_slug',
                     'meta_value' => $slug,
                     'number' => 1,
-                ]);
+                ];
+                // In multisite, query users from main site
+                if ( is_multisite() ) {
+                    $user_args['blog_id'] = get_main_site_id();
+                }
+                $users = get_users($user_args);
                 $user = $users ? $users[0] : null;
             }
 

@@ -116,7 +116,8 @@ final class FRSUsers {
 			\FRSUsers\Admin\ProfilesAdminPage::get_instance()->init();
 			\FRSUsers\Admin\ProfileEditPage::get_instance()->init();
 			\FRSUsers\Admin\ProfileAddPage::get_instance()->init();
-			\FRSUsers\Admin\UserProfileFields::get_instance()->init();
+			// UserProfileFields disabled - React ProfileEditPage handles all FRS fields.
+			// The PHP fields were breaking app passwords on profile.php.
 			\FRSUsers\Admin\CsvImportExport::get_instance()->init();
 		}
 

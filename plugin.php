@@ -140,7 +140,7 @@ final class FRSUsers {
 	 * @return void
 	 */
 	public function check_dependencies() {
-		// In multisite, FluentCRM runs on main site only - don't show notice on subsites
+		// FluentCRM runs on main site only - skip notice on subsites
 		if ( is_multisite() && ! is_main_site() ) {
 			return;
 		}

@@ -25,6 +25,7 @@ class Categories {
 		self::register_profile_management();
 		self::register_role_management();
 		self::register_sync_operations();
+		self::register_intranet();
 	}
 
 	/**
@@ -83,6 +84,21 @@ class Categories {
 			array(
 				'label'       => __( 'Sync Operations', 'frs-wp-users' ),
 				'description' => __( 'Abilities for triggering webhook-based synchronization operations with external systems and monitoring sync status.', 'frs-wp-users' ),
+			)
+		);
+	}
+
+	/**
+	 * Register intranet category
+	 *
+	 * @return void
+	 */
+	private static function register_intranet(): void {
+		wp_register_ability_category(
+			'intranet',
+			array(
+				'label'       => __( 'Intranet', 'frs-wp-users' ),
+				'description' => __( 'Abilities for intranet features including staff directory, org chart, bookmarks, and internal profiles. AI/MCP-ready for integration with AI assistants.', 'frs-wp-users' ),
 			)
 		);
 	}

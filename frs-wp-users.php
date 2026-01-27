@@ -5,7 +5,7 @@
  * Author: 21st Century Lending
  * Author URI: https://hub21loan.com
  * License: GPLv2
- * Version: 2.1.0
+ * Version: 2.2.0
  * Text Domain: frs-users
  * Domain Path: /languages
  *
@@ -17,7 +17,7 @@ use FRSUsers\Core\Install;
 defined( 'ABSPATH' ) || exit;
 
 // Define plugin constants
-define( 'FRS_USERS_VERSION', '2.1.0' );
+define( 'FRS_USERS_VERSION', '2.2.0' );
 define( 'FRS_USERS_PLUGIN_FILE', __FILE__ );
 define( 'FRS_USERS_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FRS_USERS_URL', plugin_dir_url( __FILE__ ) );

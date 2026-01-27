@@ -110,6 +110,9 @@ final class FRSUsers {
 		// Initialize WordPress Abilities API integration
 		AbilitiesRegistry::init();
 
+		// Initialize Intranet module REST routes
+		\FRSUsers\Intranet\Routes::init();
+
 		// Initialize admin interface
 		if ( is_admin() ) {
 			// New WordPress-native admin pages

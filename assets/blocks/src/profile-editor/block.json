@@ -11,8 +11,7 @@
 	"textdomain": "frs-users",
 	"supports": {
 		"align": ["wide", "full"],
-		"html": false,
-		"interactivity": true
+		"html": false
 	},
 	"attributes": {
 		"contentOnly": {
@@ -21,7 +20,6 @@
 		}
 	},
 	"editorScript": "file:./index.js",
-	"viewScriptModule": "file:./view.js",
 	"style": "file:./style-index.css",
 	"render": "file:./render.php"
 }

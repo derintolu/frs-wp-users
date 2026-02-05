@@ -167,28 +167,10 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 ) );
 ?>
 
-<div <?php echo $wrapper_attributes; ?>
-	data-wp-interactive="frs/profile-editor"
-	<?php echo wp_interactivity_data_wp_context( array(
-		'isEditing'     => false,
-		'isSaving'      => false,
-		'isFlipped'     => false,
-		'previewDevice' => 'desktop',
-		'profile'       => $profile,
-		'userId'        => $current_user_id,
-	) ); ?>
->
+<div <?php echo $wrapper_attributes; ?>>
 	<!-- Preview Frame (contains profile content with dark background for device preview) -->
-	<div 
-		class="frs-profile__preview-frame"
-		data-wp-class--frs-profile__preview-frame--tablet="state.isTablet"
-		data-wp-class--frs-profile__preview-frame--mobile="state.isMobile"
-	>
-		<div 
-			class="frs-profile__preview-content"
-			data-wp-class--frs-profile__preview-content--tablet="state.isTablet"
-			data-wp-class--frs-profile__preview-content--mobile="state.isMobile"
-		>
+	<div class="frs-profile__preview-frame">
+		<div class="frs-profile__preview-content">
 	<!-- Row 1: Profile Card + Action Buttons/Service Areas -->
 	<div class="frs-profile__row frs-profile__row--main">
 		<!-- Profile Card (65%) -->
@@ -205,11 +187,8 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 			</div>
 
 			<!-- Avatar with QR Flip -->
-			<div class="frs-profile__avatar-wrap">
-				<div 
-					class="frs-profile__avatar-inner"
-					data-wp-class--frs-profile__avatar-inner--flipped="context.isFlipped"
-				>
+			<div class="frs-profile__avatar-wrap frs-profile__avatar-upload-wrap">
+				<div class="frs-profile__avatar-inner">
 					<!-- Front: Photo with QR button -->
 					<div class="frs-profile__avatar-front">
 						<?php if ( $headshot_url ) : ?>
@@ -218,9 +197,9 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 							<div class="frs-profile__avatar-placeholder"><?php echo esc_html( $initials ); ?></div>
 						<?php endif; ?>
 						<!-- QR button on front face -->
-						<button 
+						<button
+							type="button"
 							class="frs-profile__qr-toggle"
-							data-wp-on--click="actions.flip"
 							aria-label="Show QR code"
 						>
 							<svg viewBox="0 0 24 24" fill="none" stroke="url(#qr-grad)" stroke-width="2">
@@ -237,9 +216,9 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 							<div class="frs-profile__no-qr">QR</div>
 						<?php endif; ?>
 						<!-- Avatar button on back face -->
-						<button 
+						<button
+							type="button"
 							class="frs-profile__qr-toggle"
-							data-wp-on--click="actions.flip"
 							aria-label="Show avatar"
 						>
 							<svg viewBox="0 0 24 24" fill="none" stroke="url(#av-grad)" stroke-width="2">
@@ -249,12 +228,22 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 						</button>
 					</div>
 				</div>
+				<!-- Upload Photo Button (visible in edit mode) -->
+				<button type="button" class="frs-profile__avatar-upload-btn" id="avatar-upload-trigger">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+						<polyline points="17 8 12 3 7 8"/>
+						<line x1="12" y1="3" x2="12" y2="15"/>
+					</svg>
+					Change Photo
+				</button>
+				<input type="file" class="frs-profile__avatar-file-input" id="avatar-file-input" accept="image/*">
 			</div>
 
 			<!-- Profile Info -->
 			<div class="frs-profile__info">
 				<div class="frs-profile__name-row">
-					<h1 class="frs-profile__name" data-wp-text="context.profile.full_name"><?php echo esc_html( $full_name ); ?></h1>
+					<h1 class="frs-profile__name"><?php echo esc_html( $full_name ); ?></h1>
 					<?php if ( $apply_url ) : ?>
 					<div class="frs-profile__header-actions">
 						<a href="<?php echo esc_url( $apply_url ); ?>" class="frs-profile__apply-btn" target="_blank" rel="noopener">Apply Now</a>
@@ -264,15 +253,14 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 				<p class="frs-profile__title-location">
 					<span class="frs-profile__title">
 						<!-- View mode -->
-						<span data-wp-bind--hidden="context.isEditing"><?php echo esc_html( $job_title ); ?></span>
+						<span data-view-mode><?php echo esc_html( $job_title ); ?></span>
 						<!-- Edit mode -->
-						<input 
-							type="text" 
-							class="frs-profile__edit-input" 
-							data-wp-bind--hidden="!context.isEditing"
-							data-wp-bind--value="context.profile.job_title"
-							data-wp-on--input="actions.updateField"
+						<input
+							type="text"
+							class="frs-profile__edit-input"
+							data-edit-mode
 							data-field="job_title"
+							value="<?php echo esc_attr( $job_title ); ?>"
 							placeholder="Job Title"
 							hidden
 						>
@@ -287,15 +275,14 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 								<circle cx="12" cy="10" r="3"/>
 							</svg>
 							<!-- View mode -->
-							<span data-wp-bind--hidden="context.isEditing"><?php echo esc_html( $location ); ?></span>
+							<span data-view-mode><?php echo esc_html( $location ); ?></span>
 							<!-- Edit mode -->
-							<input 
-								type="text" 
-								class="frs-profile__edit-input frs-profile__edit-input--small" 
-								data-wp-bind--hidden="!context.isEditing"
-								data-wp-bind--value="context.profile.city_state"
-								data-wp-on--input="actions.updateField"
+							<input
+								type="text"
+								class="frs-profile__edit-input frs-profile__edit-input--small"
+								data-edit-mode
 								data-field="city_state"
+								value="<?php echo esc_attr( $location ); ?>"
 								placeholder="City, State"
 								hidden
 							>
@@ -304,7 +291,7 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 				</p>
 				<div class="frs-profile__contact">
 					<?php if ( $email ) : ?>
-						<a href="mailto:<?php echo esc_attr( $email ); ?>" class="frs-profile__contact-item" data-wp-bind--hidden="context.isEditing">
+						<a href="mailto:<?php echo esc_attr( $email ); ?>" class="frs-profile__contact-item" data-view-mode>
 							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20">
 								<circle cx="12" cy="12" r="10"/>
 								<path d="M8 12h8M12 8v8"/>
@@ -312,23 +299,22 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 							<?php echo esc_html( $email ); ?>
 						</a>
 						<!-- Edit mode email -->
-						<div class="frs-profile__contact-item" data-wp-bind--hidden="!context.isEditing" hidden>
+						<div class="frs-profile__contact-item" data-edit-mode hidden>
 							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20">
 								<circle cx="12" cy="12" r="10"/>
 								<path d="M8 12h8M12 8v8"/>
 							</svg>
-							<input 
-								type="email" 
-								class="frs-profile__edit-input" 
-								data-wp-bind--value="context.profile.email"
-								data-wp-on--input="actions.updateField"
+							<input
+								type="email"
+								class="frs-profile__edit-input"
 								data-field="email"
+								value="<?php echo esc_attr( $email ); ?>"
 								placeholder="Email"
 							>
 						</div>
 					<?php endif; ?>
 					<?php if ( $phone ) : ?>
-						<a href="tel:<?php echo esc_attr( preg_replace( '/[^\d+]/', '', $phone ) ); ?>" class="frs-profile__contact-item" data-wp-bind--hidden="context.isEditing">
+						<a href="tel:<?php echo esc_attr( preg_replace( '/[^\d+]/', '', $phone ) ); ?>" class="frs-profile__contact-item" data-view-mode>
 							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20">
 								<circle cx="12" cy="12" r="10"/>
 								<path d="M15.05 11.05a3 3 0 0 0-6.1 0M12 14v.01"/>
@@ -336,17 +322,16 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 							<?php echo esc_html( $phone ); ?>
 						</a>
 						<!-- Edit mode phone -->
-						<div class="frs-profile__contact-item" data-wp-bind--hidden="!context.isEditing" hidden>
+						<div class="frs-profile__contact-item" data-edit-mode hidden>
 							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20">
 								<circle cx="12" cy="12" r="10"/>
 								<path d="M15.05 11.05a3 3 0 0 0-6.1 0M12 14v.01"/>
 							</svg>
-							<input 
-								type="tel" 
-								class="frs-profile__edit-input" 
-								data-wp-bind--value="context.profile.phone_number"
-								data-wp-on--input="actions.updateField"
+							<input
+								type="tel"
+								class="frs-profile__edit-input"
 								data-field="phone_number"
+								value="<?php echo esc_attr( $phone ); ?>"
 								placeholder="Phone"
 							>
 						</div>
@@ -386,7 +371,7 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 					Service Areas
 				</h3>
 				<!-- View mode -->
-				<div class="frs-profile__states-grid" data-wp-bind--hidden="context.isEditing">
+				<div class="frs-profile__states-grid" data-view-mode>
 					<?php if ( ! empty( $service_areas ) ) : ?>
 						<?php foreach ( $service_areas as $area ) :
 							$area_lower = strtolower( trim( $area ) );
@@ -413,16 +398,16 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 					<?php endif; ?>
 				</div>
 				<!-- Edit mode - State checkboxes -->
-				<div class="frs-profile__edit-service-areas" data-wp-bind--hidden="!context.isEditing" hidden>
+				<div class="frs-profile__edit-service-areas" data-edit-mode hidden>
 					<div class="frs-profile__states-checkbox-grid">
-						<?php foreach ( $abbr_to_slug as $abbr => $slug ) : 
+						<?php foreach ( $abbr_to_slug as $abbr => $slug ) :
 							$checked = in_array( $abbr, $service_areas, true );
 						?>
 							<label class="frs-profile__state-checkbox">
-								<input 
-									type="checkbox" 
+								<input
+									type="checkbox"
 									value="<?php echo esc_attr( $abbr ); ?>"
-									data-wp-on--change="actions.toggleServiceArea"
+									data-service-area
 									<?php checked( $checked ); ?>
 								>
 								<span><?php echo esc_html( $abbr ); ?></span>
@@ -450,7 +435,7 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 			</h3>
 			<div class="frs-profile__bio-content">
 				<!-- View mode -->
-				<div data-wp-bind--hidden="context.isEditing">
+				<div data-view-mode>
 					<?php if ( $bio ) : ?>
 						<?php echo wp_kses_post( wpautop( $bio ) ); ?>
 					<?php else : ?>
@@ -458,10 +443,9 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 					<?php endif; ?>
 				</div>
 				<!-- Edit mode -->
-				<textarea 
-					class="frs-profile__edit-textarea" 
-					data-wp-bind--hidden="!context.isEditing"
-					data-wp-on--input="actions.updateField"
+				<textarea
+					class="frs-profile__edit-textarea"
+					data-edit-mode
 					data-field="biography"
 					placeholder="Write your professional biography..."
 					rows="8"
@@ -482,7 +466,7 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 			<div class="frs-profile__specialties-section">
 				<h4>Loan Officer Specialties</h4>
 				<!-- View mode -->
-				<div class="frs-profile__badges" data-wp-bind--hidden="context.isEditing">
+				<div class="frs-profile__badges" data-view-mode>
 					<?php if ( ! empty( $specialties ) ) : ?>
 						<?php foreach ( $specialties as $specialty ) : ?>
 							<span class="frs-profile__badge"><?php echo esc_html( $specialty ); ?></span>
@@ -492,15 +476,15 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 					<?php endif; ?>
 				</div>
 				<!-- Edit mode -->
-				<div class="frs-profile__checkbox-grid" data-wp-bind--hidden="!context.isEditing" hidden>
-					<?php foreach ( $specialties_options as $option ) : 
+				<div class="frs-profile__checkbox-grid" data-edit-mode hidden>
+					<?php foreach ( $specialties_options as $option ) :
 						$checked = in_array( $option, $specialties, true );
 					?>
 						<label class="frs-profile__checkbox-label">
-							<input 
-								type="checkbox" 
+							<input
+								type="checkbox"
 								value="<?php echo esc_attr( $option ); ?>"
-								data-wp-on--change="actions.toggleSpecialty"
+								data-specialty
 								<?php checked( $checked ); ?>
 							>
 							<span><?php echo esc_html( $option ); ?></span>
@@ -511,7 +495,7 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 			<div class="frs-profile__specialties-section">
 				<h4>NAMB Certifications</h4>
 				<!-- View mode -->
-				<div class="frs-profile__badges" data-wp-bind--hidden="context.isEditing">
+				<div class="frs-profile__badges" data-view-mode>
 					<?php if ( ! empty( $certifications ) ) : ?>
 						<?php foreach ( $certifications as $cert ) : ?>
 							<span class="frs-profile__badge frs-profile__badge--cert"><?php echo esc_html( $cert ); ?></span>
@@ -521,15 +505,15 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 					<?php endif; ?>
 				</div>
 				<!-- Edit mode -->
-				<div class="frs-profile__checkbox-grid" data-wp-bind--hidden="!context.isEditing" hidden>
-					<?php foreach ( $certifications_options as $option ) : 
+				<div class="frs-profile__checkbox-grid" data-edit-mode hidden>
+					<?php foreach ( $certifications_options as $option ) :
 						$checked = in_array( $option, $certifications, true );
 					?>
 						<label class="frs-profile__checkbox-label">
-							<input 
-								type="checkbox" 
+							<input
+								type="checkbox"
 								value="<?php echo esc_attr( $option ); ?>"
-								data-wp-on--change="actions.toggleCertification"
+								data-certification
 								<?php checked( $checked ); ?>
 							>
 							<span><?php echo esc_html( $option ); ?></span>
@@ -553,7 +537,7 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 				Custom Links
 			</h3>
 			<!-- View mode -->
-			<div class="frs-profile__links-list" data-wp-bind--hidden="context.isEditing">
+			<div class="frs-profile__links-list" data-view-mode>
 				<?php if ( ! empty( $custom_links ) ) : ?>
 					<?php foreach ( $custom_links as $link ) : ?>
 						<a href="<?php echo esc_url( $link['url'] ?? '#' ); ?>" target="_blank" rel="noopener noreferrer" class="frs-profile__link-item">
@@ -573,31 +557,28 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 				<?php endif; ?>
 			</div>
 			<!-- Edit mode -->
-			<div class="frs-profile__links-edit" data-wp-bind--hidden="!context.isEditing" hidden>
+			<div class="frs-profile__links-edit" data-edit-mode hidden>
 				<div class="frs-profile__links-edit-list">
 					<?php foreach ( $custom_links as $index => $link ) : ?>
 						<div class="frs-profile__link-edit-item" data-index="<?php echo esc_attr( $index ); ?>">
-							<input 
-								type="text" 
-								class="frs-profile__edit-input" 
+							<input
+								type="text"
+								class="frs-profile__edit-input"
 								value="<?php echo esc_attr( $link['title'] ?? '' ); ?>"
-								data-wp-on--input="actions.updateLinkTitle"
-								data-index="<?php echo esc_attr( $index ); ?>"
+								data-link-title="<?php echo esc_attr( $index ); ?>"
 								placeholder="Link Title"
 							>
-							<input 
-								type="url" 
-								class="frs-profile__edit-input" 
+							<input
+								type="url"
+								class="frs-profile__edit-input"
 								value="<?php echo esc_attr( $link['url'] ?? '' ); ?>"
-								data-wp-on--input="actions.updateLinkUrl"
-								data-index="<?php echo esc_attr( $index ); ?>"
+								data-link-url="<?php echo esc_attr( $index ); ?>"
 								placeholder="https://example.com"
 							>
-							<button 
-								type="button" 
+							<button
+								type="button"
 								class="frs-profile__link-remove-btn"
-								data-wp-on--click="actions.removeLink"
-								data-index="<?php echo esc_attr( $index ); ?>"
+								data-link-remove="<?php echo esc_attr( $index ); ?>"
 								title="Remove link"
 							>
 								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -608,10 +589,10 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 						</div>
 					<?php endforeach; ?>
 				</div>
-				<button 
-					type="button" 
+				<button
+					type="button"
 					class="frs-profile__link-add-btn"
-					data-wp-on--click="actions.addLink"
+					id="add-link-btn"
 				>
 					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 						<line x1="12" y1="5" x2="12" y2="19"></line>
@@ -633,7 +614,7 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 				Links & Social
 			</h3>
 			<!-- View mode -->
-			<div class="frs-profile__social-grid" data-wp-bind--hidden="context.isEditing">
+			<div class="frs-profile__social-grid" data-view-mode>
 				<a href="<?php echo $website ? esc_url( $website ) : '#'; ?>" class="frs-profile__social-item <?php echo ! $website ? 'frs-profile__social-item--empty' : ''; ?>" <?php echo $website ? 'target="_blank" rel="noopener noreferrer"' : ''; ?>>
 					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
 						<circle cx="12" cy="12" r="10"/>
@@ -666,48 +647,44 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 				</a>
 			</div>
 			<!-- Edit mode -->
-			<div class="frs-profile__social-edit" data-wp-bind--hidden="!context.isEditing" hidden>
+			<div class="frs-profile__social-edit" data-edit-mode hidden>
 				<div class="frs-profile__social-edit-item">
 					<label>Website</label>
-					<input 
-						type="url" 
-						class="frs-profile__edit-input" 
-						data-wp-bind--value="context.profile.website"
-						data-wp-on--input="actions.updateField"
+					<input
+						type="url"
+						class="frs-profile__edit-input"
 						data-field="website"
+						value="<?php echo esc_attr( $website ); ?>"
 						placeholder="https://yourwebsite.com"
 					>
 				</div>
 				<div class="frs-profile__social-edit-item">
 					<label>LinkedIn</label>
-					<input 
-						type="url" 
-						class="frs-profile__edit-input" 
-						data-wp-bind--value="context.profile.linkedin_url"
-						data-wp-on--input="actions.updateField"
+					<input
+						type="url"
+						class="frs-profile__edit-input"
 						data-field="linkedin_url"
+						value="<?php echo esc_attr( $linkedin ); ?>"
 						placeholder="https://linkedin.com/in/username"
 					>
 				</div>
 				<div class="frs-profile__social-edit-item">
 					<label>Facebook</label>
-					<input 
-						type="url" 
-						class="frs-profile__edit-input" 
-						data-wp-bind--value="context.profile.facebook_url"
-						data-wp-on--input="actions.updateField"
+					<input
+						type="url"
+						class="frs-profile__edit-input"
 						data-field="facebook_url"
+						value="<?php echo esc_attr( $facebook ); ?>"
 						placeholder="https://facebook.com/username"
 					>
 				</div>
 				<div class="frs-profile__social-edit-item">
 					<label>Instagram</label>
-					<input 
-						type="url" 
-						class="frs-profile__edit-input" 
-						data-wp-bind--value="context.profile.instagram_url"
-						data-wp-on--input="actions.updateField"
+					<input
+						type="url"
+						class="frs-profile__edit-input"
 						data-field="instagram_url"
+						value="<?php echo esc_attr( $instagram ); ?>"
 						placeholder="https://instagram.com/username"
 					>
 				</div>
@@ -722,11 +699,9 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 	<div class="frs-profile__edit-bar">
 		<!-- Left: Responsive Preview Controls -->
 		<div class="frs-profile__preview-controls">
-		<button 
+		<button
 			type="button"
 			class="frs-profile__preview-btn active"
-			data-wp-class--active="state.isDesktop"
-			data-wp-on--click="actions.setDesktop"
 		>
 			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 				<rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
@@ -735,11 +710,9 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 			</svg>
 			<span>Desktop</span>
 		</button>
-		<button 
+		<button
 			type="button"
 			class="frs-profile__preview-btn"
-			data-wp-class--active="state.isTablet"
-			data-wp-on--click="actions.setTablet"
 		>
 			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 				<rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
@@ -747,11 +720,9 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 			</svg>
 			<span>Tablet</span>
 		</button>
-		<button 
+		<button
 			type="button"
 			class="frs-profile__preview-btn"
-			data-wp-class--active="state.isMobile"
-			data-wp-on--click="actions.setMobile"
 		>
 			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 				<rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
@@ -764,11 +735,10 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 		<!-- Right: Edit/Cancel/Save Buttons -->
 		<div class="frs-profile__edit-actions">
 			<!-- View Mode: Edit Button -->
-			<button 
+			<button
 				type="button"
 				class="frs-profile__bar-edit-btn"
-				data-wp-bind--hidden="context.isEditing"
-				data-wp-on--click="actions.toggleEdit"
+				data-view-mode
 			>
 				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 					<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -778,21 +748,18 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 			</button>
 
 			<!-- Edit Mode: Cancel + Save Buttons -->
-			<button 
+			<button
 				type="button"
 				class="frs-profile__bar-cancel-btn"
-				data-wp-bind--hidden="!context.isEditing"
-				data-wp-on--click="actions.toggleEdit"
+				data-edit-mode
 				hidden
 			>
 				Cancel
 			</button>
-			<button 
+			<button
 				type="button"
 				class="frs-profile__bar-save-btn"
-				data-wp-bind--hidden="!context.isEditing"
-				data-wp-on--click="actions.saveProfile"
-				data-wp-bind--disabled="context.isSaving"
+				data-edit-mode
 				hidden
 			>
 				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -800,7 +767,7 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 					<polyline points="17 21 17 13 7 13 7 21"/>
 					<polyline points="7 3 7 8 15 8"/>
 				</svg>
-				<span data-wp-text="context.isSaving ? 'Saving...' : 'Save Changes'">Save Changes</span>
+				<span class="frs-profile__save-text">Save Changes</span>
 			</button>
 		</div>
 	</div>

@@ -87,20 +87,30 @@ class Blocks {
 			return;
 		}
 
-		// Add inline script with nonce for REST API authentication
-		// Use wp_footer to ensure it's available before the module runs
-		add_action( 'wp_footer', function() {
-			printf(
-				'<script>window.frsProfileEditor = %s;</script>',
-				wp_json_encode(
-					array(
-						'nonce'   => wp_create_nonce( 'wp_rest' ),
-						'restUrl' => rest_url( 'frs-users/v1/' ),
-						'userId'  => get_current_user_id(),
-					)
-				)
+		// Enqueue vanilla JS for profile editor interactions
+		$js_path = plugin_dir_path( dirname( dirname( __FILE__ ) ) ) . 'assets/blocks/src/profile-editor/view-vanilla.js';
+		if ( file_exists( $js_path ) ) {
+			wp_enqueue_script(
+				'frs-profile-editor-vanilla',
+				plugins_url( 'assets/blocks/src/profile-editor/view-vanilla.js', dirname( dirname( __FILE__ ) ) ),
+				array(),
+				filemtime( $js_path ),
+				true // Load in footer
 			);
-		}, 5 ); // Priority 5 to run before modules
+		}
+
+		// Add inline script with nonce for REST API authentication
+		wp_add_inline_script(
+			'frs-profile-editor-vanilla',
+			'window.frsProfileEditor = ' . wp_json_encode(
+				array(
+					'nonce'   => wp_create_nonce( 'wp_rest' ),
+					'restUrl' => rest_url( 'frs-users/v1/' ),
+					'userId'  => get_current_user_id(),
+				)
+			) . ';',
+			'before'
+		);
 	}
 
 	/**

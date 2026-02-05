@@ -14,29 +14,14 @@ use FRSUsers\Models\Profile;
 /**
  * FluentCRM Sync Integration
  * Syncs users to FluentCRM immediately when created/updated
- *
- * In multisite, FluentCRM runs on the main site only.
- * This class switches to the main site to perform sync operations.
  */
 class FluentCRMSync {
     use Base;
 
     /**
-     * Main site ID where FluentCRM is active
-     * Can be overridden with FRS_FLUENTCRM_SITE_ID constant
-     *
-     * @var int
-     */
-    private int $main_site_id;
-
-    /**
      * Initialize hooks
      */
     public function init(): void {
-        // Set main site ID (can be overridden in wp-config.php)
-        $this->main_site_id = defined('FRS_FLUENTCRM_SITE_ID')
-            ? FRS_FLUENTCRM_SITE_ID
-            : get_main_site_id();
         // Hook into user registration
         add_action('user_register', [$this, 'sync_new_user'], 10, 1);
 
@@ -139,21 +124,8 @@ class FluentCRMSync {
      * @return bool
      */
     private function should_sync_user(int $user_id): bool {
-        // In multisite, check FluentCRM on main site
-        $switched = false;
-        if (is_multisite() && get_current_blog_id() !== $this->main_site_id) {
-            switch_to_blog($this->main_site_id);
-            $switched = true;
-        }
-
-        // Don't sync if FluentCRM is not active on main site
-        $has_fluentcrm = function_exists('FluentCrmApi');
-
-        if ($switched) {
-            restore_current_blog();
-        }
-
-        if (!$has_fluentcrm) {
+        // Don't sync if FluentCRM is not active
+        if (!function_exists('FluentCrmApi')) {
             return false;
         }
 
@@ -174,8 +146,6 @@ class FluentCRMSync {
     /**
      * Perform the actual sync to FluentCRM
      *
-     * In multisite, switches to main site where FluentCRM is active.
-     *
      * @param int    $user_id User ID
      * @param string $context Sync context (new_user, profile_update, etc)
      */
@@ -186,7 +156,7 @@ class FluentCRMSync {
                 return;
             }
 
-            // Get FRS profile data before switching sites
+            // Get FRS profile data
             $profile = Profile::get_by_user_id($user_id);
 
             // Prepare contact data
@@ -208,20 +178,9 @@ class FluentCRMSync {
                 $contact_data['tags'] = $tags;
             }
 
-            // Switch to main site for FluentCRM API call
-            $switched = false;
-            if (is_multisite() && get_current_blog_id() !== $this->main_site_id) {
-                switch_to_blog($this->main_site_id);
-                $switched = true;
-            }
-
             // Create or update contact in FluentCRM
             $api = FluentCrmApi('contacts');
             $contact = $api->createOrUpdate($contact_data);
-
-            if ($switched) {
-                restore_current_blog();
-            }
 
             if ($contact) {
                 error_log(sprintf(

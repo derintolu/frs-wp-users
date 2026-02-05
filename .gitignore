@@ -8,6 +8,7 @@ vendor/
 *.swp
 *.swo
 *~
+dist/
 .cache/
 
 # Development/testing files

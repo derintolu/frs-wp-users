@@ -14,3 +14,14 @@ dist/
 # Development/testing files
 .playwright-mcp/
 test-*.php
+.phpunit.result.cache
+network.txt
+
+# Debug screenshots
+profile-*.png
+sidebar-*.png
+qr-*.png
+login-*.png
+
+# Claude Code
+.claude/

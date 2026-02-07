@@ -58,6 +58,16 @@ final class FRSUsers {
 		// Run any pending migrations
 		$this->maybe_run_migrations();
 
+		// Ensure WP roles are registered (idempotent — add_role is a no-op if role exists)
+		\FRSUsers\Core\Migration::register_roles();
+
+		// Auto-flush rewrite rules on version change
+		$stored_version = get_option( 'frs_users_version', '' );
+		if ( defined( 'FRS_USERS_VERSION' ) && $stored_version !== FRS_USERS_VERSION ) {
+			update_option( 'frs_users_flush_rewrite_rules', true );
+			update_option( 'frs_users_version', FRS_USERS_VERSION );
+		}
+
 		// Check plugin dependencies (must run first)
 		PluginDependencies::get_instance()->init();
 

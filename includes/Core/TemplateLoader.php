@@ -94,11 +94,16 @@ class TemplateLoader {
             return $link;
         }
 
-        // Check user's FRS person type (stored in user meta)
-        $person_type = get_user_meta($author_id, 'frs_company_role', true);
-        if ($person_type && isset($this->role_urls[$person_type])) {
-            $url_prefix = $this->role_urls[$person_type];
-            return str_replace('/author/', "/{$url_prefix}/", $link);
+        // Match user's WP roles against our role_urls map
+        $frs_roles = array_keys($this->role_urls);
+        $user_frs_roles = array_intersect($frs_roles, (array) $user->roles);
+
+        if (!empty($user_frs_roles)) {
+            $role = reset($user_frs_roles);
+            $url_prefix = $this->role_urls[$role];
+            if ($url_prefix) {
+                return home_url("/{$url_prefix}/{$author_nicename}/");
+            }
         }
 
         return $link;

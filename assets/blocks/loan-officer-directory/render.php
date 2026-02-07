@@ -40,7 +40,7 @@ if (!empty($profiles)) {
 
 // Config for JavaScript
 $config = [
-    'hubUrl' => trailingslashit(home_url('/lo/')),
+    'hubUrl' => trailingslashit(home_url('/' . \FRSUsers\Core\Roles::get_url_prefix('loan_officer') . '/')),
     'apiUrl' => rest_url('frs-users/v1'),
     'videoUrl' => $video_url,
     'perPage' => $per_page,

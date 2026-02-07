@@ -308,29 +308,36 @@ class TemplateLoader {
      * Redirects:
      * - /profile/{slug} → /lo/{slug} (old custom URL)
      * - /directory/lo/{slug} → /lo/{slug} (from frs-profile-directory)
+     * - /author/{slug} → /{role-prefix}/{slug} (for FRS users)
+     *
+     * Uses site-relative paths so redirects work on multisite subsites.
      *
      * @return void
      */
     public function redirect_legacy_urls() {
         $request_uri = $_SERVER['REQUEST_URI'] ?? '';
 
+        // Get site-relative path (strips subsite prefix on multisite)
+        // e.g. /lending/author/john → /author/john
+        $relative_path = $this->get_site_relative_path($request_uri);
+
         // Redirect /directory/qr/{slug} → /qr/{slug}
-        if (preg_match('#^/directory/qr/([^/]+)#', $request_uri, $matches)) {
+        if (preg_match('#^/directory/qr/([^/]+)#', $relative_path, $matches)) {
             $slug = $matches[1];
-            wp_redirect(home_url("/qr/{$slug}"), 301);
+            wp_redirect(home_url("/qr/{$slug}/"), 301);
             exit;
         }
 
-        // Redirect /directory/lo/{slug} → /lo/{slug}
-        if (preg_match('#^/directory/(lo|agent|staff|leader)/([^/]+)#', $request_uri, $matches)) {
+        // Redirect /directory/{prefix}/{slug} → /{prefix}/{slug}
+        if (preg_match('#^/directory/(lo|agent|escrow|pm|staff|leader)/([^/]+)#', $relative_path, $matches)) {
             $prefix = $matches[1];
             $slug = $matches[2];
-            wp_redirect(home_url("/{$prefix}/{$slug}"), 301);
+            wp_redirect(home_url("/{$prefix}/{$slug}/"), 301);
             exit;
         }
 
         // Redirect /profile/{slug} → determine role and redirect
-        if (preg_match('#^/profile/([^/]+)#', $request_uri, $matches)) {
+        if (preg_match('#^/profile/([^/]+)#', $relative_path, $matches)) {
             $slug = $matches[1];
 
             // Find user by slug
@@ -349,8 +356,8 @@ class TemplateLoader {
             if ($user) {
                 // Determine role and redirect
                 foreach ($this->role_urls as $role => $url_prefix) {
-                    if (in_array($role, $user->roles)) {
-                        wp_redirect(home_url("/{$url_prefix}/{$slug}"), 301);
+                    if ($url_prefix && in_array($role, $user->roles)) {
+                        wp_redirect(home_url("/{$url_prefix}/{$slug}/"), 301);
                         exit;
                     }
                 }
@@ -361,19 +368,39 @@ class TemplateLoader {
         if (is_author()) {
             $author = get_queried_object();
             if ($author && ($author instanceof \WP_User)) {
-                foreach ($this->role_urls as $role => $url_prefix) {
-                    if (in_array($role, $author->roles)) {
-                        $current_url = $_SERVER['REQUEST_URI'] ?? '';
-                        // Only redirect if currently on /author/ URL
-                        if (strpos($current_url, '/author/') !== false) {
-                            $new_url = str_replace('/author/', "/{$url_prefix}/", $current_url);
-                            wp_redirect(home_url($new_url), 301);
+                // Only redirect if currently on an /author/ URL
+                if (strpos($relative_path, '/author/') === 0) {
+                    foreach ($this->role_urls as $role => $url_prefix) {
+                        if ($url_prefix && in_array($role, $author->roles)) {
+                            wp_redirect(home_url("/{$url_prefix}/{$author->user_nicename}/"), 301);
                             exit;
                         }
                     }
                 }
             }
         }
+    }
+
+    /**
+     * Get the request path relative to the site's home URL
+     *
+     * On multisite subsites, strips the subsite prefix so pattern matching
+     * works regardless of the subsite path.
+     * e.g. /lending/author/john-smith → /author/john-smith
+     *
+     * @param string $request_uri Raw REQUEST_URI
+     * @return string Site-relative path
+     */
+    private function get_site_relative_path($request_uri) {
+        $home_path = wp_parse_url(home_url(), PHP_URL_PATH);
+        $home_path = $home_path ? trailingslashit($home_path) : '/';
+
+        // Strip the site base path to get the relative portion
+        if ($home_path !== '/' && strpos($request_uri, $home_path) === 0) {
+            return '/' . substr($request_uri, strlen($home_path));
+        }
+
+        return $request_uri;
     }
 
     /**

@@ -14,6 +14,9 @@ use FRSUsers\Core\Template;
 use FRSUsers\Core\TemplateLoader;
 use FRSUsers\Core\CORS;
 use FRSUsers\Core\EmbeddablePages;
+use FRSUsers\Core\SettingsPage;
+use FRSUsers\Core\NewsletterTaxonomy;
+use FRSUsers\Core\BlockPatterns;
 use FRSUsers\Controllers\Shortcodes;
 use FRSUsers\Routes\Api;
 use FRSUsers\Integrations\FRSSync;
@@ -98,6 +101,14 @@ final class FRSUsers {
 		// Initialize embeddable pages for Nextcloud integration
 		EmbeddablePages::get_instance()->init();
 
+		// Initialize frontend settings page (hub user settings)
+		SettingsPage::get_instance()->init();
+
+		// Register newsletter taxonomy on posts
+		NewsletterTaxonomy::init();
+
+		// Register hub block patterns (directory + profile)
+		BlockPatterns::init();
 
 		// Initialize WP-CLI commands
 		CLI::init();

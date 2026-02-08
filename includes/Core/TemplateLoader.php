@@ -238,6 +238,9 @@ class TemplateLoader {
      * Loads our custom templates for loan officers, agents, staff, leaders
      * on their author archive pages.
      *
+     * On hub/development contexts, loads the hub profile template which renders
+     * the Greenshift block pattern instead of the public marketing template.
+     *
      * @param string $template Current template path
      * @return string Modified template path
      */
@@ -286,7 +289,16 @@ class TemplateLoader {
             }
         }
 
-        // Use plugin template
+        // Hub context: use the hub profile template (Greenshift block pattern)
+        $site_context = Roles::get_site_context();
+        if (in_array($site_context, ['hub', 'development'], true)) {
+            $hub_template = FRS_USERS_DIR . 'templates/profile/hub-profile.php';
+            if (file_exists($hub_template)) {
+                return $hub_template;
+            }
+        }
+
+        // Use plugin template (marketing sites)
         $plugin_template = FRS_USERS_DIR . "templates/profile/{$role}.php";
 
         // Fallback for roles without specific templates

@@ -502,6 +502,8 @@ class ProfileApi {
 			'brand', 'city_state', 'region', 'facebook_url', 'instagram_url',
 			'linkedin_url', 'twitter_url', 'youtube_url', 'tiktok_url', 'arrive',
 			'canva_folder_link', 'status',
+			'specialties_lo', 'namb_certifications', 'service_areas',
+			'telegram_username',
 		);
 	}
 

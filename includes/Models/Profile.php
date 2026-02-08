@@ -288,6 +288,13 @@ class Profile {
 	public $tiktok_url;
 
 	/**
+	 * Telegram username.
+	 *
+	 * @var string
+	 */
+	public $telegram_username;
+
+	/**
 	 * Century21 URL.
 	 *
 	 * @var string
@@ -748,6 +755,7 @@ class Profile {
 		update_user_meta( $this->user_id, 'frs_twitter_url', $this->twitter_url );
 		update_user_meta( $this->user_id, 'frs_youtube_url', $this->youtube_url );
 		update_user_meta( $this->user_id, 'frs_tiktok_url', $this->tiktok_url );
+		update_user_meta( $this->user_id, 'frs_telegram_username', $this->telegram_username );
 		update_user_meta( $this->user_id, 'frs_century21_url', $this->century21_url );
 		update_user_meta( $this->user_id, 'frs_zillow_url', $this->zillow_url );
 		update_user_meta( $this->user_id, 'frs_arrive', $this->arrive );
@@ -879,6 +887,7 @@ class Profile {
 			'twitter_url'             => $this->twitter_url,
 			'youtube_url'             => $this->youtube_url,
 			'tiktok_url'              => $this->tiktok_url,
+			'telegram_username'       => $this->telegram_username,
 			'century21_url'           => $this->century21_url,
 			'zillow_url'              => $this->zillow_url,
 			'arrive'                  => $this->arrive,
@@ -1048,7 +1057,8 @@ class Profile {
 		$profile->linkedin_url  = get_user_meta( $user->ID, 'frs_linkedin_url', true );
 		$profile->twitter_url   = get_user_meta( $user->ID, 'frs_twitter_url', true );
 		$profile->youtube_url   = get_user_meta( $user->ID, 'frs_youtube_url', true );
-		$profile->tiktok_url    = get_user_meta( $user->ID, 'frs_tiktok_url', true );
+		$profile->tiktok_url          = get_user_meta( $user->ID, 'frs_tiktok_url', true );
+		$profile->telegram_username   = get_user_meta( $user->ID, 'frs_telegram_username', true );
 		$profile->century21_url = get_user_meta( $user->ID, 'frs_century21_url', true );
 		$profile->zillow_url    = get_user_meta( $user->ID, 'frs_zillow_url', true );
 

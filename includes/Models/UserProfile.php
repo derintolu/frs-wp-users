@@ -651,4 +651,101 @@ class UserProfile {
         $args['role'] = $role;
         return self::get_all($args);
     }
+
+    // ===========================================
+    // Profile Completion
+    // ===========================================
+
+    /**
+     * Get auto-computed profile completion items
+     *
+     * Returns checklist items based on which profile fields are filled/empty.
+     * Role-aware: conditional items (NMLS, DRE, Arrive) only appear for relevant roles.
+     *
+     * @return array Array of completion item arrays with type, key, title, is_completed.
+     */
+    public function get_profile_completion_items(): array {
+        $roles = $this->get_roles();
+        $is_lo = in_array( 'loan_officer', $roles, true ) || in_array( 'dual_license', $roles, true );
+        $is_agent = in_array( 're_agent', $roles, true );
+
+        $items = array();
+
+        // Universal items (all roles)
+        $items[] = array(
+            'type'         => 'auto',
+            'key'          => 'headshot',
+            'title'        => 'Upload a professional headshot',
+            'is_completed' => $this->get_headshot_url() !== '',
+        );
+
+        $items[] = array(
+            'type'         => 'auto',
+            'key'          => 'biography',
+            'title'        => 'Write your professional biography',
+            'is_completed' => $this->get_biography() !== '',
+        );
+
+        $items[] = array(
+            'type'         => 'auto',
+            'key'          => 'phone_number',
+            'title'        => 'Add your phone number',
+            'is_completed' => $this->get_phone_number() !== '',
+        );
+
+        $items[] = array(
+            'type'         => 'auto',
+            'key'          => 'service_areas',
+            'title'        => 'Select your service areas',
+            'is_completed' => ! empty( $this->get_service_areas() ),
+        );
+
+        $items[] = array(
+            'type'         => 'auto',
+            'key'          => 'specialties',
+            'title'        => 'Choose your specialties',
+            'is_completed' => ! empty( $this->get_specialties() ) || ! empty( $this->get_specialties_lo() ),
+        );
+
+        $items[] = array(
+            'type'         => 'auto',
+            'key'          => 'social_link',
+            'title'        => 'Add at least one social media link',
+            'is_completed' => $this->get_facebook_url() !== ''
+                || $this->get_instagram_url() !== ''
+                || $this->get_linkedin_url() !== ''
+                || $this->get_twitter_url() !== ''
+                || $this->get_youtube_url() !== ''
+                || $this->get_tiktok_url() !== '',
+        );
+
+        // Loan officer / dual license items
+        if ( $is_lo ) {
+            $items[] = array(
+                'type'         => 'auto',
+                'key'          => 'nmls',
+                'title'        => 'Add your NMLS number',
+                'is_completed' => $this->get_nmls() !== '',
+            );
+
+            $items[] = array(
+                'type'         => 'auto',
+                'key'          => 'arrive_url',
+                'title'        => 'Set your loan application URL',
+                'is_completed' => $this->get_arrive_url() !== '',
+            );
+        }
+
+        // Real estate agent items
+        if ( $is_agent ) {
+            $items[] = array(
+                'type'         => 'auto',
+                'key'          => 'dre_license',
+                'title'        => 'Add your DRE license number',
+                'is_completed' => $this->get_dre_license() !== '',
+            );
+        }
+
+        return $items;
+    }
 }

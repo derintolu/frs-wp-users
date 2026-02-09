@@ -104,6 +104,9 @@ final class FRSUsers {
 		// Initialize frontend settings page (hub user settings)
 		SettingsPage::get_instance()->init();
 
+		// Initialize user tasks (checklist + admin tasks)
+		\FRSUsers\Core\UserTasks::get_instance()->init();
+
 		// Register newsletter taxonomy on posts
 		NewsletterTaxonomy::init();
 
@@ -201,6 +204,10 @@ final class FRSUsers {
 	 * @return void
 	 */
 	private function maybe_run_migrations() {
-		// No migrations needed - WordPress-native storage uses wp_users + wp_usermeta
+		$db_version = get_option( 'frs_users_db_version', '0' );
+		if ( version_compare( $db_version, '3.1.0', '<' ) ) {
+			\FRSUsers\Core\UserTasks::maybe_create_table();
+			update_option( 'frs_users_db_version', '3.1.0' );
+		}
 	}
 }

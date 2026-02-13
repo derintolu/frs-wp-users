@@ -627,7 +627,7 @@ class Api {
 			set_post_format( $post_id, $format );
 		}
 
-		$editor_url = admin_url( 'admin.php?page=frs-post-composer&post_id=' . $post_id );
+		$editor_url = admin_url( 'post.php?post=' . $post_id . '&action=edit' );
 
 		return new \WP_REST_Response(
 			array(

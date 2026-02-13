@@ -624,19 +624,6 @@ class Api {
 		// Set post format if not standard.
 		if ( 'standard' !== $format ) {
 			set_post_format( $post_id, $format );
-
-			// If Post Formats for Block Themes is active, load pattern content.
-			if ( class_exists( 'PFBT_Pattern_Manager' ) ) {
-				$pattern = \PFBT_Pattern_Manager::get_pattern( $format );
-				if ( $pattern ) {
-					wp_update_post(
-						array(
-							'ID'           => $post_id,
-							'post_content' => $pattern,
-						)
-					);
-				}
-			}
 		}
 
 		$editor_url = admin_url( 'admin.php?page=frs-post-composer&post_id=' . $post_id );

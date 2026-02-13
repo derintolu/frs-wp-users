@@ -608,7 +608,8 @@ class Api {
 				'post_status' => 'auto-draft',
 				'post_type'   => 'post',
 				'post_author' => $user_id,
-				'post_title'  => '',
+				'post_title'  => __( 'Auto Draft', 'frs-users' ),
+				'post_content' => ' ',
 			),
 			true
 		);

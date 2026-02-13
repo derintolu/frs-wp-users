@@ -24,6 +24,7 @@ use FRSUsers\Integrations\FluentCRMSync;
 use FRSUsers\Integrations\FollowUpBoss;
 use FRSUsers\Controllers\Blocks;
 use FRSUsers\Abilities\AbilitiesRegistry;
+use FRSUsers\Core\ActivityRecorder;
 use FRSUsers\Traits\Base;
 
 defined( 'ABSPATH' ) || exit;
@@ -122,6 +123,9 @@ final class FRSUsers {
 		// Initialize FluentCRM real-time sync integration
 		FluentCRMSync::get_instance()->init();
 
+		// Initialize activity recording hooks
+		ActivityRecorder::init();
+
 		// Initialize profile sync between hub and marketing sites
 		\FRSUsers\Core\ProfileSync::init();
 
@@ -205,9 +209,10 @@ final class FRSUsers {
 	 */
 	private function maybe_run_migrations() {
 		$db_version = get_option( 'frs_users_db_version', '0' );
-		if ( version_compare( $db_version, '3.1.0', '<' ) ) {
+		if ( version_compare( $db_version, '3.2.0', '<' ) ) {
 			\FRSUsers\Core\UserTasks::maybe_create_table();
-			update_option( 'frs_users_db_version', '3.1.0' );
+			\FRSUsers\Models\ActivityLog::maybe_create_table();
+			update_option( 'frs_users_db_version', '3.2.0' );
 		}
 	}
 }

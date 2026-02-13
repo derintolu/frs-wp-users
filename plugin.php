@@ -15,6 +15,7 @@ use FRSUsers\Core\TemplateLoader;
 use FRSUsers\Core\CORS;
 use FRSUsers\Core\EmbeddablePages;
 use FRSUsers\Core\SettingsPage;
+use FRSUsers\Core\PostComposer;
 use FRSUsers\Core\NewsletterTaxonomy;
 use FRSUsers\Core\BlockPatterns;
 use FRSUsers\Controllers\Shortcodes;
@@ -104,6 +105,9 @@ final class FRSUsers {
 
 		// Initialize frontend settings page (hub user settings)
 		SettingsPage::get_instance()->init();
+
+		// Initialize post composer (minimal block editor for activity tab)
+		PostComposer::get_instance()->init();
 
 		// Initialize user tasks (checklist + admin tasks)
 		\FRSUsers\Core\UserTasks::get_instance()->init();

@@ -514,6 +514,26 @@ class Api {
 			)
 		);
 
+		// Create post draft for composer.
+		register_rest_route(
+			self::$namespace,
+			'/posts/create-draft',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'create_post_draft' ),
+				'permission_callback' => array( self::$actions, 'check_authenticated' ),
+				'args'                => array(
+					'format' => array(
+						'description'       => 'Post format (standard, image, video, audio, link, quote, gallery, status, aside, chat)',
+						'type'              => 'string',
+						'required'          => false,
+						'default'           => 'standard',
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
+			)
+		);
+
 		// Allow hooks to add more custom API routes
 		do_action( 'frs_users_api_routes', self::$namespace );
 	}
@@ -561,6 +581,73 @@ class Api {
 		$response->header( 'Cache-Control', 'no-cache, no-store, must-revalidate' );
 
 		return $response;
+	}
+
+	/**
+	 * Create an auto-draft post for the frontend composer
+	 *
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public static function create_post_draft( $request ) {
+		$user_id = get_current_user_id();
+
+		if ( ! $user_id || ! current_user_can( 'edit_posts' ) ) {
+			return new \WP_Error(
+				'unauthorized',
+				__( 'You do not have permission to create posts.', 'frs-users' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		$format = $request->get_param( 'format' ) ?: 'standard';
+
+		// Create auto-draft.
+		$post_id = wp_insert_post(
+			array(
+				'post_status' => 'auto-draft',
+				'post_type'   => 'post',
+				'post_author' => $user_id,
+				'post_title'  => '',
+			),
+			true
+		);
+
+		if ( is_wp_error( $post_id ) ) {
+			return new \WP_Error(
+				'draft_creation_failed',
+				$post_id->get_error_message(),
+				array( 'status' => 500 )
+			);
+		}
+
+		// Set post format if not standard.
+		if ( 'standard' !== $format ) {
+			set_post_format( $post_id, $format );
+
+			// If Post Formats for Block Themes is active, load pattern content.
+			if ( class_exists( 'PFBT_Pattern_Manager' ) ) {
+				$pattern = \PFBT_Pattern_Manager::get_pattern( $format );
+				if ( $pattern ) {
+					wp_update_post(
+						array(
+							'ID'           => $post_id,
+							'post_content' => $pattern,
+						)
+					);
+				}
+			}
+		}
+
+		$editor_url = admin_url( 'admin.php?page=frs-post-composer&post_id=' . $post_id );
+
+		return new \WP_REST_Response(
+			array(
+				'post_id'    => $post_id,
+				'editor_url' => $editor_url,
+			),
+			201
+		);
 	}
 
 	/**

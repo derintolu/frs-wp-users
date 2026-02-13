@@ -801,6 +801,84 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 
 	<!-- Tab: Activity (company-level) -->
 	<div class="frs-profile__tab-panel" data-tab-panel="activity" hidden>
+
+		<?php if ( current_user_can( 'edit_posts' ) ) : ?>
+		<?php $pfbt_active = class_exists( 'PFBT_Format_Registry' ); ?>
+		<!-- Post Composer (Tumblr-style) -->
+		<div class="frs-composer" id="frs-post-composer">
+			<!-- Collapsed state -->
+			<div class="frs-composer__collapsed" id="frs-composer-trigger">
+				<div class="frs-composer__avatar">
+					<?php if ( $headshot_url ) : ?>
+						<img src="<?php echo esc_url( $headshot_url ); ?>" alt="<?php echo esc_attr( $full_name ); ?>">
+					<?php else : ?>
+						<span class="frs-composer__avatar-initials"><?php echo esc_html( $initials ); ?></span>
+					<?php endif; ?>
+				</div>
+				<div class="frs-composer__prompt">
+					<span class="frs-composer__placeholder">What's on your mind?</span>
+				</div>
+			</div>
+
+			<?php if ( $pfbt_active ) : ?>
+			<!-- Format picker icons -->
+			<div class="frs-composer__formats" id="frs-composer-formats">
+				<button type="button" data-format="standard" class="frs-composer__format-btn frs-composer__format-btn--active" title="Text">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+				</button>
+				<button type="button" data-format="image" class="frs-composer__format-btn" title="Photo">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+				</button>
+				<button type="button" data-format="video" class="frs-composer__format-btn" title="Video">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+				</button>
+				<button type="button" data-format="audio" class="frs-composer__format-btn" title="Audio">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+				</button>
+				<button type="button" data-format="link" class="frs-composer__format-btn" title="Link">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+				</button>
+				<button type="button" data-format="quote" class="frs-composer__format-btn" title="Quote">
+					<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z"/></svg>
+				</button>
+			</div>
+			<?php endif; ?>
+
+			<!-- Expanded state (hidden by default) -->
+			<div class="frs-composer__expanded" id="frs-composer-expanded" hidden>
+				<button type="button" class="frs-composer__close" id="frs-composer-close" aria-label="Close composer">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+				</button>
+
+				<input type="text" class="frs-composer__title" id="frs-composer-title" placeholder="Title" />
+
+				<div class="frs-composer__editor-wrap">
+					<div class="frs-composer__editor-loading" id="frs-composer-loading">
+						<span class="frs-composer__spinner"></span>
+						Loading editor...
+					</div>
+					<iframe id="frs-composer-iframe"
+							class="frs-composer__iframe"
+							src=""
+							sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
+							style="display:none;">
+					</iframe>
+				</div>
+
+				<div class="frs-composer__bottom">
+					<div class="frs-composer__tags">
+						<div class="frs-composer__tag-list" id="frs-composer-tag-list"></div>
+						<input type="text" class="frs-composer__tag-input" id="frs-composer-tags" placeholder="#add tags" />
+					</div>
+					<div class="frs-composer__actions">
+						<button type="button" class="frs-composer__draft-btn" id="frs-composer-draft">Save Draft</button>
+						<button type="button" class="frs-composer__publish-btn" id="frs-composer-publish">Post Now</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<?php endif; ?>
+
 		<!-- Activity Feed -->
 		<div class="frs-profile__card frs-profile__card--activity-feed">
 			<h3 class="frs-profile__card-title">
@@ -811,10 +889,10 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 			</h3>
 			<div class="frs-profile__feed" id="frs-activity-feed">
 				<?php
-				// Server-render recent posts inline with the activity feed
+				// Server-render recent blog posts (only 'post' type).
 				$author_posts = get_posts( array(
 					'author'         => $current_user_id,
-					'post_type'      => array( 'post', 'page' ),
+					'post_type'      => 'post',
 					'post_status'    => 'publish',
 					'posts_per_page' => 10,
 					'orderby'        => 'date',
@@ -825,10 +903,11 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 						$thumb   = get_the_post_thumbnail_url( $apost->ID, 'medium' );
 						$excerpt = wp_trim_words( $apost->post_content, 30, '...' );
 						$categories = get_the_category( $apost->ID );
-						$cat_name   = ! empty( $categories ) ? $categories[0]->name : ucfirst( $apost->post_type );
+						$cat_name   = ! empty( $categories ) ? $categories[0]->name : 'Post';
+						$post_format = get_post_format( $apost->ID ) ?: 'standard';
 				?>
-					<div class="frs-profile__feed-item frs-profile__feed-item--post">
-						<div class="frs-profile__feed-icon frs-profile__feed-icon--post">
+					<div class="frs-profile__feed-item frs-profile__feed-item--post" data-post-id="<?php echo esc_attr( $apost->ID ); ?>">
+						<div class="frs-profile__feed-icon frs-profile__feed-icon--<?php echo esc_attr( $post_format ); ?>">
 							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
 								<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
 								<polyline points="14 2 14 8 20 8"/>
@@ -837,6 +916,9 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 						<div class="frs-profile__feed-body">
 							<div class="frs-profile__feed-meta">
 								<span class="frs-profile__feed-badge"><?php echo esc_html( $cat_name ); ?></span>
+								<?php if ( 'standard' !== $post_format ) : ?>
+									<span class="frs-profile__feed-badge frs-profile__feed-badge--format"><?php echo esc_html( ucfirst( $post_format ) ); ?></span>
+								<?php endif; ?>
 								<span class="frs-profile__feed-time"><?php echo esc_html( human_time_diff( get_post_time( 'U', false, $apost->ID ), current_time( 'timestamp' ) ) ); ?> ago</span>
 							</div>
 							<a href="<?php echo esc_url( get_permalink( $apost->ID ) ); ?>" class="frs-profile__feed-title"><?php echo esc_html( $apost->post_title ); ?></a>
@@ -849,7 +931,7 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 						</div>
 					</div>
 				<?php endforeach; else : ?>
-					<p class="frs-profile__empty frs-profile__empty--center">No activity yet.</p>
+					<p class="frs-profile__empty frs-profile__empty--center">No posts yet. Share something!</p>
 				<?php endif; ?>
 			</div>
 			<div class="frs-profile__feed-more" id="frs-activity-more" hidden>

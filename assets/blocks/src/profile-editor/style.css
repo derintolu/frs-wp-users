@@ -1653,3 +1653,295 @@
     border-color: var(--frs-blue);
     background: #f8fafc;
 }
+
+/* ====================
+   POST COMPOSER (Tumblr-style)
+   ==================== */
+
+.frs-composer {
+    margin-bottom: 1rem;
+    border: 1px solid var(--frs-border);
+    border-radius: var(--frs-radius);
+    background: var(--frs-bg);
+    overflow: hidden;
+}
+
+/* Collapsed: avatar + prompt */
+.frs-composer__collapsed {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.frs-composer__collapsed:hover {
+    background: #f9fafb;
+}
+
+.frs-composer__avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, var(--frs-blue), var(--frs-cyan));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.frs-composer__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.frs-composer__avatar-initials {
+    color: #fff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.frs-composer__prompt {
+    flex: 1;
+}
+.frs-composer__placeholder {
+    color: var(--frs-text-light);
+    font-size: 0.9375rem;
+}
+
+/* Format picker row */
+.frs-composer__formats {
+    display: flex;
+    gap: 0;
+    border-top: 1px solid var(--frs-border);
+    padding: 0.375rem 0.75rem;
+}
+.frs-composer__formats[hidden] {
+    display: none;
+}
+.frs-composer__format-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border: none;
+    background: transparent;
+    color: var(--frs-text-light);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.15s;
+}
+.frs-composer__format-btn:hover {
+    color: var(--frs-blue);
+    background: #eff6ff;
+}
+.frs-composer__format-btn--active {
+    color: var(--frs-blue);
+    background: #eff6ff;
+}
+.frs-composer__format-btn svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* Expanded composer */
+.frs-composer__expanded {
+    position: relative;
+}
+.frs-composer__expanded[hidden] {
+    display: none;
+}
+.frs-composer__close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: var(--frs-text-light);
+    cursor: pointer;
+    border-radius: 50%;
+    z-index: 10;
+    transition: background 0.15s, color 0.15s;
+}
+.frs-composer__close:hover {
+    background: #f3f4f6;
+    color: var(--frs-text);
+}
+
+.frs-composer__title {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--frs-border);
+    padding: 1rem 3rem 1rem 1.25rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--frs-navy);
+    outline: none;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+.frs-composer__title::placeholder {
+    color: var(--frs-text-light);
+    font-weight: 400;
+}
+
+/* Editor iframe wrapper */
+.frs-composer__editor-wrap {
+    min-height: 200px;
+    max-height: 500px;
+    overflow: hidden;
+    position: relative;
+}
+.frs-composer__iframe {
+    width: 100%;
+    min-height: 200px;
+    border: none;
+    display: block;
+}
+
+/* Loading state */
+.frs-composer__editor-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 3rem 1rem;
+    color: var(--frs-text-light);
+    font-size: 0.875rem;
+}
+.frs-composer__spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--frs-border);
+    border-top-color: var(--frs-blue);
+    border-radius: 50%;
+    animation: frs-spin 0.6s linear infinite;
+}
+@keyframes frs-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Bottom bar */
+.frs-composer__bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid var(--frs-border);
+}
+
+/* Tags */
+.frs-composer__tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+    flex: 1;
+    min-width: 0;
+}
+.frs-composer__tag-input {
+    border: none;
+    background: transparent;
+    font-size: 0.875rem;
+    color: var(--frs-text);
+    outline: none;
+    min-width: 80px;
+    flex: 1;
+    padding: 0.25rem 0;
+    font-family: inherit;
+}
+.frs-composer__tag-input::placeholder {
+    color: var(--frs-text-light);
+}
+.frs-composer__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    background: #eff6ff;
+    color: var(--frs-blue);
+    border-radius: 4px;
+    font-size: 0.8125rem;
+    white-space: nowrap;
+}
+.frs-composer__tag button {
+    border: none;
+    background: transparent;
+    color: var(--frs-blue);
+    cursor: pointer;
+    padding: 0;
+    font-size: 1rem;
+    line-height: 1;
+}
+.frs-composer__tag button:hover {
+    color: #1d4ed8;
+}
+
+/* Action buttons */
+.frs-composer__actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+.frs-composer__draft-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--frs-border);
+    border-radius: 6px;
+    background: var(--frs-bg);
+    color: var(--frs-text);
+    font-size: 0.875rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.15s, background 0.15s;
+}
+.frs-composer__draft-btn:hover {
+    border-color: var(--frs-blue);
+    background: #f8fafc;
+}
+.frs-composer__draft-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.frs-composer__publish-btn {
+    padding: 0.5rem 1.25rem;
+    border: none;
+    border-radius: 6px;
+    background: linear-gradient(135deg, var(--frs-blue), var(--frs-cyan));
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: opacity 0.15s, transform 0.1s;
+}
+.frs-composer__publish-btn:hover {
+    opacity: 0.9;
+}
+.frs-composer__publish-btn:active {
+    transform: scale(0.98);
+}
+.frs-composer__publish-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Format badge in feed */
+.frs-profile__feed-badge--format {
+    background: #eff6ff;
+    color: var(--frs-blue);
+}
+
+/* Mobile: hide composer below 768px */
+@media (max-width: 768px) {
+    .frs-composer {
+        display: none;
+    }
+}

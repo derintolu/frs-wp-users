@@ -218,6 +218,19 @@
 					formData.namb_certifications = Array.from(container.querySelectorAll('[data-certification]:checked')).map(function(cb) { return cb.value; });
 					formData.service_areas = Array.from(container.querySelectorAll('[data-service-area]:checked')).map(function(cb) { return cb.value; });
 
+					// Gather custom links
+					var links = [];
+					container.querySelectorAll('.frs-profile__link-edit-item').forEach(function(item) {
+						var titleInput = item.querySelector('[data-link-title]');
+						var urlInput = item.querySelector('[data-link-url]');
+						var title = titleInput ? titleInput.value.trim() : '';
+						var url = urlInput ? urlInput.value.trim() : '';
+						if (title || url) {
+							links.push({ title: title, url: url });
+						}
+					});
+					formData.custom_links = links;
+
 					const config = window.frsProfileEditor || {};
 					const userId = config.userId;
 
@@ -393,15 +406,27 @@
 			course_enrolled: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
 		};
 
+		const ACTION_LABELS = {
+			profile_updated: 'Profile',
+			meeting_requested: 'Meeting',
+			post_published: 'Published',
+			lesson_completed: 'Lesson',
+			course_enrolled: 'Course',
+		};
+
 		function renderActivityItem(item) {
 			const icon = ACTION_ICONS[item.action] || ACTION_ICONS['profile_updated'];
-			const actionClass = 'frs-profile__activity-icon--' + item.action.replace(/_/g, '-');
+			const iconClass = 'frs-profile__feed-icon--' + item.action.replace(/_/g, '-');
+			const badge = ACTION_LABELS[item.action] || 'Activity';
 
-			return '<div class="frs-profile__activity-item">' +
-				'<div class="frs-profile__activity-icon ' + actionClass + '">' + icon + '</div>' +
-				'<div class="frs-profile__activity-body">' +
-					'<p class="frs-profile__activity-summary">' + escapeHtml(item.summary) + '</p>' +
-					'<span class="frs-profile__activity-time">' + escapeHtml(item.time_ago) + '</span>' +
+			return '<div class="frs-profile__feed-item">' +
+				'<div class="frs-profile__feed-icon ' + iconClass + '">' + icon + '</div>' +
+				'<div class="frs-profile__feed-body">' +
+					'<div class="frs-profile__feed-meta">' +
+						'<span class="frs-profile__feed-badge">' + escapeHtml(badge) + '</span>' +
+						'<span class="frs-profile__feed-time">' + escapeHtml(item.time_ago) + '</span>' +
+					'</div>' +
+					'<p class="frs-profile__feed-summary">' + escapeHtml(item.summary) + '</p>' +
 				'</div>' +
 			'</div>';
 		}
@@ -415,10 +440,6 @@
 		async function loadActivityFeed(append) {
 			if (!activityFeed) return;
 
-			if (!append) {
-				activityFeed.innerHTML = '<div class="frs-profile__activity-loading">Loading activity...</div>';
-			}
-
 			try {
 				const userId = config.userId;
 				const response = await fetch(config.restUrl + 'profiles/' + userId + '/activity?page=' + activityPage + '&per_page=20', {
@@ -430,16 +451,11 @@
 				const result = await response.json();
 				activityPages = result.pages || 1;
 
-				if (!append) {
-					activityFeed.innerHTML = '';
-				}
-
+				// Append activity items after the server-rendered posts
 				if (result.data && result.data.length > 0) {
 					result.data.forEach(function(item) {
 						activityFeed.insertAdjacentHTML('beforeend', renderActivityItem(item));
 					});
-				} else if (!append) {
-					activityFeed.innerHTML = '<p class="frs-profile__empty frs-profile__empty--center">No activity yet.</p>';
 				}
 
 				// Show/hide load more
@@ -449,9 +465,6 @@
 
 				activityLoaded = true;
 			} catch (err) {
-				if (!append) {
-					activityFeed.innerHTML = '<p class="frs-profile__empty frs-profile__empty--center">Could not load activity.</p>';
-				}
 				console.error('Activity feed error:', err);
 			}
 		}
@@ -461,6 +474,45 @@
 				e.preventDefault();
 				activityPage++;
 				loadActivityFeed(true);
+			});
+		}
+
+		// ============================================
+		// CUSTOM LINKS (Add / Remove)
+		// ============================================
+		const addLinkBtn = document.getElementById('add-link-btn');
+		const linksEditList = container.querySelector('.frs-profile__links-edit-list');
+		let linkIndex = container.querySelectorAll('.frs-profile__link-edit-item').length;
+
+		if (addLinkBtn && linksEditList) {
+			addLinkBtn.addEventListener('click', function(e) {
+				e.preventDefault();
+				var idx = linkIndex++;
+				var item = document.createElement('div');
+				item.className = 'frs-profile__link-edit-item';
+				item.dataset.index = idx;
+				item.innerHTML =
+					'<input type="text" class="frs-profile__edit-input" value="" data-link-title="' + idx + '" placeholder="Link Title">' +
+					'<input type="url" class="frs-profile__edit-input" value="" data-link-url="' + idx + '" placeholder="https://example.com">' +
+					'<button type="button" class="frs-profile__link-remove-btn" data-link-remove="' + idx + '" title="Remove link">' +
+						'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+							'<line x1="18" y1="6" x2="6" y2="18"></line>' +
+							'<line x1="6" y1="6" x2="18" y2="18"></line>' +
+						'</svg>' +
+					'</button>';
+				linksEditList.appendChild(item);
+			});
+		}
+
+		// Delegate remove clicks
+		if (linksEditList) {
+			linksEditList.addEventListener('click', function(e) {
+				var removeBtn = e.target.closest('.frs-profile__link-remove-btn');
+				if (removeBtn) {
+					e.preventDefault();
+					var item = removeBtn.closest('.frs-profile__link-edit-item');
+					if (item) item.remove();
+				}
 			});
 		}
 	}

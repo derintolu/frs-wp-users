@@ -801,65 +801,58 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 
 	<!-- Tab: Activity (company-level) -->
 	<div class="frs-profile__tab-panel" data-tab-panel="activity" hidden>
-		<!-- Published Content -->
-		<div class="frs-profile__card frs-profile__card--posts">
+		<!-- Activity Feed -->
+		<div class="frs-profile__card frs-profile__card--activity-feed">
 			<h3 class="frs-profile__card-title">
 				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-					<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-					<polyline points="14 2 14 8 20 8"/>
+					<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
 				</svg>
-				Published Content
+				Activity
 			</h3>
-			<div class="frs-profile__posts-grid" id="frs-profile-posts">
+			<div class="frs-profile__feed" id="frs-activity-feed">
 				<?php
+				// Server-render recent posts inline with the activity feed
 				$author_posts = get_posts( array(
 					'author'         => $current_user_id,
 					'post_type'      => array( 'post', 'page' ),
 					'post_status'    => 'publish',
-					'posts_per_page' => 6,
+					'posts_per_page' => 10,
 					'orderby'        => 'date',
 					'order'          => 'DESC',
 				) );
 				if ( ! empty( $author_posts ) ) :
 					foreach ( $author_posts as $apost ) :
-						$thumb = get_the_post_thumbnail_url( $apost->ID, 'medium' );
-						$excerpt = wp_trim_words( $apost->post_content, 20, '...' );
+						$thumb   = get_the_post_thumbnail_url( $apost->ID, 'medium' );
+						$excerpt = wp_trim_words( $apost->post_content, 30, '...' );
+						$categories = get_the_category( $apost->ID );
+						$cat_name   = ! empty( $categories ) ? $categories[0]->name : ucfirst( $apost->post_type );
 				?>
-					<a href="<?php echo esc_url( get_permalink( $apost->ID ) ); ?>" class="frs-profile__post-card">
-						<?php if ( $thumb ) : ?>
-							<div class="frs-profile__post-thumb" style="background-image: url(<?php echo esc_url( $thumb ); ?>)"></div>
-						<?php else : ?>
-							<div class="frs-profile__post-thumb frs-profile__post-thumb--empty">
-								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24">
-									<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-									<polyline points="14 2 14 8 20 8"/>
-								</svg>
-							</div>
-						<?php endif; ?>
-						<div class="frs-profile__post-info">
-							<span class="frs-profile__post-date"><?php echo esc_html( get_the_date( 'M j, Y', $apost->ID ) ); ?></span>
-							<h4 class="frs-profile__post-title"><?php echo esc_html( $apost->post_title ); ?></h4>
-							<p class="frs-profile__post-excerpt"><?php echo esc_html( $excerpt ); ?></p>
+					<div class="frs-profile__feed-item frs-profile__feed-item--post">
+						<div class="frs-profile__feed-icon frs-profile__feed-icon--post">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+								<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+								<polyline points="14 2 14 8 20 8"/>
+							</svg>
 						</div>
-					</a>
+						<div class="frs-profile__feed-body">
+							<div class="frs-profile__feed-meta">
+								<span class="frs-profile__feed-badge"><?php echo esc_html( $cat_name ); ?></span>
+								<span class="frs-profile__feed-time"><?php echo esc_html( human_time_diff( get_post_time( 'U', false, $apost->ID ), current_time( 'timestamp' ) ) ); ?> ago</span>
+							</div>
+							<a href="<?php echo esc_url( get_permalink( $apost->ID ) ); ?>" class="frs-profile__feed-title"><?php echo esc_html( $apost->post_title ); ?></a>
+							<p class="frs-profile__feed-excerpt"><?php echo esc_html( $excerpt ); ?></p>
+							<?php if ( $thumb ) : ?>
+								<a href="<?php echo esc_url( get_permalink( $apost->ID ) ); ?>" class="frs-profile__feed-thumb-wrap">
+									<img src="<?php echo esc_url( $thumb ); ?>" alt="" class="frs-profile__feed-thumb" loading="lazy">
+								</a>
+							<?php endif; ?>
+						</div>
+					</div>
 				<?php endforeach; else : ?>
-					<p class="frs-profile__empty frs-profile__empty--center">No published content yet.</p>
+					<p class="frs-profile__empty frs-profile__empty--center">No activity yet.</p>
 				<?php endif; ?>
 			</div>
-		</div>
-
-		<!-- Activity Timeline -->
-		<div class="frs-profile__card frs-profile__card--activity">
-			<h3 class="frs-profile__card-title">
-				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-					<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-				</svg>
-				Activity Timeline
-			</h3>
-			<div class="frs-profile__activity-feed" id="frs-activity-feed">
-				<div class="frs-profile__activity-loading">Loading activity...</div>
-			</div>
-			<div class="frs-profile__activity-more" id="frs-activity-more" hidden>
+			<div class="frs-profile__feed-more" id="frs-activity-more" hidden>
 				<button type="button" class="frs-profile__load-more-btn" id="frs-load-more-activity">Load More</button>
 			</div>
 		</div>

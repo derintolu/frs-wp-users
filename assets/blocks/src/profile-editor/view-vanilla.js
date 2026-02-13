@@ -548,6 +548,17 @@
 		var tags = [];
 		var editorReady = false;
 
+		// Show iframe when it finishes loading (standard WP editor).
+		if (iframe) {
+			iframe.addEventListener('load', function() {
+				if (iframe.src && iframe.src !== '' && iframe.src !== 'about:blank') {
+					editorReady = true;
+					if (loading) loading.style.display = 'none';
+					iframe.style.display = 'block';
+				}
+			});
+		}
+
 		// Format button clicks.
 		formatBtns.forEach(function(btn) {
 			btn.addEventListener('click', function(e) {
@@ -642,54 +653,17 @@
 			}
 		}
 
-		// postMessage listener for iframe communication.
+		// postMessage listener (for future custom editor bridge).
 		window.addEventListener('message', function(event) {
 			if (!event.data || !event.data.type) return;
 
-			switch (event.data.type) {
-				case 'frs-composer-ready':
-					editorReady = true;
-					// Hide loading, show iframe.
-					if (loading) loading.style.display = 'none';
-					if (iframe) iframe.style.display = 'block';
-					break;
-
-				case 'frs-composer-published':
-					closeComposer();
-					prependPostToFeed(event.data);
-					break;
-
-				case 'frs-composer-draft-saved':
-					closeComposer();
-					break;
-
-				case 'frs-composer-height':
-					if (iframe && event.data.height) {
-						iframe.style.height = Math.max(200, event.data.height) + 'px';
-					}
-					break;
-
-				case 'frs-composer-error':
-					if (publishBtn) {
-						publishBtn.disabled = false;
-						publishBtn.textContent = 'Post Now';
-					}
-					alert(event.data.message || 'An error occurred.');
-					break;
+			if (event.data.type === 'frs-composer-height' && iframe && event.data.height) {
+				iframe.style.height = Math.max(200, event.data.height) + 'px';
 			}
 		});
 
-		// Title sync: send to iframe when user types.
-		if (titleInput) {
-			titleInput.addEventListener('input', function() {
-				if (editorReady && iframe.contentWindow) {
-					iframe.contentWindow.postMessage({
-						type: 'frs-composer-set-title',
-						title: titleInput.value,
-					}, window.location.origin);
-				}
-			});
-		}
+		// Title is typed in the WP editor inside the iframe.
+		// The outer title field syncs on publish via REST API.
 
 		// Tag input: Enter key adds tag.
 		if (tagInput) {
@@ -725,7 +699,7 @@
 			});
 		}
 
-		// Publish button.
+		// Publish button — use WP REST API directly.
 		if (publishBtn) {
 			publishBtn.addEventListener('click', function() {
 				if (!currentPostId || !editorReady) return;
@@ -733,42 +707,51 @@
 				publishBtn.disabled = true;
 				publishBtn.textContent = 'Publishing...';
 
-				// Set tags on the post if any.
+				// Set title if provided.
+				var updates = { status: 'publish' };
+				if (titleInput && titleInput.value.trim()) {
+					updates.title = titleInput.value.trim();
+				}
+
+				// Set tags first, then publish.
 				var tagPromise = tags.length > 0
 					? resolveAndSetTags(currentPostId, tags, config.nonce)
 					: Promise.resolve();
 
 				tagPromise.then(function() {
-					// Tell iframe to publish.
-					if (iframe.contentWindow) {
-						iframe.contentWindow.postMessage({
-							type: 'frs-composer-publish',
-						}, window.location.origin);
-					}
-				}).catch(function() {
-					// Publish anyway even if tags fail.
-					if (iframe.contentWindow) {
-						iframe.contentWindow.postMessage({
-							type: 'frs-composer-publish',
-						}, window.location.origin);
-					}
+					return fetch('/wp-json/wp/v2/posts/' + currentPostId, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							'X-WP-Nonce': config.nonce,
+						},
+						body: JSON.stringify(updates),
+					});
+				}).then(function(res) {
+					if (!res.ok) throw new Error('HTTP ' + res.status);
+					return res.json();
+				}).then(function(post) {
+					closeComposer();
+					prependPostToFeed({
+						postId: post.id,
+						title: post.title.rendered || post.title.raw || 'Untitled',
+						url: post.link || '#',
+						format: post.format || 'standard',
+					});
+				}).catch(function(err) {
+					console.error('Publish failed:', err);
+					publishBtn.disabled = false;
+					publishBtn.textContent = 'Post Now';
+					alert('Failed to publish: ' + (err.message || 'unknown error'));
 				});
 			});
 		}
 
-		// Draft button.
+		// Draft button — just close, the editor auto-saves.
 		if (draftBtn) {
 			draftBtn.addEventListener('click', function() {
-				if (!currentPostId || !editorReady) return;
-
-				draftBtn.disabled = true;
-				draftBtn.textContent = 'Saving...';
-
-				if (iframe.contentWindow) {
-					iframe.contentWindow.postMessage({
-						type: 'frs-composer-save-draft',
-					}, window.location.origin);
-				}
+				if (!currentPostId) return;
+				closeComposer();
 			});
 		}
 	}

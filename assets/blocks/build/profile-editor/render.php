@@ -860,7 +860,6 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 					<iframe id="frs-composer-iframe"
 							class="frs-composer__iframe"
 							src=""
-							sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
 							style="display:none;">
 					</iframe>
 				</div>

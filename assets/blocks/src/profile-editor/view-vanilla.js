@@ -596,18 +596,27 @@
 				},
 				body: JSON.stringify({ format: format }),
 			})
-			.then(function(res) { return res.json(); })
+			.then(function(res) {
+				if (!res.ok) {
+					return res.json().then(function(err) {
+						throw new Error(err.message || err.code || ('HTTP ' + res.status));
+					});
+				}
+				return res.json();
+			})
 			.then(function(data) {
 				if (data.post_id && data.editor_url) {
 					currentPostId = data.post_id;
 					iframe.src = data.editor_url;
 				} else {
-					alert('Failed to create draft. Please try again.');
+					console.error('Composer: unexpected response', data);
+					alert('Failed to create draft: unexpected response.');
 					closeComposer();
 				}
 			})
-			.catch(function() {
-				alert('Failed to create draft. Please try again.');
+			.catch(function(err) {
+				console.error('Composer: create-draft failed', err);
+				alert('Failed to create draft: ' + (err.message || 'unknown error'));
 				closeComposer();
 			});
 		}

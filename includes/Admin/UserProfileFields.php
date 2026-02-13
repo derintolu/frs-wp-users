@@ -185,7 +185,8 @@ class UserProfileFields {
 			<th><label for="frs_service_areas"><?php esc_html_e( 'Service Areas', 'frs-users' ); ?></label></th>
 			<td>
 				<textarea name="frs_service_areas" id="frs_service_areas" rows="3" class="large-text" placeholder="<?php esc_attr_e( 'Enter states, one per line (e.g., CA, AZ, NV)', 'frs-users' ); ?>"><?php
-					$service_areas = json_decode( get_user_meta( $user->ID, 'frs_service_areas', true ) ?: '[]', true );
+					$raw_areas = get_user_meta( $user->ID, 'frs_service_areas', true );
+					$service_areas = is_array( $raw_areas ) ? $raw_areas : json_decode( $raw_areas ?: '[]', true );
 					echo esc_textarea( is_array( $service_areas ) ? implode( "\n", $service_areas ) : '' );
 				?></textarea>
 				<p class="description"><?php esc_html_e( 'Enter state abbreviations or names, one per line', 'frs-users' ); ?></p>

@@ -515,6 +515,339 @@
 				}
 			});
 		}
+
+		// ============================================
+		// POST COMPOSER (Tumblr-style)
+		// ============================================
+		initComposer();
+	}
+
+	/**
+	 * Initialize the Tumblr-like post composer in the Activity tab.
+	 */
+	function initComposer() {
+		var composer = document.getElementById('frs-post-composer');
+		if (!composer) return;
+
+		var config = window.frsProfileEditor || {};
+		var trigger = document.getElementById('frs-composer-trigger');
+		var expanded = document.getElementById('frs-composer-expanded');
+		var closeBtn = document.getElementById('frs-composer-close');
+		var iframe = document.getElementById('frs-composer-iframe');
+		var loading = document.getElementById('frs-composer-loading');
+		var titleInput = document.getElementById('frs-composer-title');
+		var tagInput = document.getElementById('frs-composer-tags');
+		var tagList = document.getElementById('frs-composer-tag-list');
+		var publishBtn = document.getElementById('frs-composer-publish');
+		var draftBtn = document.getElementById('frs-composer-draft');
+		var formatsWrap = document.getElementById('frs-composer-formats');
+		var formatBtns = composer.querySelectorAll('.frs-composer__format-btn');
+
+		var currentPostId = null;
+		var selectedFormat = 'standard';
+		var tags = [];
+		var editorReady = false;
+
+		// Format button clicks.
+		formatBtns.forEach(function(btn) {
+			btn.addEventListener('click', function(e) {
+				e.preventDefault();
+				selectedFormat = btn.dataset.format;
+				formatBtns.forEach(function(b) {
+					b.classList.remove('frs-composer__format-btn--active');
+				});
+				btn.classList.add('frs-composer__format-btn--active');
+				openComposer(selectedFormat);
+			});
+		});
+
+		// Prompt click.
+		if (trigger) {
+			trigger.addEventListener('click', function() {
+				openComposer(selectedFormat);
+			});
+		}
+
+		// Close button.
+		if (closeBtn) {
+			closeBtn.addEventListener('click', closeComposer);
+		}
+
+		/**
+		 * Open the expanded composer, create an auto-draft, and load the iframe editor.
+		 */
+		function openComposer(format) {
+			if (expanded.hidden === false) return; // Already open.
+
+			// Show expanded, hide collapsed.
+			composer.querySelector('.frs-composer__collapsed').hidden = true;
+			if (formatsWrap) formatsWrap.hidden = true;
+			expanded.hidden = false;
+			loading.style.display = '';
+			iframe.style.display = 'none';
+			editorReady = false;
+
+			// Create auto-draft via REST.
+			fetch(config.restUrl + 'posts/create-draft', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-WP-Nonce': config.nonce,
+				},
+				body: JSON.stringify({ format: format }),
+			})
+			.then(function(res) { return res.json(); })
+			.then(function(data) {
+				if (data.post_id && data.editor_url) {
+					currentPostId = data.post_id;
+					iframe.src = data.editor_url;
+				} else {
+					alert('Failed to create draft. Please try again.');
+					closeComposer();
+				}
+			})
+			.catch(function() {
+				alert('Failed to create draft. Please try again.');
+				closeComposer();
+			});
+		}
+
+		/**
+		 * Close the composer and reset state.
+		 */
+		function closeComposer() {
+			expanded.hidden = true;
+			composer.querySelector('.frs-composer__collapsed').hidden = false;
+			if (formatsWrap) formatsWrap.hidden = false;
+			iframe.src = '';
+			iframe.style.display = 'none';
+			loading.style.display = '';
+			currentPostId = null;
+			editorReady = false;
+			if (titleInput) titleInput.value = '';
+			tags = [];
+			renderTags();
+			if (publishBtn) {
+				publishBtn.disabled = false;
+				publishBtn.textContent = 'Post Now';
+			}
+		}
+
+		// postMessage listener for iframe communication.
+		window.addEventListener('message', function(event) {
+			if (!event.data || !event.data.type) return;
+
+			switch (event.data.type) {
+				case 'frs-composer-ready':
+					editorReady = true;
+					// Hide loading, show iframe.
+					if (loading) loading.style.display = 'none';
+					if (iframe) iframe.style.display = 'block';
+					break;
+
+				case 'frs-composer-published':
+					closeComposer();
+					prependPostToFeed(event.data);
+					break;
+
+				case 'frs-composer-draft-saved':
+					closeComposer();
+					break;
+
+				case 'frs-composer-height':
+					if (iframe && event.data.height) {
+						iframe.style.height = Math.max(200, event.data.height) + 'px';
+					}
+					break;
+
+				case 'frs-composer-error':
+					if (publishBtn) {
+						publishBtn.disabled = false;
+						publishBtn.textContent = 'Post Now';
+					}
+					alert(event.data.message || 'An error occurred.');
+					break;
+			}
+		});
+
+		// Title sync: send to iframe when user types.
+		if (titleInput) {
+			titleInput.addEventListener('input', function() {
+				if (editorReady && iframe.contentWindow) {
+					iframe.contentWindow.postMessage({
+						type: 'frs-composer-set-title',
+						title: titleInput.value,
+					}, window.location.origin);
+				}
+			});
+		}
+
+		// Tag input: Enter key adds tag.
+		if (tagInput) {
+			tagInput.addEventListener('keydown', function(e) {
+				if (e.key === 'Enter') {
+					e.preventDefault();
+					var tag = tagInput.value.trim().replace(/^#/, '');
+					if (tag && tags.indexOf(tag) === -1) {
+						tags.push(tag);
+						renderTags();
+					}
+					tagInput.value = '';
+				}
+			});
+		}
+
+		function renderTags() {
+			if (!tagList) return;
+			tagList.innerHTML = tags.map(function(tag) {
+				return '<span class="frs-composer__tag">#' + escapeHtml(tag) +
+					' <button type="button" data-remove-tag="' + escapeHtml(tag) + '">&times;</button></span>';
+			}).join('');
+		}
+
+		// Tag removal via delegation.
+		if (tagList) {
+			tagList.addEventListener('click', function(e) {
+				var removeBtn = e.target.closest('[data-remove-tag]');
+				if (removeBtn) {
+					tags = tags.filter(function(t) { return t !== removeBtn.dataset.removeTag; });
+					renderTags();
+				}
+			});
+		}
+
+		// Publish button.
+		if (publishBtn) {
+			publishBtn.addEventListener('click', function() {
+				if (!currentPostId || !editorReady) return;
+
+				publishBtn.disabled = true;
+				publishBtn.textContent = 'Publishing...';
+
+				// Set tags on the post if any.
+				var tagPromise = tags.length > 0
+					? resolveAndSetTags(currentPostId, tags, config.nonce)
+					: Promise.resolve();
+
+				tagPromise.then(function() {
+					// Tell iframe to publish.
+					if (iframe.contentWindow) {
+						iframe.contentWindow.postMessage({
+							type: 'frs-composer-publish',
+						}, window.location.origin);
+					}
+				}).catch(function() {
+					// Publish anyway even if tags fail.
+					if (iframe.contentWindow) {
+						iframe.contentWindow.postMessage({
+							type: 'frs-composer-publish',
+						}, window.location.origin);
+					}
+				});
+			});
+		}
+
+		// Draft button.
+		if (draftBtn) {
+			draftBtn.addEventListener('click', function() {
+				if (!currentPostId || !editorReady) return;
+
+				draftBtn.disabled = true;
+				draftBtn.textContent = 'Saving...';
+
+				if (iframe.contentWindow) {
+					iframe.contentWindow.postMessage({
+						type: 'frs-composer-save-draft',
+					}, window.location.origin);
+				}
+			});
+		}
+	}
+
+	/**
+	 * Resolve tag names to IDs and assign to a post.
+	 */
+	function resolveAndSetTags(postId, tagNames, nonce) {
+		// First, create/find all tags.
+		var promises = tagNames.map(function(name) {
+			return fetch('/wp-json/wp/v2/tags', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-WP-Nonce': nonce,
+				},
+				body: JSON.stringify({ name: name }),
+			})
+			.then(function(res) { return res.json(); })
+			.then(function(tag) { return tag.id; })
+			.catch(function() {
+				// Tag might already exist — try to find it.
+				return fetch('/wp-json/wp/v2/tags?search=' + encodeURIComponent(name) + '&per_page=1', {
+					headers: { 'X-WP-Nonce': nonce },
+				})
+				.then(function(res) { return res.json(); })
+				.then(function(results) {
+					return results.length > 0 ? results[0].id : null;
+				});
+			});
+		});
+
+		return Promise.all(promises).then(function(tagIds) {
+			var validIds = tagIds.filter(function(id) { return id; });
+			if (validIds.length === 0) return;
+
+			return fetch('/wp-json/wp/v2/posts/' + postId, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-WP-Nonce': nonce,
+				},
+				body: JSON.stringify({ tags: validIds }),
+			});
+		});
+	}
+
+	/**
+	 * Prepend a newly published post to the activity feed.
+	 */
+	function prependPostToFeed(data) {
+		var feed = document.getElementById('frs-activity-feed');
+		if (!feed) return;
+
+		// Remove "No posts yet" message if present.
+		var empty = feed.querySelector('.frs-profile__empty');
+		if (empty) empty.remove();
+
+		var title = data.title || 'Untitled';
+		var url = data.url || '#';
+		var format = data.format || 'standard';
+
+		var html = '<div class="frs-profile__feed-item frs-profile__feed-item--post" data-post-id="' + data.postId + '">' +
+			'<div class="frs-profile__feed-icon frs-profile__feed-icon--' + escapeHtml(format) + '">' +
+				'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">' +
+					'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>' +
+					'<polyline points="14 2 14 8 20 8"/>' +
+				'</svg>' +
+			'</div>' +
+			'<div class="frs-profile__feed-body">' +
+				'<div class="frs-profile__feed-meta">' +
+					'<span class="frs-profile__feed-badge">Post</span>' +
+					'<span class="frs-profile__feed-time">just now</span>' +
+				'</div>' +
+				'<a href="' + escapeHtml(url) + '" class="frs-profile__feed-title">' + escapeHtml(title) + '</a>' +
+			'</div>' +
+		'</div>';
+
+		feed.insertAdjacentHTML('afterbegin', html);
+	}
+
+	/**
+	 * Escape HTML special characters.
+	 */
+	function escapeHtml(str) {
+		var div = document.createElement('div');
+		div.appendChild(document.createTextNode(str));
+		return div.innerHTML;
 	}
 
 	// Run on DOM ready

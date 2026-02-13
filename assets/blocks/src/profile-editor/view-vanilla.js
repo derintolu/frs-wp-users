@@ -539,22 +539,54 @@
 		var tagInput = document.getElementById('frs-composer-tags');
 		var tagList = document.getElementById('frs-composer-tag-list');
 		var publishBtn = document.getElementById('frs-composer-publish');
-		var draftBtn = document.getElementById('frs-composer-draft');
-		var formatsWrap = document.getElementById('frs-composer-formats');
-		var formatBtns = composer.querySelectorAll('.frs-composer__format-btn');
+		var formatBtns = composer.querySelectorAll('.frs-composer__fmt');
 
 		var currentPostId = null;
 		var selectedFormat = 'standard';
 		var tags = [];
 		var editorReady = false;
 
-		// Show iframe when it finishes loading (standard WP editor).
+		// Show iframe when it finishes loading, strip WP admin chrome.
 		if (iframe) {
 			iframe.addEventListener('load', function() {
-				if (iframe.src && iframe.src !== '' && iframe.src !== 'about:blank') {
-					editorReady = true;
-					if (loading) loading.style.display = 'none';
-					iframe.style.display = 'block';
+				if (!iframe.src || iframe.src === '' || iframe.src === 'about:blank') return;
+				editorReady = true;
+				if (loading) loading.style.display = 'none';
+				iframe.style.display = 'block';
+
+				try {
+					var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+					var style = iframeDoc.createElement('style');
+					style.textContent =
+						/* Hide all admin chrome */
+						'#wpadminbar, #adminmenuwrap, #adminmenuback, #adminmenumain,' +
+						'#wpfooter, #screen-meta, #screen-meta-links,' +
+						'.notice, .update-nag, .updated, .error,' +
+						'.components-notice-list { display: none !important; }' +
+						'html.wp-toolbar { padding-top: 0 !important; }' +
+						'#wpcontent { margin-left: 0 !important; }' +
+						'#wpbody-content { padding-bottom: 0 !important; }' +
+						/* Hide editor header bar */
+						'.edit-post-header, .editor-header { display: none !important; }' +
+						/* Hide sidebars */
+						'.interface-interface-skeleton__sidebar,' +
+						'.interface-interface-skeleton__secondary-sidebar { display: none !important; }' +
+						/* Fill viewport */
+						'.interface-interface-skeleton { top: 0 !important; left: 0 !important; }' +
+						/* Hide post title in editor (we have our own outside) */
+						'.editor-post-title__block, .editor-post-title { display: none !important; }' +
+						/* Clean canvas */
+						'.editor-styles-wrapper {' +
+						'  padding: 0.75rem 0 !important;' +
+						'  font-family: "Mona Sans", -apple-system, BlinkMacSystemFont, sans-serif;' +
+						'  min-height: 120px;' +
+						'}' +
+						'.block-editor-default-block-appender .block-editor-default-block-appender__content::before {' +
+						'  color: #9ca3af !important;' +
+						'}';
+					iframeDoc.head.appendChild(style);
+				} catch (e) {
+					console.warn('Could not style iframe:', e);
 				}
 			});
 		}
@@ -565,9 +597,9 @@
 				e.preventDefault();
 				selectedFormat = btn.dataset.format;
 				formatBtns.forEach(function(b) {
-					b.classList.remove('frs-composer__format-btn--active');
+					b.classList.remove('frs-composer__fmt--active');
 				});
-				btn.classList.add('frs-composer__format-btn--active');
+				btn.classList.add('frs-composer__fmt--active');
 				openComposer(selectedFormat);
 			});
 		});
@@ -592,7 +624,6 @@
 
 			// Show expanded, hide collapsed.
 			composer.querySelector('.frs-composer__collapsed').hidden = true;
-			if (formatsWrap) formatsWrap.hidden = true;
 			expanded.hidden = false;
 			loading.style.display = '';
 			iframe.style.display = 'none';
@@ -638,7 +669,6 @@
 		function closeComposer() {
 			expanded.hidden = true;
 			composer.querySelector('.frs-composer__collapsed').hidden = false;
-			if (formatsWrap) formatsWrap.hidden = false;
 			iframe.src = '';
 			iframe.style.display = 'none';
 			loading.style.display = '';
@@ -649,7 +679,7 @@
 			renderTags();
 			if (publishBtn) {
 				publishBtn.disabled = false;
-				publishBtn.textContent = 'Post Now';
+				publishBtn.innerHTML = 'Post now <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
 			}
 		}
 
@@ -705,7 +735,7 @@
 				if (!currentPostId || !editorReady) return;
 
 				publishBtn.disabled = true;
-				publishBtn.textContent = 'Publishing...';
+				publishBtn.innerHTML = 'Publishing...';
 
 				// Set title if provided.
 				var updates = { status: 'publish' };
@@ -741,19 +771,12 @@
 				}).catch(function(err) {
 					console.error('Publish failed:', err);
 					publishBtn.disabled = false;
-					publishBtn.textContent = 'Post Now';
+					publishBtn.innerHTML = 'Post now <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
 					alert('Failed to publish: ' + (err.message || 'unknown error'));
 				});
 			});
 		}
 
-		// Draft button — just close, the editor auto-saves.
-		if (draftBtn) {
-			draftBtn.addEventListener('click', function() {
-				if (!currentPostId) return;
-				closeComposer();
-			});
-		}
 	}
 
 	/**

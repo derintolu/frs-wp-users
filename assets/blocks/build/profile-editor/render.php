@@ -803,10 +803,9 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 	<div class="frs-profile__tab-panel" data-tab-panel="activity" hidden>
 
 		<?php if ( current_user_can( 'edit_posts' ) ) : ?>
-		<?php $pfbt_active = class_exists( 'PFBT_Format_Registry' ); ?>
 		<!-- Post Composer (Tumblr-style) -->
 		<div class="frs-composer" id="frs-post-composer">
-			<!-- Collapsed state -->
+			<!-- Collapsed trigger -->
 			<div class="frs-composer__collapsed" id="frs-composer-trigger">
 				<div class="frs-composer__avatar">
 					<?php if ( $headshot_url ) : ?>
@@ -820,59 +819,69 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 				</div>
 			</div>
 
-			<?php if ( $pfbt_active ) : ?>
-			<!-- Format picker icons -->
-			<div class="frs-composer__formats" id="frs-composer-formats">
-				<button type="button" data-format="standard" class="frs-composer__format-btn frs-composer__format-btn--active" title="Text">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-				</button>
-				<button type="button" data-format="image" class="frs-composer__format-btn" title="Photo">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-				</button>
-				<button type="button" data-format="video" class="frs-composer__format-btn" title="Video">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-				</button>
-				<button type="button" data-format="audio" class="frs-composer__format-btn" title="Audio">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-				</button>
-				<button type="button" data-format="link" class="frs-composer__format-btn" title="Link">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-				</button>
-				<button type="button" data-format="quote" class="frs-composer__format-btn" title="Quote">
-					<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z"/></svg>
-				</button>
-			</div>
-			<?php endif; ?>
-
-			<!-- Expanded state (hidden by default) -->
+			<!-- Expanded editor (Tumblr-style card) -->
 			<div class="frs-composer__expanded" id="frs-composer-expanded" hidden>
-				<button type="button" class="frs-composer__close" id="frs-composer-close" aria-label="Close composer">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-				</button>
-
-				<input type="text" class="frs-composer__title" id="frs-composer-title" placeholder="Title" />
-
-				<div class="frs-composer__editor-wrap">
-					<div class="frs-composer__editor-loading" id="frs-composer-loading">
-						<span class="frs-composer__spinner"></span>
-						Loading editor...
+				<!-- Header: user name + gear -->
+				<div class="frs-composer__header">
+					<div class="frs-composer__header-user">
+						<div class="frs-composer__avatar frs-composer__avatar--sm">
+							<?php if ( $headshot_url ) : ?>
+								<img src="<?php echo esc_url( $headshot_url ); ?>" alt="">
+							<?php else : ?>
+								<span class="frs-composer__avatar-initials"><?php echo esc_html( $initials ); ?></span>
+							<?php endif; ?>
+						</div>
+						<span class="frs-composer__header-name"><?php echo esc_html( $full_name ); ?></span>
 					</div>
-					<iframe id="frs-composer-iframe"
-							class="frs-composer__iframe"
-							src=""
-							style="display:none;">
-					</iframe>
 				</div>
 
-				<div class="frs-composer__bottom">
-					<div class="frs-composer__tags">
-						<div class="frs-composer__tag-list" id="frs-composer-tag-list"></div>
-						<input type="text" class="frs-composer__tag-input" id="frs-composer-tags" placeholder="#add tags" />
+				<!-- Title -->
+				<input type="text" class="frs-composer__title" id="frs-composer-title" placeholder="Title" />
+
+				<!-- Content area with editor + format icons -->
+				<div class="frs-composer__content">
+					<div class="frs-composer__editor-wrap">
+						<div class="frs-composer__editor-loading" id="frs-composer-loading">
+							<span class="frs-composer__spinner"></span>
+						</div>
+						<iframe id="frs-composer-iframe" class="frs-composer__iframe" src="" style="display:none;"></iframe>
 					</div>
-					<div class="frs-composer__actions">
-						<button type="button" class="frs-composer__draft-btn" id="frs-composer-draft">Save Draft</button>
-						<button type="button" class="frs-composer__publish-btn" id="frs-composer-publish">Post Now</button>
+					<!-- Format icons (Lucide, colored like Tumblr) -->
+					<div class="frs-composer__format-icons" id="frs-composer-formats">
+						<button type="button" data-format="image" class="frs-composer__fmt frs-composer__fmt--image" title="Photo">
+							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+						</button>
+						<button type="button" data-format="gallery" class="frs-composer__fmt frs-composer__fmt--gallery" title="Gallery">
+							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+						</button>
+						<button type="button" data-format="video" class="frs-composer__fmt frs-composer__fmt--video" title="Video">
+							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
+						</button>
+						<button type="button" data-format="audio" class="frs-composer__fmt frs-composer__fmt--audio" title="Audio">
+							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>
+						</button>
+						<button type="button" data-format="link" class="frs-composer__fmt frs-composer__fmt--link" title="Link">
+							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+						</button>
+						<button type="button" data-format="quote" class="frs-composer__fmt frs-composer__fmt--quote" title="Quote">
+							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"/><path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"/></svg>
+						</button>
 					</div>
+				</div>
+
+				<!-- Tags -->
+				<div class="frs-composer__tags">
+					<div class="frs-composer__tag-list" id="frs-composer-tag-list"></div>
+					<input type="text" class="frs-composer__tag-input" id="frs-composer-tags" placeholder="#add tags" />
+				</div>
+
+				<!-- Footer: Close + Post now -->
+				<div class="frs-composer__footer">
+					<button type="button" class="frs-composer__close-btn" id="frs-composer-close">Close</button>
+					<button type="button" class="frs-composer__publish-btn" id="frs-composer-publish">
+						Post now
+						<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+					</button>
 				</div>
 			</div>
 		</div>

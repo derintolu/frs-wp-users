@@ -452,6 +452,68 @@ class Api {
 				'permission_callback' => array( self::$actions, 'check_authenticated' ),
 			)
 		);
+		// Activity feed for a user profile (company-level visibility)
+		register_rest_route(
+			self::$namespace,
+			'/profiles/(?P<id>\d+)/activity',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_activity_feed' ),
+				'permission_callback' => array( self::$actions, 'check_authenticated' ),
+				'args'                => array(
+					'id'       => array(
+						'description'       => 'User ID',
+						'type'              => 'integer',
+						'required'          => true,
+						'sanitize_callback' => 'absint',
+					),
+					'page'     => array(
+						'description'       => 'Page number',
+						'type'              => 'integer',
+						'default'           => 1,
+						'minimum'           => 1,
+						'sanitize_callback' => 'absint',
+					),
+					'per_page' => array(
+						'description'       => 'Items per page',
+						'type'              => 'integer',
+						'default'           => 20,
+						'minimum'           => 1,
+						'maximum'           => 100,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
+		// Activity feed for current user (shorthand)
+		register_rest_route(
+			self::$namespace,
+			'/profiles/me/activity',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_my_activity_feed' ),
+				'permission_callback' => array( self::$actions, 'check_authenticated' ),
+				'args'                => array(
+					'page'     => array(
+						'description'       => 'Page number',
+						'type'              => 'integer',
+						'default'           => 1,
+						'minimum'           => 1,
+						'sanitize_callback' => 'absint',
+					),
+					'per_page' => array(
+						'description'       => 'Items per page',
+						'type'              => 'integer',
+						'default'           => 20,
+						'minimum'           => 1,
+						'maximum'           => 100,
+						'sanitize_callback' => 'absint',
+					),
+				),
+			)
+		);
+
 		// Allow hooks to add more custom API routes
 		do_action( 'frs_users_api_routes', self::$namespace );
 	}
@@ -499,5 +561,41 @@ class Api {
 		$response->header( 'Cache-Control', 'no-cache, no-store, must-revalidate' );
 
 		return $response;
+	}
+
+	/**
+	 * Get activity feed for a user profile
+	 *
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public static function get_activity_feed( $request ) {
+		$user_id  = $request->get_param( 'id' );
+		$page     = $request->get_param( 'page' ) ?: 1;
+		$per_page = $request->get_param( 'per_page' ) ?: 20;
+
+		$user = get_userdata( $user_id );
+		if ( ! $user ) {
+			return new \WP_Error(
+				'user_not_found',
+				__( 'User not found.', 'frs-users' ),
+				array( 'status' => 404 )
+			);
+		}
+
+		$result = \FRSUsers\Models\ActivityLog::get_for_user( $user_id, $page, $per_page );
+
+		return new \WP_REST_Response( $result, 200 );
+	}
+
+	/**
+	 * Get activity feed for current user
+	 *
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public static function get_my_activity_feed( $request ) {
+		$request->set_param( 'id', get_current_user_id() );
+		return self::get_activity_feed( $request );
 	}
 }

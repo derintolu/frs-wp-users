@@ -168,6 +168,32 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 ?>
 
 <div <?php echo $wrapper_attributes; ?>>
+	<!-- Tab Navigation -->
+	<div class="frs-profile__tabs">
+		<button type="button" class="frs-profile__tab frs-profile__tab--active" data-tab="profile">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+				<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+				<circle cx="12" cy="7" r="4"/>
+			</svg>
+			Profile
+		</button>
+		<button type="button" class="frs-profile__tab" data-tab="activity">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+				<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+			</svg>
+			Activity
+		</button>
+		<button type="button" class="frs-profile__tab" data-tab="settings">
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+				<circle cx="12" cy="12" r="3"/>
+				<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+			</svg>
+			Settings &amp; Admin
+		</button>
+	</div>
+
+	<!-- Tab: Profile (public) -->
+	<div class="frs-profile__tab-panel frs-profile__tab-panel--active" data-tab-panel="profile">
 	<!-- Preview Frame (contains profile content with dark background for device preview) -->
 	<div class="frs-profile__preview-frame">
 		<div class="frs-profile__preview-content">
@@ -771,4 +797,215 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 			</button>
 		</div>
 	</div>
+	</div><!-- /.frs-profile__tab-panel profile -->
+
+	<!-- Tab: Activity (company-level) -->
+	<div class="frs-profile__tab-panel" data-tab-panel="activity" hidden>
+		<!-- Published Content -->
+		<div class="frs-profile__card frs-profile__card--posts">
+			<h3 class="frs-profile__card-title">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+					<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+					<polyline points="14 2 14 8 20 8"/>
+				</svg>
+				Published Content
+			</h3>
+			<div class="frs-profile__posts-grid" id="frs-profile-posts">
+				<?php
+				$author_posts = get_posts( array(
+					'author'         => $current_user_id,
+					'post_type'      => array( 'post', 'page' ),
+					'post_status'    => 'publish',
+					'posts_per_page' => 6,
+					'orderby'        => 'date',
+					'order'          => 'DESC',
+				) );
+				if ( ! empty( $author_posts ) ) :
+					foreach ( $author_posts as $apost ) :
+						$thumb = get_the_post_thumbnail_url( $apost->ID, 'medium' );
+						$excerpt = wp_trim_words( $apost->post_content, 20, '...' );
+				?>
+					<a href="<?php echo esc_url( get_permalink( $apost->ID ) ); ?>" class="frs-profile__post-card">
+						<?php if ( $thumb ) : ?>
+							<div class="frs-profile__post-thumb" style="background-image: url(<?php echo esc_url( $thumb ); ?>)"></div>
+						<?php else : ?>
+							<div class="frs-profile__post-thumb frs-profile__post-thumb--empty">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="24" height="24">
+									<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+									<polyline points="14 2 14 8 20 8"/>
+								</svg>
+							</div>
+						<?php endif; ?>
+						<div class="frs-profile__post-info">
+							<span class="frs-profile__post-date"><?php echo esc_html( get_the_date( 'M j, Y', $apost->ID ) ); ?></span>
+							<h4 class="frs-profile__post-title"><?php echo esc_html( $apost->post_title ); ?></h4>
+							<p class="frs-profile__post-excerpt"><?php echo esc_html( $excerpt ); ?></p>
+						</div>
+					</a>
+				<?php endforeach; else : ?>
+					<p class="frs-profile__empty frs-profile__empty--center">No published content yet.</p>
+				<?php endif; ?>
+			</div>
+		</div>
+
+		<!-- Activity Timeline -->
+		<div class="frs-profile__card frs-profile__card--activity">
+			<h3 class="frs-profile__card-title">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+					<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+				</svg>
+				Activity Timeline
+			</h3>
+			<div class="frs-profile__activity-feed" id="frs-activity-feed">
+				<div class="frs-profile__activity-loading">Loading activity...</div>
+			</div>
+			<div class="frs-profile__activity-more" id="frs-activity-more" hidden>
+				<button type="button" class="frs-profile__load-more-btn" id="frs-load-more-activity">Load More</button>
+			</div>
+		</div>
+	</div><!-- /.frs-profile__tab-panel activity -->
+
+	<!-- Tab: Settings & Admin (user-only) -->
+	<div class="frs-profile__tab-panel" data-tab-panel="settings" hidden>
+		<div class="frs-profile__settings-grid">
+			<!-- Notifications -->
+			<div class="frs-profile__card frs-profile__card--notifications">
+				<h3 class="frs-profile__card-title">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+						<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+						<path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+					</svg>
+					Notifications
+				</h3>
+				<div class="frs-profile__toggles" id="frs-notification-toggles">
+					<label class="frs-profile__toggle-row">
+						<div class="frs-profile__toggle-info">
+							<span class="frs-profile__toggle-label">Lead notifications</span>
+							<span class="frs-profile__toggle-desc">Get notified when new leads come in</span>
+						</div>
+						<div class="frs-profile__toggle-switch">
+							<input type="checkbox" data-setting="notifications" data-key="lead_notifications" checked>
+							<span class="frs-profile__toggle-slider"></span>
+						</div>
+					</label>
+					<label class="frs-profile__toggle-row">
+						<div class="frs-profile__toggle-info">
+							<span class="frs-profile__toggle-label">Meeting notifications</span>
+							<span class="frs-profile__toggle-desc">Get notified about meeting requests</span>
+						</div>
+						<div class="frs-profile__toggle-switch">
+							<input type="checkbox" data-setting="notifications" data-key="meeting_notifications" checked>
+							<span class="frs-profile__toggle-slider"></span>
+						</div>
+					</label>
+					<label class="frs-profile__toggle-row">
+						<div class="frs-profile__toggle-info">
+							<span class="frs-profile__toggle-label">Marketing emails</span>
+							<span class="frs-profile__toggle-desc">Receive company marketing communications</span>
+						</div>
+						<div class="frs-profile__toggle-switch">
+							<input type="checkbox" data-setting="notifications" data-key="marketing_emails" checked>
+							<span class="frs-profile__toggle-slider"></span>
+						</div>
+					</label>
+					<label class="frs-profile__toggle-row">
+						<div class="frs-profile__toggle-info">
+							<span class="frs-profile__toggle-label">System updates</span>
+							<span class="frs-profile__toggle-desc">Important system and platform updates</span>
+						</div>
+						<div class="frs-profile__toggle-switch">
+							<input type="checkbox" data-setting="notifications" data-key="system_updates" checked>
+							<span class="frs-profile__toggle-slider"></span>
+						</div>
+					</label>
+					<label class="frs-profile__toggle-row">
+						<div class="frs-profile__toggle-info">
+							<span class="frs-profile__toggle-label">Weekly digest</span>
+							<span class="frs-profile__toggle-desc">Weekly summary of your profile activity</span>
+						</div>
+						<div class="frs-profile__toggle-switch">
+							<input type="checkbox" data-setting="notifications" data-key="weekly_digest">
+							<span class="frs-profile__toggle-slider"></span>
+						</div>
+					</label>
+				</div>
+			</div>
+
+			<!-- Privacy -->
+			<div class="frs-profile__card frs-profile__card--privacy">
+				<h3 class="frs-profile__card-title">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+						<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+						<path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+					</svg>
+					Privacy
+				</h3>
+				<div class="frs-profile__toggles" id="frs-privacy-toggles">
+					<label class="frs-profile__toggle-row">
+						<div class="frs-profile__toggle-info">
+							<span class="frs-profile__toggle-label">Profile visible</span>
+							<span class="frs-profile__toggle-desc">Show your profile on marketing websites</span>
+						</div>
+						<div class="frs-profile__toggle-switch">
+							<input type="checkbox" data-setting="privacy" data-key="profile_visible" checked>
+							<span class="frs-profile__toggle-slider"></span>
+						</div>
+					</label>
+					<label class="frs-profile__toggle-row">
+						<div class="frs-profile__toggle-info">
+							<span class="frs-profile__toggle-label">Show phone number</span>
+							<span class="frs-profile__toggle-desc">Display your phone number publicly</span>
+						</div>
+						<div class="frs-profile__toggle-switch">
+							<input type="checkbox" data-setting="privacy" data-key="show_phone" checked>
+							<span class="frs-profile__toggle-slider"></span>
+						</div>
+					</label>
+					<label class="frs-profile__toggle-row">
+						<div class="frs-profile__toggle-info">
+							<span class="frs-profile__toggle-label">Show email</span>
+							<span class="frs-profile__toggle-desc">Display your email address publicly</span>
+						</div>
+						<div class="frs-profile__toggle-switch">
+							<input type="checkbox" data-setting="privacy" data-key="show_email" checked>
+							<span class="frs-profile__toggle-slider"></span>
+						</div>
+					</label>
+					<label class="frs-profile__toggle-row">
+						<div class="frs-profile__toggle-info">
+							<span class="frs-profile__toggle-label">Show social links</span>
+							<span class="frs-profile__toggle-desc">Display social media links on your profile</span>
+						</div>
+						<div class="frs-profile__toggle-switch">
+							<input type="checkbox" data-setting="privacy" data-key="show_social_links" checked>
+							<span class="frs-profile__toggle-slider"></span>
+						</div>
+					</label>
+					<label class="frs-profile__toggle-row">
+						<div class="frs-profile__toggle-info">
+							<span class="frs-profile__toggle-label">Contact form</span>
+							<span class="frs-profile__toggle-desc">Allow visitors to send you meeting requests</span>
+						</div>
+						<div class="frs-profile__toggle-switch">
+							<input type="checkbox" data-setting="privacy" data-key="allow_contact_form" checked>
+							<span class="frs-profile__toggle-slider"></span>
+						</div>
+					</label>
+					<label class="frs-profile__toggle-row">
+						<div class="frs-profile__toggle-info">
+							<span class="frs-profile__toggle-label">Show in directory</span>
+							<span class="frs-profile__toggle-desc">Appear in the company directory listing</span>
+						</div>
+						<div class="frs-profile__toggle-switch">
+							<input type="checkbox" data-setting="privacy" data-key="show_in_directory" checked>
+							<span class="frs-profile__toggle-slider"></span>
+						</div>
+					</label>
+				</div>
+			</div>
+		</div>
+
+		<!-- Settings save toast -->
+		<div class="frs-profile__settings-toast" id="frs-settings-toast" hidden>Saved</div>
+	</div><!-- /.frs-profile__tab-panel settings -->
 </div>

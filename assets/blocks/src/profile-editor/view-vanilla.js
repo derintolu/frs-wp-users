@@ -249,6 +249,220 @@
 				}
 			});
 		}
+
+		// ============================================
+		// TAB SWITCHING
+		// ============================================
+		let settingsLoaded = false;
+		let activityLoaded = false;
+		const config = window.frsProfileEditor || {};
+
+		const tabs = container.querySelectorAll('.frs-profile__tab');
+		const tabPanels = container.querySelectorAll('.frs-profile__tab-panel');
+
+		tabs.forEach(function(tab) {
+			tab.addEventListener('click', function(e) {
+				e.preventDefault();
+				const targetTab = this.dataset.tab;
+
+				// Update tab active states
+				tabs.forEach(function(t) { t.classList.remove('frs-profile__tab--active'); });
+				this.classList.add('frs-profile__tab--active');
+
+				// Show/hide panels
+				tabPanels.forEach(function(panel) {
+					if (panel.dataset.tabPanel === targetTab) {
+						panel.hidden = false;
+						panel.classList.add('frs-profile__tab-panel--active');
+					} else {
+						panel.hidden = true;
+						panel.classList.remove('frs-profile__tab-panel--active');
+					}
+				});
+
+				// Load activity feed on first visit
+				if (targetTab === 'activity' && !activityLoaded) {
+					loadActivityFeed();
+				}
+
+				// Load settings on first visit
+				if (targetTab === 'settings' && !settingsLoaded) {
+					loadSettings();
+				}
+			});
+		});
+
+		// ============================================
+		// SETTINGS (auto-save on toggle)
+		// ============================================
+		const settingsToast = document.getElementById('frs-settings-toast');
+
+		async function loadSettings() {
+			try {
+				const response = await fetch(config.restUrl + 'profiles/me/settings', {
+					headers: { 'X-WP-Nonce': config.nonce || '' }
+				});
+				if (!response.ok) return;
+
+				const result = await response.json();
+				const data = result.data || {};
+
+				// Set notification toggles
+				if (data.notifications) {
+					Object.entries(data.notifications).forEach(function([key, value]) {
+						const input = container.querySelector('[data-setting="notifications"][data-key="' + key + '"]');
+						if (input) input.checked = !!value;
+					});
+				}
+
+				// Set privacy toggles
+				if (data.privacy) {
+					Object.entries(data.privacy).forEach(function([key, value]) {
+						const input = container.querySelector('[data-setting="privacy"][data-key="' + key + '"]');
+						if (input) input.checked = !!value;
+					});
+				}
+
+				settingsLoaded = true;
+			} catch (err) {
+				console.error('Failed to load settings:', err);
+			}
+		}
+
+		function showToast(message) {
+			if (!settingsToast) return;
+			settingsToast.textContent = message || 'Saved';
+			settingsToast.hidden = false;
+			clearTimeout(settingsToast._timeout);
+			settingsToast._timeout = setTimeout(function() {
+				settingsToast.hidden = true;
+			}, 2000);
+		}
+
+		// Auto-save on toggle change
+		container.querySelectorAll('[data-setting]').forEach(function(input) {
+			input.addEventListener('change', async function() {
+				const settingType = this.dataset.setting; // 'notifications' or 'privacy'
+				const key = this.dataset.key;
+				const value = this.checked;
+
+				// Gather all values for this setting type
+				const settings = {};
+				container.querySelectorAll('[data-setting="' + settingType + '"]').forEach(function(inp) {
+					settings[inp.dataset.key] = inp.checked;
+				});
+
+				try {
+					const response = await fetch(config.restUrl + 'profiles/me/settings/' + settingType, {
+						method: 'PUT',
+						headers: {
+							'Content-Type': 'application/json',
+							'X-WP-Nonce': config.nonce || ''
+						},
+						body: JSON.stringify(settings)
+					});
+
+					if (response.ok) {
+						showToast('Saved');
+					} else {
+						showToast('Failed to save');
+						// Revert toggle
+						this.checked = !value;
+					}
+				} catch (err) {
+					showToast('Failed to save');
+					this.checked = !value;
+				}
+			});
+		});
+
+		// ============================================
+		// ACTIVITY FEED
+		// ============================================
+		let activityPage = 1;
+		let activityPages = 1;
+		const activityFeed = document.getElementById('frs-activity-feed');
+		const activityMore = document.getElementById('frs-activity-more');
+		const loadMoreBtn = document.getElementById('frs-load-more-activity');
+
+		const ACTION_ICONS = {
+			profile_updated: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+			meeting_requested: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+			post_published: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+			lesson_completed: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+			course_enrolled: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
+		};
+
+		function renderActivityItem(item) {
+			const icon = ACTION_ICONS[item.action] || ACTION_ICONS['profile_updated'];
+			const actionClass = 'frs-profile__activity-icon--' + item.action.replace(/_/g, '-');
+
+			return '<div class="frs-profile__activity-item">' +
+				'<div class="frs-profile__activity-icon ' + actionClass + '">' + icon + '</div>' +
+				'<div class="frs-profile__activity-body">' +
+					'<p class="frs-profile__activity-summary">' + escapeHtml(item.summary) + '</p>' +
+					'<span class="frs-profile__activity-time">' + escapeHtml(item.time_ago) + '</span>' +
+				'</div>' +
+			'</div>';
+		}
+
+		function escapeHtml(str) {
+			const div = document.createElement('div');
+			div.textContent = str;
+			return div.innerHTML;
+		}
+
+		async function loadActivityFeed(append) {
+			if (!activityFeed) return;
+
+			if (!append) {
+				activityFeed.innerHTML = '<div class="frs-profile__activity-loading">Loading activity...</div>';
+			}
+
+			try {
+				const userId = config.userId;
+				const response = await fetch(config.restUrl + 'profiles/' + userId + '/activity?page=' + activityPage + '&per_page=20', {
+					headers: { 'X-WP-Nonce': config.nonce || '' }
+				});
+
+				if (!response.ok) throw new Error('Failed to load activity');
+
+				const result = await response.json();
+				activityPages = result.pages || 1;
+
+				if (!append) {
+					activityFeed.innerHTML = '';
+				}
+
+				if (result.data && result.data.length > 0) {
+					result.data.forEach(function(item) {
+						activityFeed.insertAdjacentHTML('beforeend', renderActivityItem(item));
+					});
+				} else if (!append) {
+					activityFeed.innerHTML = '<p class="frs-profile__empty frs-profile__empty--center">No activity yet.</p>';
+				}
+
+				// Show/hide load more
+				if (activityMore) {
+					activityMore.hidden = activityPage >= activityPages;
+				}
+
+				activityLoaded = true;
+			} catch (err) {
+				if (!append) {
+					activityFeed.innerHTML = '<p class="frs-profile__empty frs-profile__empty--center">Could not load activity.</p>';
+				}
+				console.error('Activity feed error:', err);
+			}
+		}
+
+		if (loadMoreBtn) {
+			loadMoreBtn.addEventListener('click', function(e) {
+				e.preventDefault();
+				activityPage++;
+				loadActivityFeed(true);
+			});
+		}
 	}
 
 	// Run on DOM ready

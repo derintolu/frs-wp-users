@@ -117,7 +117,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 
 .frs-directory__search {
 	width: 100%;
-	padding: 10px 12px 10px 44px;
+	padding: 10px 12px 10px 56px;
 	border: 1px solid #e2e8f0;
 	border-radius: 5px;
 	font-size: 14px;

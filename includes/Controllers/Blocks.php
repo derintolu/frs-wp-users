@@ -104,9 +104,10 @@ class Blocks {
 			'frs-profile-editor-vanilla',
 			'window.frsProfileEditor = ' . wp_json_encode(
 				array(
-					'nonce'   => wp_create_nonce( 'wp_rest' ),
-					'restUrl' => rest_url( 'frs-users/v1/' ),
-					'userId'  => get_current_user_id(),
+					'nonce'          => wp_create_nonce( 'wp_rest' ),
+					'restUrl'        => rest_url( 'frs-users/v1/' ),
+					'userId'         => get_current_user_id(),
+					'formatPatterns' => \FRSUsers\Routes\Api::get_format_patterns(),
 				)
 			) . ';',
 			'before'

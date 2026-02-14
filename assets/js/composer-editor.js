@@ -76,6 +76,11 @@
 					wp.data.dispatch( 'core/editor' ).editPost( {
 						format: event.data.format,
 					} );
+					// Replace blocks with the format's pattern if provided.
+					if ( event.data.content ) {
+						var blocks = wp.blocks.parse( event.data.content );
+						wp.data.dispatch( 'core/block-editor' ).resetBlocks( blocks );
+					}
 					break;
 			}
 		} );

@@ -118,9 +118,10 @@ class Shortcodes {
 			'frs-hub-directory',
 			'frsDirectory',
 			array(
-				'restUrl' => rest_url( 'frs-users/v1/' ),
-				'nonce'   => wp_create_nonce( 'wp_rest' ),
-				'roles'   => $active_roles,
+				'restUrl'   => rest_url( 'frs-users/v1/' ),
+				'nonce'     => wp_create_nonce( 'wp_rest' ),
+				'roles'     => $active_roles,
+				'pluginUrl' => FRS_USERS_URL,
 			)
 		);
 

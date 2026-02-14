@@ -51,8 +51,8 @@ class TemplateLoader {
         // URL masking - change /author/ to role-based URLs
         add_filter('author_link', [$this, 'mask_author_url'], 10, 3);
 
-        // Template loading - load our templates for FRS users
-        add_filter('template_include', [$this, 'load_profile_template'], 99);
+        // Template loading - load our templates for FRS users (PHP_INT_MAX to override block themes)
+        add_filter('template_include', [$this, 'load_profile_template'], PHP_INT_MAX);
 
         // Rewrite rules - map /lo/{slug} etc. back to author queries
         add_action('init', [$this, 'add_rewrite_rules']);

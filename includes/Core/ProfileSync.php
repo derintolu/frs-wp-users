@@ -360,12 +360,17 @@ class ProfileSync {
 			}
 		}
 
-		// Set WordPress role
+		// Set WordPress role (add_role preserves existing roles like subscriber)
 		if ( ! empty( $profile_data['select_person_type'] ) ) {
 			$wp_role = Roles::get_wp_role_for_company_role( $profile_data['select_person_type'] );
 			if ( $wp_role ) {
 				$user_obj = new \WP_User( $user_id );
-				$user_obj->set_role( $wp_role );
+				// Remove any existing FRS roles first
+				$frs_roles = array_keys( Roles::get_wp_roles() );
+				foreach ( $frs_roles as $frs_role ) {
+					$user_obj->remove_role( $frs_role );
+				}
+				$user_obj->add_role( $wp_role );
 			}
 		}
 

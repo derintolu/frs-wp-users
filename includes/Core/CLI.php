@@ -1187,12 +1187,17 @@ class CLI {
 			}
 		}
 
-		// Set WordPress role based on company role
+		// Set WordPress role (add_role preserves existing roles like subscriber)
 		if ( ! empty( $profile['select_person_type'] ) ) {
 			$wp_role = Roles::get_wp_role_for_company_role( $profile['select_person_type'] );
 			if ( $wp_role ) {
 				$user = new \WP_User( $user_id );
-				$user->set_role( $wp_role );
+				// Remove any existing FRS roles first
+				$frs_roles = array_keys( Roles::get_wp_roles() );
+				foreach ( $frs_roles as $frs_role ) {
+					$user->remove_role( $frs_role );
+				}
+				$user->add_role( $wp_role );
 			}
 		}
 

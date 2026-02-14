@@ -599,16 +599,37 @@
 			});
 		}
 
-		// Format button clicks.
+		// Format button clicks — switch format on current draft or open new one.
 		formatBtns.forEach(function(btn) {
 			btn.addEventListener('click', function(e) {
 				e.preventDefault();
-				selectedFormat = btn.dataset.format;
+				var newFormat = btn.dataset.format;
+				if (newFormat === selectedFormat) return;
+
+				selectedFormat = newFormat;
 				formatBtns.forEach(function(b) {
 					b.classList.remove('frs-composer__fmt--active');
 				});
 				btn.classList.add('frs-composer__fmt--active');
-				openComposer(selectedFormat);
+
+				// If modal is open, trash the old draft and create a new one with the selected format.
+				if (overlay && overlay.classList.contains('frs-composer__overlay--open') && currentPostId) {
+					loading.style.display = '';
+					iframe.style.display = 'none';
+					iframe.src = '';
+					editorReady = false;
+
+					// Trash the old draft silently.
+					fetch('/wp-json/wp/v2/posts/' + currentPostId, {
+						method: 'DELETE',
+						headers: { 'X-WP-Nonce': config.nonce },
+					}).catch(function() {});
+
+					// Create new draft with the new format.
+					createDraft(selectedFormat);
+				} else {
+					openComposer(selectedFormat);
+				}
 			});
 		});
 
@@ -632,19 +653,14 @@
 		}
 
 		/**
-		 * Open the expanded composer, create an auto-draft, and load the iframe editor.
+		 * Create an auto-draft via REST and load the iframe editor.
+		 * Used by both openComposer() and format-switch handler.
 		 */
-		function openComposer(format) {
-			if (overlay && overlay.classList.contains('frs-composer__overlay--open')) return; // Already open.
-
-			// Show modal overlay.
-			if (overlay) overlay.classList.add('frs-composer__overlay--open');
-			document.body.style.overflow = 'hidden';
+		function createDraft(format) {
 			loading.style.display = '';
 			iframe.style.display = 'none';
 			editorReady = false;
 
-			// Create auto-draft via REST.
 			fetch(config.restUrl + 'posts/create-draft', {
 				method: 'POST',
 				headers: {
@@ -676,6 +692,19 @@
 				alert('Failed to create draft: ' + (err.message || 'unknown error'));
 				closeComposer();
 			});
+		}
+
+		/**
+		 * Open the expanded composer, create an auto-draft, and load the iframe editor.
+		 */
+		function openComposer(format) {
+			if (overlay && overlay.classList.contains('frs-composer__overlay--open')) return; // Already open.
+
+			// Show modal overlay.
+			if (overlay) overlay.classList.add('frs-composer__overlay--open');
+			document.body.style.overflow = 'hidden';
+
+			createDraft(format);
 		}
 
 		/**

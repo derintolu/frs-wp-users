@@ -537,7 +537,6 @@
 		var closeBtn = document.getElementById('frs-composer-close');
 		var iframe = document.getElementById('frs-composer-iframe');
 		var loading = document.getElementById('frs-composer-loading');
-		var titleInput = document.getElementById('frs-composer-title');
 		var tagInput = document.getElementById('frs-composer-tags');
 		var tagList = document.getElementById('frs-composer-tag-list');
 		var publishBtn = document.getElementById('frs-composer-publish');
@@ -691,7 +690,6 @@
 			loading.style.display = '';
 			currentPostId = null;
 			editorReady = false;
-			if (titleInput) titleInput.value = '';
 			tags = [];
 			renderTags();
 			if (publishBtn) {
@@ -700,16 +698,12 @@
 			}
 		}
 
-		// postMessage listener (for future custom editor bridge).
+		// Height messages from the iframe bridge.
 		window.addEventListener('message', function(event) {
-			if (!event.data || !event.data.type) return;
-
-			if (event.data.type === 'frs-composer-height' && iframe && event.data.height) {
+			if (event.data && event.data.type === 'frs-composer-height' && iframe && event.data.height) {
 				iframe.style.height = Math.max(200, event.data.height) + 'px';
 			}
 		});
-
-		// Title is typed in the WP editor inside the iframe.
 		// The outer title field syncs on publish via REST API.
 
 		// Tag input: Enter key adds tag.
@@ -746,53 +740,52 @@
 			});
 		}
 
-		// Publish button — use WP REST API directly.
+		// Publish button — set tags, then tell iframe editor to save+publish.
 		if (publishBtn) {
 			publishBtn.addEventListener('click', function() {
-				if (!currentPostId || !editorReady) return;
+				if (!currentPostId || !editorReady || !iframe || !iframe.contentWindow) return;
 
 				publishBtn.disabled = true;
 				publishBtn.innerHTML = 'Publishing...';
 
-				// Set title if provided.
-				var updates = { status: 'publish' };
-				if (titleInput && titleInput.value.trim()) {
-					updates.title = titleInput.value.trim();
-				}
-
-				// Set tags first, then publish.
+				// Set tags first, then tell the iframe to publish.
 				var tagPromise = tags.length > 0
 					? resolveAndSetTags(currentPostId, tags, config.nonce)
 					: Promise.resolve();
 
 				tagPromise.then(function() {
-					return fetch('/wp-json/wp/v2/posts/' + currentPostId, {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json',
-							'X-WP-Nonce': config.nonce,
-						},
-						body: JSON.stringify(updates),
-					});
-				}).then(function(res) {
-					if (!res.ok) throw new Error('HTTP ' + res.status);
-					return res.json();
-				}).then(function(post) {
-					closeComposer();
-					prependPostToFeed({
-						postId: post.id,
-						title: post.title.rendered || post.title.raw || 'Untitled',
-						url: post.link || '#',
-						format: post.format || 'standard',
-					});
+					// Tell the iframe editor to save title + content + set status to publish.
+					iframe.contentWindow.postMessage({
+						type: 'frs-composer-publish',
+					}, window.location.origin);
 				}).catch(function(err) {
-					console.error('Publish failed:', err);
+					console.error('Tag resolution failed:', err);
 					publishBtn.disabled = false;
 					publishBtn.innerHTML = 'Post now <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
-					alert('Failed to publish: ' + (err.message || 'unknown error'));
 				});
 			});
 		}
+
+		// Listen for publish confirmation from the iframe bridge.
+		window.addEventListener('message', function(event) {
+			if (!event.data || !event.data.type) return;
+			if (event.data.type === 'frs-composer-published') {
+				closeComposer();
+				prependPostToFeed({
+					postId: event.data.postId,
+					title: event.data.title || 'Untitled',
+					url: event.data.url || '#',
+					format: event.data.format || 'standard',
+				});
+			}
+			if (event.data.type === 'frs-composer-error') {
+				if (publishBtn) {
+					publishBtn.disabled = false;
+					publishBtn.innerHTML = 'Post now <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+				}
+				alert('Failed to publish: ' + (event.data.message || 'unknown error'));
+			}
+		});
 
 	}
 

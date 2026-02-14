@@ -261,9 +261,12 @@ class PostComposer {
 		.edit-post-header,
 		.editor-header { display: none !important; }
 
-		/* Hide post title — we have our own outside the iframe */
-		.editor-post-title__block,
-		.editor-post-title { display: none !important; }
+		/* Style the post title as optional */
+		.editor-post-title__input {
+			font-size: 1.25rem !important;
+			font-weight: 600 !important;
+			padding: 0 !important;
+		}
 
 		/* Hide sidebars */
 		.interface-interface-skeleton__sidebar,

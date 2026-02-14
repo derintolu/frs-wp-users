@@ -861,9 +861,6 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 					</div>
 				</div>
 
-				<!-- Title -->
-				<input type="text" class="frs-composer__title" id="frs-composer-title" placeholder="Title" />
-
 				<!-- Editor iframe -->
 				<div class="frs-composer__editor-wrap">
 					<div class="frs-composer__editor-loading" id="frs-composer-loading">

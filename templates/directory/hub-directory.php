@@ -545,8 +545,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 .frs-panel-backdrop {
 	position: fixed;
 	inset: 0;
-	background: rgba(0,0,0,0.3);
-	backdrop-filter: blur(2px);
+	background: rgba(0,0,0,0.25);
 	z-index: 9998;
 	opacity: 0;
 	transition: opacity 0.3s;
@@ -562,39 +561,40 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	top: 0;
 	right: 0;
 	bottom: 0;
-	width: 420px;
-	max-width: 90vw;
-	background: #f8fafc;
+	width: 540px;
+	max-width: 92vw;
+	background: #fff;
 	z-index: 9999;
 	transform: translateX(100%);
 	transition: transform 0.3s ease;
 	display: flex;
 	flex-direction: column;
-	box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+	box-shadow: -4px 0 24px rgba(0,0,0,0.15);
 }
 .frs-panel.is-open { transform: translateX(0); }
 
 .frs-panel__header {
-	display: flex;
-	justify-content: flex-end;
+	position: absolute;
+	top: 0;
+	right: 0;
+	z-index: 10;
 	padding: 12px 16px;
-	border-bottom: 1px solid #e2e8f0;
-	background: #fff;
-	flex-shrink: 0;
 }
 
 .frs-panel__close {
-	background: none;
+	background: rgba(255,255,255,0.85);
 	border: none;
 	cursor: pointer;
-	color: #64748b;
-	padding: 4px;
-	border-radius: 4px;
+	color: #1e293b;
+	width: 32px;
+	height: 32px;
+	border-radius: 5px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	backdrop-filter: blur(4px);
 }
-.frs-panel__close:hover { color: #1e293b; background: #f1f5f9; }
+.frs-panel__close:hover { background: #fff; }
 
 .frs-panel__body {
 	flex: 1;
@@ -607,109 +607,107 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	padding: 4rem 0;
+	padding: 6rem 0;
 }
 
 .frs-panel__hero {
-	height: 80px;
+	height: 120px;
 	background: linear-gradient(135deg, var(--frs-cyan, #2dd4da), var(--frs-blue, #2563eb));
 }
 
 .frs-panel__avatar {
-	width: 96px;
-	height: 96px;
+	width: 120px;
+	height: 120px;
 	border-radius: 50%;
 	object-fit: cover;
-	border: 3px solid #fff;
-	margin: -48px auto 0;
+	border: 4px solid #fff;
+	margin: -60px auto 0;
 	display: block;
-	box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+	box-shadow: 0 4px 16px rgba(0,0,0,0.15);
 	background: #e2e8f0;
 }
 
 .frs-panel__avatar-placeholder {
-	width: 96px;
-	height: 96px;
+	width: 120px;
+	height: 120px;
 	border-radius: 50%;
-	border: 3px solid #fff;
-	margin: -48px auto 0;
+	border: 4px solid #fff;
+	margin: -60px auto 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	background: linear-gradient(135deg, var(--frs-cyan, #2dd4da), var(--frs-blue, #2563eb));
 	color: #fff;
-	font-size: 1.75rem;
+	font-size: 2.25rem;
 	font-weight: 600;
-	box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+	box-shadow: 0 4px 16px rgba(0,0,0,0.15);
 }
 
 .frs-panel__identity {
 	text-align: center;
-	padding: 0.75rem 1rem 0;
+	padding: 1rem 1.5rem 0;
 }
 
 .frs-panel__name {
-	font-size: 1.25rem;
+	font-size: 1.5rem;
 	font-weight: 700;
 	color: #1e293b;
 	margin: 0;
 }
 
 .frs-panel__title-nmls {
-	font-size: 0.8125rem;
+	font-size: 0.875rem;
 	color: var(--frs-blue, #2563eb);
-	margin: 0.125rem 0 0;
+	margin: 0.25rem 0 0;
 }
 
 .frs-panel__location {
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
-	font-size: 0.8125rem;
+	font-size: 0.875rem;
 	color: #64748b;
-	margin-top: 0.25rem;
+	margin-top: 0.375rem;
 }
 
-/* Panel cards */
-.frs-panel__card {
-	background: #fff;
-	border: 1px solid #e2e8f0;
-	border-radius: 5px;
-	margin: 0.75rem 1rem;
+/* Panel sections */
+.frs-panel__section {
+	padding: 1.25rem 1.5rem;
+	border-top: 1px solid #f1f5f9;
 }
 
-.frs-panel__card-title {
-	display: flex;
-	align-items: center;
-	gap: 0.375rem;
-	font-size: 0.8125rem;
-	font-weight: 600;
-	color: #1e293b;
-	margin: 0;
-	padding: 0.625rem 0.75rem;
-	border-bottom: 1px solid #e2e8f0;
-}
-
-/* Contact card */
-.frs-panel__contact-item {
+.frs-panel__section-title {
 	display: flex;
 	align-items: center;
 	gap: 0.5rem;
-	padding: 0.5rem 0.75rem;
+	font-size: 0.75rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: #94a3b8;
+	margin: 0 0 0.75rem;
+}
+
+/* Contact info */
+.frs-panel__contact-item {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.625rem 0;
 	color: #374151;
 	text-decoration: none;
-	font-size: 0.8125rem;
-	border-bottom: 1px solid #f1f5f9;
+	font-size: 0.9375rem;
+	border-bottom: 1px solid #f8fafc;
 }
 .frs-panel__contact-item:last-child { border-bottom: none; }
-.frs-panel__contact-item:hover { color: var(--frs-blue, #2563eb); background: #f8fafc; }
+.frs-panel__contact-item:hover { color: var(--frs-blue, #2563eb); }
+.frs-panel__contact-item svg { color: #94a3b8; flex-shrink: 0; }
 
 /* Action buttons */
 .frs-panel__actions {
 	display: flex;
-	flex-direction: column;
-	gap: 0.5rem;
-	margin: 0.75rem 1rem;
+	gap: 0.625rem;
+	padding: 1rem 1.5rem;
 }
 
 .frs-panel__action-btn {
@@ -717,15 +715,16 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	align-items: center;
 	justify-content: center;
 	gap: 0.5rem;
-	padding: 0.625rem 1rem;
+	flex: 1;
+	padding: 0.75rem 1rem;
 	border: 2px solid transparent;
 	border-radius: 5px;
 	background: linear-gradient(#fff, #fff), linear-gradient(90deg, var(--frs-cyan, #2dd4da), var(--frs-blue, #2563eb));
 	background-clip: padding-box, border-box;
 	background-origin: padding-box, border-box;
 	color: var(--frs-blue, #2563eb);
-	font-size: 0.8125rem;
-	font-weight: 500;
+	font-size: 0.875rem;
+	font-weight: 600;
 	cursor: pointer;
 	text-decoration: none;
 	transition: opacity 0.15s;
@@ -742,8 +741,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 .frs-panel__states-grid {
 	display: grid;
 	grid-template-columns: repeat(4, 1fr);
-	gap: 0.375rem;
-	padding: 0.625rem;
+	gap: 0.5rem;
 }
 
 .frs-panel__state-card {
@@ -751,19 +749,20 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	padding: 0.375rem 0.125rem;
+	padding: 0.5rem 0.25rem;
 	border: 1px solid #e2e8f0;
 	border-radius: 5px;
+	background: #f8fafc;
 }
 
 .frs-panel__state-svg {
-	width: 32px;
-	height: 32px;
+	width: 40px;
+	height: 40px;
 	object-fit: contain;
 }
 
 .frs-panel__state-abbr {
-	font-size: 0.6875rem;
+	font-size: 0.75rem;
 	font-weight: 700;
 	background: linear-gradient(90deg, var(--frs-cyan, #2dd4da), var(--frs-blue, #2563eb));
 	-webkit-background-clip: text;
@@ -773,29 +772,28 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 
 /* Bio content */
 .frs-panel__bio-content {
-	padding: 0.625rem 0.75rem;
-	font-size: 0.8125rem;
-	line-height: 1.6;
+	font-size: 0.9375rem;
+	line-height: 1.7;
 	color: #374151;
 }
-.frs-panel__bio-content p { margin: 0 0 0.5rem; }
+.frs-panel__bio-content p { margin: 0 0 0.75rem; }
 .frs-panel__bio-content p:last-child { margin-bottom: 0; }
 
 /* Badges */
 .frs-panel__badges {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 0.375rem;
-	padding: 0.625rem 0.75rem;
+	gap: 0.5rem;
 }
 
 .frs-panel__badge {
 	display: inline-block;
-	padding: 0.125rem 0.5rem;
+	padding: 0.25rem 0.75rem;
 	background: #f1f5f9;
 	border-radius: 5px;
-	font-size: 0.6875rem;
+	font-size: 0.8125rem;
 	color: #374151;
+	font-weight: 500;
 }
 .frs-panel__badge--cert {
 	background: #fae8ff;
@@ -807,63 +805,34 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	display: flex;
 	flex-wrap: wrap;
 	gap: 0.5rem;
-	padding: 0.625rem 0.75rem;
 }
 
 .frs-panel__social-link {
 	display: flex;
 	align-items: center;
-	gap: 0.25rem;
-	padding: 0.375rem 0.625rem;
+	gap: 0.375rem;
+	padding: 0.5rem 0.75rem;
 	border: 1px solid #e2e8f0;
 	border-radius: 5px;
-	font-size: 0.75rem;
+	font-size: 0.8125rem;
 	color: #374151;
 	text-decoration: none;
 }
 .frs-panel__social-link:hover { border-color: var(--frs-blue, #2563eb); color: var(--frs-blue, #2563eb); }
-.frs-panel__social-link--empty { color: #cbd5e1; pointer-events: none; }
 
 /* Custom links list */
 .frs-panel__link-item {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	padding: 0.5rem 0.75rem;
+	padding: 0.625rem 0;
 	border-bottom: 1px solid #f1f5f9;
 	text-decoration: none;
 	color: #374151;
-	font-size: 0.8125rem;
+	font-size: 0.9375rem;
 }
 .frs-panel__link-item:last-child { border-bottom: none; }
-.frs-panel__link-item:hover { background: #f8fafc; color: var(--frs-blue, #2563eb); }
+.frs-panel__link-item:hover { color: var(--frs-blue, #2563eb); }
 
 .frs-panel__link-title { font-weight: 600; color: #1e293b; }
-.frs-panel__link-url { font-size: 0.6875rem; color: #94a3b8; }
-
-/* View full profile link */
-.frs-panel__footer {
-	padding: 0.75rem 1rem 1.5rem;
-	text-align: center;
-}
-
-.frs-panel__view-full {
-	display: inline-flex;
-	align-items: center;
-	gap: 0.375rem;
-	font-size: 0.8125rem;
-	font-weight: 500;
-	color: var(--frs-blue, #2563eb);
-	text-decoration: none;
-}
-.frs-panel__view-full:hover { text-decoration: underline; }
-
-/* Empty text */
-.frs-panel__empty-text {
-	color: #94a3b8;
-	font-size: 0.75rem;
-	font-style: italic;
-	padding: 0.625rem 0.75rem;
-	margin: 0;
-}
 </style>

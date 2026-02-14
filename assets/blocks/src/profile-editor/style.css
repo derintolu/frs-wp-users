@@ -1666,17 +1666,19 @@
     overflow: hidden;
 }
 
-/* Collapsed trigger */
+/* Collapsed state */
 .frs-composer__collapsed {
+    display: flex;
+    flex-direction: column;
+}
+.frs-composer__collapsed[hidden] { display: none; }
+.frs-composer__collapsed-top {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.875rem 1.25rem;
+    padding: 0.875rem 1.25rem 0.5rem;
     cursor: pointer;
-    transition: background 0.15s;
 }
-.frs-composer__collapsed:hover { background: #f9fafb; }
-.frs-composer__collapsed[hidden] { display: none; }
 
 .frs-composer__avatar {
     width: 36px;
@@ -1752,19 +1754,13 @@
     font-weight: 300;
 }
 
-/* Content area: editor + format icons */
-.frs-composer__content {
-    position: relative;
-    min-height: 140px;
-}
-
 /* Editor wrap */
 .frs-composer__editor-wrap {
     min-height: 120px;
-    max-height: 400px;
+    max-height: 500px;
     overflow: hidden;
     position: relative;
-    padding: 0 1.25rem;
+    padding: 0;
 }
 .frs-composer__iframe {
     width: 100%;
@@ -1790,28 +1786,31 @@
 }
 @keyframes frs-spin { to { transform: rotate(360deg); } }
 
-/* Format icons — positioned right-aligned inside content area */
+/* Format icons — row in collapsed bar */
 .frs-composer__format-icons {
     display: flex;
-    gap: 0.25rem;
-    padding: 0.25rem 1.25rem 0.75rem;
-    justify-content: flex-end;
+    gap: 0.125rem;
+    padding: 0 1rem 0.75rem;
+    border-top: 1px solid #f3f4f6;
+    padding-top: 0.5rem;
+    margin-top: 0;
 }
 .frs-composer__fmt {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
     border: none;
     background: transparent;
     cursor: pointer;
-    border-radius: 6px;
+    border-radius: 8px;
     transition: background 0.15s, transform 0.1s;
 }
 .frs-composer__fmt:hover { transform: scale(1.1); }
 .frs-composer__fmt:active { transform: scale(0.95); }
-.frs-composer__fmt svg { width: 20px; height: 20px; }
+.frs-composer__fmt--active { background: rgba(0,0,0,0.06); }
+.frs-composer__fmt svg { width: 22px; height: 22px; }
 
 /* Tumblr-style colored format icons */
 .frs-composer__fmt--image  { color: #ef4444; }

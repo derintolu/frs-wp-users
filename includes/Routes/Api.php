@@ -602,6 +602,9 @@ class Api {
 
 		$format = $request->get_param( 'format' ) ?: 'standard';
 
+		// Get the PFBT pattern content for the selected format.
+		$content = self::get_format_pattern_content( $format );
+
 		// Create auto-draft.
 		$post_id = wp_insert_post(
 			array(
@@ -609,7 +612,7 @@ class Api {
 				'post_type'   => 'post',
 				'post_author' => $user_id,
 				'post_title'  => __( 'Auto Draft', 'frs-users' ),
-				'post_content' => ' ',
+				'post_content' => $content,
 			),
 			true
 		);
@@ -627,7 +630,7 @@ class Api {
 			set_post_format( $post_id, $format );
 		}
 
-		$editor_url = admin_url( 'post.php?post=' . $post_id . '&action=edit' );
+		$editor_url = admin_url( 'post.php?post=' . $post_id . '&action=edit&frs_composer=1&frs_format=' . rawurlencode( $format ) );
 
 		return new \WP_REST_Response(
 			array(
@@ -636,6 +639,30 @@ class Api {
 			),
 			201
 		);
+	}
+
+	/**
+	 * Get block pattern content for a post format.
+	 *
+	 * @param string $format Post format slug.
+	 * @return string Block content.
+	 */
+	private static function get_format_pattern_content( $format ) {
+		$patterns = array(
+			'image'   => "<!-- wp:image {\"sizeSlug\":\"large\"} -->\n<figure class=\"wp-block-image size-large\"><img alt=\"\"/></figure>\n<!-- /wp:image -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
+			'gallery' => "<!-- wp:gallery {\"linkTo\":\"none\"} -->\n<figure class=\"wp-block-gallery has-nested-images columns-default is-cropped\"></figure>\n<!-- /wp:gallery -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
+			'video'   => "<!-- wp:video -->\n<figure class=\"wp-block-video\"><video controls></video></figure>\n<!-- /wp:video -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
+			'audio'   => "<!-- wp:audio -->\n<figure class=\"wp-block-audio\"><audio controls></audio></figure>\n<!-- /wp:audio -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
+			'quote'   => "<!-- wp:quote -->\n<blockquote class=\"wp-block-quote\">\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->\n</blockquote>\n<!-- /wp:quote -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
+			'link'    => "<!-- wp:paragraph {\"className\":\"link-format-fallback\",\"fontSize\":\"large\"} -->\n<p class=\"link-format-fallback has-large-font-size\"><a href=\"#\"></a></p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
+		);
+
+		if ( isset( $patterns[ $format ] ) ) {
+			return $patterns[ $format ];
+		}
+
+		// Standard / default: just a paragraph.
+		return "<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->";
 	}
 
 	/**

@@ -32,9 +32,55 @@ class PostComposer {
 	 *
 	 * @return void
 	 */
+	/**
+	 * Format → allowed blocks mapping.
+	 *
+	 * @var array
+	 */
+	const FORMAT_BLOCKS = array(
+		'image'   => array( 'core/image', 'core/paragraph' ),
+		'gallery' => array( 'core/gallery', 'core/image', 'core/paragraph' ),
+		'video'   => array( 'core/video', 'core/embed', 'core/paragraph' ),
+		'audio'   => array( 'core/audio', 'core/paragraph' ),
+		'quote'   => array( 'core/quote', 'core/pullquote', 'core/paragraph' ),
+		'link'    => array( 'core/paragraph' ),
+	);
+
 	public function init() {
 		add_action( 'admin_menu', array( $this, 'register_page' ) );
 		add_action( 'admin_init', array( $this, 'maybe_render_composer' ) );
+		add_filter( 'allowed_block_types_all', array( $this, 'restrict_composer_blocks' ), 10, 2 );
+	}
+
+	/**
+	 * Restrict available blocks when editing inside the composer iframe.
+	 *
+	 * @param bool|string[] $allowed_block_types Current allowed block types.
+	 * @param \WP_Block_Editor_Context $context Editor context.
+	 * @return bool|string[]
+	 */
+	public function restrict_composer_blocks( $allowed_block_types, $context ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( empty( $_GET['frs_composer'] ) ) {
+			return $allowed_block_types;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$format = isset( $_GET['frs_format'] ) ? sanitize_key( $_GET['frs_format'] ) : 'standard';
+
+		if ( isset( self::FORMAT_BLOCKS[ $format ] ) ) {
+			return self::FORMAT_BLOCKS[ $format ];
+		}
+
+		// Standard format: common writing blocks.
+		return array(
+			'core/paragraph',
+			'core/heading',
+			'core/list',
+			'core/list-item',
+			'core/image',
+			'core/quote',
+		);
 	}
 
 	/**

@@ -805,23 +805,46 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 		<?php if ( current_user_can( 'edit_posts' ) ) : ?>
 		<!-- Post Composer (Tumblr-style) -->
 		<div class="frs-composer" id="frs-post-composer">
-			<!-- Collapsed trigger -->
-			<div class="frs-composer__collapsed" id="frs-composer-trigger">
-				<div class="frs-composer__avatar">
-					<?php if ( $headshot_url ) : ?>
-						<img src="<?php echo esc_url( $headshot_url ); ?>" alt="<?php echo esc_attr( $full_name ); ?>">
-					<?php else : ?>
-						<span class="frs-composer__avatar-initials"><?php echo esc_html( $initials ); ?></span>
-					<?php endif; ?>
+			<!-- Collapsed state: prompt + format icons -->
+			<div class="frs-composer__collapsed" id="frs-composer-collapsed">
+				<div class="frs-composer__collapsed-top" id="frs-composer-trigger">
+					<div class="frs-composer__avatar">
+						<?php if ( $headshot_url ) : ?>
+							<img src="<?php echo esc_url( $headshot_url ); ?>" alt="<?php echo esc_attr( $full_name ); ?>">
+						<?php else : ?>
+							<span class="frs-composer__avatar-initials"><?php echo esc_html( $initials ); ?></span>
+						<?php endif; ?>
+					</div>
+					<div class="frs-composer__prompt">
+						<span class="frs-composer__placeholder"><?php echo esc_html( $full_name ); ?></span>
+					</div>
 				</div>
-				<div class="frs-composer__prompt">
-					<span class="frs-composer__placeholder">What's on your mind?</span>
+				<!-- Format icons row (Lucide, colored like Tumblr) -->
+				<div class="frs-composer__format-icons" id="frs-composer-formats">
+					<button type="button" data-format="image" class="frs-composer__fmt frs-composer__fmt--image" title="Photo">
+						<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+					</button>
+					<button type="button" data-format="gallery" class="frs-composer__fmt frs-composer__fmt--gallery" title="Gallery">
+						<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/></svg>
+					</button>
+					<button type="button" data-format="video" class="frs-composer__fmt frs-composer__fmt--video" title="Video">
+						<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
+					</button>
+					<button type="button" data-format="audio" class="frs-composer__fmt frs-composer__fmt--audio" title="Audio">
+						<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>
+					</button>
+					<button type="button" data-format="link" class="frs-composer__fmt frs-composer__fmt--link" title="Link">
+						<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+					</button>
+					<button type="button" data-format="quote" class="frs-composer__fmt frs-composer__fmt--quote" title="Quote">
+						<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"/><path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"/></svg>
+					</button>
 				</div>
 			</div>
 
-			<!-- Expanded editor (Tumblr-style card) -->
+			<!-- Expanded editor -->
 			<div class="frs-composer__expanded" id="frs-composer-expanded" hidden>
-				<!-- Header: user name + gear -->
+				<!-- Header: user name -->
 				<div class="frs-composer__header">
 					<div class="frs-composer__header-user">
 						<div class="frs-composer__avatar frs-composer__avatar--sm">
@@ -838,35 +861,12 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 				<!-- Title -->
 				<input type="text" class="frs-composer__title" id="frs-composer-title" placeholder="Title" />
 
-				<!-- Content area with editor + format icons -->
-				<div class="frs-composer__content">
-					<div class="frs-composer__editor-wrap">
-						<div class="frs-composer__editor-loading" id="frs-composer-loading">
-							<span class="frs-composer__spinner"></span>
-						</div>
-						<iframe id="frs-composer-iframe" class="frs-composer__iframe" src="" style="display:none;"></iframe>
+				<!-- Editor iframe -->
+				<div class="frs-composer__editor-wrap">
+					<div class="frs-composer__editor-loading" id="frs-composer-loading">
+						<span class="frs-composer__spinner"></span>
 					</div>
-					<!-- Format icons (Lucide, colored like Tumblr) -->
-					<div class="frs-composer__format-icons" id="frs-composer-formats">
-						<button type="button" data-format="image" class="frs-composer__fmt frs-composer__fmt--image" title="Photo">
-							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-						</button>
-						<button type="button" data-format="gallery" class="frs-composer__fmt frs-composer__fmt--gallery" title="Gallery">
-							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-						</button>
-						<button type="button" data-format="video" class="frs-composer__fmt frs-composer__fmt--video" title="Video">
-							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
-						</button>
-						<button type="button" data-format="audio" class="frs-composer__fmt frs-composer__fmt--audio" title="Audio">
-							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>
-						</button>
-						<button type="button" data-format="link" class="frs-composer__fmt frs-composer__fmt--link" title="Link">
-							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-						</button>
-						<button type="button" data-format="quote" class="frs-composer__fmt frs-composer__fmt--quote" title="Quote">
-							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"/><path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z"/></svg>
-						</button>
-					</div>
+					<iframe id="frs-composer-iframe" class="frs-composer__iframe" src="" style="display:none;"></iframe>
 				</div>
 
 				<!-- Tags -->

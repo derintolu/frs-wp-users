@@ -1666,7 +1666,7 @@
     overflow: hidden;
 }
 
-/* Collapsed state */
+/* Collapsed prompt */
 .frs-composer__collapsed {
     display: flex;
     flex-direction: column;
@@ -1676,9 +1676,11 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.875rem 1.25rem 0.5rem;
+    padding: 0.875rem 1.25rem;
     cursor: pointer;
+    transition: background 0.15s;
 }
+.frs-composer__collapsed-top:hover { background: #f9fafb; }
 
 .frs-composer__avatar {
     width: 36px;
@@ -1733,13 +1735,12 @@
     flex-direction: column;
     width: 80vw;
     max-width: 650px;
-    max-height: 85vh;
+    height: 85vh;
     background: var(--frs-bg);
     border-radius: 10px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     overflow: hidden;
 }
-.frs-composer__expanded[hidden] { display: none; }
 
 /* Header */
 .frs-composer__header {
@@ -1810,33 +1811,31 @@
 }
 @keyframes frs-spin { to { transform: rotate(360deg); } }
 
-/* Format icons — row in collapsed bar */
+/* Format icons — in modal header */
 .frs-composer__format-icons {
     display: flex;
     gap: 0.125rem;
-    padding: 0 1rem 0.75rem;
-    border-top: 1px solid #f3f4f6;
-    padding-top: 0.5rem;
-    margin-top: 0;
+    align-items: center;
 }
 .frs-composer__fmt {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     border: none;
     background: transparent;
     cursor: pointer;
-    border-radius: 8px;
+    border-radius: 6px;
     transition: background 0.15s, transform 0.1s;
 }
 .frs-composer__fmt:hover { transform: scale(1.1); }
 .frs-composer__fmt:active { transform: scale(0.95); }
-.frs-composer__fmt--active { background: rgba(0,0,0,0.06); }
-.frs-composer__fmt svg { width: 22px; height: 22px; }
+.frs-composer__fmt--active { background: rgba(0,0,0,0.08); }
+.frs-composer__fmt svg { width: 20px; height: 20px; }
 
-/* Tumblr-style colored format icons */
+/* Colored format icons */
+.frs-composer__fmt--standard { color: var(--frs-text-light); }
 .frs-composer__fmt--image  { color: #ef4444; }
 .frs-composer__fmt--gallery { color: #f97316; }
 .frs-composer__fmt--video  { color: #22c55e; }
@@ -1844,6 +1843,7 @@
 .frs-composer__fmt--link   { color: #3b82f6; }
 .frs-composer__fmt--quote  { color: #f59e0b; }
 
+.frs-composer__fmt--standard:hover { background: #f3f4f6; }
 .frs-composer__fmt--image:hover  { background: #fef2f2; }
 .frs-composer__fmt--gallery:hover { background: #fff7ed; }
 .frs-composer__fmt--video:hover  { background: #f0fdf4; }

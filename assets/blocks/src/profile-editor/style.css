@@ -1709,9 +1709,20 @@
     font-weight: 600;
     line-height: 1;
 }
-.frs-composer__prompt { flex: 1; }
+.frs-composer__prompt-field {
+    flex: 1;
+    padding: 0.5rem 0.875rem;
+    background: #f3f4f6;
+    border: 1px solid var(--frs-border);
+    border-radius: 20px;
+    transition: border-color 0.15s, background 0.15s;
+}
+.frs-composer__collapsed-top:hover .frs-composer__prompt-field {
+    background: #eef0f2;
+    border-color: #d1d5db;
+}
 .frs-composer__placeholder {
-    color: var(--frs-text-light);
+    color: #9ca3af;
     font-size: 0.9375rem;
 }
 

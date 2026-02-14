@@ -805,7 +805,7 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 		<?php if ( current_user_can( 'edit_posts' ) ) : ?>
 	<!-- Post Composer (Tumblr-style) -->
 		<div class="frs-composer" id="frs-post-composer">
-			<!-- Collapsed prompt -->
+			<!-- Collapsed prompt (looks like an input field) -->
 			<div class="frs-composer__collapsed" id="frs-composer-collapsed">
 				<div class="frs-composer__collapsed-top" id="frs-composer-trigger">
 					<div class="frs-composer__avatar">
@@ -815,8 +815,8 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 							<span class="frs-composer__avatar-initials"><?php echo esc_html( $initials ); ?></span>
 						<?php endif; ?>
 					</div>
-					<div class="frs-composer__prompt">
-						<span class="frs-composer__placeholder"><?php echo esc_html( $full_name ); ?></span>
+					<div class="frs-composer__prompt-field">
+						<span class="frs-composer__placeholder">What's on your mind, <?php echo esc_html( $first_name ); ?>?</span>
 					</div>
 				</div>
 			</div>

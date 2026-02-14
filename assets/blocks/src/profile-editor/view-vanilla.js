@@ -548,54 +548,20 @@
 		var tags = [];
 		var editorReady = false;
 
-		// Show iframe when it finishes loading, strip WP admin chrome.
+		// Show iframe when it finishes loading with a smooth fade-in.
 		if (iframe) {
+			iframe.style.opacity = '0';
+			iframe.style.transition = 'opacity 0.2s ease';
+
 			iframe.addEventListener('load', function() {
 				if (!iframe.src || iframe.src === '' || iframe.src === 'about:blank') return;
 				editorReady = true;
 				if (loading) loading.style.display = 'none';
 				iframe.style.display = 'block';
-
-				try {
-					var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-					var style = iframeDoc.createElement('style');
-					style.textContent =
-						/* Hide all admin chrome */
-						'#wpadminbar, #adminmenuwrap, #adminmenuback, #adminmenumain,' +
-						'#wpfooter, #screen-meta, #screen-meta-links,' +
-						'.notice, .update-nag, .updated, .error,' +
-						'.components-notice-list { display: none !important; }' +
-						'html.wp-toolbar { padding-top: 0 !important; }' +
-						'#wpcontent { margin-left: 0 !important; }' +
-						'#wpbody-content { padding-bottom: 0 !important; }' +
-						/* Hide editor header bar (publish btn, settings, etc) */
-						'.edit-post-header, .editor-header { display: none !important; }' +
-						/* Hide sidebars and inserter panel */
-						'.interface-interface-skeleton__sidebar,' +
-						'.interface-interface-skeleton__secondary-sidebar,' +
-						'.interface-interface-skeleton__left-sidebar { display: none !important; }' +
-						/* Hide the block inserter toggle and block toolbar inserter */
-						'.edit-post-header-toolbar__inserter-toggle,' +
-						'.block-editor-inserter,' +
-						'.components-dropdown-menu,' +
-						'.block-editor-block-toolbar__inserter { display: none !important; }' +
-						/* Fill viewport */
-						'.interface-interface-skeleton { top: 0 !important; left: 0 !important; }' +
-						/* Hide post title in editor (we have our own outside) */
-						'.editor-post-title__block, .editor-post-title { display: none !important; }' +
-						/* Clean canvas */
-						'.editor-styles-wrapper {' +
-						'  padding: 0.75rem 1rem !important;' +
-						'  font-family: "Mona Sans", -apple-system, BlinkMacSystemFont, sans-serif;' +
-						'  min-height: 150px;' +
-						'}' +
-						'.block-editor-default-block-appender .block-editor-default-block-appender__content::before {' +
-						'  color: #9ca3af !important;' +
-						'}';
-					iframeDoc.head.appendChild(style);
-				} catch (e) {
-					console.warn('Could not style iframe:', e);
-				}
+				// Fade in after a brief delay to let the editor paint.
+				requestAnimationFrame(function() {
+					iframe.style.opacity = '1';
+				});
 			});
 		}
 
@@ -615,6 +581,7 @@
 				// If modal is open, trash the old draft and create a new one with the selected format.
 				if (overlay && overlay.classList.contains('frs-composer__overlay--open') && currentPostId) {
 					loading.style.display = '';
+					iframe.style.opacity = '0';
 					iframe.style.display = 'none';
 					iframe.src = '';
 					editorReady = false;
@@ -714,6 +681,7 @@
 			if (overlay) overlay.classList.remove('frs-composer__overlay--open');
 			document.body.style.overflow = '';
 			iframe.src = '';
+			iframe.style.opacity = '0';
 			iframe.style.display = 'none';
 			loading.style.display = '';
 			currentPostId = null;

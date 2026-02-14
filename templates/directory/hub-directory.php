@@ -22,6 +22,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 				class="frs-directory__search"
 				id="frs-directory-search"
 				placeholder="<?php esc_attr_e( 'Search people...', 'frs-users' ); ?>"
+				style="padding: 12px 16px 12px 48px !important;"
 			/>
 		</div>
 
@@ -113,6 +114,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	transform: translateY(-50%);
 	color: #94a3b8;
 	pointer-events: none;
+	z-index: 1;
 }
 
 .frs-directory__search {

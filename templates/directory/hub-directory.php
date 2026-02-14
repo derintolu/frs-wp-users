@@ -108,7 +108,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 
 .frs-directory__search-icon {
 	position: absolute;
-	left: 12px;
+	left: 16px;
 	top: 50%;
 	transform: translateY(-50%);
 	color: #94a3b8;
@@ -117,7 +117,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 
 .frs-directory__search {
 	width: 100%;
-	padding: 10px 12px 10px 56px;
+	padding: 12px 16px 12px 48px;
 	border: 1px solid #e2e8f0;
 	border-radius: 5px;
 	font-size: 14px;

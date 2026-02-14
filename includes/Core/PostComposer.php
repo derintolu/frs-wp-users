@@ -33,17 +33,42 @@ class PostComposer {
 	 * @return void
 	 */
 	/**
-	 * Format → allowed blocks mapping.
+	 * Rich text blocks available in every format.
 	 *
 	 * @var array
 	 */
-	const FORMAT_BLOCKS = array(
-		'image'   => array( 'core/image', 'core/paragraph' ),
-		'gallery' => array( 'core/gallery', 'core/image', 'core/paragraph' ),
-		'video'   => array( 'core/video', 'core/embed', 'core/paragraph' ),
-		'audio'   => array( 'core/audio', 'core/paragraph' ),
-		'quote'   => array( 'core/quote', 'core/pullquote', 'core/paragraph' ),
-		'link'    => array( 'core/paragraph' ),
+	const RICH_TEXT_BLOCKS = array(
+		'core/paragraph',
+		'core/heading',
+		'core/list',
+		'core/list-item',
+		'core/quote',
+		'core/pullquote',
+		'core/code',
+		'core/preformatted',
+		'core/verse',
+		'core/separator',
+		'core/spacer',
+		'core/columns',
+		'core/column',
+		'core/group',
+		'core/table',
+		'core/details',
+		'core/html',
+	);
+
+	/**
+	 * Format → extra blocks (merged with RICH_TEXT_BLOCKS).
+	 *
+	 * @var array
+	 */
+	const FORMAT_EXTRA_BLOCKS = array(
+		'image'   => array( 'core/image', 'core/gallery', 'core/cover' ),
+		'gallery' => array( 'core/gallery', 'core/image', 'core/cover' ),
+		'video'   => array( 'core/video', 'core/embed', 'core/cover' ),
+		'audio'   => array( 'core/audio', 'core/embed' ),
+		'quote'   => array(),
+		'link'    => array( 'core/embed' ),
 	);
 
 	public function init() {
@@ -68,19 +93,26 @@ class PostComposer {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$format = isset( $_GET['frs_format'] ) ? sanitize_key( $_GET['frs_format'] ) : 'standard';
 
-		if ( isset( self::FORMAT_BLOCKS[ $format ] ) ) {
-			return self::FORMAT_BLOCKS[ $format ];
+		$blocks = self::RICH_TEXT_BLOCKS;
+
+		if ( isset( self::FORMAT_EXTRA_BLOCKS[ $format ] ) ) {
+			$blocks = array_values( array_unique( array_merge( $blocks, self::FORMAT_EXTRA_BLOCKS[ $format ] ) ) );
 		}
 
-		// Standard format: common writing blocks.
-		return array(
-			'core/paragraph',
-			'core/heading',
-			'core/list',
-			'core/list-item',
-			'core/image',
-			'core/quote',
-		);
+		// Standard format gets image and embed on top of rich text.
+		if ( 'standard' === $format ) {
+			$blocks = array_values( array_unique( array_merge( $blocks, array(
+				'core/image',
+				'core/gallery',
+				'core/video',
+				'core/audio',
+				'core/embed',
+				'core/cover',
+				'core/file',
+			) ) ) );
+		}
+
+		return $blocks;
 	}
 
 	/**

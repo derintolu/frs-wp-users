@@ -261,6 +261,10 @@ class PostComposer {
 		.edit-post-header,
 		.editor-header { display: none !important; }
 
+		/* Hide post title — we have our own outside the iframe */
+		.editor-post-title__block,
+		.editor-post-title { display: none !important; }
+
 		/* Hide sidebars */
 		.interface-interface-skeleton__sidebar,
 		.interface-interface-skeleton__secondary-sidebar,

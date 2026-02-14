@@ -530,6 +530,7 @@
 		if (!composer) return;
 
 		var config = window.frsProfileEditor || {};
+		var collapsed = document.getElementById('frs-composer-collapsed');
 		var trigger = document.getElementById('frs-composer-trigger');
 		var expanded = document.getElementById('frs-composer-expanded');
 		var closeBtn = document.getElementById('frs-composer-close');
@@ -566,20 +567,26 @@
 						'html.wp-toolbar { padding-top: 0 !important; }' +
 						'#wpcontent { margin-left: 0 !important; }' +
 						'#wpbody-content { padding-bottom: 0 !important; }' +
-						/* Hide editor header bar */
+						/* Hide editor header bar (publish btn, settings, etc) */
 						'.edit-post-header, .editor-header { display: none !important; }' +
-						/* Hide sidebars */
+						/* Hide sidebars and inserter panel */
 						'.interface-interface-skeleton__sidebar,' +
-						'.interface-interface-skeleton__secondary-sidebar { display: none !important; }' +
+						'.interface-interface-skeleton__secondary-sidebar,' +
+						'.interface-interface-skeleton__left-sidebar { display: none !important; }' +
+						/* Hide the block inserter toggle and block toolbar inserter */
+						'.edit-post-header-toolbar__inserter-toggle,' +
+						'.block-editor-inserter,' +
+						'.components-dropdown-menu,' +
+						'.block-editor-block-toolbar__inserter { display: none !important; }' +
 						/* Fill viewport */
 						'.interface-interface-skeleton { top: 0 !important; left: 0 !important; }' +
 						/* Hide post title in editor (we have our own outside) */
 						'.editor-post-title__block, .editor-post-title { display: none !important; }' +
 						/* Clean canvas */
 						'.editor-styles-wrapper {' +
-						'  padding: 0.75rem 0 !important;' +
+						'  padding: 0.75rem 1rem !important;' +
 						'  font-family: "Mona Sans", -apple-system, BlinkMacSystemFont, sans-serif;' +
-						'  min-height: 120px;' +
+						'  min-height: 150px;' +
 						'}' +
 						'.block-editor-default-block-appender .block-editor-default-block-appender__content::before {' +
 						'  color: #9ca3af !important;' +
@@ -623,7 +630,7 @@
 			if (expanded.hidden === false) return; // Already open.
 
 			// Show expanded, hide collapsed.
-			composer.querySelector('.frs-composer__collapsed').hidden = true;
+			if (collapsed) collapsed.hidden = true;
 			expanded.hidden = false;
 			loading.style.display = '';
 			iframe.style.display = 'none';
@@ -668,7 +675,7 @@
 		 */
 		function closeComposer() {
 			expanded.hidden = true;
-			composer.querySelector('.frs-composer__collapsed').hidden = false;
+			if (collapsed) collapsed.hidden = false;
 			iframe.src = '';
 			iframe.style.display = 'none';
 			loading.style.display = '';

@@ -293,9 +293,9 @@
 					}
 				});
 
-				// Load activity feed on first visit
-				if (targetTab === 'activity' && !activityLoaded) {
-					loadActivityFeed();
+				// Activity feed is server-rendered (blog posts only).
+				if (targetTab === 'activity') {
+					activityLoaded = true;
 				}
 
 				// Load settings on first visit

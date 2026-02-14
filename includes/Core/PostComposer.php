@@ -247,11 +247,13 @@ class PostComposer {
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<?php wp_head(); ?>
 	<style>
-		/* Strip ALL admin chrome */
+		/* Strip ALL admin chrome and third-party bars */
 		#wpadminbar, #adminmenuwrap, #adminmenuback, #adminmenumain,
 		#wpfooter, #screen-meta, #screen-meta-links,
 		.notice, .update-nag, .updated, .error,
-		#wpcontent > .wrap > h1:first-child { display: none !important; }
+		#wpcontent > .wrap > h1:first-child,
+		.ct-shortcuts-bar,
+		.swift-control-widgets, .swift-control-helper-panels { display: none !important; }
 
 		html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; overflow: hidden; }
 		#wpcontent { margin-left: 0 !important; padding: 0 !important; }

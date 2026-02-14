@@ -33,69 +33,109 @@ class Actions {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_profiles( WP_REST_Request $request ) {
-		$type        = $request->get_param( 'type' );
-		$limit       = $request->get_param( 'per_page' ) ?: 50;
-		$page        = $request->get_param( 'page' ) ?: 1;
-		$guests_only = $request->get_param( 'guests_only' );
+		$type         = $request->get_param( 'type' );
+		$company_role = $request->get_param( 'company_role' );
+		$search       = $request->get_param( 'search' );
+		$letter       = $request->get_param( 'letter' );
+		$orderby      = $request->get_param( 'orderby' ) ?: 'last_name';
+		$order        = strtoupper( $request->get_param( 'order' ) ?: 'asc' );
+		$limit        = $request->get_param( 'per_page' ) ?: 50;
+		$page         = $request->get_param( 'page' ) ?: 1;
+		$guests_only  = $request->get_param( 'guests_only' );
+
+		// company_role is an alias for type.
+		if ( $company_role && ! $type ) {
+			$type = $company_role;
+		}
+
+		// Validate order direction.
+		if ( ! in_array( $order, array( 'ASC', 'DESC' ), true ) ) {
+			$order = 'ASC';
+		}
+
+		// Map orderby to meta key.
+		$meta_key_map = array(
+			'last_name'    => 'last_name',
+			'first_name'   => 'first_name',
+			'display_name' => 'display_name',
+		);
+		$sort_meta_key = isset( $meta_key_map[ $orderby ] ) ? $meta_key_map[ $orderby ] : 'last_name';
 
 		// Get active company roles for current site context.
 		$active_company_roles = Roles::get_active_company_role_slugs();
 
-		// Use WordPress-native query
+		// Use WordPress-native query.
 		$wp_args = array(
 			'role__in' => Roles::get_wp_role_slugs(),
-			'orderby'  => 'meta_value',
-			'meta_key' => 'first_name',
-			'order'    => 'ASC',
-			'number'   => -1, // Get all, we'll paginate after filtering admins
+			'orderby'  => 'display_name' === $sort_meta_key ? 'display_name' : 'meta_value',
+			'order'    => $order,
+			'number'   => -1, // Get all, we'll paginate after filtering admins.
 		);
 
-		// Filter by type (person type stored in user meta)
-		// If type is provided, validate it's in active roles for this site.
+		if ( 'display_name' !== $sort_meta_key ) {
+			$wp_args['meta_key'] = $sort_meta_key;
+		}
+
+		// Build meta query.
+		$meta_query = array();
+
+		// Filter by type (person type stored in user meta).
 		if ( $type ) {
 			// Only allow filtering by types active for this site context.
 			if ( ! in_array( $type, $active_company_roles, true ) ) {
 				return new WP_REST_Response(
 					array(
-						'success' => true,
-						'data'    => array(),
-						'total'   => 0,
-						'page'    => $page,
+						'success'  => true,
+						'data'     => array(),
+						'total'    => 0,
+						'page'     => $page,
 						'per_page' => $limit,
-						'pages'   => 0,
+						'pages'    => 0,
 					),
 					200
 				);
 			}
-			$wp_args['meta_query'] = array(
-				array(
-					'key'   => 'frs_company_role',
-					'value' => $type,
-				),
+			$meta_query[] = array(
+				'key'   => 'frs_company_role',
+				'value' => $type,
 			);
 		} else {
 			// No specific type requested - filter by ALL active company roles for this site.
-			// This ensures marketing sites only show their configured roles.
-			$wp_args['meta_query'] = array(
-				'relation' => 'OR',
-			);
+			$role_query = array( 'relation' => 'OR' );
 			foreach ( $active_company_roles as $role ) {
-				$wp_args['meta_query'][] = array(
+				$role_query[] = array(
 					'key'     => 'frs_company_role',
 					'value'   => $role,
 					'compare' => '=',
 				);
 			}
+			$meta_query[] = $role_query;
 		}
 
-		// Get users (this returns all active FRS users)
+		// Letter filter: match last_name starting with a specific letter.
+		if ( $letter && preg_match( '/^[a-zA-Z]$/', $letter ) ) {
+			$upper = strtoupper( $letter );
+			$lower = strtolower( $letter );
+			$meta_query[] = array(
+				'key'     => 'last_name',
+				'value'   => '^[' . $upper . $lower . ']',
+				'compare' => 'REGEXP',
+			);
+		}
+
+		if ( ! empty( $meta_query ) ) {
+			$meta_query['relation']  = 'AND';
+			$wp_args['meta_query']   = $meta_query;
+		}
+
+		// Get users (this returns all active FRS users).
 		$users = get_users( $wp_args );
 
-		// Convert to Profile objects
+		// Convert to Profile objects.
 		$all_profiles = array_map( array( Profile::class, 'hydrate_from_user' ), $users );
 
-		// Filter out administrators
-		$filtered_profiles = array_filter( $all_profiles, function( $profile ) {
+		// Filter out administrators.
+		$filtered_profiles = array_filter( $all_profiles, function ( $profile ) {
 			if ( ! $profile->user_id ) {
 				return true;
 			}
@@ -108,26 +148,52 @@ class Actions {
 			return ! in_array( 'administrator', (array) $user->roles, true );
 		} );
 
-		// Get total count after filtering
+		// Search filter: match against name, email, and job_title in PHP.
+		// Done post-query so job_title (stored in meta) is also searchable.
+		if ( $search ) {
+			$search_lower      = strtolower( $search );
+			$filtered_profiles = array_filter( $filtered_profiles, function ( $profile ) use ( $search_lower ) {
+				$fields = array(
+					strtolower( $profile->first_name ?? '' ),
+					strtolower( $profile->last_name ?? '' ),
+					strtolower( $profile->display_name ?? '' ),
+					strtolower( $profile->email ?? '' ),
+					strtolower( $profile->job_title ?? '' ),
+				);
+
+				foreach ( $fields as $field ) {
+					if ( false !== strpos( $field, $search_lower ) ) {
+						return true;
+					}
+				}
+
+				return false;
+			} );
+		}
+
+		// Re-index after filtering.
+		$filtered_profiles = array_values( $filtered_profiles );
+
+		// Get total count after filtering.
 		$total = count( $filtered_profiles );
 
-		// Apply pagination
-		$offset = ( $page - 1 ) * $limit;
+		// Apply pagination.
+		$offset   = ( $page - 1 ) * $limit;
 		$profiles = array_slice( $filtered_profiles, $offset, $limit );
 
-		// Convert to arrays for response
-		$profiles_array = array_map( function( $profile ) {
+		// Convert to arrays for response.
+		$profiles_array = array_map( function ( $profile ) {
 			return $profile->toArray();
 		}, $profiles );
 
 		return new WP_REST_Response(
 			array(
-				'success' => true,
-				'data'    => array_values( $profiles_array ),
-				'total'   => $total,
-				'page'    => $page,
+				'success'  => true,
+				'data'     => array_values( $profiles_array ),
+				'total'    => $total,
+				'page'     => $page,
 				'per_page' => $limit,
-				'pages'   => ceil( $total / $limit ),
+				'pages'    => (int) ceil( $total / $limit ),
 			),
 			200
 		);

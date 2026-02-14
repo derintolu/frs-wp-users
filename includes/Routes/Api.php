@@ -61,17 +61,47 @@ class Api {
 				'callback'            => array( self::$actions, 'get_profiles' ),
 				'permission_callback' => array( self::$actions, 'check_read_permissions' ),
 				'args'                => array(
-					'type'        => array(
+					'type'         => array(
 						'description' => 'Filter by profile type',
 						'type'        => 'string',
 						'required'    => false,
 					),
-					'guests_only' => array(
+					'company_role' => array(
+						'description'       => 'Filter by company role (alias for type)',
+						'type'              => 'string',
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'search'       => array(
+						'description'       => 'Search profiles by name, email, or job title',
+						'type'              => 'string',
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'letter'       => array(
+						'description'       => 'Filter by first letter of last name',
+						'type'              => 'string',
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'orderby'      => array(
+						'description' => 'Field to order by',
+						'type'        => 'string',
+						'default'     => 'last_name',
+						'enum'        => array( 'last_name', 'first_name', 'display_name' ),
+					),
+					'order'        => array(
+						'description' => 'Sort direction',
+						'type'        => 'string',
+						'default'     => 'asc',
+						'enum'        => array( 'asc', 'desc' ),
+					),
+					'guests_only'  => array(
 						'description' => 'Get only guest profiles',
 						'type'        => 'boolean',
 						'required'    => false,
 					),
-					'per_page'    => array(
+					'per_page'     => array(
 						'description'       => 'Number of profiles per page',
 						'type'              => 'integer',
 						'default'           => 50,
@@ -79,7 +109,7 @@ class Api {
 						'maximum'           => 1000,
 						'sanitize_callback' => 'absint',
 					),
-					'page'        => array(
+					'page'         => array(
 						'description'       => 'Page number',
 						'type'              => 'integer',
 						'default'           => 1,

@@ -194,6 +194,12 @@ class EmbeddablePages {
 			<meta name="viewport" content="width=device-width, initial-scale=1.0">
 			<title><?php echo esc_html( $data['title'] ?? 'Landing Page' ); ?></title>
 			<style>
+				/* Hide third-party bars in embeddable pages */
+				.ct-shortcuts-bar,
+				.swift-control-widgets, .swift-control-helper-panels,
+				#wpadminbar { display: none !important; }
+				html { margin-top: 0 !important; }
+
 				* { margin: 0; padding: 0; box-sizing: border-box; }
 				body {
 					font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;

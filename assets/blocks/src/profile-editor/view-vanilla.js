@@ -532,6 +532,7 @@
 		var config = window.frsProfileEditor || {};
 		var collapsed = document.getElementById('frs-composer-collapsed');
 		var trigger = document.getElementById('frs-composer-trigger');
+		var overlay = document.getElementById('frs-composer-overlay');
 		var expanded = document.getElementById('frs-composer-expanded');
 		var closeBtn = document.getElementById('frs-composer-close');
 		var iframe = document.getElementById('frs-composer-iframe');
@@ -623,15 +624,22 @@
 			closeBtn.addEventListener('click', closeComposer);
 		}
 
+		// Click overlay backdrop to close.
+		if (overlay) {
+			overlay.addEventListener('click', function(e) {
+				if (e.target === overlay) closeComposer();
+			});
+		}
+
 		/**
 		 * Open the expanded composer, create an auto-draft, and load the iframe editor.
 		 */
 		function openComposer(format) {
-			if (expanded.hidden === false) return; // Already open.
+			if (overlay && overlay.classList.contains('frs-composer__overlay--open')) return; // Already open.
 
-			// Show expanded, hide collapsed.
-			if (collapsed) collapsed.hidden = true;
-			expanded.hidden = false;
+			// Show modal overlay.
+			if (overlay) overlay.classList.add('frs-composer__overlay--open');
+			document.body.style.overflow = 'hidden';
 			loading.style.display = '';
 			iframe.style.display = 'none';
 			editorReady = false;
@@ -674,8 +682,8 @@
 		 * Close the composer and reset state.
 		 */
 		function closeComposer() {
-			expanded.hidden = true;
-			if (collapsed) collapsed.hidden = false;
+			if (overlay) overlay.classList.remove('frs-composer__overlay--open');
+			document.body.style.overflow = '';
 			iframe.src = '';
 			iframe.style.display = 'none';
 			loading.style.display = '';

@@ -299,12 +299,21 @@ class PostComposer {
 		var settings = <?php echo wp_json_encode( $editor_settings ); ?>;
 		var postId = <?php echo (int) $post->ID; ?>;
 
+		// Kill the beforeunload dialog — we manage saving from the parent frame.
+		window.addEventListener( 'beforeunload', function( e ) {
+			e.stopImmediatePropagation();
+		}, true );
+		window.onbeforeunload = null;
+
 		wp.domReady( function() {
 			// Initialize the block editor.
 			var editorDiv = document.getElementById( 'frs-composer-editor' );
 			if ( ! editorDiv ) return;
 
 			wp.editPost.initializeEditor( 'frs-composer-editor', 'post', postId, settings, {} );
+
+			// Continuously suppress any beforeunload handlers WP adds after init.
+			setInterval( function() { window.onbeforeunload = null; }, 1000 );
 		} );
 	} )();
 	</script>

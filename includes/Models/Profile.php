@@ -917,11 +917,12 @@ class Profile {
 		$array['is_guest']      = false; // No guest profiles in WP-native mode
 		$array['company_roles'] = $this->company_roles;
 
-		// Add user_nicename for profile URL building
+		// Add user_nicename and profile_url for profile linking
 		if ( $this->user_id ) {
 			$user = get_userdata( $this->user_id );
 			if ( $user ) {
 				$array['user_nicename'] = $user->user_nicename;
+				$array['profile_url']   = get_author_posts_url( $this->user_id );
 			}
 		}
 

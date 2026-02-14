@@ -41,18 +41,6 @@
 	var $sort      = document.getElementById( 'frs-directory-sort' );
 	var $alphabet  = document.getElementById( 'frs-directory-alphabet' );
 
-	/* ── URL prefix mapping (company_role → WP role → prefix) ─ */
-	var ROLE_PREFIX = {
-		loan_originator:  'lo',
-		broker_associate: 'agent',
-		sales_associate:  'agent',
-		escrow_officer:   'escrow',
-		property_manager: 'pm',
-		partner:          null,
-		leadership:       'leader',
-		staff:            'staff',
-	};
-
 	/* ── Helpers ────────────────────────────────────────────── */
 	function esc( str ) {
 		var el = document.createElement( 'span' );
@@ -60,12 +48,10 @@
 		return el.innerHTML;
 	}
 
-	function profileUrl( profile ) {
-		var role   = ( profile.company_roles && profile.company_roles[0] ) || '';
-		var prefix = ROLE_PREFIX[ role ];
-		var slug   = profile.profile_slug || profile.user_nicename || '';
-		if ( ! prefix || ! slug ) return null;
-		return '/' + prefix + '/' + slug + '/';
+	function initials( first, last ) {
+		var f = ( first || '' ).charAt( 0 ).toUpperCase();
+		var l = ( last || '' ).charAt( 0 ).toUpperCase();
+		return f + l || '?';
 	}
 
 	/* ── Fetch ──────────────────────────────────────────────── */
@@ -155,7 +141,7 @@
 		var phone  = p.phone_number || p.mobile_number || '';
 		var office = esc( p.office || '' );
 		var city   = esc( p.city_state || '' );
-		var url    = profileUrl( p );
+		var url    = p.profile_url || '';
 
 		var nameHtml = url
 			? '<a href="' + esc( url ) + '">' + name + '</a>'

@@ -216,13 +216,13 @@ get_header();
         <!-- Profile Card (65%) -->
         <div class="frs-profile__card frs-profile__card--header">
             <!-- Video Header -->
-            <div class="frs-profile__hero">
+            <div class="frs-profile__hero" style="height:150px;overflow:hidden;position:relative;">
                 <?php if ($video_url) : ?>
-                    <video autoplay loop muted playsinline>
+                    <video autoplay loop muted playsinline style="width:100%;height:100%;object-fit:cover;">
                         <source src="<?php echo esc_url($video_url); ?>" type="video/mp4">
                     </video>
                 <?php else : ?>
-                    <div class="frs-profile__hero-fallback"></div>
+                    <div class="frs-profile__hero-fallback" style="width:100%;height:100%;background:linear-gradient(135deg,#2dd4da,#2563eb);"></div>
                 <?php endif; ?>
             </div>
 

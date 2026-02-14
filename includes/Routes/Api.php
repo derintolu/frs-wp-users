@@ -648,21 +648,30 @@ class Api {
 	 * @return string Block content.
 	 */
 	private static function get_format_pattern_content( $format ) {
-		$patterns = array(
-			'image'   => "<!-- wp:image {\"sizeSlug\":\"large\"} -->\n<figure class=\"wp-block-image size-large\"><img alt=\"\"/></figure>\n<!-- /wp:image -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
-			'gallery' => "<!-- wp:gallery {\"linkTo\":\"none\"} -->\n<figure class=\"wp-block-gallery has-nested-images columns-default is-cropped\"></figure>\n<!-- /wp:gallery -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
-			'video'   => "<!-- wp:video -->\n<figure class=\"wp-block-video\"><video controls></video></figure>\n<!-- /wp:video -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
-			'audio'   => "<!-- wp:audio -->\n<figure class=\"wp-block-audio\"><audio controls></audio></figure>\n<!-- /wp:audio -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
-			'quote'   => "<!-- wp:quote -->\n<blockquote class=\"wp-block-quote\">\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->\n</blockquote>\n<!-- /wp:quote -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
-			'link'    => "<!-- wp:paragraph {\"className\":\"link-format-fallback\",\"fontSize\":\"large\"} -->\n<p class=\"link-format-fallback has-large-font-size\"><a href=\"#\"></a></p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
-		);
+		$patterns = self::get_format_patterns();
 
 		if ( isset( $patterns[ $format ] ) ) {
 			return $patterns[ $format ];
 		}
 
-		// Standard / default: just a paragraph.
-		return "<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->";
+		return $patterns['standard'];
+	}
+
+	/**
+	 * Get all format patterns keyed by format slug.
+	 *
+	 * @return array<string, string>
+	 */
+	public static function get_format_patterns() {
+		return array(
+			'standard' => "<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
+			'image'    => "<!-- wp:image {\"sizeSlug\":\"large\"} -->\n<figure class=\"wp-block-image size-large\"><img alt=\"\"/></figure>\n<!-- /wp:image -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
+			'gallery'  => "<!-- wp:gallery {\"linkTo\":\"none\"} -->\n<figure class=\"wp-block-gallery has-nested-images columns-default is-cropped\"></figure>\n<!-- /wp:gallery -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
+			'video'    => "<!-- wp:video -->\n<figure class=\"wp-block-video\"><video controls></video></figure>\n<!-- /wp:video -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
+			'audio'    => "<!-- wp:audio -->\n<figure class=\"wp-block-audio\"><audio controls></audio></figure>\n<!-- /wp:audio -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
+			'quote'    => "<!-- wp:quote -->\n<blockquote class=\"wp-block-quote\">\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->\n</blockquote>\n<!-- /wp:quote -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
+			'link'     => "<!-- wp:paragraph {\"className\":\"link-format-fallback\",\"fontSize\":\"large\"} -->\n<p class=\"link-format-fallback has-large-font-size\"><a href=\"#\"></a></p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
+		);
 	}
 
 	/**

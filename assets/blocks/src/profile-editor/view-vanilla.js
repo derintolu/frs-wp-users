@@ -578,8 +578,19 @@
 				});
 				btn.classList.add('frs-composer__fmt--active');
 
-				// If modal is open, just update the format on the existing draft silently.
-				if (overlay && overlay.classList.contains('frs-composer__overlay--open') && currentPostId) {
+				// If modal is open, update the format and swap the blocks via postMessage.
+				if (overlay && overlay.classList.contains('frs-composer__overlay--open') && currentPostId && iframe && iframe.contentWindow) {
+					var patterns = config.formatPatterns || {};
+					var content = patterns[newFormat] || patterns['standard'] || '';
+
+					// Tell the iframe editor to switch format + replace blocks.
+					iframe.contentWindow.postMessage({
+						type: 'frs-composer-set-format',
+						format: newFormat === 'standard' ? '' : newFormat,
+						content: content,
+					}, window.location.origin);
+
+					// Also update via REST so the DB stays in sync.
 					fetch('/wp-json/wp/v2/posts/' + currentPostId, {
 						method: 'POST',
 						headers: {

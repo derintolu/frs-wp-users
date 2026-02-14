@@ -22,7 +22,10 @@ nocache_headers();
 
 // Get WordPress author and build profile array from wp_users + wp_usermeta
 $author = get_queried_object();
-if ($author && ($author instanceof \WP_User) && in_array('loan_officer', $author->roles ?? [], true)) {
+$frs_roles = array_keys(\FRSUsers\Core\Roles::get_wp_roles());
+$matched_roles = $author && ($author instanceof \WP_User) ? array_intersect($frs_roles, $author->roles ?? []) : [];
+if (!empty($matched_roles)) {
+    $matched_role = reset($matched_roles);
     $user_profile = new \FRSUsers\Models\UserProfile($author->ID);
     $profile = [
         'id' => $author->ID,
@@ -34,7 +37,7 @@ if ($author && ($author instanceof \WP_User) && in_array('loan_officer', $author
         'full_name' => $user_profile->get_full_name(),
         'phone_number' => $user_profile->get_phone_number(),
         'mobile_number' => $user_profile->get_mobile_number(),
-        'job_title' => $user_profile->get_job_title() ?: 'Loan Officer',
+        'job_title' => $user_profile->get_job_title() ?: \FRSUsers\Core\Roles::get_role_label($matched_role),
         'nmls' => $user_profile->get_nmls(),
         'city_state' => $user_profile->get_city_state(),
         'biography' => $user_profile->get_biography(),
@@ -72,7 +75,7 @@ $first_name = $profile['first_name'] ?? '';
 $last_name = $profile['last_name'] ?? '';
 $full_name = trim($first_name . ' ' . $last_name);
 $initials = strtoupper(substr($first_name, 0, 1) . substr($last_name, 0, 1));
-$job_title = $profile['job_title'] ?? 'Loan Officer';
+$job_title = $profile['job_title'] ?? '';
 $raw_nmls = $profile['nmls'] ?? '';
 // Hide fake placeholder NMLS (1994xxx range)
 $nmls = preg_match('/^1994\d{3}$/', $raw_nmls) ? '' : $raw_nmls;

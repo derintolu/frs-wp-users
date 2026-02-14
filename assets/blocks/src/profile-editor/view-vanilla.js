@@ -578,22 +578,16 @@
 				});
 				btn.classList.add('frs-composer__fmt--active');
 
-				// If modal is open, trash the old draft and create a new one with the selected format.
+				// If modal is open, just update the format on the existing draft silently.
 				if (overlay && overlay.classList.contains('frs-composer__overlay--open') && currentPostId) {
-					loading.style.display = '';
-					iframe.style.opacity = '0';
-					iframe.style.display = 'none';
-					iframe.src = '';
-					editorReady = false;
-
-					// Trash the old draft silently.
 					fetch('/wp-json/wp/v2/posts/' + currentPostId, {
-						method: 'DELETE',
-						headers: { 'X-WP-Nonce': config.nonce },
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							'X-WP-Nonce': config.nonce,
+						},
+						body: JSON.stringify({ format: newFormat === 'standard' ? '' : newFormat }),
 					}).catch(function() {});
-
-					// Create new draft with the new format.
-					createDraft(selectedFormat);
 				} else {
 					openComposer(selectedFormat);
 				}

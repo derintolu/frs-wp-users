@@ -1123,7 +1123,7 @@
     background: linear-gradient(135deg, var(--frs-blue), var(--frs-cyan));
     color: white;
     border: 2px solid white;
-    border-radius: 20px;
+    border-radius: 5px;
     font-size: 0.6875rem;
     font-weight: 500;
     cursor: pointer;
@@ -1714,7 +1714,7 @@
     padding: 0.5rem 0.875rem;
     background: #f3f4f6;
     border: 1px solid var(--frs-border);
-    border-radius: 20px;
+    border-radius: 5px;
     transition: border-color 0.15s, background 0.15s;
 }
 .frs-composer__collapsed-top:hover .frs-composer__prompt-field {
@@ -1917,7 +1917,7 @@
 .frs-composer__close-btn {
     padding: 0.5rem 1.25rem;
     border: 1px solid var(--frs-border);
-    border-radius: 20px;
+    border-radius: 5px;
     background: var(--frs-bg);
     color: var(--frs-text);
     font-size: 0.875rem;
@@ -1936,7 +1936,7 @@
     gap: 0.375rem;
     padding: 0.5rem 1rem 0.5rem 1.25rem;
     border: none;
-    border-radius: 20px;
+    border-radius: 5px;
     background: linear-gradient(135deg, var(--frs-blue), var(--frs-cyan));
     color: white;
     font-size: 0.875rem;

@@ -842,8 +842,9 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 				</div>
 			</div>
 
-			<!-- Expanded editor -->
-			<div class="frs-composer__expanded" id="frs-composer-expanded" hidden>
+			<!-- Modal overlay -->
+			<div class="frs-composer__overlay" id="frs-composer-overlay">
+			<div class="frs-composer__expanded" id="frs-composer-expanded">
 				<!-- Header: user name -->
 				<div class="frs-composer__header">
 					<div class="frs-composer__header-user">
@@ -884,6 +885,7 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 					</button>
 				</div>
 			</div>
+			</div><!-- /.frs-composer__overlay -->
 		</div>
 		<?php endif; ?>
 

@@ -253,7 +253,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 /* Grid view */
 .frs-directory__grid {
 	display: grid;
-	grid-template-columns: repeat(6, 1fr);
+	grid-template-columns: repeat(4, 1fr);
 	gap: 1rem;
 }
 
@@ -498,12 +498,6 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 }
 
 /* Responsive */
-@media (max-width: 1200px) {
-	.frs-directory__grid {
-		grid-template-columns: repeat(4, 1fr);
-	}
-}
-
 @media (max-width: 900px) {
 	.frs-directory__grid {
 		grid-template-columns: repeat(3, 1fr);

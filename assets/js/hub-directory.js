@@ -275,39 +275,15 @@
 
 	/* ── Slide-Out Profile Panel ────────────────────────────── */
 
-	/* ── Scroll lock (position:fixed technique) ────────────── */
-	var _savedScrollY = 0;
-
+	/* ── Scroll lock ───────────────────────────────────────── */
 	function lockScroll() {
-		// Save current scroll position
-		_savedScrollY = window.scrollY;
-
-		// Measure scrollbar width before locking
-		var sw = window.innerWidth - document.documentElement.clientWidth;
-		if ( sw > 0 ) {
-			document.body.style.paddingRight = sw + 'px';
-		}
-
-		// Fix the body in place — removes it from scroll flow entirely.
-		// This prevents ALL scroll input (wheel, trackpad, touch) on the body.
-		document.body.style.position = 'fixed';
-		document.body.style.top = '-' + _savedScrollY + 'px';
-		document.body.style.left = '0';
-		document.body.style.right = '0';
+		document.documentElement.style.overflow = 'hidden';
 		document.body.style.overflow = 'hidden';
 	}
 
 	function unlockScroll() {
-		// Restore body to normal flow
-		document.body.style.position = '';
-		document.body.style.top = '';
-		document.body.style.left = '';
-		document.body.style.right = '';
+		document.documentElement.style.overflow = '';
 		document.body.style.overflow = '';
-		document.body.style.paddingRight = '';
-
-		// Restore scroll position
-		window.scrollTo( 0, _savedScrollY );
 	}
 
 	function openPanel( userId ) {

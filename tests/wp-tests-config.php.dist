@@ -1,0 +1,37 @@
+<?php
+/**
+ * WordPress Test Configuration
+ *
+ * Copy this file to wp-tests-config.php and update the values.
+ * This file is used by the WordPress test suite for integration tests.
+ *
+ * @package FRSUsers\Tests
+ */
+
+// Path to WordPress test library.
+define( 'ABSPATH', '/tmp/wordpress/' );
+
+// Test database settings.
+define( 'DB_NAME', 'wordpress_test' );
+define( 'DB_USER', 'root' );
+define( 'DB_PASSWORD', 'root' );
+define( 'DB_HOST', 'localhost' );
+define( 'DB_CHARSET', 'utf8' );
+define( 'DB_COLLATE', '' );
+
+// Test table prefix.
+$table_prefix = 'wptests_';
+
+// Test domain.
+define( 'WP_TESTS_DOMAIN', 'example.org' );
+define( 'WP_TESTS_EMAIL', 'admin@example.org' );
+define( 'WP_TESTS_TITLE', 'Test Blog' );
+
+// PHP path for CLI.
+define( 'WP_PHP_BINARY', 'php' );
+
+// Debug settings.
+define( 'WP_DEBUG', true );
+
+// FRS-specific test settings.
+define( 'FRS_SITE_CONTEXT', 'development' );

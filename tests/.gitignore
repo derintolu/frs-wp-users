@@ -1,0 +1,13 @@
+# Test configuration (contains local database credentials)
+wp-tests-config.php
+
+# Coverage reports
+/coverage/
+
+# IDE files
+.idea/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db

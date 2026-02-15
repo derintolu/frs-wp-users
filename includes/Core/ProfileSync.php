@@ -360,6 +360,23 @@ class ProfileSync {
 			}
 		}
 
+		// Sync headshot/avatar image from hub
+		if ( ! empty( $profile_data['headshot_url'] ) ) {
+			$attachment_id = self::sync_remote_image( $profile_data['headshot_url'] );
+			if ( $attachment_id ) {
+				update_user_meta( $user_id, 'frs_headshot_id', $attachment_id );
+				$local_url = wp_get_attachment_url( $attachment_id );
+				// Basic User Avatars plugin format
+				update_user_meta( $user_id, 'basic_user_avatar', array( 'full' => $local_url ) );
+				// Simple Local Avatars fallback
+				update_user_meta( $user_id, 'simple_local_avatar', array(
+					'media_id' => $attachment_id,
+					'full'     => $local_url,
+					'blog_id'  => get_current_blog_id(),
+				) );
+			}
+		}
+
 		// Set WordPress role (add_role preserves existing roles like subscriber)
 		if ( ! empty( $profile_data['select_person_type'] ) ) {
 			$wp_role = Roles::get_wp_role_for_company_role( $profile_data['select_person_type'] );
@@ -425,6 +442,69 @@ class ProfileSync {
 			),
 			200
 		);
+	}
+
+	/**
+	 * Download a remote image and import into the local media library.
+	 *
+	 * Uses URL hash for deduplication so images aren't re-downloaded on every webhook.
+	 *
+	 * @param string $image_url Remote image URL.
+	 * @return int|false Local attachment ID, or false on failure.
+	 */
+	private static function sync_remote_image( $image_url ) {
+		if ( empty( $image_url ) ) {
+			return false;
+		}
+
+		$url_hash = md5( $image_url );
+
+		// Check if image already exists locally
+		$existing = get_posts( array(
+			'post_type'      => 'attachment',
+			'meta_query'     => array(
+				array(
+					'key'     => '_frs_image_url_hash',
+					'value'   => $url_hash,
+					'compare' => '=',
+				),
+			),
+			'posts_per_page' => 1,
+		) );
+
+		if ( $existing ) {
+			return $existing[0]->ID;
+		}
+
+		// Download and sideload the image
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+
+		$tmp = download_url( $image_url );
+		if ( is_wp_error( $tmp ) ) {
+			error_log( sprintf( '[FRS Sync] Failed to download image %s: %s', $image_url, $tmp->get_error_message() ) );
+			return false;
+		}
+
+		$filename   = basename( parse_url( $image_url, PHP_URL_PATH ) );
+		$file_array = array(
+			'name'     => $filename ?: 'headshot-' . $url_hash . '.jpg',
+			'tmp_name' => $tmp,
+		);
+
+		$attachment_id = media_handle_sideload( $file_array, 0 );
+
+		if ( is_wp_error( $attachment_id ) ) {
+			@unlink( $tmp );
+			error_log( sprintf( '[FRS Sync] Failed to sideload image %s: %s', $image_url, $attachment_id->get_error_message() ) );
+			return false;
+		}
+
+		update_post_meta( $attachment_id, '_frs_image_url_hash', $url_hash );
+		update_post_meta( $attachment_id, '_frs_original_url', $image_url );
+
+		return $attachment_id;
 	}
 
 	/**

@@ -579,8 +579,21 @@ html.frs-scroll-locked body {
 
 .frs-panel__body {
 	flex: 1;
-	overflow-y: auto;
+	overflow-y: scroll;
 	overflow-x: hidden;
+}
+.frs-panel__body::-webkit-scrollbar {
+	width: 6px;
+}
+.frs-panel__body::-webkit-scrollbar-track {
+	background: #f1f5f9;
+}
+.frs-panel__body::-webkit-scrollbar-thumb {
+	background: #cbd5e1;
+	border-radius: 3px;
+}
+.frs-panel__body::-webkit-scrollbar-thumb:hover {
+	background: #94a3b8;
 }
 
 /* Panel profile content */

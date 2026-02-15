@@ -533,15 +533,10 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	}
 }
 
-/* ── Scroll Lock (page only, not the panel) ──────────────── */
-html.frs-scroll-locked {
-	overflow: hidden !important;
-}
+/* ── Scroll Lock (matches Blocksy approach) ──────────────── */
+html.frs-scroll-locked,
 html.frs-scroll-locked body {
 	overflow: hidden !important;
-	position: fixed;
-	width: 100%;
-	top: var(--frs-scroll-top, 0);
 }
 
 /* ── Slide-Out Profile Panel ─────────────────────────────── */

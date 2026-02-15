@@ -280,11 +280,8 @@
 		$panelBody.innerHTML = '<div class="frs-panel__loading"><div class="frs-directory__spinner"></div></div>';
 		$panel.classList.add( 'is-open' );
 		$panel.setAttribute( 'aria-hidden', 'false' );
-		// Lock page scroll (preserve position)
-		var scrollY = window.scrollY;
-		document.body.style.setProperty( '--frs-scroll-top', '-' + scrollY + 'px' );
+		// Lock page scroll (Blocksy-compatible: overflow hidden only)
 		document.documentElement.classList.add( 'frs-scroll-locked' );
-		state.scrollY = scrollY;
 
 		// Fetch full profile
 		var url = REST + 'profiles/' + encodeURIComponent( userId );
@@ -315,11 +312,8 @@
 		state.panelOpen = false;
 		$panel.classList.remove( 'is-open' );
 		$panel.setAttribute( 'aria-hidden', 'true' );
-		// Restore scroll position
-		var savedScroll = state.scrollY || 0;
+		// Unlock page scroll
 		document.documentElement.classList.remove( 'frs-scroll-locked' );
-		document.body.style.removeProperty( '--frs-scroll-top' );
-		window.scrollTo( 0, savedScroll );
 		setTimeout( function () {
 			if ( ! state.panelOpen ) {
 				$panelBody.innerHTML = '';

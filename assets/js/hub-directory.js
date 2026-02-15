@@ -53,7 +53,7 @@
 		search:     '',
 		letter:     '',
 		role:       '',
-		orderby:    'last_name',
+		orderby:    'first_name',
 		order:      'asc',
 		view:       'grid',
 		loading:    false,

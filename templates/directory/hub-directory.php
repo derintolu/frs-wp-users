@@ -36,8 +36,8 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 		</select>
 
 		<select class="frs-directory__sort" id="frs-directory-sort">
-			<option value="last_name"><?php esc_html_e( 'Last Name', 'frs-users' ); ?></option>
 			<option value="first_name"><?php esc_html_e( 'First Name', 'frs-users' ); ?></option>
+			<option value="last_name"><?php esc_html_e( 'Last Name', 'frs-users' ); ?></option>
 			<option value="display_name"><?php esc_html_e( 'Display Name', 'frs-users' ); ?></option>
 		</select>
 

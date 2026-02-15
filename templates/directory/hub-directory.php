@@ -543,13 +543,13 @@ html.frs-scroll-locked body {
 /* ── Slide-Out Profile Panel ─────────────────────────────── */
 .frs-panel {
 	position: fixed;
-	top: var(--wp-admin--admin-bar--height, 0px);
+	top: 120px;
 	right: 0;
 	bottom: 0;
 	width: 540px;
 	max-width: 92vw;
 	background: var(--uk-bg, #fff);
-	z-index: 9999;
+	z-index: 99;
 	transform: translateX(100%);
 	transition: transform 0.3s ease;
 	display: flex;

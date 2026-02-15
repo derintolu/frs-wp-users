@@ -278,13 +278,6 @@
 	function openPanel( userId ) {
 		state.panelOpen = true;
 		$panelBody.innerHTML = '<div class="frs-panel__loading"><div class="frs-directory__spinner"></div></div>';
-
-		// Position panel below site header
-		var header = document.querySelector( '.ct-header, #masthead, .site-header, header[role="banner"]' );
-		if ( header ) {
-			$panel.style.top = header.getBoundingClientRect().bottom + 'px';
-		}
-
 		$panel.classList.add( 'is-open' );
 		$panel.setAttribute( 'aria-hidden', 'false' );
 		// Lock scroll

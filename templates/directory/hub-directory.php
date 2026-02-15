@@ -84,6 +84,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 </div>
 
 <!-- Profile Slide-Out Panel -->
+<div class="frs-panel-backdrop" id="frs-panel-backdrop"></div>
 <div class="frs-panel" id="frs-panel" aria-hidden="true">
 	<button class="frs-panel__close" id="frs-panel-close" type="button" aria-label="<?php esc_attr_e( 'Close', 'frs-users' ); ?>">
 		<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -533,10 +534,26 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	}
 }
 
+/* ── Backdrop: covers viewport, absorbs scroll events ──── */
+.frs-panel-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 98;
+	background: rgba(0, 0, 0, 0.3);
+	overflow: hidden;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.25s, visibility 0.25s;
+}
+.frs-panel-backdrop.is-open {
+	opacity: 1;
+	visibility: visible;
+}
+
 /* ── Slide-Out Profile Panel ─────────────────────────────── */
 .frs-panel {
 	--panel-width: var(--side-panel-width, 500px);
-	--panel-top: 120px;
+	--panel-top: 0;
 	position: fixed;
 	top: var(--panel-top);
 	right: 0;
@@ -574,6 +591,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 
 .frs-panel__body {
 	flex: 1;
+	min-height: 0;
 	overflow-y: scroll;
 	overflow-x: hidden;
 	overscroll-behavior: contain;

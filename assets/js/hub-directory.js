@@ -72,7 +72,7 @@
 	var $role       = document.getElementById( 'frs-directory-role' );
 	var $sort       = document.getElementById( 'frs-directory-sort' );
 	var $alphabet   = document.getElementById( 'frs-directory-alphabet' );
-	var $panel      = document.getElementById( 'frs-panel' );
+	var $panel      = document.getElementById( 'frs-profile-panel' );
 	var $panelBody  = document.getElementById( 'frs-panel-body' );
 	var $panelClose = document.getElementById( 'frs-panel-close' );
 
@@ -278,10 +278,19 @@
 	function openPanel( userId ) {
 		state.panelOpen = true;
 		$panelBody.innerHTML = '<div class="frs-panel__loading"><div class="frs-directory__spinner"></div></div>';
-		$panel.classList.add( 'is-open' );
-		$panel.setAttribute( 'aria-hidden', 'false' );
-		// Lock page scroll (Blocksy-compatible: overflow hidden only)
-		document.documentElement.classList.add( 'frs-scroll-locked' );
+
+		// Open panel — Blocksy native ct-panel pattern
+		$panel.classList.add( 'active' );
+		$panel.inert = false;
+		$panel.setAttribute( 'aria-modal', 'true' );
+
+		// Scroll lock — same as Blocksy overlay/no-bounce.js
+		var scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+		if ( scrollbarWidth > 0 ) {
+			document.body.style.setProperty( '--scrollbar-width', scrollbarWidth + 'px' );
+		}
+		document.body.style.overflow = 'hidden';
+		document.body.dataset.panel = 'in:right';
 
 		// Fetch full profile
 		var url = REST + 'profiles/' + encodeURIComponent( userId );
@@ -290,7 +299,7 @@
 		if ( NONCE ) xhr.setRequestHeader( 'X-WP-Nonce', NONCE );
 
 		xhr.onload = function () {
-			if ( ! state.panelOpen ) return; // Panel was closed before response
+			if ( ! state.panelOpen ) return;
 			if ( xhr.status !== 200 ) {
 				$panelBody.innerHTML = '<p style="padding:2rem;text-align:center;color:#94a3b8;">Could not load profile.</p>';
 				return;
@@ -310,15 +319,22 @@
 
 	function closePanel() {
 		state.panelOpen = false;
-		$panel.classList.remove( 'is-open' );
-		$panel.setAttribute( 'aria-hidden', 'true' );
-		// Unlock page scroll
-		document.documentElement.classList.remove( 'frs-scroll-locked' );
+
+		// Close transition — Blocksy native pattern
+		document.body.dataset.panel = 'out';
+
 		setTimeout( function () {
-			if ( ! state.panelOpen ) {
-				$panelBody.innerHTML = '';
-			}
-		}, 350 );
+			document.body.removeAttribute( 'data-panel' );
+			$panel.classList.remove( 'active' );
+			$panel.inert = true;
+			$panel.removeAttribute( 'aria-modal' );
+
+			// Restore scroll — Blocksy no-bounce.js enable()
+			document.body.style.overflow = '';
+			document.body.style.removeProperty( '--scrollbar-width' );
+
+			$panelBody.innerHTML = '';
+		}, 300 );
 	}
 
 	function renderPanelContent( p ) {

@@ -83,18 +83,24 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 
 </div>
 
-<!-- Profile Slide-Out Panel -->
-<div class="frs-panel" id="frs-panel" aria-hidden="true">
-	<button class="frs-panel__close" id="frs-panel-close" type="button" aria-label="<?php esc_attr_e( 'Close', 'frs-users' ); ?>">
-		<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-	</button>
-	<div class="frs-panel__body" id="frs-panel-body"></div>
+<!-- Profile Slide-Out Panel (Blocksy native .ct-panel) -->
+<div id="frs-profile-panel" class="ct-panel" data-behaviour="right-side" role="dialog" aria-label="<?php esc_attr_e( 'Profile', 'frs-users' ); ?>" inert>
+	<div class="ct-panel-actions">
+		<button class="ct-toggle-close" id="frs-panel-close" aria-label="<?php esc_attr_e( 'Close', 'frs-users' ); ?>">
+			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+		</button>
+	</div>
+	<div class="ct-panel-inner">
+		<div class="ct-panel-content">
+			<div class="ct-panel-content-inner" id="frs-panel-body"></div>
+		</div>
+	</div>
 </div>
 
 <style>
 /* ── FRS Branding Overrides for Frankenstyle ──────────────── */
 .frs-directory,
-.frs-panel {
+#frs-profile-panel {
 	--uk-global-radius: 5px;
 	--uk-global-radius-small: 3px;
 	--uk-primary: #2563eb;
@@ -533,66 +539,13 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	}
 }
 
-/* ── Scroll Lock (matches Blocksy approach) ──────────────── */
-html.frs-scroll-locked,
-html.frs-scroll-locked body {
-	overflow: hidden !important;
+/* ── Profile Panel Overrides (Blocksy .ct-panel) ─────────── */
+#frs-profile-panel {
+	--side-panel-width: 540px;
+	background: transparent;
 }
-
-/* ── Slide-Out Profile Panel ─────────────────────────────── */
-.frs-panel {
-	position: fixed;
-	top: 120px;
-	right: 0;
-	bottom: 0;
-	width: 540px;
-	max-width: 92vw;
-	background: var(--uk-bg, #fff);
-	z-index: 99;
-	transform: translateX(100%);
-	transition: transform 0.3s ease;
-	display: flex;
-	flex-direction: column;
-	box-shadow: -6px 0 20px rgba(0,0,0,0.12);
-}
-.frs-panel.is-open { transform: translateX(0); }
-
-.frs-panel__close {
-	position: absolute;
-	top: 12px;
-	right: 16px;
-	z-index: 10;
-	background: rgba(255,255,255,0.85);
-	border: none;
-	cursor: pointer;
-	color: #1e293b;
-	width: 32px;
-	height: 32px;
-	border-radius: 5px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	backdrop-filter: blur(4px);
-}
-.frs-panel__close:hover { background: #fff; }
-
-.frs-panel__body {
-	flex: 1;
-	overflow-y: scroll;
-	overflow-x: hidden;
-}
-.frs-panel__body::-webkit-scrollbar {
-	width: 6px;
-}
-.frs-panel__body::-webkit-scrollbar-track {
-	background: #f1f5f9;
-}
-.frs-panel__body::-webkit-scrollbar-thumb {
-	background: #cbd5e1;
-	border-radius: 3px;
-}
-.frs-panel__body::-webkit-scrollbar-thumb:hover {
-	background: #94a3b8;
+#frs-profile-panel .ct-panel-content-inner {
+	padding: 0;
 }
 
 /* Panel profile content */

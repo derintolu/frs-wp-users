@@ -84,7 +84,6 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 </div>
 
 <!-- Profile Slide-Out Panel -->
-<div class="frs-panel-backdrop" id="frs-panel-backdrop"></div>
 <div class="frs-panel" id="frs-panel" aria-hidden="true">
 	<button class="frs-panel__close" id="frs-panel-close" type="button" aria-label="<?php esc_attr_e( 'Close', 'frs-users' ); ?>">
 		<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -544,27 +543,13 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 html.frs-scroll-locked,
 html.frs-scroll-locked body {
 	overflow: hidden !important;
+	height: 100% !important;
 }
 
 /* ── Slide-Out Profile Panel ─────────────────────────────── */
-.frs-panel-backdrop {
-	position: fixed;
-	inset: 0;
-	background: rgba(0,0,0,0.35);
-	z-index: 9998;
-	opacity: 0;
-	visibility: hidden;
-	transition: opacity 0.3s, visibility 0.3s;
-	backdrop-filter: blur(2px);
-}
-.frs-panel-backdrop.is-open {
-	opacity: 1;
-	visibility: visible;
-}
-
 .frs-panel {
 	position: fixed;
-	top: 0;
+	top: var(--wp-admin--admin-bar--height, 0px);
 	right: 0;
 	bottom: 0;
 	width: 540px;
@@ -575,7 +560,7 @@ html.frs-scroll-locked body {
 	transition: transform 0.3s ease;
 	display: flex;
 	flex-direction: column;
-	box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+	box-shadow: -6px 0 20px rgba(0,0,0,0.12);
 }
 .frs-panel.is-open { transform: translateX(0); }
 

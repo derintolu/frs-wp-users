@@ -85,10 +85,12 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 
 <!-- Profile Slide-Out Panel -->
 <div class="frs-panel" id="frs-panel" aria-hidden="true">
-	<button class="frs-panel__close" id="frs-panel-close" type="button" aria-label="<?php esc_attr_e( 'Close', 'frs-users' ); ?>">
-		<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-	</button>
-	<div class="frs-panel__body" id="frs-panel-body"></div>
+	<div class="frs-panel__inner">
+		<button class="frs-panel__close" id="frs-panel-close" type="button" aria-label="<?php esc_attr_e( 'Close', 'frs-users' ); ?>">
+			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+		</button>
+		<div class="frs-panel__body" id="frs-panel-body"></div>
+	</div>
 </div>
 
 <style>
@@ -539,19 +541,37 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	--panel-top: 120px;
 	position: fixed;
 	top: var(--panel-top);
+	left: 0;
 	right: 0;
 	bottom: 0;
+	z-index: 99;
+	display: flex;
+	background: transparent;
+	overflow: hidden;
+	pointer-events: none;
+	visibility: hidden;
+}
+.frs-panel.is-open {
+	pointer-events: auto;
+	visibility: visible;
+}
+
+/* Visible panel on the right */
+.frs-panel__inner {
+	margin-left: auto;
 	width: var(--panel-width);
 	max-width: 92vw;
-	background: var(--theme-palette-color-8, #fff);
-	z-index: 99;
-	transform: translateX(100%);
-	transition: transform 0.25s ease-in-out;
+	height: 100%;
 	display: flex;
 	flex-direction: column;
+	background: var(--theme-palette-color-8, #fff);
 	box-shadow: var(--theme-box-shadow, -6px 0 20px rgba(0,0,0,0.12));
+	transform: translateX(100%);
+	transition: transform 0.25s ease-in-out;
 }
-.frs-panel.is-open { transform: translateX(0); }
+.frs-panel.is-open .frs-panel__inner {
+	transform: translateX(0);
+}
 
 .frs-panel__close {
 	position: absolute;
@@ -573,7 +593,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 .frs-panel__close:hover { background: #fff; }
 
 .frs-panel__body {
-	flex: 1;
+	flex: 1 1 0%;
 	min-height: 0;
 	overflow: hidden;
 }

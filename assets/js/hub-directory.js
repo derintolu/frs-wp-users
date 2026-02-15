@@ -585,6 +585,12 @@
 
 	// Panel close triggers
 	$panelClose.addEventListener( 'click', closePanel );
+	// Click on the transparent backdrop (outside __inner) closes panel
+	$panel.addEventListener( 'click', function ( e ) {
+		if ( e.target === $panel && state.panelOpen ) {
+			closePanel();
+		}
+	} );
 	document.addEventListener( 'keydown', function ( e ) {
 		if ( e.key === 'Escape' && state.panelOpen ) {
 			closePanel();

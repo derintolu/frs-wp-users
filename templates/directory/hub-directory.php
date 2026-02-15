@@ -575,6 +575,11 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 .frs-panel__body {
 	flex: 1;
 	min-height: 0;
+	overflow: hidden;
+}
+
+.frs-panel__scroll {
+	height: 100%;
 	overflow-y: scroll;
 	overflow-x: hidden;
 	overscroll-behavior: contain;

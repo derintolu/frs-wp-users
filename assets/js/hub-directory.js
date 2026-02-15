@@ -288,7 +288,7 @@
 
 	function openPanel( userId ) {
 		state.panelOpen = true;
-		$panelBody.innerHTML = '<div class="frs-panel__loading"><div class="frs-directory__spinner"></div></div>';
+		$panelBody.innerHTML = '<div class="frs-panel__scroll"><div class="frs-panel__loading"><div class="frs-directory__spinner"></div></div></div>';
 		$panel.classList.add( 'is-open' );
 		$panel.setAttribute( 'aria-hidden', 'false' );
 
@@ -303,7 +303,7 @@
 		xhr.onload = function () {
 			if ( ! state.panelOpen ) return;
 			if ( xhr.status !== 200 ) {
-				$panelBody.innerHTML = '<p style="padding:2rem;text-align:center;color:#94a3b8;">Could not load profile.</p>';
+				$panelBody.innerHTML = '<div class="frs-panel__scroll"><p style="padding:2rem;text-align:center;color:#94a3b8;">Could not load profile.</p></div>';
 				return;
 			}
 			var json = JSON.parse( xhr.responseText );
@@ -313,7 +313,7 @@
 
 		xhr.onerror = function () {
 			if ( ! state.panelOpen ) return;
-			$panelBody.innerHTML = '<p style="padding:2rem;text-align:center;color:#94a3b8;">Could not load profile.</p>';
+			$panelBody.innerHTML = '<div class="frs-panel__scroll"><p style="padding:2rem;text-align:center;color:#94a3b8;">Could not load profile.</p></div>';
 		};
 
 		xhr.send();
@@ -527,7 +527,7 @@
 			+ ' Instagram</a>';
 		html += '</div></div>';
 
-		$panelBody.innerHTML = html;
+		$panelBody.innerHTML = '<div class="frs-panel__scroll">' + html + '</div>';
 	}
 
 	/* ── Event handlers ─────────────────────────────────────── */

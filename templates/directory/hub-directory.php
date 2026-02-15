@@ -835,4 +835,39 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 .frs-panel__link-item:hover { color: var(--frs-blue, #2563eb); }
 
 .frs-panel__link-title { font-weight: 600; color: #1e293b; }
+
+/* Panel subsections (specialties) */
+.frs-panel__subsection {
+	padding: 0.75rem 0;
+	border-bottom: 1px solid #f1f5f9;
+}
+.frs-panel__subsection:last-child { border-bottom: none; }
+.frs-panel__subsection-title {
+	font-size: 0.875rem;
+	font-weight: 500;
+	color: #374151;
+	margin: 0 0 0.5rem;
+}
+
+/* Panel social grid (2-col like hub profile) */
+.frs-panel__social-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0.5rem;
+}
+.frs-panel__social-link--empty {
+	color: #94a3b8;
+	pointer-events: none;
+}
+
+/* Panel empty states */
+.frs-panel__empty {
+	color: #94a3b8;
+	font-style: italic;
+	font-size: 0.875rem;
+	margin: 0;
+	padding: 0.5rem 0;
+}
+.frs-panel__empty--small { font-size: 0.75rem; }
+.frs-panel__empty--center { text-align: center; padding: 1.5rem 0; }
 </style>

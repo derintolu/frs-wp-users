@@ -90,6 +90,16 @@
 		return f + l || '?';
 	}
 
+	function formatPhone( raw ) {
+		if ( ! raw ) return '';
+		var digits = raw.replace( /\D/g, '' );
+		if ( digits.length === 11 && digits.charAt( 0 ) === '1' ) digits = digits.substring( 1 );
+		if ( digits.length === 10 ) {
+			return '(' + digits.substring( 0, 3 ) + ') ' + digits.substring( 3, 6 ) + '-' + digits.substring( 6 );
+		}
+		return raw;
+	}
+
 	/* ── Fetch ──────────────────────────────────────────────── */
 	function fetchProfiles( append ) {
 		if ( state.loading ) return;
@@ -204,7 +214,7 @@
 			+ '<p class="frs-directory__card-name">' + name + '</p>'
 			+ ( title ? '<p class="frs-directory__card-title">' + title + '</p>' : '' )
 			+ ( email ? '<p class="frs-directory__card-contact"><a href="mailto:' + esc( email ) + '">' + esc( email ) + '</a></p>' : '' )
-			+ ( phone ? '<p class="frs-directory__card-contact"><a href="tel:' + esc( phone.replace( /[^\d+]/g, '' ) ) + '">' + esc( phone ) + '</a></p>' : '' )
+			+ ( phone ? '<p class="frs-directory__card-contact"><a href="tel:' + esc( phone.replace( /[^\d+]/g, '' ) ) + '">' + esc( formatPhone( phone ) ) + '</a></p>' : '' )
 			+ ( meta.length ? '<p class="frs-directory__card-meta">' + meta.join( ' &middot; ' ) + '</p>' : '' )
 			+ '</div>'
 			+ ( actions ? '<div class="frs-directory__card-actions">' + actions + '</div>' : '' )
@@ -386,36 +396,32 @@
 				var cleanPhone = phone.replace( /[^\d+]/g, '' );
 				html += '<a class="frs-panel__contact-item" href="tel:' + esc( cleanPhone ) + '">'
 					+ '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>'
-					+ esc( phone ) + '</a>';
+					+ esc( formatPhone( phone ) ) + '</a>';
 			}
 			html += '</div>';
 		}
 
-		// Action buttons
+		// Action buttons (internal directory — no Apply Now)
 		html += '<div class="frs-panel__actions">';
+		if ( email ) {
+			html += '<a class="frs-panel__action-btn" href="mailto:' + esc( email ) + '">'
+				+ '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>'
+				+ 'Contact ' + esc( firstName || 'Them' ) + '</a>';
+		}
 		if ( phone ) {
 			var cleanPhone2 = phone.replace( /[^\d+]/g, '' );
 			html += '<a class="frs-panel__action-btn" href="tel:' + esc( cleanPhone2 ) + '">'
 				+ '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>'
-				+ 'Call ' + esc( firstName || 'Them' ) + '</a>';
-		}
-		if ( email ) {
-			html += '<a class="frs-panel__action-btn" href="mailto:' + esc( email ) + '">'
-				+ '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>'
-				+ 'Email ' + esc( firstName || 'Them' ) + '</a>';
-		}
-		if ( applyUrl ) {
-			html += '<a class="frs-panel__action-btn frs-panel__action-btn--primary" href="' + esc( applyUrl ) + '" target="_blank" rel="noopener">'
-				+ 'Apply Now</a>';
+				+ 'Call Me</a>';
 		}
 		html += '</div>';
 
-		// Service Areas
+		// Service Areas (always show)
+		html += '<div class="frs-panel__section">';
+		html += '<h3 class="frs-panel__section-title">'
+			+ '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>'
+			+ 'Service Areas</h3>';
 		if ( areas.length > 0 ) {
-			html += '<div class="frs-panel__section">';
-			html += '<h3 class="frs-panel__section-title">'
-				+ '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>'
-				+ 'Service Areas</h3>';
 			html += '<div class="frs-panel__states-grid">';
 			for ( var a = 0; a < areas.length; a++ ) {
 				var area = areas[a];
@@ -432,48 +438,58 @@
 						+ '<span class="frs-panel__state-abbr">' + esc( area ) + '</span></div>';
 				}
 			}
-			html += '</div></div>';
+			html += '</div>';
+		} else {
+			html += '<p class="frs-panel__empty">No service areas specified.</p>';
 		}
+		html += '</div>';
 
-		// Biography
+		// Biography (always show)
+		html += '<div class="frs-panel__section">';
+		html += '<h3 class="frs-panel__section-title">'
+			+ '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>'
+			+ 'Professional Biography</h3>';
 		if ( bio ) {
-			html += '<div class="frs-panel__section">';
-			html += '<h3 class="frs-panel__section-title">'
-				+ '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>'
-				+ 'Biography</h3>';
 			html += '<div class="frs-panel__bio-content">' + bio + '</div>';
-			html += '</div>';
+		} else {
+			html += '<p class="frs-panel__empty">No biography provided.</p>';
 		}
+		html += '</div>';
 
-		// Specialties
-		if ( specialties.length > 0 || certs.length > 0 ) {
-			html += '<div class="frs-panel__section">';
-			html += '<h3 class="frs-panel__section-title">'
-				+ '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>'
-				+ 'Specialties</h3>';
-			if ( specialties.length > 0 ) {
-				html += '<div class="frs-panel__badges">';
-				for ( var s = 0; s < specialties.length; s++ ) {
-					html += '<span class="frs-panel__badge">' + esc( specialties[s] ) + '</span>';
-				}
-				html += '</div>';
-			}
-			if ( certs.length > 0 ) {
-				html += '<div class="frs-panel__badges" style="margin-top:0.5rem">';
-				for ( var c = 0; c < certs.length; c++ ) {
-					html += '<span class="frs-panel__badge frs-panel__badge--cert">' + esc( certs[c] ) + '</span>';
-				}
-				html += '</div>';
+		// Specialties & Credentials (always show with subsections)
+		html += '<div class="frs-panel__section">';
+		html += '<h3 class="frs-panel__section-title">'
+			+ '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>'
+			+ 'Specialties &amp; Credentials</h3>';
+		html += '<div class="frs-panel__subsection"><h4 class="frs-panel__subsection-title">Loan Officer Specialties</h4>';
+		if ( specialties.length > 0 ) {
+			html += '<div class="frs-panel__badges">';
+			for ( var s = 0; s < specialties.length; s++ ) {
+				html += '<span class="frs-panel__badge">' + esc( specialties[s] ) + '</span>';
 			}
 			html += '</div>';
+		} else {
+			html += '<p class="frs-panel__empty frs-panel__empty--small">No specialties selected</p>';
 		}
+		html += '</div>';
+		html += '<div class="frs-panel__subsection"><h4 class="frs-panel__subsection-title">NAMB Certifications</h4>';
+		if ( certs.length > 0 ) {
+			html += '<div class="frs-panel__badges">';
+			for ( var c = 0; c < certs.length; c++ ) {
+				html += '<span class="frs-panel__badge frs-panel__badge--cert">' + esc( certs[c] ) + '</span>';
+			}
+			html += '</div>';
+		} else {
+			html += '<p class="frs-panel__empty frs-panel__empty--small">No certifications selected</p>';
+		}
+		html += '</div></div>';
 
-		// Custom Links
+		// Custom Links (always show)
+		html += '<div class="frs-panel__section">';
+		html += '<h3 class="frs-panel__section-title">'
+			+ '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>'
+			+ 'Custom Links</h3>';
 		if ( customLinks.length > 0 ) {
-			html += '<div class="frs-panel__section">';
-			html += '<h3 class="frs-panel__section-title">'
-				+ '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>'
-				+ 'Links</h3>';
 			for ( var cl = 0; cl < customLinks.length; cl++ ) {
 				var link = customLinks[cl];
 				if ( link && link.url ) {
@@ -483,29 +499,30 @@
 						+ '</a>';
 				}
 			}
-			html += '</div>';
+		} else {
+			html += '<p class="frs-panel__empty frs-panel__empty--center">No custom links added yet.</p>';
 		}
+		html += '</div>';
 
-		// Social links
-		var socials = [];
-		if ( website )   socials.push( { url: website, label: 'Website', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>' } );
-		if ( linkedin )  socials.push( { url: linkedin, label: 'LinkedIn', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>' } );
-		if ( facebook )  socials.push( { url: facebook, label: 'Facebook', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>' } );
-		if ( instagram ) socials.push( { url: instagram, label: 'Instagram', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>' } );
-		if ( twitter )   socials.push( { url: twitter, label: 'X/Twitter', icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>' } );
-
-		if ( socials.length > 0 ) {
-			html += '<div class="frs-panel__section">';
-			html += '<h3 class="frs-panel__section-title">'
-				+ '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>'
-				+ 'Connect</h3>';
-			html += '<div class="frs-panel__social-row">';
-			for ( var si = 0; si < socials.length; si++ ) {
-				html += '<a class="frs-panel__social-link" href="' + esc( socials[si].url ) + '" target="_blank" rel="noopener">'
-					+ socials[si].icon + ' ' + esc( socials[si].label ) + '</a>';
-			}
-			html += '</div></div>';
-		}
+		// Links & Social (always show as 2-column grid)
+		html += '<div class="frs-panel__section">';
+		html += '<h3 class="frs-panel__section-title">'
+			+ '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>'
+			+ 'Links &amp; Social</h3>';
+		html += '<div class="frs-panel__social-grid">';
+		html += '<a class="frs-panel__social-link' + ( website ? '' : ' frs-panel__social-link--empty' ) + '" href="' + ( website ? esc( website ) : '#' ) + '"' + ( website ? ' target="_blank" rel="noopener"' : '' ) + '>'
+			+ '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>'
+			+ ' Website</a>';
+		html += '<a class="frs-panel__social-link' + ( linkedin ? '' : ' frs-panel__social-link--empty' ) + '" href="' + ( linkedin ? esc( linkedin ) : '#' ) + '"' + ( linkedin ? ' target="_blank" rel="noopener"' : '' ) + '>'
+			+ '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>'
+			+ ' LinkedIn</a>';
+		html += '<a class="frs-panel__social-link' + ( facebook ? '' : ' frs-panel__social-link--empty' ) + '" href="' + ( facebook ? esc( facebook ) : '#' ) + '"' + ( facebook ? ' target="_blank" rel="noopener"' : '' ) + '>'
+			+ '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>'
+			+ ' Facebook</a>';
+		html += '<a class="frs-panel__social-link' + ( instagram ? '' : ' frs-panel__social-link--empty' ) + '" href="' + ( instagram ? esc( instagram ) : '#' ) + '"' + ( instagram ? ' target="_blank" rel="noopener"' : '' ) + '>'
+			+ '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>'
+			+ ' Instagram</a>';
+		html += '</div></div>';
 
 		$panelBody.innerHTML = html;
 	}

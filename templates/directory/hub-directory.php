@@ -83,24 +83,18 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 
 </div>
 
-<!-- Profile Slide-Out Panel (Blocksy native .ct-panel) -->
-<div id="frs-profile-panel" class="ct-panel" data-behaviour="right-side" role="dialog" aria-label="<?php esc_attr_e( 'Profile', 'frs-users' ); ?>" inert>
-	<div class="ct-panel-actions">
-		<button class="ct-toggle-close" id="frs-panel-close" aria-label="<?php esc_attr_e( 'Close', 'frs-users' ); ?>">
-			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-		</button>
-	</div>
-	<div class="ct-panel-inner">
-		<div class="ct-panel-content">
-			<div class="ct-panel-content-inner" id="frs-panel-body"></div>
-		</div>
-	</div>
+<!-- Profile Slide-Out Panel -->
+<div class="frs-panel" id="frs-panel" aria-hidden="true">
+	<button class="frs-panel__close" id="frs-panel-close" type="button" aria-label="<?php esc_attr_e( 'Close', 'frs-users' ); ?>">
+		<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+	</button>
+	<div class="frs-panel__body" id="frs-panel-body"></div>
 </div>
 
 <style>
 /* ── FRS Branding Overrides for Frankenstyle ──────────────── */
 .frs-directory,
-#frs-profile-panel {
+.frs-panel {
 	--uk-global-radius: 5px;
 	--uk-global-radius-small: 3px;
 	--uk-primary: #2563eb;
@@ -539,13 +533,50 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	}
 }
 
-/* ── Profile Panel Overrides (Blocksy .ct-panel) ─────────── */
-#frs-profile-panel {
-	--side-panel-width: 540px;
-	background: transparent;
+/* ── Slide-Out Profile Panel ─────────────────────────────── */
+.frs-panel {
+	--panel-width: var(--side-panel-width, 500px);
+	--panel-top: 120px;
+	position: fixed;
+	top: var(--panel-top);
+	right: 0;
+	bottom: 0;
+	width: var(--panel-width);
+	max-width: 92vw;
+	background: var(--theme-palette-color-8, #fff);
+	z-index: 99;
+	transform: translateX(100%);
+	transition: transform 0.25s ease-in-out;
+	display: flex;
+	flex-direction: column;
+	box-shadow: var(--theme-box-shadow, -6px 0 20px rgba(0,0,0,0.12));
 }
-#frs-profile-panel .ct-panel-content-inner {
-	padding: 0;
+.frs-panel.is-open { transform: translateX(0); }
+
+.frs-panel__close {
+	position: absolute;
+	top: 0.75rem;
+	right: 1rem;
+	z-index: 10;
+	background: rgba(255,255,255,0.85);
+	border: none;
+	cursor: pointer;
+	color: var(--theme-text-color, #1e293b);
+	width: 2rem;
+	height: 2rem;
+	border-radius: var(--theme-border-radius, 5px);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	backdrop-filter: blur(4px);
+}
+.frs-panel__close:hover { background: #fff; }
+
+.frs-panel__body {
+	flex: 1;
+	overflow-y: auto;
+	overflow-x: hidden;
+	-webkit-overflow-scrolling: touch;
 }
 
 /* Panel profile content */
@@ -597,7 +628,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 .frs-panel__name {
 	font-size: 1.5rem;
 	font-weight: 700;
-	color: #1e293b;
+	color: var(--theme-heading-color, #1e293b);
 	margin: 0;
 }
 
@@ -618,8 +649,8 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 
 /* Panel sections */
 .frs-panel__section {
-	padding: 1.25rem 1.5rem;
-	border-top: 1px solid #f1f5f9;
+	padding: 1.25rem var(--panel-padding, 1.5rem);
+	border-top: var(--theme-border, 1px solid #f1f5f9);
 }
 
 .frs-panel__section-title {
@@ -640,10 +671,10 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	align-items: center;
 	gap: 0.75rem;
 	padding: 0.625rem 0;
-	color: #374151;
+	color: var(--theme-text-color, #374151);
 	text-decoration: none;
 	font-size: 0.9375rem;
-	border-bottom: 1px solid #f8fafc;
+	border-bottom: 1px solid var(--theme-border-color, #f1f5f9);
 }
 .frs-panel__contact-item:last-child { border-bottom: none; }
 .frs-panel__contact-item:hover { color: var(--frs-blue, #2563eb); }
@@ -653,7 +684,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 .frs-panel__actions {
 	display: flex;
 	gap: 0.625rem;
-	padding: 1rem 1.5rem;
+	padding: 1rem var(--panel-padding, 1.5rem);
 }
 
 .frs-panel__action-btn {
@@ -664,7 +695,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	flex: 1;
 	padding: 0.75rem 1rem;
 	border: 2px solid transparent;
-	border-radius: 5px;
+	border-radius: var(--theme-border-radius, 5px);
 	background: linear-gradient(#fff, #fff), linear-gradient(90deg, var(--frs-cyan, #2dd4da), var(--frs-blue, #2563eb));
 	background-clip: padding-box, border-box;
 	background-origin: padding-box, border-box;

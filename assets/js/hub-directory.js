@@ -72,7 +72,7 @@
 	var $role       = document.getElementById( 'frs-directory-role' );
 	var $sort       = document.getElementById( 'frs-directory-sort' );
 	var $alphabet   = document.getElementById( 'frs-directory-alphabet' );
-	var $panel      = document.getElementById( 'frs-profile-panel' );
+	var $panel      = document.getElementById( 'frs-panel' );
 	var $panelBody  = document.getElementById( 'frs-panel-body' );
 	var $panelClose = document.getElementById( 'frs-panel-close' );
 
@@ -278,19 +278,15 @@
 	function openPanel( userId ) {
 		state.panelOpen = true;
 		$panelBody.innerHTML = '<div class="frs-panel__loading"><div class="frs-directory__spinner"></div></div>';
+		$panel.classList.add( 'is-open' );
+		$panel.setAttribute( 'aria-hidden', 'false' );
 
-		// Open panel — Blocksy native ct-panel pattern
-		$panel.classList.add( 'active' );
-		$panel.inert = false;
-		$panel.setAttribute( 'aria-modal', 'true' );
-
-		// Scroll lock — same as Blocksy overlay/no-bounce.js
+		// Scroll lock — matches Blocksy no-bounce.js (inline style, not class)
 		var scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
 		if ( scrollbarWidth > 0 ) {
 			document.body.style.setProperty( '--scrollbar-width', scrollbarWidth + 'px' );
 		}
 		document.body.style.overflow = 'hidden';
-		document.body.dataset.panel = 'in:right';
 
 		// Fetch full profile
 		var url = REST + 'profiles/' + encodeURIComponent( userId );
@@ -319,21 +315,17 @@
 
 	function closePanel() {
 		state.panelOpen = false;
+		$panel.classList.remove( 'is-open' );
+		$panel.setAttribute( 'aria-hidden', 'true' );
 
-		// Close transition — Blocksy native pattern
-		document.body.dataset.panel = 'out';
+		// Restore scroll — matches Blocksy no-bounce.js enable()
+		document.body.style.overflow = '';
+		document.body.style.removeProperty( '--scrollbar-width' );
 
 		setTimeout( function () {
-			document.body.removeAttribute( 'data-panel' );
-			$panel.classList.remove( 'active' );
-			$panel.inert = true;
-			$panel.removeAttribute( 'aria-modal' );
-
-			// Restore scroll — Blocksy no-bounce.js enable()
-			document.body.style.overflow = '';
-			document.body.style.removeProperty( '--scrollbar-width' );
-
-			$panelBody.innerHTML = '';
+			if ( ! state.panelOpen ) {
+				$panelBody.innerHTML = '';
+			}
 		}, 300 );
 	}
 

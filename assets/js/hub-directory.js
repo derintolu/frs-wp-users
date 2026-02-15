@@ -75,7 +75,6 @@
 	var $panel      = document.getElementById( 'frs-panel' );
 	var $panelBody  = document.getElementById( 'frs-panel-body' );
 	var $panelClose = document.getElementById( 'frs-panel-close' );
-	var $backdrop   = document.getElementById( 'frs-panel-backdrop' );
 
 	/* ── Helpers ────────────────────────────────────────────── */
 	function esc( str ) {
@@ -290,7 +289,6 @@
 	function openPanel( userId ) {
 		state.panelOpen = true;
 		$panelBody.innerHTML = '<div class="frs-panel__loading"><div class="frs-directory__spinner"></div></div>';
-		$backdrop.classList.add( 'is-open' );
 		$panel.classList.add( 'is-open' );
 		$panel.setAttribute( 'aria-hidden', 'false' );
 
@@ -323,7 +321,6 @@
 
 	function closePanel() {
 		state.panelOpen = false;
-		$backdrop.classList.remove( 'is-open' );
 		$panel.classList.remove( 'is-open' );
 		$panel.setAttribute( 'aria-hidden', 'true' );
 
@@ -588,7 +585,6 @@
 
 	// Panel close triggers
 	$panelClose.addEventListener( 'click', closePanel );
-	$backdrop.addEventListener( 'click', closePanel );
 	document.addEventListener( 'keydown', function ( e ) {
 		if ( e.key === 'Escape' && state.panelOpen ) {
 			closePanel();

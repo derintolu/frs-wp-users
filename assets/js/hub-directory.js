@@ -275,18 +275,71 @@
 
 	/* ── Slide-Out Profile Panel ────────────────────────────── */
 
+	/* ── Scroll lock (matches Blocksy no-bounce.js logic) ──── */
+	var isIosOrTrackpad = (
+		window.navigator &&
+		window.navigator.platform &&
+		( /iP(ad|hone|od)/.test( window.navigator.platform ) ||
+			( window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1 ) )
+	);
+
+	var _touchStartY = 0;
+	var _touchMoveHandler = null;
+
+	function lockScroll() {
+		if ( ! isIosOrTrackpad ) {
+			var sw = window.innerWidth - document.documentElement.clientWidth;
+			if ( sw > 0 ) {
+				document.body.style.setProperty( '--scrollbar-width', sw + 'px' );
+			}
+			document.body.style.overflow = 'hidden';
+		} else {
+			// iOS / Mac trackpad: prevent body scroll via touch event interception
+			_touchMoveHandler = function ( e ) {
+				// Allow scroll inside the panel body
+				if ( e.target.closest && e.target.closest( '.frs-panel__body' ) ) {
+					var el = $panelBody;
+					var top = el.scrollTop;
+					var totalScroll = el.scrollHeight;
+					var currentScroll = top + el.offsetHeight;
+					// At the top scrolling up, or at the bottom scrolling down — prevent
+					var touchY = e.touches[0].clientY;
+					var deltaY = touchY - _touchStartY;
+					if ( top === 0 && deltaY > 0 ) {
+						e.preventDefault();
+					} else if ( currentScroll >= totalScroll && deltaY < 0 ) {
+						e.preventDefault();
+					}
+					// Otherwise allow normal scroll inside panel
+					return;
+				}
+				e.preventDefault();
+			};
+			document.addEventListener( 'touchstart', function ( e ) {
+				_touchStartY = e.touches[0].clientY;
+			}, { passive: true } );
+			document.addEventListener( 'touchmove', _touchMoveHandler, { passive: false } );
+			// Also set overflow hidden for wheel events (trackpad on desktop Safari)
+			document.body.style.overflow = 'hidden';
+		}
+	}
+
+	function unlockScroll() {
+		document.body.style.overflow = '';
+		document.body.style.removeProperty( '--scrollbar-width' );
+		if ( _touchMoveHandler ) {
+			document.removeEventListener( 'touchmove', _touchMoveHandler );
+			_touchMoveHandler = null;
+		}
+	}
+
 	function openPanel( userId ) {
 		state.panelOpen = true;
 		$panelBody.innerHTML = '<div class="frs-panel__loading"><div class="frs-directory__spinner"></div></div>';
 		$panel.classList.add( 'is-open' );
 		$panel.setAttribute( 'aria-hidden', 'false' );
 
-		// Scroll lock — matches Blocksy no-bounce.js (inline style, not class)
-		var scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-		if ( scrollbarWidth > 0 ) {
-			document.body.style.setProperty( '--scrollbar-width', scrollbarWidth + 'px' );
-		}
-		document.body.style.overflow = 'hidden';
+		lockScroll();
 
 		// Fetch full profile
 		var url = REST + 'profiles/' + encodeURIComponent( userId );
@@ -318,9 +371,7 @@
 		$panel.classList.remove( 'is-open' );
 		$panel.setAttribute( 'aria-hidden', 'true' );
 
-		// Restore scroll — matches Blocksy no-bounce.js enable()
-		document.body.style.overflow = '';
-		document.body.style.removeProperty( '--scrollbar-width' );
+		unlockScroll();
 
 		setTimeout( function () {
 			if ( ! state.panelOpen ) {

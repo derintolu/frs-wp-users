@@ -275,62 +275,39 @@
 
 	/* ── Slide-Out Profile Panel ────────────────────────────── */
 
-	/* ── Scroll lock (matches Blocksy no-bounce.js logic) ──── */
-	var isIosOrTrackpad = (
-		window.navigator &&
-		window.navigator.platform &&
-		( /iP(ad|hone|od)/.test( window.navigator.platform ) ||
-			( window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1 ) )
-	);
-
-	var _touchStartY = 0;
-	var _touchMoveHandler = null;
+	/* ── Scroll lock (position:fixed technique) ────────────── */
+	var _savedScrollY = 0;
 
 	function lockScroll() {
-		if ( ! isIosOrTrackpad ) {
-			var sw = window.innerWidth - document.documentElement.clientWidth;
-			if ( sw > 0 ) {
-				document.body.style.setProperty( '--scrollbar-width', sw + 'px' );
-			}
-			document.body.style.overflow = 'hidden';
-		} else {
-			// iOS / Mac trackpad: prevent body scroll via touch event interception
-			_touchMoveHandler = function ( e ) {
-				// Allow scroll inside the panel body
-				if ( e.target.closest && e.target.closest( '.frs-panel__body' ) ) {
-					var el = $panelBody;
-					var top = el.scrollTop;
-					var totalScroll = el.scrollHeight;
-					var currentScroll = top + el.offsetHeight;
-					// At the top scrolling up, or at the bottom scrolling down — prevent
-					var touchY = e.touches[0].clientY;
-					var deltaY = touchY - _touchStartY;
-					if ( top === 0 && deltaY > 0 ) {
-						e.preventDefault();
-					} else if ( currentScroll >= totalScroll && deltaY < 0 ) {
-						e.preventDefault();
-					}
-					// Otherwise allow normal scroll inside panel
-					return;
-				}
-				e.preventDefault();
-			};
-			document.addEventListener( 'touchstart', function ( e ) {
-				_touchStartY = e.touches[0].clientY;
-			}, { passive: true } );
-			document.addEventListener( 'touchmove', _touchMoveHandler, { passive: false } );
-			// Also set overflow hidden for wheel events (trackpad on desktop Safari)
-			document.body.style.overflow = 'hidden';
+		// Save current scroll position
+		_savedScrollY = window.scrollY;
+
+		// Measure scrollbar width before locking
+		var sw = window.innerWidth - document.documentElement.clientWidth;
+		if ( sw > 0 ) {
+			document.body.style.paddingRight = sw + 'px';
 		}
+
+		// Fix the body in place — removes it from scroll flow entirely.
+		// This prevents ALL scroll input (wheel, trackpad, touch) on the body.
+		document.body.style.position = 'fixed';
+		document.body.style.top = '-' + _savedScrollY + 'px';
+		document.body.style.left = '0';
+		document.body.style.right = '0';
+		document.body.style.overflow = 'hidden';
 	}
 
 	function unlockScroll() {
+		// Restore body to normal flow
+		document.body.style.position = '';
+		document.body.style.top = '';
+		document.body.style.left = '';
+		document.body.style.right = '';
 		document.body.style.overflow = '';
-		document.body.style.removeProperty( '--scrollbar-width' );
-		if ( _touchMoveHandler ) {
-			document.removeEventListener( 'touchmove', _touchMoveHandler );
-			_touchMoveHandler = null;
-		}
+		document.body.style.paddingRight = '';
+
+		// Restore scroll position
+		window.scrollTo( 0, _savedScrollY );
 	}
 
 	function openPanel( userId ) {

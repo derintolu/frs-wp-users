@@ -103,6 +103,13 @@ class Shortcodes {
 		$plugin_dir = plugin_dir_path( dirname( __DIR__ ) );
 		$version    = filemtime( $plugin_dir . 'assets/js/hub-directory.js' );
 
+		wp_enqueue_style(
+			'frankenstyle-kit',
+			$plugin_url . 'assets/css/frankenstyle-kit.min.css',
+			array(),
+			filemtime( $plugin_dir . 'assets/css/frankenstyle-kit.min.css' )
+		);
+
 		wp_enqueue_script(
 			'frs-hub-directory',
 			$plugin_url . 'assets/js/hub-directory.js',

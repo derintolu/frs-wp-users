@@ -208,7 +208,8 @@
 				+ '</a>';
 		}
 
-		return '<div class="frs-directory__card" data-user-id="' + esc( String( userId ) ) + '">'
+		return '<div class="uk-card frs-directory__card" data-user-id="' + esc( String( userId ) ) + '">'
+			+ '<div class="uk-card-body">'
 			+ '<img class="frs-directory__card-avatar" src="' + esc( avatar ) + '" alt="' + name + '" loading="lazy" />'
 			+ '<div class="frs-directory__card-info">'
 			+ '<p class="frs-directory__card-name">' + name + '</p>'
@@ -217,7 +218,8 @@
 			+ ( phone ? '<p class="frs-directory__card-contact"><a href="tel:' + esc( phone.replace( /[^\d+]/g, '' ) ) + '">' + esc( formatPhone( phone ) ) + '</a></p>' : '' )
 			+ ( meta.length ? '<p class="frs-directory__card-meta">' + meta.join( ' &middot; ' ) + '</p>' : '' )
 			+ '</div>'
-			+ ( actions ? '<div class="frs-directory__card-actions">' + actions + '</div>' : '' )
+			+ '</div>'
+			+ '<div class="uk-card-footer">' + actions + '</div>'
 			+ '</div>';
 	}
 
@@ -279,14 +281,9 @@
 		$panelBody.innerHTML = '<div class="frs-panel__loading"><div class="frs-directory__spinner"></div></div>';
 		$panel.classList.add( 'is-open' );
 		$panel.setAttribute( 'aria-hidden', 'false' );
-		$backdrop.hidden = false;
-		// Force reflow before adding class for transition
-		void $backdrop.offsetHeight;
 		$backdrop.classList.add( 'is-open' );
-		// Lock scroll on the workspace content container (or body fallback)
-		var scrollContainer = document.querySelector( '.overflow-y-auto' ) || document.documentElement;
-		scrollContainer.dataset.frsScrollLock = scrollContainer.style.overflowY || '';
-		scrollContainer.style.overflowY = 'hidden';
+		// Lock scroll
+		document.documentElement.classList.add( 'frs-scroll-locked' );
 
 		// Fetch full profile
 		var url = REST + 'profiles/' + encodeURIComponent( userId );
@@ -318,13 +315,10 @@
 		$panel.classList.remove( 'is-open' );
 		$panel.setAttribute( 'aria-hidden', 'true' );
 		$backdrop.classList.remove( 'is-open' );
-		// Restore scroll on workspace content container
-		var scrollContainer = document.querySelector( '.overflow-y-auto' ) || document.documentElement;
-		scrollContainer.style.overflowY = scrollContainer.dataset.frsScrollLock || '';
-		delete scrollContainer.dataset.frsScrollLock;
+		// Restore scroll
+		document.documentElement.classList.remove( 'frs-scroll-locked' );
 		setTimeout( function () {
 			if ( ! state.panelOpen ) {
-				$backdrop.hidden = true;
 				$panelBody.innerHTML = '';
 			}
 		}, 350 );
@@ -404,13 +398,13 @@
 		// Action buttons (internal directory — no Apply Now)
 		html += '<div class="frs-panel__actions">';
 		if ( email ) {
-			html += '<a class="frs-panel__action-btn" href="mailto:' + esc( email ) + '">'
+			html += '<a class="uk-button uk-button-primary" href="mailto:' + esc( email ) + '">'
 				+ '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>'
 				+ 'Contact ' + esc( firstName || 'Them' ) + '</a>';
 		}
 		if ( phone ) {
 			var cleanPhone2 = phone.replace( /[^\d+]/g, '' );
-			html += '<a class="frs-panel__action-btn" href="tel:' + esc( cleanPhone2 ) + '">'
+			html += '<a class="uk-button uk-button-default" href="tel:' + esc( cleanPhone2 ) + '">'
 				+ '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>'
 				+ 'Call Me</a>';
 		}
@@ -465,7 +459,7 @@
 		if ( specialties.length > 0 ) {
 			html += '<div class="frs-panel__badges">';
 			for ( var s = 0; s < specialties.length; s++ ) {
-				html += '<span class="frs-panel__badge">' + esc( specialties[s] ) + '</span>';
+				html += '<span class="uk-tag uk-tag-secondary">' + esc( specialties[s] ) + '</span>';
 			}
 			html += '</div>';
 		} else {
@@ -476,7 +470,7 @@
 		if ( certs.length > 0 ) {
 			html += '<div class="frs-panel__badges">';
 			for ( var c = 0; c < certs.length; c++ ) {
-				html += '<span class="frs-panel__badge frs-panel__badge--cert">' + esc( certs[c] ) + '</span>';
+				html += '<span class="uk-tag uk-tag-info">' + esc( certs[c] ) + '</span>';
 			}
 			html += '</div>';
 		} else {

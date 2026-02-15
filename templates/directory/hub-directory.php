@@ -84,17 +84,24 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 </div>
 
 <!-- Profile Slide-Out Panel -->
-<div class="frs-panel-backdrop" id="frs-panel-backdrop" hidden></div>
+<div class="frs-panel-backdrop" id="frs-panel-backdrop"></div>
 <div class="frs-panel" id="frs-panel" aria-hidden="true">
-	<div class="frs-panel__header">
-		<button class="frs-panel__close" id="frs-panel-close" aria-label="<?php esc_attr_e( 'Close', 'frs-users' ); ?>">
-			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-		</button>
-	</div>
+	<button class="frs-panel__close" id="frs-panel-close" type="button" aria-label="<?php esc_attr_e( 'Close', 'frs-users' ); ?>">
+		<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+	</button>
 	<div class="frs-panel__body" id="frs-panel-body"></div>
 </div>
 
 <style>
+/* ── FRS Branding Overrides for Frankenstyle ──────────────── */
+.frs-directory,
+.frs-panel {
+	--uk-global-radius: 5px;
+	--uk-global-radius-small: 3px;
+	--uk-primary: #2563eb;
+	--uk-primary-f: #fff;
+}
+
 /* ── Hub Directory ─────────────────────────────────────────── */
 .frs-directory {
 	max-width: 1400px;
@@ -256,22 +263,31 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	gap: 0;
 }
 
-/* Card */
+/* Card (layered on uk-card) */
 .frs-directory__card {
-	background: #fff;
-	border: 1px solid #e2e8f0;
-	border-radius: 5px;
-	text-align: center;
-	padding: 1.5rem 1rem 0;
+	cursor: pointer;
 	display: flex;
 	flex-direction: column;
-	align-items: center;
 	transition: box-shadow 0.15s, transform 0.15s;
 }
 
 .frs-directory__card:hover {
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 	transform: translateY(-2px);
+}
+
+.frs-directory__card .uk-card-body {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+}
+
+.frs-directory__card .uk-card-footer {
+	display: flex;
+	padding: 0;
+	min-height: 40px;
 }
 
 .frs-directory__card-avatar {
@@ -289,15 +305,6 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	color: #1e293b;
 	margin: 0 0 0.25rem;
 	line-height: 1.3;
-}
-
-.frs-directory__card-name a {
-	color: inherit;
-	text-decoration: none;
-}
-
-.frs-directory__card-name a:hover {
-	color: var(--frs-blue, #2563eb);
 }
 
 .frs-directory__card-title {
@@ -332,13 +339,6 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	margin: 0 0 0.75rem;
 }
 
-.frs-directory__card-actions {
-	display: flex;
-	width: calc(100% + 2rem);
-	margin: auto 0 0;
-	border-top: 1px solid #e2e8f0;
-}
-
 .frs-directory__card-action {
 	flex: 1;
 	display: flex;
@@ -355,7 +355,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 }
 
 .frs-directory__card-action + .frs-directory__card-action {
-	border-left: 1px solid #e2e8f0;
+	border-left: 1px solid color-mix(in srgb, var(--uk-border, #000) 10%, transparent);
 }
 
 .frs-directory__card-action:hover {
@@ -367,9 +367,38 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 .frs-directory__grid.is-list .frs-directory__card {
 	flex-direction: row;
 	text-align: left;
-	padding: 0.75rem 1rem;
 	border-radius: 0;
 	gap: 1rem;
+}
+
+.frs-directory__grid.is-list .frs-directory__card .uk-card-body {
+	flex-direction: row;
+	text-align: left;
+	align-items: center;
+	gap: 1rem;
+}
+
+.frs-directory__grid.is-list .frs-directory__card .uk-card-footer {
+	border-top: none;
+	min-height: auto;
+	flex-shrink: 0;
+	gap: 4px;
+	align-items: center;
+}
+
+.frs-directory__grid.is-list .frs-directory__card-action {
+	width: 36px;
+	height: 36px;
+	padding: 0;
+	border-radius: 5px;
+}
+
+.frs-directory__grid.is-list .frs-directory__card-action + .frs-directory__card-action {
+	border-left: none;
+}
+
+.frs-directory__grid.is-list .frs-directory__card-action:hover {
+	background: #e2e8f0;
 }
 
 .frs-directory__grid.is-list .frs-directory__card + .frs-directory__card {
@@ -391,7 +420,6 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 .frs-directory__grid.is-list .frs-directory__card:hover {
 	transform: none;
 	box-shadow: none;
-	background: #f8fafc;
 }
 
 .frs-directory__grid.is-list .frs-directory__card-avatar {
@@ -404,29 +432,6 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 .frs-directory__grid.is-list .frs-directory__card-info {
 	flex: 1;
 	min-width: 0;
-}
-
-.frs-directory__grid.is-list .frs-directory__card-actions {
-	width: auto;
-	border-top: none;
-	margin: 0;
-	flex-shrink: 0;
-	gap: 4px;
-}
-
-.frs-directory__grid.is-list .frs-directory__card-action + .frs-directory__card-action {
-	border-left: none;
-}
-
-.frs-directory__grid.is-list .frs-directory__card-action {
-	width: 36px;
-	height: 36px;
-	padding: 0;
-	border-radius: 5px;
-}
-
-.frs-directory__grid.is-list .frs-directory__card-action:hover {
-	background: #e2e8f0;
 }
 
 /* Empty state */
@@ -525,10 +530,6 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 		width: 100%;
 	}
 
-	.frs-directory__card {
-		padding: 1rem 0.75rem 0;
-	}
-
 	.frs-directory__card-avatar {
 		width: 60px;
 		height: 60px;
@@ -539,21 +540,26 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	}
 }
 
-/* ── Slide-Out Profile Panel ────────────────────────────── */
-.frs-directory__card { cursor: pointer; }
+/* ── Scroll Lock ─────────────────────────────────────────── */
+html.frs-scroll-locked,
+html.frs-scroll-locked body {
+	overflow: hidden !important;
+}
 
+/* ── Slide-Out Profile Panel ─────────────────────────────── */
 .frs-panel-backdrop {
 	position: fixed;
 	inset: 0;
-	background: rgba(0,0,0,0.25);
+	background: rgba(0,0,0,0.35);
 	z-index: 9998;
 	opacity: 0;
-	transition: opacity 0.3s;
-	pointer-events: none;
+	visibility: hidden;
+	transition: opacity 0.3s, visibility 0.3s;
+	backdrop-filter: blur(2px);
 }
 .frs-panel-backdrop.is-open {
 	opacity: 1;
-	pointer-events: auto;
+	visibility: visible;
 }
 
 .frs-panel {
@@ -563,7 +569,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	bottom: 0;
 	width: 540px;
 	max-width: 92vw;
-	background: #fff;
+	background: var(--uk-bg, #fff);
 	z-index: 9999;
 	transform: translateX(100%);
 	transition: transform 0.3s ease;
@@ -573,15 +579,11 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 }
 .frs-panel.is-open { transform: translateX(0); }
 
-.frs-panel__header {
-	position: absolute;
-	top: 0;
-	right: 0;
-	z-index: 10;
-	padding: 12px 16px;
-}
-
 .frs-panel__close {
+	position: absolute;
+	top: 12px;
+	right: 16px;
+	z-index: 10;
 	background: rgba(255,255,255,0.85);
 	border: none;
 	cursor: pointer;
@@ -703,38 +705,15 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 .frs-panel__contact-item:hover { color: var(--frs-blue, #2563eb); }
 .frs-panel__contact-item svg { color: #94a3b8; flex-shrink: 0; }
 
-/* Action buttons */
+/* Panel action buttons — use uk-button classes */
 .frs-panel__actions {
 	display: flex;
 	gap: 0.625rem;
 	padding: 1rem 1.5rem;
 }
 
-.frs-panel__action-btn {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 0.5rem;
+.frs-panel__actions .uk-button {
 	flex: 1;
-	padding: 0.75rem 1rem;
-	border: 2px solid transparent;
-	border-radius: 5px;
-	background: linear-gradient(#fff, #fff), linear-gradient(90deg, var(--frs-cyan, #2dd4da), var(--frs-blue, #2563eb));
-	background-clip: padding-box, border-box;
-	background-origin: padding-box, border-box;
-	color: var(--frs-blue, #2563eb);
-	font-size: 0.875rem;
-	font-weight: 600;
-	cursor: pointer;
-	text-decoration: none;
-	transition: opacity 0.15s;
-}
-.frs-panel__action-btn:hover { opacity: 0.9; }
-
-.frs-panel__action-btn--primary {
-	background: linear-gradient(135deg, var(--frs-blue, #2563eb), var(--frs-cyan, #2dd4da));
-	color: #fff;
-	border: none;
 }
 
 /* Service areas grid */
@@ -779,31 +758,17 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 .frs-panel__bio-content p { margin: 0 0 0.75rem; }
 .frs-panel__bio-content p:last-child { margin-bottom: 0; }
 
-/* Badges */
+/* Badges — using uk-tag classes from frankenstyle */
 .frs-panel__badges {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 0.5rem;
 }
 
-.frs-panel__badge {
-	display: inline-block;
-	padding: 0.25rem 0.75rem;
-	background: #f1f5f9;
-	border-radius: 5px;
-	font-size: 0.8125rem;
-	color: #374151;
-	font-weight: 500;
-}
-.frs-panel__badge--cert {
-	background: #fae8ff;
-	color: #86198f;
-}
-
-/* Social row */
-.frs-panel__social-row {
-	display: flex;
-	flex-wrap: wrap;
+/* Social grid (2-col like hub profile) */
+.frs-panel__social-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
 	gap: 0.5rem;
 }
 
@@ -819,6 +784,10 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	text-decoration: none;
 }
 .frs-panel__social-link:hover { border-color: var(--frs-blue, #2563eb); color: var(--frs-blue, #2563eb); }
+.frs-panel__social-link--empty {
+	color: #94a3b8;
+	pointer-events: none;
+}
 
 /* Custom links list */
 .frs-panel__link-item {
@@ -833,7 +802,6 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 }
 .frs-panel__link-item:last-child { border-bottom: none; }
 .frs-panel__link-item:hover { color: var(--frs-blue, #2563eb); }
-
 .frs-panel__link-title { font-weight: 600; color: #1e293b; }
 
 /* Panel subsections (specialties) */
@@ -847,17 +815,6 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	font-weight: 500;
 	color: #374151;
 	margin: 0 0 0.5rem;
-}
-
-/* Panel social grid (2-col like hub profile) */
-.frs-panel__social-grid {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 0.5rem;
-}
-.frs-panel__social-link--empty {
-	color: #94a3b8;
-	pointer-events: none;
 }
 
 /* Panel empty states */

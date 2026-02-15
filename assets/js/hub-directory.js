@@ -278,6 +278,13 @@
 	function openPanel( userId ) {
 		state.panelOpen = true;
 		$panelBody.innerHTML = '<div class="frs-panel__loading"><div class="frs-directory__spinner"></div></div>';
+
+		// Position panel below site header
+		var header = document.querySelector( '.ct-header, #masthead, .site-header, header[role="banner"]' );
+		if ( header ) {
+			$panel.style.top = header.getBoundingClientRect().bottom + 'px';
+		}
+
 		$panel.classList.add( 'is-open' );
 		$panel.setAttribute( 'aria-hidden', 'false' );
 		// Lock scroll
@@ -392,18 +399,18 @@
 			html += '</div>';
 		}
 
-		// Action buttons (internal directory — no Apply Now)
+		// Action buttons
+		var panelUserId = p.user_id || p.id || '';
 		html += '<div class="frs-panel__actions">';
 		if ( email ) {
-			html += '<a class="uk-button uk-button-primary" href="mailto:' + esc( email ) + '">'
+			html += '<a class="frs-panel__action-btn frs-panel__action-btn--primary" href="mailto:' + esc( email ) + '">'
 				+ '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>'
-				+ 'Contact ' + esc( firstName || 'Them' ) + '</a>';
+				+ 'Email ' + esc( firstName || 'Them' ) + '</a>';
 		}
-		if ( phone ) {
-			var cleanPhone2 = phone.replace( /[^\d+]/g, '' );
-			html += '<a class="uk-button uk-button-default" href="tel:' + esc( cleanPhone2 ) + '">'
-				+ '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>'
-				+ 'Call Me</a>';
+		if ( panelUserId ) {
+			html += '<a class="frs-panel__action-btn" href="' + esc( REST + 'vcard/' + panelUserId ) + '" download>'
+				+ '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>'
+				+ 'Save Contact</a>';
 		}
 		html += '</div>';
 

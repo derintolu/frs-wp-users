@@ -684,15 +684,38 @@ html.frs-scroll-locked body {
 .frs-panel__contact-item:hover { color: var(--frs-blue, #2563eb); }
 .frs-panel__contact-item svg { color: #94a3b8; flex-shrink: 0; }
 
-/* Panel action buttons — use uk-button classes */
+/* Panel action buttons */
 .frs-panel__actions {
 	display: flex;
 	gap: 0.625rem;
 	padding: 1rem 1.5rem;
 }
 
-.frs-panel__actions .uk-button {
+.frs-panel__action-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
 	flex: 1;
+	padding: 0.75rem 1rem;
+	border: 2px solid transparent;
+	border-radius: 5px;
+	background: linear-gradient(#fff, #fff), linear-gradient(90deg, var(--frs-cyan, #2dd4da), var(--frs-blue, #2563eb));
+	background-clip: padding-box, border-box;
+	background-origin: padding-box, border-box;
+	color: var(--frs-blue, #2563eb);
+	font-size: 0.875rem;
+	font-weight: 600;
+	cursor: pointer;
+	text-decoration: none;
+	transition: opacity 0.15s;
+}
+.frs-panel__action-btn:hover { opacity: 0.9; }
+
+.frs-panel__action-btn--primary {
+	background: linear-gradient(135deg, var(--frs-blue, #2563eb), var(--frs-cyan, #2dd4da));
+	color: #fff;
+	border: none;
 }
 
 /* Service areas grid */

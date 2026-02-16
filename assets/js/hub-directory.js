@@ -275,28 +275,38 @@
 
 	/* ── Slide-Out Profile Panel ────────────────────────────── */
 
-	/* ── Scroll lock ──────────────────────────────────────── */
-	// Block wheel/touch everywhere EXCEPT inside the panel scroll area.
-	function blockScroll( e ) {
-		var scrollEl = $panelBody.querySelector( '.frs-panel__scroll' );
-		if ( scrollEl && scrollEl.contains( e.target ) ) {
-			return; // allow panel content to scroll
-		}
-		e.preventDefault();
+	/* ── Scroll lock (Lenis-aware) ────────────────────────── */
+	// Greenshift's Lenis smooth-scroll intercepts all wheel events.
+	// Use its API: lenis.stop() freezes background, data-lenis-prevent
+	// on the scroll container lets panel content scroll natively.
+	function getLenis() {
+		// Lenis is declared as a global const in Greenshift's smoothscroll.js
+		try { return typeof lenis !== 'undefined' ? lenis : null; }
+		catch ( e ) { return null; }
 	}
 
 	function lockScroll() {
-		document.addEventListener( 'wheel', blockScroll, { passive: false } );
-		document.addEventListener( 'touchmove', blockScroll, { passive: false } );
+		var l = getLenis();
+		if ( l && typeof l.stop === 'function' ) {
+			l.stop();
+		} else {
+			document.documentElement.style.overflow = 'hidden';
+			document.body.style.overflow = 'hidden';
+		}
 	}
 	function unlockScroll() {
-		document.removeEventListener( 'wheel', blockScroll );
-		document.removeEventListener( 'touchmove', blockScroll );
+		var l = getLenis();
+		if ( l && typeof l.start === 'function' ) {
+			l.start();
+		} else {
+			document.documentElement.style.overflow = '';
+			document.body.style.overflow = '';
+		}
 	}
 
 	function openPanel( userId ) {
 		state.panelOpen = true;
-		$panelBody.innerHTML = '<div class="frs-panel__scroll"><div class="frs-panel__loading"><div class="frs-directory__spinner"></div></div></div>';
+		$panelBody.innerHTML = '<div class="frs-panel__scroll" data-lenis-prevent><div class="frs-panel__loading"><div class="frs-directory__spinner"></div></div></div>';
 		$panel.classList.add( 'is-open' );
 		$panel.setAttribute( 'aria-hidden', 'false' );
 		lockScroll();
@@ -310,7 +320,7 @@
 		xhr.onload = function () {
 			if ( ! state.panelOpen ) return;
 			if ( xhr.status !== 200 ) {
-				$panelBody.innerHTML = '<div class="frs-panel__scroll"><p style="padding:2rem;text-align:center;color:#94a3b8;">Could not load profile.</p></div>';
+				$panelBody.innerHTML = '<div class="frs-panel__scroll" data-lenis-prevent><p style="padding:2rem;text-align:center;color:#94a3b8;">Could not load profile.</p></div>';
 				return;
 			}
 			var json = JSON.parse( xhr.responseText );
@@ -320,7 +330,7 @@
 
 		xhr.onerror = function () {
 			if ( ! state.panelOpen ) return;
-			$panelBody.innerHTML = '<div class="frs-panel__scroll"><p style="padding:2rem;text-align:center;color:#94a3b8;">Could not load profile.</p></div>';
+			$panelBody.innerHTML = '<div class="frs-panel__scroll" data-lenis-prevent><p style="padding:2rem;text-align:center;color:#94a3b8;">Could not load profile.</p></div>';
 		};
 
 		xhr.send();
@@ -533,7 +543,7 @@
 			+ ' Instagram</a>';
 		html += '</div></div>';
 
-		$panelBody.innerHTML = '<div class="frs-panel__scroll">' + html + '</div>';
+		$panelBody.innerHTML = '<div class="frs-panel__scroll" data-lenis-prevent>' + html + '</div>';
 	}
 
 	/* ── Event handlers ─────────────────────────────────────── */

@@ -851,4 +851,16 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 }
 .frs-panel__empty--small { font-size: 0.75rem; }
 .frs-panel__empty--center { text-align: center; padding: 1.5rem 0; }
+
+/* Panel full-screen on mobile */
+@media (max-width: 640px) {
+	.frs-panel {
+		--panel-top: 0;
+	}
+	.frs-panel__inner {
+		width: 100%;
+		max-width: 100%;
+		box-shadow: none;
+	}
+}
 </style>

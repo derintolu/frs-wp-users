@@ -275,6 +275,20 @@
 
 	/* ── Slide-Out Profile Panel ────────────────────────────── */
 
+	/* ── Background scroll lock ───────────────────────────── */
+	// Block wheel/touch on the PARENT page. The iframe is a separate
+	// document so its own scroll events are unaffected by this.
+	function blockScroll( e ) { e.preventDefault(); }
+
+	function lockScroll() {
+		document.addEventListener( 'wheel', blockScroll, { passive: false } );
+		document.addEventListener( 'touchmove', blockScroll, { passive: false } );
+	}
+	function unlockScroll() {
+		document.removeEventListener( 'wheel', blockScroll );
+		document.removeEventListener( 'touchmove', blockScroll );
+	}
+
 	/* ── Iframe-based profile renderer ────────────────────── */
 	// Collect parent page stylesheets once so the iframe inherits them.
 	function gatherStyles() {
@@ -316,6 +330,7 @@
 		$panelBody.innerHTML = '<div class="frs-panel__loading"><div class="frs-directory__spinner"></div></div>';
 		$panel.classList.add( 'is-open' );
 		$panel.setAttribute( 'aria-hidden', 'false' );
+		lockScroll();
 
 		// Fetch full profile
 		var url = REST + 'profiles/' + encodeURIComponent( userId );
@@ -346,6 +361,7 @@
 		state.panelOpen = false;
 		$panel.classList.remove( 'is-open' );
 		$panel.setAttribute( 'aria-hidden', 'true' );
+		unlockScroll();
 
 		setTimeout( function () {
 			if ( ! state.panelOpen ) {

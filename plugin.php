@@ -23,6 +23,7 @@ use FRSUsers\Routes\Api;
 use FRSUsers\Integrations\FRSSync;
 use FRSUsers\Integrations\FluentCRMSync;
 use FRSUsers\Integrations\FollowUpBoss;
+use FRSUsers\Integrations\TwentyCRMSync;
 use FRSUsers\Controllers\Blocks;
 use FRSUsers\Abilities\AbilitiesRegistry;
 use FRSUsers\Core\ActivityRecorder;
@@ -85,6 +86,9 @@ final class FRSUsers {
 		// Initialize Profile API with CRUD and webhooks
 		ProfileApi::get_instance()->init();
 
+		// Initialize Twenty CRM API routes (on rest_api_init hook)
+		add_action( 'rest_api_init', array( '\FRSUsers\Routes\TwentyCRMApi', 'register_routes' ) );
+
 		// Initialize Gutenberg blocks
 		Blocks::init();
 
@@ -127,6 +131,9 @@ final class FRSUsers {
 		// Initialize FluentCRM real-time sync integration
 		FluentCRMSync::get_instance()->init();
 
+		// Initialize Twenty CRM integration
+		TwentyCRMSync::init();
+
 		// Initialize activity recording hooks
 		ActivityRecorder::init();
 
@@ -150,6 +157,7 @@ final class FRSUsers {
 			\FRSUsers\Admin\ProfileAddPage::get_instance()->init();
 			\FRSUsers\Admin\UserProfileFields::get_instance()->init();
 			\FRSUsers\Admin\CsvImportExport::get_instance()->init();
+			\FRSUsers\Admin\TwentyCRMSettingsPage::init();
 		}
 
 		// Initialize internationalization

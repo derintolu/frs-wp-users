@@ -275,10 +275,15 @@
 
 	/* ── Slide-Out Profile Panel ────────────────────────────── */
 
-	/* ── Background scroll lock ───────────────────────────── */
-	// Block wheel/touch on the PARENT page. The iframe is a separate
-	// document so its own scroll events are unaffected by this.
-	function blockScroll( e ) { e.preventDefault(); }
+	/* ── Scroll lock ──────────────────────────────────────── */
+	// Block wheel/touch everywhere EXCEPT inside the panel scroll area.
+	function blockScroll( e ) {
+		var scrollEl = $panelBody.querySelector( '.frs-panel__scroll' );
+		if ( scrollEl && scrollEl.contains( e.target ) ) {
+			return; // allow panel content to scroll
+		}
+		e.preventDefault();
+	}
 
 	function lockScroll() {
 		document.addEventListener( 'wheel', blockScroll, { passive: false } );
@@ -289,45 +294,9 @@
 		document.removeEventListener( 'touchmove', blockScroll );
 	}
 
-	/* ── Iframe-based profile renderer ────────────────────── */
-	// Collect parent page stylesheets once so the iframe inherits them.
-	function gatherStyles() {
-		var out = '';
-		var links = document.querySelectorAll( 'link[rel="stylesheet"]' );
-		for ( var i = 0; i < links.length; i++ ) {
-			out += '<link rel="stylesheet" href="' + links[i].href + '">';
-		}
-		var tags = document.querySelectorAll( 'style' );
-		for ( var j = 0; j < tags.length; j++ ) {
-			out += '<style>' + tags[j].textContent + '<\/style>';
-		}
-		return out;
-	}
-
-	function writeIframe( html ) {
-		var iframe = document.createElement( 'iframe' );
-		iframe.className = 'frs-panel__iframe';
-		$panelBody.innerHTML = '';
-		$panelBody.appendChild( iframe );
-
-		var doc = iframe.contentDocument || iframe.contentWindow.document;
-		doc.open();
-		doc.write(
-			'<!DOCTYPE html><html><head><meta charset="utf-8">'
-			+ '<base target="_parent">'
-			+ gatherStyles()
-			+ '<style>'
-			+ 'html,body{margin:0;padding:0;overflow-x:hidden;overflow-y:auto;'
-			+ '-webkit-overflow-scrolling:touch;overscroll-behavior:contain;'
-			+ 'font-family:"Mona Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}'
-			+ '<\/style></head><body>' + html + '</body></html>'
-		);
-		doc.close();
-	}
-
 	function openPanel( userId ) {
 		state.panelOpen = true;
-		$panelBody.innerHTML = '<div class="frs-panel__loading"><div class="frs-directory__spinner"></div></div>';
+		$panelBody.innerHTML = '<div class="frs-panel__scroll"><div class="frs-panel__loading"><div class="frs-directory__spinner"></div></div></div>';
 		$panel.classList.add( 'is-open' );
 		$panel.setAttribute( 'aria-hidden', 'false' );
 		lockScroll();
@@ -341,7 +310,7 @@
 		xhr.onload = function () {
 			if ( ! state.panelOpen ) return;
 			if ( xhr.status !== 200 ) {
-				$panelBody.innerHTML = '<p style="padding:2rem;text-align:center;color:#94a3b8;">Could not load profile.</p>';
+				$panelBody.innerHTML = '<div class="frs-panel__scroll"><p style="padding:2rem;text-align:center;color:#94a3b8;">Could not load profile.</p></div>';
 				return;
 			}
 			var json = JSON.parse( xhr.responseText );
@@ -351,7 +320,7 @@
 
 		xhr.onerror = function () {
 			if ( ! state.panelOpen ) return;
-			$panelBody.innerHTML = '<p style="padding:2rem;text-align:center;color:#94a3b8;">Could not load profile.</p>';
+			$panelBody.innerHTML = '<div class="frs-panel__scroll"><p style="padding:2rem;text-align:center;color:#94a3b8;">Could not load profile.</p></div>';
 		};
 
 		xhr.send();
@@ -564,7 +533,7 @@
 			+ ' Instagram</a>';
 		html += '</div></div>';
 
-		writeIframe( html );
+		$panelBody.innerHTML = '<div class="frs-panel__scroll">' + html + '</div>';
 	}
 
 	/* ── Event handlers ─────────────────────────────────────── */

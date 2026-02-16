@@ -591,14 +591,16 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	overflow: hidden;
 }
 
-.frs-panel__iframe {
+.frs-panel__scroll {
 	position: absolute;
 	top: 0;
 	left: 0;
-	width: 100%;
-	height: 100%;
-	border: none;
-	display: block;
+	right: 0;
+	bottom: 0;
+	overflow-y: auto;
+	overflow-x: hidden;
+	overscroll-behavior: contain;
+	-webkit-overflow-scrolling: touch;
 }
 
 /* Panel profile content */

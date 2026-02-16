@@ -113,15 +113,19 @@ class Actions {
 			$meta_query[] = $role_query;
 		}
 
-		// Letter filter: match last_name starting with a specific letter.
+		// Letter filter: match the sort field starting with a specific letter.
 		if ( $letter && preg_match( '/^[a-zA-Z]$/', $letter ) ) {
 			$upper = strtoupper( $letter );
 			$lower = strtolower( $letter );
-			$meta_query[] = array(
-				'key'     => 'last_name',
-				'value'   => '^[' . $upper . $lower . ']',
-				'compare' => 'REGEXP',
-			);
+			if ( 'display_name' !== $sort_meta_key ) {
+				// first_name or last_name — filter via meta query.
+				$meta_query[] = array(
+					'key'     => $sort_meta_key,
+					'value'   => '^[' . $upper . $lower . ']',
+					'compare' => 'REGEXP',
+				);
+			}
+			// display_name is filtered post-query below.
 		}
 
 		if ( ! empty( $meta_query ) ) {
@@ -169,6 +173,15 @@ class Actions {
 				}
 
 				return false;
+			} );
+		}
+
+		// Letter filter for display_name (post-query since it's not a meta key).
+		if ( $letter && 'display_name' === $sort_meta_key && preg_match( '/^[a-zA-Z]$/', $letter ) ) {
+			$upper             = strtoupper( $letter );
+			$filtered_profiles = array_filter( $filtered_profiles, function ( $profile ) use ( $upper ) {
+				$name = $profile->display_name ?? '';
+				return $name && strtoupper( $name[0] ) === $upper;
 			} );
 		}
 

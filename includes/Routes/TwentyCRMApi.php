@@ -70,10 +70,12 @@ class TwentyCRMApi {
 	public static function get_settings() {
 		return new \WP_REST_Response(
 			array(
-				'enabled'        => (bool) get_option( 'frs_twenty_crm_enabled', false ),
-				'api_url'        => get_option( 'frs_twenty_crm_url', 'https://20.frs.works' ),
-				'api_key'        => get_option( 'frs_twenty_crm_api_key', '' ),
-				'webhook_secret' => get_option( 'frs_twenty_crm_webhook_secret', '' ),
+				'enabled'           => (bool) get_option( 'frs_twenty_crm_enabled', false ),
+				'api_url'           => get_option( 'frs_twenty_crm_url', 'https://20.frs.works' ),
+				'api_key'           => get_option( 'frs_twenty_crm_api_key', '' ),
+				'webhook_secret'    => get_option( 'frs_twenty_crm_webhook_secret', '' ),
+				'sync_roles'        => get_option( 'frs_twenty_crm_sync_roles', array( 'loan_originator' ) ),
+				'available_roles'   => \FRSUsers\Core\Roles::get_company_roles(),
 			),
 			200
 		);
@@ -90,6 +92,7 @@ class TwentyCRMApi {
 		$api_url        = $request->get_param( 'api_url' );
 		$api_key        = $request->get_param( 'api_key' );
 		$webhook_secret = $request->get_param( 'webhook_secret' );
+		$sync_roles     = $request->get_param( 'sync_roles' );
 
 		// Validate
 		if ( $enabled && ( empty( $api_url ) || empty( $api_key ) ) ) {
@@ -100,11 +103,17 @@ class TwentyCRMApi {
 			);
 		}
 
+		// Validate sync_roles
+		if ( ! is_array( $sync_roles ) ) {
+			$sync_roles = array();
+		}
+
 		// Save
 		update_option( 'frs_twenty_crm_enabled', (bool) $enabled );
 		update_option( 'frs_twenty_crm_url', esc_url_raw( $api_url ) );
 		update_option( 'frs_twenty_crm_api_key', sanitize_text_field( $api_key ) );
 		update_option( 'frs_twenty_crm_webhook_secret', sanitize_text_field( $webhook_secret ) );
+		update_option( 'frs_twenty_crm_sync_roles', array_map( 'sanitize_text_field', $sync_roles ) );
 
 		return new \WP_REST_Response(
 			array(

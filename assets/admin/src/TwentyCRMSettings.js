@@ -11,6 +11,7 @@ import {
 	Notice,
 	TextControl,
 	ToggleControl,
+	CheckboxControl,
 	Panel,
 	PanelBody,
 	PanelRow,
@@ -30,6 +31,8 @@ function TwentyCRMSettings() {
 		api_url: 'https://20.frs.works',
 		api_key: '',
 		webhook_secret: '',
+		sync_roles: ['loan_originator'],
+		available_roles: {},
 	});
 	const [isSaving, setIsSaving] = useState(false);
 	const [isTesting, setIsTesting] = useState(false);
@@ -63,6 +66,16 @@ function TwentyCRMSettings() {
 
 	const updateSetting = (field, value) => {
 		setSettings((prev) => ({ ...prev, [field]: value }));
+	};
+
+	const toggleRole = (roleSlug) => {
+		setSettings((prev) => {
+			const currentRoles = prev.sync_roles || [];
+			const newRoles = currentRoles.includes(roleSlug)
+				? currentRoles.filter((r) => r !== roleSlug)
+				: [...currentRoles, roleSlug];
+			return { ...prev, sync_roles: newRoles };
+		});
 	};
 
 	const handleSave = async () => {
@@ -166,6 +179,25 @@ function TwentyCRMSettings() {
 							checked={settings.enabled}
 							onChange={(value) => updateSetting('enabled', value)}
 						/>
+					</PanelRow>
+
+					<PanelRow>
+						<div style={{ width: '100%' }}>
+							<strong>{__('Sync Company Roles', 'frs-users')}</strong>
+							<p className="description" style={{ marginTop: '8px', marginBottom: '12px' }}>
+								{__('Select which company roles should be synced with Twenty CRM', 'frs-users')}
+							</p>
+							<div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+								{Object.entries(settings.available_roles || {}).map(([slug, label]) => (
+									<CheckboxControl
+										key={slug}
+										label={label}
+										checked={(settings.sync_roles || []).includes(slug)}
+										onChange={() => toggleRole(slug)}
+									/>
+								))}
+							</div>
+						</div>
 					</PanelRow>
 
 					<PanelRow>

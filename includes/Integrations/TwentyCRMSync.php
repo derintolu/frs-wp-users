@@ -44,6 +44,31 @@ class TwentyCRMSync {
 	}
 
 	/**
+	 * Check if user should be synced based on company roles
+	 *
+	 * @param int $user_id User ID.
+	 * @return bool
+	 */
+	private static function should_sync_user( $user_id ) {
+		$sync_roles = get_option( 'frs_twenty_crm_sync_roles', array( 'loan_originator' ) );
+
+		if ( empty( $sync_roles ) ) {
+			return false;
+		}
+
+		$user_roles = get_user_meta( $user_id, 'frs_company_role', false );
+
+		if ( empty( $user_roles ) ) {
+			return false;
+		}
+
+		// Check if user has any of the selected sync roles
+		$has_sync_role = array_intersect( $user_roles, $sync_roles );
+
+		return ! empty( $has_sync_role );
+	}
+
+	/**
 	 * Get Twenty CRM API URL
 	 *
 	 * @return string
@@ -99,6 +124,10 @@ class TwentyCRMSync {
 			return;
 		}
 
+		if ( ! self::should_sync_user( $profile_id ) ) {
+			return;
+		}
+
 		$user = get_userdata( $profile_id );
 		if ( ! $user ) {
 			return;
@@ -116,6 +145,10 @@ class TwentyCRMSync {
 	 */
 	public static function sync_user_to_twenty( $user_id, $old_user_data ) {
 		if ( ! self::is_enabled() ) {
+			return;
+		}
+
+		if ( ! self::should_sync_user( $user_id ) ) {
 			return;
 		}
 
@@ -414,6 +447,23 @@ class TwentyCRMSync {
 				__( 'Missing person data in webhook.', 'frs-users' ),
 				array( 'status' => 400 )
 			);
+		}
+
+		// Check if person has any of the sync roles
+		$sync_roles = get_option( 'frs_twenty_crm_sync_roles', array( 'loan_originator' ) );
+		$person_roles = $person['personRoles'] ?? array();
+
+		if ( ! empty( $sync_roles ) && ! empty( $person_roles ) ) {
+			$has_sync_role = array_intersect( $person_roles, $sync_roles );
+			if ( empty( $has_sync_role ) ) {
+				return new \WP_REST_Response(
+					array(
+						'success' => true,
+						'message' => 'Person does not have any sync roles. Skipped.',
+					),
+					200
+				);
+			}
 		}
 
 		$email      = $person['emails']['primaryEmail'] ?? $person['email'];

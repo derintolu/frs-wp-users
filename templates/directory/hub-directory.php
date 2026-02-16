@@ -587,10 +587,14 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 .frs-panel__body {
 	flex: 1 1 0%;
 	min-height: 0;
+	position: relative;
 	overflow: hidden;
 }
 
 .frs-panel__iframe {
+	position: absolute;
+	top: 0;
+	left: 0;
 	width: 100%;
 	height: 100%;
 	border: none;

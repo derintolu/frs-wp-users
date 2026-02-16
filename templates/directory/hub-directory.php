@@ -255,7 +255,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 /* Grid view */
 .frs-directory__grid {
 	display: grid;
-	grid-template-columns: repeat(4, 1fr);
+	grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
 	gap: 1rem;
 }
 
@@ -269,6 +269,8 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	cursor: pointer;
 	display: flex;
 	flex-direction: column;
+	overflow: hidden;
+	word-break: break-word;
 	transition: box-shadow 0.15s, transform 0.15s;
 }
 
@@ -500,17 +502,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 }
 
 /* Responsive */
-@media (max-width: 900px) {
-	.frs-directory__grid {
-		grid-template-columns: repeat(3, 1fr);
-	}
-}
-
 @media (max-width: 640px) {
-	.frs-directory__grid {
-		grid-template-columns: repeat(2, 1fr);
-	}
-
 	.frs-directory__toolbar {
 		flex-direction: column;
 		align-items: stretch;
@@ -855,7 +847,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 /* Panel full-screen on mobile */
 @media (max-width: 640px) {
 	.frs-panel {
-		--panel-top: 0;
+		--panel-top: 60px;
 	}
 	.frs-panel__inner {
 		width: 100%;

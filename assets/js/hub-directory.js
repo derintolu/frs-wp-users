@@ -53,6 +53,7 @@
 		search:     '',
 		letter:     '',
 		role:       '',
+		serviceArea: '',
 		orderby:    'first_name',
 		order:      'asc',
 		view:       'grid',
@@ -70,6 +71,7 @@
 	var $count      = document.getElementById( 'frs-directory-count' );
 	var $search     = document.getElementById( 'frs-directory-search' );
 	var $role       = document.getElementById( 'frs-directory-role' );
+	var $area       = document.getElementById( 'frs-directory-area' );
 	var $sort       = document.getElementById( 'frs-directory-sort' );
 	var $alphabet   = document.getElementById( 'frs-directory-alphabet' );
 	var $panel      = document.getElementById( 'frs-panel' );
@@ -117,9 +119,10 @@
 		url += '&orderby=' + encodeURIComponent( state.orderby );
 		url += '&order='   + encodeURIComponent( state.order );
 
-		if ( state.search ) url += '&search=' + encodeURIComponent( state.search );
-		if ( state.letter ) url += '&letter='  + encodeURIComponent( state.letter );
-		if ( state.role )   url += '&company_role=' + encodeURIComponent( state.role );
+		if ( state.search )      url += '&search=' + encodeURIComponent( state.search );
+		if ( state.letter )      url += '&letter='  + encodeURIComponent( state.letter );
+		if ( state.role )        url += '&company_role=' + encodeURIComponent( state.role );
+		if ( state.serviceArea ) url += '&service_area=' + encodeURIComponent( state.serviceArea );
 
 		var xhr = new XMLHttpRequest();
 		xhr.open( 'GET', url );
@@ -557,6 +560,11 @@
 		fetchProfiles( false );
 	} );
 
+	$area.addEventListener( 'change', function () {
+		state.serviceArea = $area.value;
+		fetchProfiles( false );
+	} );
+
 	$sort.addEventListener( 'change', function () {
 		state.orderby = $sort.value;
 		fetchProfiles( false );
@@ -614,6 +622,26 @@
 	} );
 
 	/* ── Init ───────────────────────────────────────────────── */
+
+	// Populate service areas dropdown.
+	( function loadServiceAreas() {
+		var xhr = new XMLHttpRequest();
+		xhr.open( 'GET', REST + 'service-areas' );
+		if ( NONCE ) xhr.setRequestHeader( 'X-WP-Nonce', NONCE );
+		xhr.onload = function () {
+			if ( xhr.status !== 200 ) return;
+			var json = JSON.parse( xhr.responseText );
+			var areas = json.data || [];
+			for ( var i = 0; i < areas.length; i++ ) {
+				var opt = document.createElement( 'option' );
+				opt.value = areas[i];
+				opt.textContent = areas[i];
+				$area.appendChild( opt );
+			}
+		};
+		xhr.send();
+	} )();
+
 	fetchProfiles( false );
 
 } )();

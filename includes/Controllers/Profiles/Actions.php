@@ -36,6 +36,7 @@ class Actions {
 		$type         = $request->get_param( 'type' );
 		$company_role = $request->get_param( 'company_role' );
 		$search       = $request->get_param( 'search' );
+		$service_area = $request->get_param( 'service_area' );
 		$letter       = $request->get_param( 'letter' );
 		$orderby      = $request->get_param( 'orderby' ) ?: 'last_name';
 		$order        = strtoupper( $request->get_param( 'order' ) ?: 'asc' );
@@ -167,6 +168,23 @@ class Actions {
 					}
 				}
 
+				return false;
+			} );
+		}
+
+		// Service area filter.
+		if ( $service_area ) {
+			$sa_lower          = strtolower( $service_area );
+			$filtered_profiles = array_filter( $filtered_profiles, function ( $profile ) use ( $sa_lower ) {
+				$areas = $profile->service_areas;
+				if ( ! is_array( $areas ) ) {
+					return false;
+				}
+				foreach ( $areas as $area ) {
+					if ( strtolower( $area ) === $sa_lower ) {
+						return true;
+					}
+				}
 				return false;
 			} );
 		}

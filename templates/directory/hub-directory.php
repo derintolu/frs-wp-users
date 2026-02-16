@@ -35,6 +35,10 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 			<?php endforeach; ?>
 		</select>
 
+		<select class="frs-directory__filter-area" id="frs-directory-area">
+			<option value=""><?php esc_html_e( 'All Service Areas', 'frs-users' ); ?></option>
+		</select>
+
 		<select class="frs-directory__sort" id="frs-directory-sort">
 			<option value="first_name"><?php esc_html_e( 'First Name', 'frs-users' ); ?></option>
 			<option value="last_name"><?php esc_html_e( 'Last Name', 'frs-users' ); ?></option>
@@ -153,6 +157,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 }
 
 .frs-directory__filter-role,
+.frs-directory__filter-area,
 .frs-directory__sort {
 	padding: 10px 12px;
 	border: 1px solid #e2e8f0;
@@ -164,6 +169,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 }
 
 .frs-directory__filter-role:focus,
+.frs-directory__filter-area:focus,
 .frs-directory__sort:focus {
 	outline: none;
 	border-color: var(--frs-blue, #2563eb);
@@ -513,6 +519,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	}
 
 	.frs-directory__filter-role,
+	.frs-directory__filter-area,
 	.frs-directory__sort {
 		width: 100%;
 	}

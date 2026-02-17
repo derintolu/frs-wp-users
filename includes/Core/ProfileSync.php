@@ -352,6 +352,7 @@ class ProfileSync {
 			'specialties',
 			'languages',
 			'company_roles',
+			'booking_url',
 		);
 
 		foreach ( $meta_fields as $field ) {

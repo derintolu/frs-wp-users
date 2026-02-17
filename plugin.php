@@ -15,6 +15,7 @@ use FRSUsers\Core\TemplateLoader;
 use FRSUsers\Core\CORS;
 use FRSUsers\Core\EmbeddablePages;
 use FRSUsers\Core\SettingsPage;
+use FRSUsers\Core\OnboardingWizard;
 use FRSUsers\Core\PostComposer;
 use FRSUsers\Core\NewsletterTaxonomy;
 use FRSUsers\Core\BlockPatterns;
@@ -110,6 +111,9 @@ final class FRSUsers {
 
 		// Initialize frontend settings page (hub user settings)
 		SettingsPage::get_instance()->init();
+
+		// Initialize onboarding wizard (first-login setup for loan officers)
+		OnboardingWizard::get_instance()->init();
 
 		// Initialize post composer (minimal block editor for activity tab)
 		PostComposer::get_instance()->init();

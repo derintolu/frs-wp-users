@@ -504,6 +504,7 @@ class ProfileApi {
 			'canva_folder_link', 'status',
 			'specialties_lo', 'namb_certifications', 'service_areas',
 			'telegram_username',
+			'booking_url',
 		);
 	}
 

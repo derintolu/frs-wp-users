@@ -393,6 +393,13 @@ class Profile {
 	public $directory_button_type;
 
 	/**
+	 * FluentBooking booking page URL.
+	 *
+	 * @var string
+	 */
+	public $booking_url;
+
+	/**
 	 * QR code data/URL.
 	 *
 	 * @var string
@@ -766,6 +773,7 @@ class Profile {
 		update_user_meta( $this->user_id, 'frs_profile_headline', $this->profile_headline );
 		update_user_meta( $this->user_id, 'frs_profile_theme', $this->profile_theme );
 		update_user_meta( $this->user_id, 'frs_directory_button_type', $this->directory_button_type );
+		update_user_meta( $this->user_id, 'frs_booking_url', $this->booking_url );
 		update_user_meta( $this->user_id, 'frs_qr_code_data', $this->qr_code_data );
 		update_user_meta( $this->user_id, 'frs_is_active', $this->is_active );
 		update_user_meta( $this->user_id, 'frs_frs_agent_id', $this->frs_agent_id );
@@ -902,6 +910,7 @@ class Profile {
 			'profile_theme'           => $this->profile_theme,
 			'custom_links'            => $this->custom_links,
 			'directory_button_type'   => $this->directory_button_type,
+			'booking_url'             => $this->booking_url,
 			'qr_code_data'            => $this->qr_code_data,
 			'is_active'               => $this->is_active,
 			'frs_agent_id'            => $this->frs_agent_id,
@@ -1073,6 +1082,7 @@ class Profile {
 		$profile->profile_headline      = get_user_meta( $user->ID, 'frs_profile_headline', true );
 		$profile->profile_theme         = get_user_meta( $user->ID, 'frs_profile_theme', true );
 		$profile->directory_button_type = get_user_meta( $user->ID, 'frs_directory_button_type', true );
+		$profile->booking_url           = get_user_meta( $user->ID, 'frs_booking_url', true );
 		$profile->qr_code_data          = get_user_meta( $user->ID, 'frs_qr_code_data', true );
 		$profile->is_active             = (bool) get_user_meta( $user->ID, 'frs_is_active', true );
 		$profile->frs_agent_id          = get_user_meta( $user->ID, 'frs_frs_agent_id', true );

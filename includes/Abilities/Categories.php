@@ -25,6 +25,7 @@ class Categories {
 		self::register_profile_management();
 		self::register_role_management();
 		self::register_sync_operations();
+		self::register_onboarding();
 	}
 
 	/**
@@ -83,6 +84,16 @@ class Categories {
 			array(
 				'label'       => __( 'Sync Operations', 'frs-wp-users' ),
 				'description' => __( 'Abilities for triggering webhook-based synchronization operations with external systems and monitoring sync status.', 'frs-wp-users' ),
+			)
+		);
+	}
+
+	private static function register_onboarding(): void {
+		wp_register_ability_category(
+			'onboarding',
+			array(
+				'label'       => __( 'Onboarding', 'frs-wp-users' ),
+				'description' => __( 'Abilities for managing user onboarding state, checking completion status, and resetting the onboarding wizard.', 'frs-wp-users' ),
 			)
 		);
 	}

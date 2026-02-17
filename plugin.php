@@ -16,6 +16,7 @@ use FRSUsers\Core\CORS;
 use FRSUsers\Core\EmbeddablePages;
 use FRSUsers\Core\SettingsPage;
 use FRSUsers\Core\PostComposer;
+use FRSUsers\Core\OnboardingWizard;
 use FRSUsers\Core\NewsletterTaxonomy;
 use FRSUsers\Core\BlockPatterns;
 use FRSUsers\Controllers\Shortcodes;
@@ -149,6 +150,9 @@ final class FRSUsers {
 
 		// Initialize Follow Up Boss integration
 		FollowUpBoss::init();
+
+		// Initialize onboarding wizard (hub/development only)
+		OnboardingWizard::get_instance()->init();
 
 		// Initialize WordPress Abilities API integration
 		AbilitiesRegistry::init();

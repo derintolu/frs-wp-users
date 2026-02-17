@@ -49,5 +49,6 @@ class AbilitiesRegistry {
 		ProfileAbilities::register();
 		RoleAbilities::register();
 		SyncAbilities::register();
+		OnboardingAbilities::register();
 	}
 }

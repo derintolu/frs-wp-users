@@ -348,7 +348,6 @@ class ProfileSync {
 			'select_person_type',
 			'profile_slug',
 			'arrive',
-			'booking_url',
 			'service_areas',
 			'specialties',
 			'languages',

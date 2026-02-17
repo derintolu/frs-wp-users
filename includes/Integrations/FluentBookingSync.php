@@ -75,6 +75,9 @@ class FluentBookingSync {
 
 		// Register the OAuth proxy endpoint.
 		add_action( 'rest_api_init', array( __CLASS__, 'register_routes' ) );
+
+		// Temporarily suppress FluentBooking update nags.
+		add_filter( 'site_transient_update_plugins', array( __CLASS__, 'hide_update_nag' ) );
 	}
 
 	/**
@@ -255,5 +258,24 @@ class FluentBookingSync {
 
 		wp_redirect( $callback_url );
 		exit;
+	}
+
+	/**
+	 * Hide FluentBooking update notifications temporarily.
+	 *
+	 * @param object $transient Update transient data.
+	 * @return object
+	 */
+	public static function hide_update_nag( $transient ) {
+		if ( ! is_object( $transient ) ) {
+			return $transient;
+		}
+
+		$plugins_to_hide = array( 'fluent-booking/fluent-booking.php', 'fluent-booking-pro/fluent-booking-pro.php' );
+		foreach ( $plugins_to_hide as $plugin ) {
+			unset( $transient->response[ $plugin ] );
+		}
+
+		return $transient;
 	}
 }

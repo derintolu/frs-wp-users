@@ -435,13 +435,6 @@ class Profile {
 	public $created_at;
 
 	/**
-	 * Booking URL (FluentBooking).
-	 *
-	 * @var string
-	 */
-	public $booking_url;
-
-	/**
 	 * Follow Up Boss API key.
 	 *
 	 * @var string
@@ -776,7 +769,6 @@ class Profile {
 		update_user_meta( $this->user_id, 'frs_qr_code_data', $this->qr_code_data );
 		update_user_meta( $this->user_id, 'frs_is_active', $this->is_active );
 		update_user_meta( $this->user_id, 'frs_frs_agent_id', $this->frs_agent_id );
-		update_user_meta( $this->user_id, 'frs_booking_url', $this->booking_url );
 
 		// JSON fields
 		update_user_meta( $this->user_id, 'frs_specialties_lo', wp_json_encode( $this->specialties_lo ?: array() ) );
@@ -913,7 +905,6 @@ class Profile {
 			'qr_code_data'            => $this->qr_code_data,
 			'is_active'               => $this->is_active,
 			'frs_agent_id'            => $this->frs_agent_id,
-			'booking_url'             => $this->booking_url,
 			'synced_to_fluentcrm_at'  => $this->synced_to_fluentcrm_at,
 			'created_at'              => $this->created_at,
 			'updated_at'              => $this->updated_at,
@@ -1085,7 +1076,6 @@ class Profile {
 		$profile->qr_code_data          = get_user_meta( $user->ID, 'frs_qr_code_data', true );
 		$profile->is_active             = (bool) get_user_meta( $user->ID, 'frs_is_active', true );
 		$profile->frs_agent_id          = get_user_meta( $user->ID, 'frs_frs_agent_id', true );
-		$profile->booking_url           = get_user_meta( $user->ID, 'frs_booking_url', true );
 
 		// JSON/array fields
 		$profile->specialties_lo          = static::maybe_decode_array( get_user_meta( $user->ID, 'frs_specialties_lo', true ) );

@@ -503,7 +503,7 @@ class ProfileApi {
 			'linkedin_url', 'twitter_url', 'youtube_url', 'tiktok_url', 'arrive',
 			'canva_folder_link', 'status',
 			'specialties_lo', 'namb_certifications', 'service_areas',
-			'telegram_username', 'booking_url',
+			'telegram_username',
 		);
 	}
 

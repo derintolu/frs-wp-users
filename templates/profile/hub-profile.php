@@ -641,6 +641,13 @@ get_header();
                         <button class="hp-add-btn--secondary" data-wp-on--click="actions.hideAddTask">Cancel</button>
                     </div>
                     <?php endif; ?>
+
+                    <?php if ( class_exists( 'FRSLendingOnboarding\\OnboardingWizard' ) ) : ?>
+                    <a href="?tour=1" class="hp-tour-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        Take a guided tour
+                    </a>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -1413,6 +1420,11 @@ get_header();
 .hp-add-btn { background: var(--frs-blue); color: #fff; }
 .hp-add-btn:hover { opacity: 0.9; }
 .hp-add-btn--secondary { background: #f3f4f6; color: var(--frs-text-light); }
+
+/* Tour link */
+.hp-tour-link { display: flex; align-items: center; gap: 0.375rem; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid #f3f4f6; font-size: 0.8125rem; color: var(--frs-blue); text-decoration: none; }
+.hp-tour-link:hover { opacity: 0.8; }
+.hp-tour-link svg { flex-shrink: 0; }
 
 /* Loading skeleton */
 .hp-skeleton { background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%); background-size: 200% 100%; animation: hp-shimmer 1.5s infinite; border-radius: 0.375rem; height: 1rem; margin-bottom: 0.5rem; }

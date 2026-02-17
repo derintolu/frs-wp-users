@@ -316,6 +316,13 @@ class Profile {
 	public $arrive;
 
 	/**
+	 * Booking page URL.
+	 *
+	 * @var string
+	 */
+	public $booking_url;
+
+	/**
 	 * Canva folder link.
 	 *
 	 * @var string
@@ -759,6 +766,7 @@ class Profile {
 		update_user_meta( $this->user_id, 'frs_century21_url', $this->century21_url );
 		update_user_meta( $this->user_id, 'frs_zillow_url', $this->zillow_url );
 		update_user_meta( $this->user_id, 'frs_arrive', $this->arrive );
+		update_user_meta( $this->user_id, 'frs_booking_url', $this->booking_url );
 		update_user_meta( $this->user_id, 'frs_canva_folder_link', $this->canva_folder_link );
 		update_user_meta( $this->user_id, 'frs_niche_bio_content', $this->niche_bio_content );
 		update_user_meta( $this->user_id, 'frs_loan_officer_profile', $this->loan_officer_profile );
@@ -891,6 +899,7 @@ class Profile {
 			'century21_url'           => $this->century21_url,
 			'zillow_url'              => $this->zillow_url,
 			'arrive'                  => $this->arrive,
+			'booking_url'             => $this->booking_url,
 			'canva_folder_link'       => $this->canva_folder_link,
 			'niche_bio_content'       => $this->niche_bio_content,
 			'personal_branding_images' => $this->personal_branding_images,
@@ -1065,6 +1074,7 @@ class Profile {
 
 		// Additional fields
 		$profile->arrive                = get_user_meta( $user->ID, 'frs_arrive', true );
+		$profile->booking_url           = get_user_meta( $user->ID, 'frs_booking_url', true );
 		$profile->canva_folder_link     = get_user_meta( $user->ID, 'frs_canva_folder_link', true );
 		$profile->niche_bio_content     = get_user_meta( $user->ID, 'frs_niche_bio_content', true );
 		$profile->loan_officer_profile  = (int) get_user_meta( $user->ID, 'frs_loan_officer_profile', true );

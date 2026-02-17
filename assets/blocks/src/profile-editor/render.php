@@ -347,21 +347,21 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 							</svg>
 							<?php echo esc_html( $phone ); ?>
 						</a>
-						<!-- Edit mode phone -->
-						<div class="frs-profile__contact-item" data-edit-mode hidden>
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20">
-								<circle cx="12" cy="12" r="10"/>
-								<path d="M15.05 11.05a3 3 0 0 0-6.1 0M12 14v.01"/>
-							</svg>
-							<input
-								type="tel"
-								class="frs-profile__edit-input"
-								data-field="phone_number"
-								value="<?php echo esc_attr( $phone ); ?>"
-								placeholder="Phone"
-							>
-						</div>
 					<?php endif; ?>
+					<!-- Edit mode phone (always shown so users can add a number) -->
+					<div class="frs-profile__contact-item" data-edit-mode hidden>
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20">
+							<circle cx="12" cy="12" r="10"/>
+							<path d="M15.05 11.05a3 3 0 0 0-6.1 0M12 14v.01"/>
+						</svg>
+						<input
+							type="tel"
+							class="frs-profile__edit-input"
+							data-field="phone_number"
+							value="<?php echo esc_attr( $phone ); ?>"
+							placeholder="Phone"
+						>
+					</div>
 				</div>
 			</div>
 		</div>

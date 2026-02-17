@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "frankenstyle": "^0.3.0",
-    "intro.js": "^8.3.2"
+    "frankenstyle": "^0.3.0"
   }
 }

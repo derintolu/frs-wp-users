@@ -22,6 +22,7 @@ use FRSUsers\Controllers\Shortcodes;
 use FRSUsers\Routes\Api;
 use FRSUsers\Integrations\FRSSync;
 use FRSUsers\Integrations\FluentCRMSync;
+use FRSUsers\Integrations\FluentBookingSync;
 use FRSUsers\Integrations\FollowUpBoss;
 use FRSUsers\Integrations\TwentyCRMSync;
 use FRSUsers\Controllers\Blocks;
@@ -133,6 +134,9 @@ final class FRSUsers {
 
 		// Initialize Twenty CRM integration
 		TwentyCRMSync::init();
+
+		// Initialize FluentBooking calendar provisioning (wpo365-based)
+		FluentBookingSync::init();
 
 		// Initialize activity recording hooks
 		ActivityRecorder::init();

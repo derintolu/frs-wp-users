@@ -566,6 +566,14 @@ class SettingsPage {
 			'fubTotalSynced'       => 0,
 			'fubLastSync'          => null,
 			'fubConnectedAt'       => null,
+
+			// Calendar (FluentBooking + Outlook) integration
+			'calendarConnected'    => \FRSUsers\Integrations\FluentBookingSync::is_user_connected( $current_user->ID ),
+			'calendarDismissed'    => \FRSUsers\Integrations\FluentBookingSync::is_dismissed( $current_user->ID ),
+			'calendarEmail'        => '',
+			'calendarLists'        => array(),
+			'calendarLoading'      => false,
+			'calendarError'        => '',
 		);
 
 		ob_start();
@@ -1104,6 +1112,105 @@ class SettingsPage {
 					</div>
 				</div>
 			</div>
+
+			<!-- Outlook Calendar Card -->
+			<div class="settings-card" data-wp-bind--hidden="context.calendarDismissed && !context.calendarConnected">
+				<div class="settings-card-header">
+					<div style="display: flex; align-items: flex-start; justify-content: space-between;">
+						<div>
+							<h2 class="settings-card-title">
+								<?php echo $this->get_icon( 'calendar', 24 ); ?>
+								Outlook Calendar
+								<span data-wp-bind--hidden="!context.calendarConnected" class="settings-badge settings-badge-success">
+									Connected
+								</span>
+							</h2>
+							<p class="settings-card-description">Connect your Outlook calendar to manage availability and sync bookings</p>
+						</div>
+						<div data-wp-bind--hidden="!context.calendarConnected" class="settings-text-right settings-text-sm settings-text-gray-500">
+							<p class="settings-font-medium settings-text-gray-700" data-wp-text="context.calendarEmail"></p>
+						</div>
+					</div>
+				</div>
+				<div class="settings-card-content settings-space-y-4">
+					<!-- Loading Skeleton -->
+					<div data-wp-bind--hidden="!context.calendarLoading" class="settings-space-y-4">
+						<div class="settings-skeleton settings-skeleton-input"></div>
+						<div class="settings-skeleton" style="height: 36px; width: 200px;"></div>
+					</div>
+
+					<!-- Connected State -->
+					<div data-wp-bind--hidden="!state.showCalendarConnected" class="settings-space-y-4">
+						<div class="settings-fub-status">
+							<div class="settings-fub-status-row">
+								<span>Status</span>
+								<span class="settings-badge settings-badge-success">Active</span>
+							</div>
+							<div data-wp-bind--hidden="!context.calendarEmail" class="settings-fub-status-row">
+								<span>Account</span>
+								<span data-wp-text="context.calendarEmail"></span>
+							</div>
+						</div>
+
+						<p class="settings-text-sm settings-text-gray-500">
+							Your calendar is connected. Manage calendars and advanced settings in
+							<a href="/wp-admin/admin.php?page=fluent-booking#/settings/calendars" style="color: #2563EB; text-decoration: none;">FluentBooking Settings</a>.
+						</p>
+
+						<div class="settings-gap-3">
+							<button
+								type="button"
+								data-wp-on--click="actions.disconnectCalendar"
+								data-wp-bind--disabled="context.calendarLoading"
+								class="settings-btn settings-btn-destructive"
+							>
+								<?php echo $this->get_icon( 'trash-2', 16 ); ?>
+								Disconnect
+							</button>
+						</div>
+					</div>
+
+					<!-- Not Connected State -->
+					<div data-wp-bind--hidden="!state.showCalendarNotConnected" class="settings-space-y-4">
+						<p class="settings-text-sm settings-text-gray-500">
+							Connect your Microsoft Outlook calendar to automatically sync your availability with FluentBooking. This uses your existing Microsoft sign-in — no additional login required.
+						</p>
+
+						<div class="settings-gap-3">
+							<button
+								type="button"
+								data-wp-on--click="actions.connectCalendar"
+								data-wp-bind--disabled="context.calendarLoading"
+								class="settings-btn settings-btn-primary"
+								style="height: 2.75rem; padding: 0.5rem 1.5rem; font-size: 1rem;"
+							>
+								<?php echo $this->get_icon( 'calendar', 20 ); ?>
+								<span data-wp-text="context.calendarLoading ? 'Connecting...' : 'Connect Calendar'"></span>
+							</button>
+							<button
+								type="button"
+								data-wp-on--click="actions.dismissCalendar"
+								class="settings-btn settings-btn-ghost"
+							>
+								Not now
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Dismissed Calendar Re-enable -->
+			<div data-wp-bind--hidden="!context.calendarDismissed || context.calendarConnected" style="text-align: center; padding: 0.5rem 0;">
+				<button
+					type="button"
+					data-wp-on--click="actions.showCalendarSetup"
+					class="settings-btn settings-btn-ghost"
+					style="font-size: 0.875rem; color: #6b7280;"
+				>
+					<?php echo $this->get_icon( 'calendar', 16 ); ?>
+					Set up Outlook Calendar
+				</button>
+			</div>
 		</div>
 		<?php
 	}
@@ -1134,6 +1241,7 @@ class SettingsPage {
 			'alert-circle'  => '<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>',
 			'zap'           => '<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
 			'send'          => '<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>',
+			'calendar'      => '<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>',
 		);
 
 		if ( isset( $icons[ $name ] ) ) {

@@ -51,15 +51,6 @@ const { state, actions, callbacks } = store('frs-users/settings', {
 			const ctx = getContext();
 			return !ctx.fubLoading && !ctx.fubConnected;
 		},
-		// Calendar state getters
-		get showCalendarConnected() {
-			const ctx = getContext();
-			return !ctx.calendarLoading && ctx.calendarConnected;
-		},
-		get showCalendarNotConnected() {
-			const ctx = getContext();
-			return !ctx.calendarLoading && !ctx.calendarConnected && !ctx.calendarDismissed;
-		},
 	},
 
 	actions: {
@@ -298,94 +289,6 @@ const { state, actions, callbacks } = store('frs-users/settings', {
 			getContext().message = null;
 		},
 
-		async connectCalendar() {
-			const ctx = getContext();
-			ctx.calendarLoading = true;
-			ctx.message = null;
-
-			try {
-				const response = await fetch(`${ctx.restUrl}frs-users/v1/calendar/provision`, {
-					method: 'POST',
-					credentials: 'include',
-					headers: {
-						'Content-Type': 'application/json',
-						'X-WP-Nonce': ctx.restNonce,
-					},
-				});
-
-				const data = await response.json();
-
-				if (response.ok && data.success) {
-					ctx.message = { type: 'success', text: data.message || 'Calendar connected!' };
-					ctx.calendarConnected = true;
-					ctx.calendarEmail = data.email || '';
-					ctx.calendarLists = data.calendar_lists || [];
-					ctx.calendarDismissed = false;
-				} else {
-					ctx.message = { type: 'error', text: data.message || 'Failed to connect calendar' };
-				}
-			} catch (error) {
-				ctx.message = { type: 'error', text: 'An error occurred while connecting the calendar' };
-			} finally {
-				ctx.calendarLoading = false;
-			}
-		},
-
-		async disconnectCalendar() {
-			const ctx = getContext();
-			ctx.calendarLoading = true;
-			ctx.message = null;
-
-			try {
-				const response = await fetch(`${ctx.restUrl}frs-users/v1/calendar/disconnect`, {
-					method: 'POST',
-					credentials: 'include',
-					headers: {
-						'X-WP-Nonce': ctx.restNonce,
-					},
-				});
-
-				const data = await response.json();
-
-				if (response.ok && data.success) {
-					ctx.message = { type: 'success', text: 'Calendar disconnected.' };
-					ctx.calendarConnected = false;
-					ctx.calendarEmail = '';
-					ctx.calendarLists = [];
-				} else {
-					ctx.message = { type: 'error', text: data.message || 'Failed to disconnect calendar' };
-				}
-			} catch (error) {
-				ctx.message = { type: 'error', text: 'An error occurred while disconnecting' };
-			} finally {
-				ctx.calendarLoading = false;
-			}
-		},
-
-		async dismissCalendar() {
-			const ctx = getContext();
-			ctx.message = null;
-
-			try {
-				await fetch(`${ctx.restUrl}frs-users/v1/calendar/dismiss`, {
-					method: 'POST',
-					credentials: 'include',
-					headers: {
-						'X-WP-Nonce': ctx.restNonce,
-					},
-				});
-				ctx.calendarDismissed = true;
-			} catch (error) {
-				// Silently fail — just hide the card locally
-				ctx.calendarDismissed = true;
-			}
-		},
-
-		showCalendarSetup() {
-			const ctx = getContext();
-			ctx.calendarDismissed = false;
-		},
-
 		async disconnectTelegram() {
 			const ctx = getContext();
 			ctx.isSaving = true;
@@ -483,22 +386,6 @@ const { state, actions, callbacks } = store('frs-users/settings', {
 					ctx.fubMaskedKey = fubData.masked_key || '';
 				}
 				ctx.fubLoading = false;
-
-				// Load calendar status
-				const calResponse = await fetch(`${ctx.restUrl}frs-users/v1/calendar/status`, {
-					credentials: 'include',
-					headers: {
-						'X-WP-Nonce': ctx.restNonce,
-					},
-				});
-
-				if (calResponse.ok) {
-					const calData = await calResponse.json();
-					ctx.calendarConnected = calData.connected || false;
-					ctx.calendarDismissed = calData.dismissed || false;
-					ctx.calendarEmail = calData.email || '';
-					ctx.calendarLists = calData.calendar_lists || [];
-				}
 			} catch (error) {
 				console.error('Failed to load user data:', error);
 				ctx.fubLoading = false;

@@ -540,7 +540,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	--panel-top: 120px;
 	position: fixed;
 	top: var(--panel-top);
-	left: 0;
+	left: var(--workspace-sidebar-width, 0px);
 	right: 0;
 	bottom: 0;
 	z-index: 99;

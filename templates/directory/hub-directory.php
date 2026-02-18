@@ -549,6 +549,16 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	overflow: hidden;
 	pointer-events: none;
 	visibility: hidden;
+	transition: left var(--workspace-transition, 0.3s ease);
+}
+body.has-workspace-sidebar .frs-panel {
+	left: var(--workspace-sidebar-width, 0px);
+}
+body.has-workspace-sidebar.sidebar-collapsed .frs-panel {
+	left: var(--workspace-sidebar-width-collapsed, 0px);
+}
+body.sidebar-offcanvas .frs-panel {
+	left: 0;
 }
 .frs-panel.is-open {
 	pointer-events: auto;

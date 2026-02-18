@@ -540,6 +540,7 @@ class SettingsPage {
 			'lastName'             => $current_user->last_name,
 			'displayName'          => $current_user->display_name,
 			'username'             => $current_user->user_login,
+			'phoneNumber'          => $profile ? ( $profile->phone_number ?: '' ) : '',
 			'isMicrosoftUser'      => false,
 			'newPassword'          => '',
 			'confirmPassword'      => '',
@@ -756,6 +757,21 @@ class SettingsPage {
 									placeholder="Enter display name"
 								/>
 								<span class="settings-floating-label">Display Name</span>
+							</div>
+						</div>
+
+						<!-- Phone Number -->
+						<div class="settings-floating-field">
+							<div class="settings-floating-wrapper" data-wp-class--has-value="context.phoneNumber">
+								<input
+									type="tel"
+									data-field="phoneNumber"
+									data-wp-bind--value="context.phoneNumber"
+									data-wp-on--input="actions.updateField"
+									class="settings-floating-input"
+									placeholder="(555) 123-4567"
+								/>
+								<span class="settings-floating-label">Phone Number</span>
 							</div>
 						</div>
 

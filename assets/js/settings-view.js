@@ -98,12 +98,26 @@ const { state, actions, callbacks } = store('frs-users/settings', {
 					}),
 				});
 
-				if (response.ok) {
-					ctx.message = { type: 'success', text: 'Account details updated successfully!' };
-				} else {
+				if (!response.ok) {
 					const error = await response.json();
 					ctx.message = { type: 'error', text: error.message || 'Failed to update account details' };
+					return;
 				}
+
+				// Save phone number via FRS profiles API
+				if (ctx.profileId) {
+					await fetch(`${ctx.restUrl}frs-users/v1/profiles/${ctx.profileId}`, {
+						method: 'PUT',
+						credentials: 'include',
+						headers: {
+							'Content-Type': 'application/json',
+							'X-WP-Nonce': ctx.restNonce,
+						},
+						body: JSON.stringify({ phone_number: ctx.phoneNumber }),
+					});
+				}
+
+				ctx.message = { type: 'success', text: 'Account details updated successfully!' };
 			} catch (error) {
 				ctx.message = { type: 'error', text: 'An error occurred while saving' };
 			} finally {

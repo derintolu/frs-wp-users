@@ -537,12 +537,12 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 /* ── Slide-Out Profile Panel ─────────────────────────────── */
 .frs-panel {
 	--panel-width: var(--side-panel-width, 500px);
-	--panel-top: 120px;
+	--panel-top: calc(var(--workspace-header-height, 80px) + var(--workspace-bar-height, 60px));
 	position: fixed;
 	top: var(--panel-top);
 	left: 0;
 	right: 0;
-	bottom: 0;
+	height: calc(100vh - var(--panel-top));
 	z-index: 99;
 	display: flex;
 	background: transparent;
@@ -550,6 +550,9 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	pointer-events: none;
 	visibility: hidden;
 	transition: left var(--workspace-transition, 0.3s ease);
+}
+body.admin-bar .frs-panel {
+	--panel-top: calc(var(--workspace-header-height, 80px) + var(--workspace-bar-height, 60px) + var(--admin-bar, 32px));
 }
 body.has-workspace-sidebar .frs-panel {
 	left: var(--workspace-sidebar-width, 0px);
@@ -870,7 +873,7 @@ body.sidebar-offcanvas .frs-panel {
 /* Panel full-screen on mobile */
 @media (max-width: 640px) {
 	.frs-panel {
-		--panel-top: 60px;
+		--panel-top: var(--workspace-bar-height, 60px);
 	}
 	.frs-panel__inner {
 		width: 100%;

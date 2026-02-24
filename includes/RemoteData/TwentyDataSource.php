@@ -111,7 +111,7 @@ class TwentyDataSource {
 		$body   = json_decode( wp_remote_retrieve_body( $response ), true );
 		$result = array(
 			'data'   => $body['data']['people'] ?? array(),
-			'cursor' => $body['data']['pageInfo']['endCursor'] ?? null,
+			'cursor' => $body['pageInfo']['endCursor'] ?? null,
 		);
 
 		set_transient( $cache_key, $result, $this->cache_ttl );
@@ -131,7 +131,7 @@ class TwentyDataSource {
 	public function get_all_people( array $args = [] ): array {
 		$all       = array();
 		$cursor    = null;
-		$max_pages = 10; // Safety: max 600 people.
+		$max_pages = 30; // Safety: max 1800 people.
 		$page      = 0;
 
 		do {

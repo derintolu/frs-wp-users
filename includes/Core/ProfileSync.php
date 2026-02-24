@@ -477,6 +477,26 @@ class ProfileSync {
 			return $existing[0]->ID;
 		}
 
+		// Transient lock to prevent race condition (concurrent webhooks downloading same image)
+		$lock_key = 'frs_img_sync_' . $url_hash;
+		if ( get_transient( $lock_key ) ) {
+			// Another process is downloading this image — wait briefly then check again
+			sleep( 2 );
+			$existing = get_posts( array(
+				'post_type'      => 'attachment',
+				'meta_query'     => array(
+					array(
+						'key'     => '_frs_image_url_hash',
+						'value'   => $url_hash,
+						'compare' => '=',
+					),
+				),
+				'posts_per_page' => 1,
+			) );
+			return $existing ? $existing[0]->ID : false;
+		}
+		set_transient( $lock_key, true, 60 );
+
 		// Download and sideload the image
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 		require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -498,12 +518,14 @@ class ProfileSync {
 
 		if ( is_wp_error( $attachment_id ) ) {
 			@unlink( $tmp );
+			delete_transient( $lock_key );
 			error_log( sprintf( '[FRS Sync] Failed to sideload image %s: %s', $image_url, $attachment_id->get_error_message() ) );
 			return false;
 		}
 
 		update_post_meta( $attachment_id, '_frs_image_url_hash', $url_hash );
 		update_post_meta( $attachment_id, '_frs_original_url', $image_url );
+		delete_transient( $lock_key );
 
 		return $attachment_id;
 	}

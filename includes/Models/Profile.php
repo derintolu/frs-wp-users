@@ -704,8 +704,9 @@ class Profile {
 		$base_slug = sanitize_title( trim( $first_name . ' ' . $last_name ) );
 		$slug      = $base_slug;
 		$counter   = 1;
+		$max       = 100;
 
-		while ( static::slug_exists( $slug, $exclude_id ) ) {
+		while ( static::slug_exists( $slug, $exclude_id ) && $counter <= $max ) {
 			$slug = $base_slug . '-' . $counter;
 			$counter++;
 		}
@@ -925,6 +926,10 @@ class Profile {
 		$array['avatar_url']    = $this->get_avatar_url( 512 );
 		$array['is_guest']      = false; // No guest profiles in WP-native mode
 		$array['company_roles'] = $this->company_roles;
+
+		// Set defaults for profile linking (in case user is deleted)
+		$array['user_nicename'] = '';
+		$array['profile_url']   = '';
 
 		// Add user_nicename and profile_url for profile linking
 		if ( $this->user_id ) {

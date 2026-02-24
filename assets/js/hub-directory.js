@@ -139,7 +139,15 @@
 				return;
 			}
 
-			var json = JSON.parse( xhr.responseText );
+			var json;
+			try {
+				json = JSON.parse( xhr.responseText );
+			} catch ( e ) {
+				showEmpty( true );
+				showLoadMore( false );
+				updateCount( 0 );
+				return;
+			}
 			var data = json.data || [];
 
 			state.total      = json.total || 0;
@@ -326,7 +334,11 @@
 				$panelBody.innerHTML = '<div class="frs-panel__scroll" data-lenis-prevent><p style="padding:2rem;text-align:center;color:#94a3b8;">Could not load profile.</p></div>';
 				return;
 			}
-			var json = JSON.parse( xhr.responseText );
+			var json;
+			try { json = JSON.parse( xhr.responseText ); } catch ( e ) {
+				$panelBody.innerHTML = '<div class="frs-panel__scroll" data-lenis-prevent><p style="padding:2rem;text-align:center;color:#94a3b8;">Could not load profile.</p></div>';
+				return;
+			}
 			var profile = json.data || {};
 			renderPanelContent( profile );
 		};
@@ -453,7 +465,7 @@
 					var slug = ABBR_TO_SLUG[ abbr ];
 					var svgUrl = PLUGIN_URL + 'assets/images/states/' + slug + '.svg';
 					html += '<div class="frs-panel__state-card">'
-						+ '<img class="frs-panel__state-svg" src="' + esc( svgUrl ) + '" alt="' + esc( abbr ) + '">'
+						+ '<img class="frs-panel__state-svg" src="' + esc( svgUrl ) + '" alt="' + esc( abbr ) + '" onerror="this.style.display=\'none\'">'
 						+ '<span class="frs-panel__state-abbr">' + esc( abbr ) + '</span></div>';
 				} else {
 					html += '<div class="frs-panel__state-card">'
@@ -472,7 +484,15 @@
 			+ '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>'
 			+ 'Professional Biography</h3>';
 		if ( bio ) {
-			html += '<div class="frs-panel__bio-content">' + bio + '</div>';
+			// Sanitize bio HTML to prevent XSS — strip dangerous tags/attributes
+			var sanitizedBio = bio.replace( /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '' )
+				.replace( /\bon\w+\s*=\s*["'][^"']*["']/gi, '' )
+				.replace( /\bon\w+\s*=\s*[^\s>]+/gi, '' )
+				.replace( /<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '' )
+				.replace( /<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '' )
+				.replace( /<embed\b[^>]*>/gi, '' )
+				.replace( /javascript\s*:/gi, '' );
+			html += '<div class="frs-panel__bio-content">' + sanitizedBio + '</div>';
 		} else {
 			html += '<p class="frs-panel__empty">No biography provided.</p>';
 		}
@@ -630,7 +650,8 @@
 		if ( NONCE ) xhr.setRequestHeader( 'X-WP-Nonce', NONCE );
 		xhr.onload = function () {
 			if ( xhr.status !== 200 ) return;
-			var json = JSON.parse( xhr.responseText );
+			var json;
+			try { json = JSON.parse( xhr.responseText ); } catch ( e ) { return; }
 			var areas = json.data || [];
 			for ( var i = 0; i < areas.length; i++ ) {
 				var opt = document.createElement( 'option' );

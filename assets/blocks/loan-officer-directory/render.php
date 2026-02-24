@@ -38,6 +38,9 @@ if (!empty($profiles)) {
     }
 }
 
+// Excluded names (configurable via WP option instead of hardcoding in JS)
+$excluded_names = get_option( 'frs_directory_excluded', array() );
+
 // Config for JavaScript
 $config = [
     'hubUrl' => trailingslashit(home_url('/' . \FRSUsers\Core\Roles::get_url_prefix('loan_officer') . '/')),
@@ -46,6 +49,7 @@ $config = [
     'perPage' => $per_page,
     'profiles' => $profiles_data,
     'showHero' => $show_hero,
+    'excludedNames' => $excluded_names,
 ];
 
 $wrapper_attributes = get_block_wrapper_attributes([

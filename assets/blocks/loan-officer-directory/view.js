@@ -182,7 +182,9 @@ document.addEventListener('DOMContentLoaded', function() {
         qrPopup.classList.remove('frs-qr-popup--open');
     }
 
-    if (qrBackdrop) qrBackdrop.addEventListener('click', closeQrPopup);
+    if (qrBackdrop) qrBackdrop.addEventListener('click', (e) => {
+        if (e.target === qrBackdrop) closeQrPopup();
+    });
     if (qrClose) qrClose.addEventListener('click', closeQrPopup);
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && qrPopup && qrPopup.classList.contains('frs-qr-popup--open')) {
@@ -204,8 +206,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function loadData() {
-        // Use preloaded data from server
-        const excludeNames = ['Blake Anthony Corkill', 'Matthew Thompson', 'Keith Thompson', 'Randy Keith Thompson'];
+        // Use excluded names from server config (WP option) instead of hardcoding
+        const excludeNames = config.excludedNames || [];
 
         // Deduplicate by email (keep first occurrence)
         const seen = new Set();
@@ -265,8 +267,12 @@ document.addEventListener('DOMContentLoaded', function() {
         ALL_STATES.forEach(s => stateCounts[s] = 0);
 
         profiles.forEach(p => {
-            if (p.service_areas && Array.isArray(p.service_areas)) {
-                p.service_areas.forEach(area => {
+            let areas = p.service_areas;
+            if (typeof areas === 'string') {
+                try { areas = JSON.parse(areas); p.service_areas = areas; } catch (e) { areas = []; }
+            }
+            if (areas && Array.isArray(areas)) {
+                areas.forEach(area => {
                     const abbr = normalizeState(area);
                     if (stateCounts.hasOwnProperty(abbr)) {
                         stateCounts[abbr]++;
@@ -327,7 +333,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const loc = (p.city_state || '').toLowerCase();
                 const region = (p.region || '').toLowerCase();
                 const title = (p.job_title || '').toLowerCase();
-                const areas = (p.service_areas || []).map(a => a.toLowerCase());
+                let rawAreas = p.service_areas || [];
+                if (typeof rawAreas === 'string') { try { rawAreas = JSON.parse(rawAreas); } catch (e) { rawAreas = []; } }
+                const areas = (Array.isArray(rawAreas) ? rawAreas : []).map(a => a.toLowerCase());
                 const areasText = areas.join(' ');
                 // Also get full state names for searching
                 const stateNames = areas.map(a => STATE_NAMES[a] || '').join(' ').toLowerCase();
@@ -341,8 +349,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Service areas filter (match ANY selected area)
         if (selectedServiceAreas.length > 0) {
             filtered = filtered.filter(p => {
-                if (!p.service_areas || !Array.isArray(p.service_areas)) return false;
-                const normalizedAreas = p.service_areas.map(a => normalizeState(a));
+                let areas = p.service_areas;
+                if (typeof areas === 'string') {
+                    try { areas = JSON.parse(areas); } catch (e) { return false; }
+                }
+                if (!areas || !Array.isArray(areas)) return false;
+                const normalizedAreas = areas.map(a => normalizeState(a));
                 return selectedServiceAreas.some(area => normalizedAreas.includes(area));
             });
         }
@@ -410,7 +422,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const firstName = lo.first_name || '';
         const lastName = lo.last_name || '';
         const fullName = `${firstName} ${lastName}`.trim();
-        const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+        const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase() || '?';
         const title = lo.job_title || 'Loan Officer';
         const nmls = lo.nmls || lo.nmls_number || '';
         const email = lo.email || '';
@@ -430,8 +442,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Service areas tags
         let serviceAreasTags = '';
         if (Array.isArray(serviceAreas) && serviceAreas.length > 0) {
-            const normalizedAreas = serviceAreas.map(a => normalizeState(a)).slice(0, 4);
-            serviceAreasTags = `<div class="frs-card__service-areas">${normalizedAreas.map(a => `<span class="frs-card__area-tag">${a}</span>`).join('')}</div>`;
+            const normalizedAreas = serviceAreas.map(a => normalizeState(a));
+            const displayAreas = normalizedAreas.slice(0, 4);
+            const remaining = normalizedAreas.length - 4;
+            serviceAreasTags = `<div class="frs-card__service-areas">${displayAreas.map(a => `<span class="frs-card__area-tag">${a}</span>`).join('')}${remaining > 0 ? `<span class="frs-card__area-tag frs-card__area-tag--more">+${remaining} more</span>` : ''}</div>`;
         }
 
         card.innerHTML = `

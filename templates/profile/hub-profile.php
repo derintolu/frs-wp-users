@@ -1451,7 +1451,7 @@ get_header();
                 'VERSION:3.0',
                 'FN:' + (profile.first_name || '') + ' ' + (profile.last_name || ''),
                 'N:' + (profile.last_name || '') + ';' + (profile.first_name || '') + ';;;',
-                'ORG:uMortgage',
+                'ORG:' + (<?php echo wp_json_encode( get_option( 'frs_company_name', get_bloginfo( 'name' ) ) ); ?>),
                 'TITLE:' + (profile.job_title || 'Loan Officer'),
                 profile.email ? 'EMAIL;TYPE=WORK:' + profile.email : '',
                 profile.phone_number ? 'TEL;TYPE=WORK:' + profile.phone_number : '',

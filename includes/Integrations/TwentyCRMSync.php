@@ -221,10 +221,10 @@ class TwentyCRMSync {
 			);
 		}
 
-		// Sync headshot CDN URL to Twenty CRM
+		// Sync headshot CDN URL to Twenty CRM as avatarUrl (Twenty's built-in field).
 		$headshot_url = get_user_meta( $user->ID, 'frs_headshot_url', true );
 		if ( $headshot_url ) {
-			$payload['headshotUrl'] = $headshot_url;
+			$payload['avatarUrl'] = $headshot_url;
 		}
 
 		// Add social links
@@ -629,11 +629,9 @@ class TwentyCRMSync {
 			update_user_meta( $user_id, 'frs_is_active', $is_active );
 		}
 
-		// Sync headshot/avatar URLs.
-		if ( ! empty( $person['headshotUrl'] ) ) {
-			update_user_meta( $user_id, 'frs_headshot_url', $person['headshotUrl'] );
-		}
+		// Sync avatar URL (Twenty's built-in field stores the headshot).
 		if ( ! empty( $person['avatarUrl'] ) ) {
+			update_user_meta( $user_id, 'frs_headshot_url', $person['avatarUrl'] );
 			update_user_meta( $user_id, 'frs_avatar_url', $person['avatarUrl'] );
 		}
 

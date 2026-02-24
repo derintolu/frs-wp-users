@@ -78,6 +78,12 @@
 	var $panelBody  = document.getElementById( 'frs-panel-body' );
 	var $panelClose = document.getElementById( 'frs-panel-close' );
 
+	// Move panel to document.body so no ancestor containing block
+	// can break position:fixed or independent scrolling.
+	if ( $panel && $panel.parentNode !== document.body ) {
+		document.body.appendChild( $panel );
+	}
+
 	/* ── Helpers ────────────────────────────────────────────── */
 	function esc( str ) {
 		var el = document.createElement( 'span' );

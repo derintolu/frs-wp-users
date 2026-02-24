@@ -26,6 +26,7 @@ use FRSUsers\Integrations\FluentCRMSync;
 use FRSUsers\Integrations\FluentBookingSync;
 use FRSUsers\Integrations\FollowUpBoss;
 use FRSUsers\Integrations\TwentyCRMSync;
+use FRSUsers\Integrations\FluentCRMNotifications;
 use FRSUsers\Controllers\Blocks;
 use FRSUsers\Abilities\AbilitiesRegistry;
 use FRSUsers\Core\ActivityRecorder;
@@ -136,6 +137,9 @@ final class FRSUsers {
 		// Initialize FluentCRM real-time sync integration
 		FluentCRMSync::get_instance()->init();
 
+		// Initialize FluentCRM event-based notifications (tags, lists, admin alerts)
+		FluentCRMNotifications::init();
+
 		// Initialize Twenty CRM integration
 		TwentyCRMSync::init();
 
@@ -166,6 +170,7 @@ final class FRSUsers {
 			\FRSUsers\Admin\UserProfileFields::get_instance()->init();
 			\FRSUsers\Admin\CsvImportExport::get_instance()->init();
 			\FRSUsers\Admin\TwentyCRMSettingsPage::init();
+			\FRSUsers\Admin\NotificationsPage::init();
 		}
 
 		// Initialize internationalization

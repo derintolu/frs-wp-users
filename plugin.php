@@ -7,6 +7,7 @@
  */
 
 use FRSUsers\Core\ProfileStorage;
+use FRSUsers\Core\R2Storage;
 use FRSUsers\Core\CLI;
 use FRSUsers\Core\ProfileApi;
 use FRSUsers\Core\PluginDependencies;
@@ -80,6 +81,9 @@ final class FRSUsers {
 
 		// Initialize profile storage utilities (avatar sync)
 		ProfileStorage::init();
+
+		// Initialize R2 CDN storage for headshot images
+		R2Storage::init();
 
 		// Initialize REST API routes
 		Api::init();

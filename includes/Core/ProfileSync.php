@@ -363,18 +363,33 @@ class ProfileSync {
 
 		// Sync headshot/avatar image from hub
 		if ( ! empty( $profile_data['headshot_url'] ) ) {
-			$attachment_id = self::sync_remote_image( $profile_data['headshot_url'] );
-			if ( $attachment_id ) {
-				update_user_meta( $user_id, 'frs_headshot_id', $attachment_id );
-				$local_url = wp_get_attachment_url( $attachment_id );
-				// Basic User Avatars plugin format
-				update_user_meta( $user_id, 'basic_user_avatar', array( 'full' => $local_url ) );
-				// Simple Local Avatars fallback
+			$headshot_url = $profile_data['headshot_url'];
+
+			// If it's already a CDN URL (media.frs.works), store directly — no download needed
+			if ( R2Storage::is_enabled() && strpos( $headshot_url, R2Storage::get_cdn_url() ) === 0 ) {
+				update_user_meta( $user_id, 'frs_headshot_url', $headshot_url );
+				// Set avatar plugins to use CDN URL directly
+				update_user_meta( $user_id, 'basic_user_avatar', array( 'full' => $headshot_url ) );
 				update_user_meta( $user_id, 'simple_local_avatar', array(
-					'media_id' => $attachment_id,
-					'full'     => $local_url,
+					'media_id' => 0,
+					'full'     => $headshot_url,
 					'blog_id'  => get_current_blog_id(),
 				) );
+			} else {
+				// Legacy: download remote image to local media library
+				$attachment_id = self::sync_remote_image( $headshot_url );
+				if ( $attachment_id ) {
+					update_user_meta( $user_id, 'frs_headshot_id', $attachment_id );
+					$local_url = wp_get_attachment_url( $attachment_id );
+					// Basic User Avatars plugin format
+					update_user_meta( $user_id, 'basic_user_avatar', array( 'full' => $local_url ) );
+					// Simple Local Avatars fallback
+					update_user_meta( $user_id, 'simple_local_avatar', array(
+						'media_id' => $attachment_id,
+						'full'     => $local_url,
+						'blog_id'  => get_current_blog_id(),
+					) );
+				}
 			}
 		}
 

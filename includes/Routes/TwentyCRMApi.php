@@ -76,6 +76,9 @@ class TwentyCRMApi {
 				'webhook_secret'    => get_option( 'frs_twenty_crm_webhook_secret', '' ),
 				'sync_roles'        => get_option( 'frs_twenty_crm_sync_roles', array( 'loan_originator' ) ),
 				'available_roles'   => \FRSUsers\Core\Roles::get_company_roles(),
+				'r2_enabled'        => (bool) get_option( \FRSUsers\Core\R2Storage::OPTION_ENABLED, false ),
+				'r2_cdn_url'        => get_option( \FRSUsers\Core\R2Storage::OPTION_CDN_URL, \FRSUsers\Core\R2Storage::DEFAULT_CDN_URL ),
+				'r2_api_key'        => get_option( \FRSUsers\Core\R2Storage::OPTION_API_KEY, '' ),
 			),
 			200
 		);
@@ -108,12 +111,27 @@ class TwentyCRMApi {
 			$sync_roles = array();
 		}
 
-		// Save
+		// Save Twenty CRM settings
 		update_option( 'frs_twenty_crm_enabled', (bool) $enabled );
 		update_option( 'frs_twenty_crm_url', esc_url_raw( $api_url ) );
 		update_option( 'frs_twenty_crm_api_key', sanitize_text_field( $api_key ) );
 		update_option( 'frs_twenty_crm_webhook_secret', sanitize_text_field( $webhook_secret ) );
 		update_option( 'frs_twenty_crm_sync_roles', array_map( 'sanitize_text_field', $sync_roles ) );
+
+		// Save R2 CDN settings
+		$r2_enabled = $request->get_param( 'r2_enabled' );
+		$r2_cdn_url = $request->get_param( 'r2_cdn_url' );
+		$r2_api_key = $request->get_param( 'r2_api_key' );
+
+		if ( null !== $r2_enabled ) {
+			update_option( \FRSUsers\Core\R2Storage::OPTION_ENABLED, (bool) $r2_enabled );
+		}
+		if ( null !== $r2_cdn_url ) {
+			update_option( \FRSUsers\Core\R2Storage::OPTION_CDN_URL, esc_url_raw( $r2_cdn_url ) );
+		}
+		if ( null !== $r2_api_key ) {
+			update_option( \FRSUsers\Core\R2Storage::OPTION_API_KEY, sanitize_text_field( $r2_api_key ) );
+		}
 
 		return new \WP_REST_Response(
 			array(

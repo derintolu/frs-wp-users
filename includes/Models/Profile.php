@@ -829,9 +829,20 @@ class Profile {
 	/**
 	 * Get headshot URL.
 	 *
+	 * Prefers R2 CDN URL (frs_headshot_url meta) over local attachment.
+	 *
 	 * @return string|null
 	 */
 	public function get_headshot_url() {
+		// Prefer CDN URL if R2 is enabled and URL exists
+		if ( $this->user_id ) {
+			$cdn_url = get_user_meta( $this->user_id, 'frs_headshot_url', true );
+			if ( ! empty( $cdn_url ) ) {
+				return $cdn_url;
+			}
+		}
+
+		// Fallback to local attachment
 		if ( ! $this->headshot_id ) {
 			return null;
 		}

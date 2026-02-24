@@ -221,6 +221,12 @@ class TwentyCRMSync {
 			);
 		}
 
+		// Sync headshot CDN URL to Twenty CRM
+		$headshot_url = get_user_meta( $user->ID, 'frs_headshot_url', true );
+		if ( $headshot_url ) {
+			$payload['headshotUrl'] = $headshot_url;
+		}
+
 		// Add social links
 		$social_fields = array(
 			'linkedin_url'  => 'linkedinLink',

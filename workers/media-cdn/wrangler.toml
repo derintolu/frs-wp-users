@@ -1,0 +1,13 @@
+name = "frs-media-cdn"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+ALLOWED_ORIGINS = "https://myhub21.com,https://21stcenturylending.com,https://buildlending.frs.works"
+
+[[r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "frs-agent-images"
+
+# Set these via `wrangler secret put`:
+# UPLOAD_API_KEY - shared secret for authenticated uploads from WordPress

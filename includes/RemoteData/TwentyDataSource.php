@@ -67,8 +67,8 @@ class TwentyDataSource {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->api_url   = rtrim( get_option( 'frs_twenty_crm_url', 'https://20.frs.works' ), '/' );
-		$this->api_key   = get_option( 'frs_twenty_crm_api_key', '' );
+		$this->api_url   = rtrim( defined( 'FRS_TWENTY_CRM_URL' ) ? FRS_TWENTY_CRM_URL : 'https://20.frs.works', '/' );
+		$this->api_key   = defined( 'FRS_TWENTY_CRM_API_KEY' ) ? FRS_TWENTY_CRM_API_KEY : '';
 		$this->cache_ttl = (int) get_option( 'frs_remote_cache_ttl', 3600 );
 	}
 
@@ -313,41 +313,51 @@ class TwentyDataSource {
 			return ucwords( strtolower( str_replace( '_', ' ', $s ) ) );
 		}, $twenty_specialties );
 
+		$first = $person['name']['firstName'] ?? '';
+		$last  = $person['name']['lastName'] ?? '';
+		$full  = trim( $first . ' ' . $last );
+
 		return array(
-			'id'              => $person['id'] ?? '',
-			'twenty_crm_id'   => $person['id'] ?? '',
-			'user_id'         => 0,
-			'first_name'      => $person['name']['firstName'] ?? '',
-			'last_name'       => $person['name']['lastName'] ?? '',
-			'display_name'    => trim( ( $person['name']['firstName'] ?? '' ) . ' ' . ( $person['name']['lastName'] ?? '' ) ),
-			'email'           => $person['emails']['primaryEmail'] ?? '',
-			'phone_number'    => $person['phones']['primaryPhoneNumber'] ?? '',
-			'job_title'       => $person['jobTitle'] ?? '',
-			'avatar_url'      => $person['avatarUrl'] ?? '',
-			'headshot_url'    => $person['avatarUrl'] ?? '',
-			'linkedin_url'    => self::extract_link_url( $person, 'linkedinLink' ),
-			'twitter_url'     => self::extract_link_url( $person, 'xLink' ),
-			'facebook_url'    => self::extract_link_url( $person, 'facebookUrl' ),
-			'instagram_url'   => self::extract_link_url( $person, 'instagramUrl' ),
-			'youtube_url'     => self::extract_link_url( $person, 'youtubeUrl' ),
-			'nmls'            => $person['nmlsNumber'] ?? '',
-			'license_number'  => $person['licenseNumber'] ?? '',
-			'biography'       => $person['biography']['markdown'] ?? '',
-			'company_roles'   => $wp_roles,
-			'is_active'       => ( strtoupper( $status_value ) === 'ACTIVE' ) ? 1 : 0,
-			'specialties'     => $wp_specialties,
-			'languages'       => array_map( function ( $l ) {
+			'id'                   => $person['id'] ?? '',
+			'twenty_crm_id'        => $person['id'] ?? '',
+			'user_id'              => 0,
+			'first_name'           => $first,
+			'last_name'            => $last,
+			'display_name'         => $full,
+			'full_name'            => $full,
+			'email'                => $person['emails']['primaryEmail'] ?? '',
+			'phone_number'         => $person['phones']['primaryPhoneNumber'] ?? '',
+			'mobile_number'        => '',
+			'job_title'            => $person['jobTitle'] ?? '',
+			'avatar_url'           => $person['avatarUrl'] ?? '',
+			'headshot_url'         => $person['avatarUrl'] ?? '',
+			'linkedin_url'         => self::extract_link_url( $person, 'linkedinLink' ),
+			'twitter_url'          => self::extract_link_url( $person, 'xLink' ),
+			'facebook_url'         => self::extract_link_url( $person, 'facebookUrl' ),
+			'instagram_url'        => self::extract_link_url( $person, 'instagramUrl' ),
+			'youtube_url'          => self::extract_link_url( $person, 'youtubeUrl' ),
+			'nmls'                 => $person['nmlsNumber'] ?? '',
+			'license_number'       => $person['licenseNumber'] ?? '',
+			'biography'            => $person['biography']['markdown'] ?? '',
+			'company_roles'        => $wp_roles,
+			'is_active'            => ( strtoupper( $status_value ) === 'ACTIVE' ) ? 1 : 0,
+			'specialties'          => $wp_specialties,
+			'specialties_lo'       => $wp_specialties,
+			'namb_certifications'  => array(),
+			'languages'            => array_map( function ( $l ) {
 				return ucwords( strtolower( str_replace( '_', ' ', $l ) ) );
 			}, $person['languages'] ?? array() ),
-			'service_areas'   => $person['serviceZipCodes'] ?? '',
-			'city_state'      => $person['city'] ?? '',
-			'profile_slug'    => sanitize_title( ( $person['name']['firstName'] ?? '' ) . '-' . ( $person['name']['lastName'] ?? '' ) ),
-			'qr_code_data'    => '',
-			'mobile_number'   => '',
-			'century21_url'   => self::extract_link_url( $person, 'century21Url' ),
-			'zillow_url'      => self::extract_link_url( $person, 'zillowUrl' ),
-			'realtor_url'     => self::extract_link_url( $person, 'realtorUrl' ),
-			'custom_links'    => array(),
+			'service_areas'        => $person['serviceZipCodes'] ?? '',
+			'city_state'           => $person['city'] ?? '',
+			'profile_slug'         => sanitize_title( $first . '-' . $last ),
+			'qr_code_data'         => '',
+			'arrive'               => '',
+			'apply_url'            => '',
+			'website'              => '',
+			'century21_url'        => self::extract_link_url( $person, 'century21Url' ),
+			'zillow_url'           => self::extract_link_url( $person, 'zillowUrl' ),
+			'realtor_url'          => self::extract_link_url( $person, 'realtorUrl' ),
+			'custom_links'         => array(),
 		);
 	}
 

@@ -19,41 +19,44 @@ if (!defined('DONOTCACHEPAGE')) {
 }
 nocache_headers();
 
-// Get WordPress author and build profile array from wp_users + wp_usermeta
-$author = get_queried_object();
-if ($author && ($author instanceof \WP_User) && in_array('loan_officer', $author->roles ?? [], true)) {
-    $user_profile = new \FRSUsers\Models\UserProfile($author->ID);
-    $profile = [
-        'id' => $author->ID,
-        'user_id' => $author->ID,
-        'email' => $user_profile->get_email(),
-        'first_name' => $user_profile->get_first_name(),
-        'last_name' => $user_profile->get_last_name(),
-        'display_name' => $user_profile->get_display_name(),
-        'full_name' => $user_profile->get_full_name(),
-        'phone_number' => $user_profile->get_phone_number(),
-        'mobile_number' => $user_profile->get_mobile_number(),
-        'job_title' => $user_profile->get_job_title() ?: 'Loan Officer',
-        'nmls' => $user_profile->get_nmls(),
-        'city_state' => $user_profile->get_city_state(),
-        'biography' => $user_profile->get_biography(),
-        'headshot_url' => $user_profile->get_headshot_url(),
-        'profile_slug' => $author->user_nicename,
-        'qr_code_data' => $user_profile->get_qr_code_data(),
-        'arrive' => $user_profile->get_arrive_url(),
-        'apply_url' => $user_profile->get_arrive_url(),
-        'website' => $user_profile->get_website(),
-        'facebook_url' => $user_profile->get_facebook_url(),
-        'instagram_url' => $user_profile->get_instagram_url(),
-        'linkedin_url' => $user_profile->get_linkedin_url(),
-        'twitter_url' => $user_profile->get_twitter_url(),
-        'specialties_lo' => $user_profile->get_specialties_lo(),
-        'namb_certifications' => $user_profile->get_namb_certifications(),
-        'service_areas' => $user_profile->get_service_areas(),
-        'custom_links' => $user_profile->get_custom_links(),
-    ];
-} else {
-    $profile = null;
+// Check for remote profile data first (set by TemplateLoader on marketing sites).
+$profile = get_query_var( 'frs_remote_profile', null );
+
+// Fall back to local WordPress user data.
+if ( ! $profile ) {
+    $author = get_queried_object();
+    if ($author && ($author instanceof \WP_User) && in_array('loan_officer', $author->roles ?? [], true)) {
+        $user_profile = new \FRSUsers\Models\UserProfile($author->ID);
+        $profile = [
+            'id' => $author->ID,
+            'user_id' => $author->ID,
+            'email' => $user_profile->get_email(),
+            'first_name' => $user_profile->get_first_name(),
+            'last_name' => $user_profile->get_last_name(),
+            'display_name' => $user_profile->get_display_name(),
+            'full_name' => $user_profile->get_full_name(),
+            'phone_number' => $user_profile->get_phone_number(),
+            'mobile_number' => $user_profile->get_mobile_number(),
+            'job_title' => $user_profile->get_job_title() ?: 'Loan Officer',
+            'nmls' => $user_profile->get_nmls(),
+            'city_state' => $user_profile->get_city_state(),
+            'biography' => $user_profile->get_biography(),
+            'headshot_url' => $user_profile->get_headshot_url(),
+            'profile_slug' => $author->user_nicename,
+            'qr_code_data' => $user_profile->get_qr_code_data(),
+            'arrive' => $user_profile->get_arrive_url(),
+            'apply_url' => $user_profile->get_arrive_url(),
+            'website' => $user_profile->get_website(),
+            'facebook_url' => $user_profile->get_facebook_url(),
+            'instagram_url' => $user_profile->get_instagram_url(),
+            'linkedin_url' => $user_profile->get_linkedin_url(),
+            'twitter_url' => $user_profile->get_twitter_url(),
+            'specialties_lo' => $user_profile->get_specialties_lo(),
+            'namb_certifications' => $user_profile->get_namb_certifications(),
+            'service_areas' => $user_profile->get_service_areas(),
+            'custom_links' => $user_profile->get_custom_links(),
+        ];
+    }
 }
 
 // 404 if no profile

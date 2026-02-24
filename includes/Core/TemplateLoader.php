@@ -60,6 +60,9 @@ class TemplateLoader {
         // Legacy URL redirects
         add_action('template_redirect', [$this, 'redirect_legacy_urls'], 1);
 
+        // Remote profile resolution for marketing sites (before 404 is rendered)
+        add_action('template_redirect', [$this, 'handle_remote_profile'], 3);
+
         // QR landing query var
         add_filter('query_vars', [$this, 'add_query_vars']);
 
@@ -75,7 +78,67 @@ class TemplateLoader {
      */
     public function add_query_vars($vars) {
         $vars[] = self::QR_QUERY_VAR;
+        $vars[] = 'frs_profile_slug';
         return $vars;
+    }
+
+    /**
+     * Handle remote profile resolution on marketing sites.
+     *
+     * When a /lo/{slug} URL is hit and there's no local WP user (404),
+     * fetch the profile from Twenty CRM and render the template.
+     *
+     * @return void
+     */
+    public function handle_remote_profile() {
+        // Only on marketing sites (non-editing contexts).
+        if ( Roles::is_profile_editing_enabled() ) {
+            return;
+        }
+
+        // Check if this is a 404 for an author_name query (from our rewrite rules).
+        $author_name = get_query_var( 'author_name' );
+        if ( empty( $author_name ) ) {
+            return;
+        }
+
+        // If WP found a local user, let the normal flow handle it.
+        if ( ! is_404() ) {
+            return;
+        }
+
+        // Try to fetch from Twenty CRM.
+        $provider = new \FRSUsers\RemoteData\RemoteProfileProvider();
+        if ( ! $provider->should_use_remote() ) {
+            return;
+        }
+
+        $profile = $provider->get_profile_by_slug( $author_name );
+        if ( ! $profile ) {
+            return; // Genuinely not found — let 404 render.
+        }
+
+        // Found in Twenty CRM. Set up the page to render our template.
+        global $wp_query;
+        $wp_query->is_404    = false;
+        $wp_query->is_author = false;
+
+        // Store profile data for the template to pick up.
+        set_query_var( 'frs_remote_profile', $profile );
+
+        // Prevent caching.
+        if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+            define( 'DONOTCACHEPAGE', true );
+        }
+        nocache_headers();
+        status_header( 200 );
+
+        // Load the loan officer template directly.
+        $template = FRS_USERS_DIR . 'templates/profile/loan-officer.php';
+        if ( file_exists( $template ) ) {
+            include $template;
+            exit;
+        }
     }
 
     /**
@@ -169,7 +232,16 @@ class TemplateLoader {
             $user = $users ? $users[0] : null;
         }
 
-        if (!$user) {
+        // On marketing sites, try remote data if no local user.
+        $remote_profile = null;
+        if (!$user && !Roles::is_profile_editing_enabled()) {
+            $provider = new \FRSUsers\RemoteData\RemoteProfileProvider();
+            if ($provider->should_use_remote()) {
+                $remote_profile = $provider->get_profile_by_slug($slug);
+            }
+        }
+
+        if (!$user && !$remote_profile) {
             global $wp_query;
             $wp_query->set_404();
             status_header(404);
@@ -178,23 +250,36 @@ class TemplateLoader {
             exit;
         }
 
-        // Check if user is active
-        $is_active = get_user_meta($user->ID, 'frs_is_active', true);
-        if (!$is_active) {
-            global $wp_query;
-            $wp_query->set_404();
-            status_header(404);
-            nocache_headers();
-            include get_404_template();
-            exit;
+        // Check if active.
+        if ($user) {
+            $is_active = get_user_meta($user->ID, 'frs_is_active', true);
+            if (!$is_active) {
+                global $wp_query;
+                $wp_query->set_404();
+                status_header(404);
+                nocache_headers();
+                include get_404_template();
+                exit;
+            }
+            $first_name = get_user_meta($user->ID, 'first_name', true);
+            $last_name = get_user_meta($user->ID, 'last_name', true);
+        } else {
+            if (empty($remote_profile['is_active'])) {
+                global $wp_query;
+                $wp_query->set_404();
+                status_header(404);
+                nocache_headers();
+                include get_404_template();
+                exit;
+            }
+            $first_name = $remote_profile['first_name'] ?? '';
+            $last_name = $remote_profile['last_name'] ?? '';
         }
+
+        $full_name = trim($first_name . ' ' . $last_name);
 
         // Set up fake post for template
         global $wp_query, $post;
-
-        $first_name = get_user_meta($user->ID, 'first_name', true);
-        $last_name = get_user_meta($user->ID, 'last_name', true);
-        $full_name = trim($first_name . ' ' . $last_name);
 
         $post = new \WP_Post((object) [
             'ID'          => 0,
@@ -218,8 +303,12 @@ class TemplateLoader {
         $template = FRS_USERS_DIR . 'templates/profile/qr-landing.php';
 
         if (file_exists($template)) {
-            // Pass user data to template
-            set_query_var('frs_qr_user', $user);
+            // Pass data to template — user object or remote profile.
+            if ($user) {
+                set_query_var('frs_qr_user', $user);
+            } else {
+                set_query_var('frs_remote_profile', $remote_profile);
+            }
             include $template;
             exit;
         }

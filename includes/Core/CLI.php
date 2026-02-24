@@ -42,7 +42,7 @@ class CLI {
 		\WP_CLI::add_command( 'frs-users site-context', array( __CLASS__, 'site_context' ) );
 		\WP_CLI::add_command( 'frs-users sync-from-hub', array( __CLASS__, 'sync_from_hub' ) );
 		\WP_CLI::add_command( 'frs-users setup-sync', array( __CLASS__, 'setup_sync' ) );
-		\WP_CLI::add_command( 'frs-users migrate-headshots-to-r2', array( __CLASS__, 'migrate_headshots_to_r2' ) );
+		\WP_CLI::add_command( 'frs-users set-cdn-headshots', array( __CLASS__, 'set_cdn_headshots' ) );
 	}
 
 	/**
@@ -1273,43 +1273,37 @@ class CLI {
 	}
 
 	/**
-	 * Migrate existing headshots to R2 CDN.
+	 * Set CDN headshot URLs for users with local headshot attachments.
 	 *
-	 * Uploads all local headshot attachments to Cloudflare R2 via the
-	 * media.myhub21.com Worker and stores CDN URLs in frs_headshot_url meta.
+	 * Images already exist on the CDN. This just sets the frs_headshot_url
+	 * meta so WordPress serves the CDN URL instead of the local attachment.
 	 *
 	 * ## OPTIONS
 	 *
 	 * [--dry-run]
-	 * : Show what would be uploaded without actually uploading.
+	 * : Show what would be set without writing.
 	 *
 	 * [--force]
-	 * : Re-upload even if frs_headshot_url already exists.
+	 * : Overwrite existing frs_headshot_url values.
 	 *
 	 * [--user=<user_id>]
-	 * : Migrate only a specific user ID.
+	 * : Set for a specific user only.
 	 *
 	 * ## EXAMPLES
 	 *
-	 *     wp frs-users migrate-headshots-to-r2 --dry-run
-	 *     wp frs-users migrate-headshots-to-r2
-	 *     wp frs-users migrate-headshots-to-r2 --force --user=42
+	 *     wp frs-users set-cdn-headshots --dry-run
+	 *     wp frs-users set-cdn-headshots
+	 *     wp frs-users set-cdn-headshots --force --user=42
 	 *
 	 * @param array $args       Positional args.
 	 * @param array $assoc_args Named args.
 	 * @return void
 	 */
-	public static function migrate_headshots_to_r2( $args, $assoc_args ) {
-		$dry_run  = isset( $assoc_args['dry-run'] );
-		$force    = isset( $assoc_args['force'] );
-		$user_id  = isset( $assoc_args['user'] ) ? (int) $assoc_args['user'] : 0;
+	public static function set_cdn_headshots( $args, $assoc_args ) {
+		$dry_run = isset( $assoc_args['dry-run'] );
+		$force   = isset( $assoc_args['force'] );
+		$user_id = isset( $assoc_args['user'] ) ? (int) $assoc_args['user'] : 0;
 
-		if ( ! R2Storage::is_enabled() ) {
-			\WP_CLI::error( 'R2 storage is not enabled. Enable it in Twenty CRM Settings > R2 CDN.' );
-			return;
-		}
-
-		// Get users with headshot_id
 		$meta_query = array(
 			array(
 				'key'     => 'frs_headshot_id',
@@ -1346,19 +1340,14 @@ class CLI {
 		$users = get_users( $query_args );
 
 		if ( empty( $users ) ) {
-			\WP_CLI::success( 'No headshots to migrate.' );
+			\WP_CLI::success( 'No users need CDN headshot URLs.' );
 			return;
 		}
 
-		\WP_CLI::log( sprintf( 'Found %d user(s) with headshots to migrate.', count( $users ) ) );
+		\WP_CLI::log( sprintf( 'Found %d user(s).', count( $users ) ) );
 
-		if ( $dry_run ) {
-			\WP_CLI::log( '' );
-		}
-
-		$uploaded = 0;
-		$skipped  = 0;
-		$failed   = 0;
+		$set     = 0;
+		$skipped = 0;
 
 		foreach ( $users as $user ) {
 			$profile = Profile::hydrate_from_user( $user );
@@ -1368,60 +1357,19 @@ class CLI {
 			}
 
 			$file_path = get_attached_file( $profile->headshot_id );
-			if ( ! $file_path || ! file_exists( $file_path ) ) {
-				\WP_CLI::warning( sprintf(
-					'User %d (%s): Attachment %d file not found.',
-					$user->ID,
-					$user->display_name,
-					$profile->headshot_id
-				) );
-				$failed++;
-				continue;
-			}
-
-			$extension  = pathinfo( $file_path, PATHINFO_EXTENSION ) ?: 'jpg';
+			$extension = $file_path ? ( pathinfo( $file_path, PATHINFO_EXTENSION ) ?: 'jpg' ) : 'jpg';
 			$object_key = R2Storage::generate_object_key( $profile, $extension );
+			$cdn_url    = R2Storage::get_url( $object_key );
 
 			if ( $dry_run ) {
-				\WP_CLI::log( sprintf(
-					'  [DRY RUN] User %d (%s) → %s',
-					$user->ID,
-					$user->display_name,
-					$object_key
-				) );
-				$uploaded++;
-				continue;
-			}
-
-			$cdn_url = R2Storage::upload_attachment( $profile->headshot_id, $profile );
-
-			if ( $cdn_url ) {
-				update_user_meta( $user->ID, 'frs_headshot_url', $cdn_url );
-				update_user_meta( $user->ID, '_frs_r2_last_headshot_id', $profile->headshot_id );
-				\WP_CLI::log( sprintf(
-					'  Uploaded: User %d (%s) → %s',
-					$user->ID,
-					$user->display_name,
-					$cdn_url
-				) );
-				$uploaded++;
+				\WP_CLI::log( sprintf( '  [DRY RUN] %d (%s) → %s', $user->ID, $user->display_name, $cdn_url ) );
 			} else {
-				\WP_CLI::warning( sprintf(
-					'  Failed: User %d (%s)',
-					$user->ID,
-					$user->display_name
-				) );
-				$failed++;
+				update_user_meta( $user->ID, 'frs_headshot_url', $cdn_url );
+				\WP_CLI::log( sprintf( '  Set: %d (%s) → %s', $user->ID, $user->display_name, $cdn_url ) );
 			}
+			$set++;
 		}
 
-		\WP_CLI::log( '' );
-		\WP_CLI::success( sprintf(
-			'Migration %s: %d uploaded, %d skipped, %d failed.',
-			$dry_run ? 'preview' : 'complete',
-			$uploaded,
-			$skipped,
-			$failed
-		) );
+		\WP_CLI::success( sprintf( '%s: %d set, %d skipped.', $dry_run ? 'Preview' : 'Done', $set, $skipped ) );
 	}
 }

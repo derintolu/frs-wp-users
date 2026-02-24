@@ -23,6 +23,9 @@ sidebar-*.png
 qr-*.png
 login-*.png
 
+# Cloudflare Workers
+workers/*/.wrangler/
+
 # Claude Code
 .claude/
 plugin-inventory.txt

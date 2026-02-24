@@ -875,8 +875,9 @@ body.admin-bar .frs-panel {
 @media (max-width: 640px) {
 	.frs-panel {
 		--panel-top: 60px;
-		width: 100vw;
+		left: -24px;
 		right: -24px;
+		width: auto;
 		height: calc(100vh - 60px);
 	}
 	.frs-panel__inner {

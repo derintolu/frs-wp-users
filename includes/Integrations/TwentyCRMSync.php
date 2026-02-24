@@ -466,6 +466,20 @@ class TwentyCRMSync {
 			}
 		}
 
+		// On marketing sites (no profile editing), just invalidate cache instead of creating users.
+		if ( ! \FRSUsers\Core\Roles::is_profile_editing_enabled() ) {
+			$twenty_id = $person['id'] ?? '';
+			$source    = new \FRSUsers\RemoteData\TwentyDataSource();
+			$source->invalidate_cache( $twenty_id ?: null );
+			return new \WP_REST_Response(
+				array(
+					'success' => true,
+					'message' => 'Cache invalidated on marketing site.',
+				),
+				200
+			);
+		}
+
 		$email      = $person['emails']['primaryEmail'] ?? $person['email'];
 		$first_name = $person['name']['firstName'] ?? $person['first_name'] ?? '';
 		$last_name  = $person['name']['lastName'] ?? $person['last_name'] ?? '';

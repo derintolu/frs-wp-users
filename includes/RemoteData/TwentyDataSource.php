@@ -324,7 +324,7 @@ class TwentyDataSource {
 			'phone_number'    => $person['phones']['primaryPhoneNumber'] ?? '',
 			'job_title'       => $person['jobTitle'] ?? '',
 			'avatar_url'      => $person['avatarUrl'] ?? '',
-			'headshot_url'    => $person['headshotUrl'] ?? $person['avatarUrl'] ?? '',
+			'headshot_url'    => $person['avatarUrl'] ?? '',
 			'linkedin_url'    => self::extract_link_url( $person, 'linkedinLink' ),
 			'twitter_url'     => self::extract_link_url( $person, 'xLink' ),
 			'facebook_url'    => self::extract_link_url( $person, 'facebookUrl' ),

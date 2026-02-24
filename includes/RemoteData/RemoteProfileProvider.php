@@ -57,17 +57,20 @@ class RemoteProfileProvider {
 	 * @return array Profiles in FRS format, active only.
 	 */
 	public function get_directory_profiles( string $type = '' ): array {
-		$args = array();
-		if ( $type ) {
-			$args['filter'] = array( 'personRoles' => $type );
-		}
-
-		$people = $this->source->get_all_people( $args );
+		// Fetch all people (MULTI_SELECT filters don't work with eq operator).
+		$people = $this->source->get_all_people();
 
 		$profiles = array_map( array( TwentyDataSource::class, 'to_profile_array' ), $people );
 
 		// Filter to active only.
-		return array_filter( $profiles, fn( $p ) => $p['is_active'] );
+		$profiles = array_filter( $profiles, fn( $p ) => $p['is_active'] );
+
+		// Filter by company role type if specified.
+		if ( $type ) {
+			$profiles = array_filter( $profiles, fn( $p ) => in_array( $type, $p['company_roles'] ?? array(), true ) );
+		}
+
+		return array_values( $profiles );
 	}
 
 	/**

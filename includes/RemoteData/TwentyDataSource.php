@@ -233,34 +233,88 @@ class TwentyDataSource {
 	 */
 	public static function to_profile_array( array $person ): array {
 		$status_value = $person['status'] ?? '';
+
+		// Map Twenty CRM MULTI_SELECT values (uppercase) to WP lowercase.
+		$role_map = array(
+			'MLO'              => 'loan_originator',
+			'SALES_ASSOCIATE'  => 'sales_associate',
+			'BROKER_ASSOCIATE' => 'broker_associate',
+			'ESCROW_OFFICER'   => 'escrow_officer',
+			'PROPERTY_MANAGER' => 'property_manager',
+			'STAFF'            => 'staff',
+			'LEADERSHIP'       => 'leadership',
+			'ADMIN'            => 'admin_staff',
+			'REGIONAL_MANAGER' => 'executive',
+			'LENDER_AE'        => 'loan_originator',
+		);
+
+		$twenty_roles = $person['personRoles'] ?? array();
+		$wp_roles     = array();
+		foreach ( $twenty_roles as $role ) {
+			$wp_roles[] = $role_map[ $role ] ?? strtolower( $role );
+		}
+
+		// Extract specialties from MULTI_SELECT (uppercase enum values).
+		$twenty_specialties = $person['specialties'] ?? array();
+		$wp_specialties     = array_map( function ( $s ) {
+			return ucwords( strtolower( str_replace( '_', ' ', $s ) ) );
+		}, $twenty_specialties );
+
 		return array(
 			'id'              => $person['id'] ?? '',
 			'twenty_crm_id'   => $person['id'] ?? '',
 			'user_id'         => 0, // No local user.
 			'first_name'      => $person['name']['firstName'] ?? '',
 			'last_name'       => $person['name']['lastName'] ?? '',
-			'display_name'    => $person['displayName'] ?? trim( ( $person['name']['firstName'] ?? '' ) . ' ' . ( $person['name']['lastName'] ?? '' ) ),
+			'display_name'    => trim( ( $person['name']['firstName'] ?? '' ) . ' ' . ( $person['name']['lastName'] ?? '' ) ),
 			'email'           => $person['emails']['primaryEmail'] ?? '',
 			'phone_number'    => $person['phones']['primaryPhoneNumber'] ?? '',
 			'job_title'       => $person['jobTitle'] ?? '',
 			'avatar_url'      => $person['avatarUrl'] ?? '',
 			'headshot_url'    => $person['headshotUrl'] ?? $person['avatarUrl'] ?? '',
-			'linkedin_url'    => $person['linkedinLink']['primaryLinkUrl'] ?? '',
-			'twitter_url'     => $person['xLink']['primaryLinkUrl'] ?? '',
+			'linkedin_url'    => self::extract_link_url( $person, 'linkedinLink' ),
+			'twitter_url'     => self::extract_link_url( $person, 'xLink' ),
+			'facebook_url'    => self::extract_link_url( $person, 'facebookUrl' ),
+			'instagram_url'   => self::extract_link_url( $person, 'instagramUrl' ),
+			'youtube_url'     => self::extract_link_url( $person, 'youtubeUrl' ),
 			'nmls'            => $person['nmlsNumber'] ?? '',
 			'license_number'  => $person['licenseNumber'] ?? '',
 			'biography'       => $person['biography']['markdown'] ?? '',
-			'company_roles'   => $person['personRoles'] ?? array(),
+			'company_roles'   => $wp_roles,
 			'is_active'       => ( strtoupper( $status_value ) === 'ACTIVE' ) ? 1 : 0,
-			'specialties'     => $person['specialties'] ?? array(),
-			'service_areas'   => $person['serviceAreas'] ?? array(),
+			'specialties'     => $wp_specialties,
+			'languages'       => array_map( function ( $l ) {
+				return ucwords( strtolower( str_replace( '_', ' ', $l ) ) );
+			}, $person['languages'] ?? array() ),
+			'service_areas'   => $person['serviceZipCodes'] ?? '',
 			'city_state'      => $person['city'] ?? '',
 			'profile_slug'    => sanitize_title( ( $person['name']['firstName'] ?? '' ) . '-' . ( $person['name']['lastName'] ?? '' ) ),
 			'qr_code_data'    => '',
 			'mobile_number'   => '',
-			'facebook_url'    => $person['facebookUrl'] ?? '',
-			'instagram_url'   => $person['instagramUrl'] ?? '',
+			'century21_url'   => self::extract_link_url( $person, 'century21Url' ),
+			'zillow_url'      => self::extract_link_url( $person, 'zillowUrl' ),
+			'realtor_url'     => self::extract_link_url( $person, 'realtorUrl' ),
 			'custom_links'    => array(),
 		);
+	}
+
+	/**
+	 * Extract URL from a Twenty CRM LINKS field.
+	 *
+	 * LINKS fields have format: { primaryLinkUrl: "...", primaryLinkLabel: "...", secondaryLinks: [] }
+	 *
+	 * @param array  $person Twenty CRM person data.
+	 * @param string $field  Field name.
+	 * @return string URL or empty string.
+	 */
+	private static function extract_link_url( array $person, string $field ): string {
+		$value = $person[ $field ] ?? null;
+		if ( is_array( $value ) && ! empty( $value['primaryLinkUrl'] ) ) {
+			return $value['primaryLinkUrl'];
+		}
+		if ( is_string( $value ) && ! empty( $value ) ) {
+			return $value;
+		}
+		return '';
 	}
 }

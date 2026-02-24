@@ -237,6 +237,7 @@ class TwentyCRMSync {
 			'youtube_url'   => 'youtubeUrl',
 			'century21_url' => 'century21Url',
 			'zillow_url'    => 'zillowUrl',
+			'realtor_url'   => 'realtorUrl',
 		);
 
 		foreach ( $link_fields as $meta_key => $twenty_field ) {
@@ -248,23 +249,52 @@ class TwentyCRMSync {
 			}
 		}
 
-		// Add arrays
-		$array_fields = array(
-			'specialties' => 'specialties',
-			'languages'   => 'languages',
-		);
-
-		foreach ( $array_fields as $meta_key => $twenty_field ) {
-			$value = get_user_meta( $user->ID, 'frs_' . $meta_key, true );
-			if ( $value && is_array( $value ) ) {
-				$payload[ $twenty_field ] = $value;
-			}
+		// Sync active status — Twenty CRM uses SELECT with uppercase values.
+		$is_active = get_user_meta( $user->ID, 'frs_is_active', true );
+		if ( $is_active !== '' ) {
+			$payload['status'] = ( (int) $is_active === 1 ) ? 'ACTIVE' : 'INACTIVE';
 		}
 
-		// Add person roles
+		// Sync service areas.
+		$service_areas = get_user_meta( $user->ID, 'frs_service_areas', true );
+		if ( $service_areas ) {
+			$payload['serviceZipCodes'] = $service_areas;
+		}
+
+		// Add MULTI_SELECT arrays — Twenty CRM expects uppercase enum values.
+		$specialties = get_user_meta( $user->ID, 'frs_specialties', true );
+		if ( $specialties && is_array( $specialties ) ) {
+			$payload['specialties'] = array_map( function ( $s ) {
+				return strtoupper( str_replace( ' ', '_', $s ) );
+			}, $specialties );
+		}
+
+		$languages = get_user_meta( $user->ID, 'frs_languages', true );
+		if ( $languages && is_array( $languages ) ) {
+			$payload['languages'] = array_map( function ( $l ) {
+				return strtoupper( str_replace( ' ', '_', $l ) );
+			}, $languages );
+		}
+
+		// Add person roles — map WP lowercase to Twenty CRM uppercase MULTI_SELECT.
+		$wp_to_twenty_roles = array(
+			'loan_originator'  => 'MLO',
+			'broker_associate' => 'BROKER_ASSOCIATE',
+			'sales_associate'  => 'SALES_ASSOCIATE',
+			'escrow_officer'   => 'ESCROW_OFFICER',
+			'property_manager' => 'PROPERTY_MANAGER',
+			'staff'            => 'STAFF',
+			'admin_staff'      => 'ADMIN',
+			'leadership'       => 'LEADERSHIP',
+			'executive'        => 'REGIONAL_MANAGER',
+		);
 		$company_roles = get_user_meta( $user->ID, 'frs_company_role', false );
 		if ( $company_roles ) {
-			$payload['personRoles'] = $company_roles;
+			$twenty_roles = array();
+			foreach ( $company_roles as $role ) {
+				$twenty_roles[] = $wp_to_twenty_roles[ $role ] ?? strtoupper( str_replace( ' ', '_', $role ) );
+			}
+			$payload['personRoles'] = $twenty_roles;
 		}
 
 		// Determine endpoint and method
@@ -276,7 +306,7 @@ class TwentyCRMSync {
 			// Search by email first
 			$search_url = add_query_arg(
 				array(
-					'filter[emails.primaryEmail][eq]' => urlencode( $user->user_email ),
+					'filter[emails.primaryEmail][eq]' => $user->user_email,
 				),
 				trailingslashit( $api_url ) . 'rest/people'
 			);
@@ -455,12 +485,31 @@ class TwentyCRMSync {
 			);
 		}
 
+		// Map Twenty CRM uppercase MULTI_SELECT roles to WP lowercase.
+		$twenty_to_wp_roles = array(
+			'MLO'              => 'loan_originator',
+			'SALES_ASSOCIATE'  => 'sales_associate',
+			'BROKER_ASSOCIATE' => 'broker_associate',
+			'ESCROW_OFFICER'   => 'escrow_officer',
+			'PROPERTY_MANAGER' => 'property_manager',
+			'STAFF'            => 'staff',
+			'ADMIN'            => 'admin_staff',
+			'LEADERSHIP'       => 'leadership',
+			'REGIONAL_MANAGER' => 'executive',
+			'LENDER_AE'        => 'loan_originator',
+		);
+
+		$person_roles_raw = $person['personRoles'] ?? array();
+		$person_roles_wp  = array();
+		foreach ( $person_roles_raw as $role ) {
+			$person_roles_wp[] = $twenty_to_wp_roles[ $role ] ?? strtolower( $role );
+		}
+
 		// Check if person has any of the sync roles
 		$sync_roles = get_option( 'frs_twenty_crm_sync_roles', array( 'loan_originator' ) );
-		$person_roles = $person['personRoles'] ?? array();
 
-		if ( ! empty( $sync_roles ) && ! empty( $person_roles ) ) {
-			$has_sync_role = array_intersect( $person_roles, $sync_roles );
+		if ( ! empty( $sync_roles ) && ! empty( $person_roles_wp ) ) {
+			$has_sync_role = array_intersect( $person_roles_wp, $sync_roles );
 			if ( empty( $has_sync_role ) ) {
 				return new \WP_REST_Response(
 					array(
@@ -536,15 +585,12 @@ class TwentyCRMSync {
 			update_user_meta( $user_id, 'frs_twenty_crm_id', $twenty_id );
 		}
 
-		// Sync meta fields
+		// Sync simple meta fields
 		$meta_mapping = array(
 			'jobTitle'      => 'frs_job_title',
 			'nmlsNumber'    => 'frs_nmls',
 			'licenseNumber' => 'frs_license_number',
 			'city'          => 'frs_city_state',
-			'personRoles'   => 'frs_company_role',
-			'specialties'   => 'frs_specialties',
-			'languages'     => 'frs_languages',
 			'frsId'         => 'frs_agent_id',
 		);
 
@@ -554,12 +600,54 @@ class TwentyCRMSync {
 			}
 		}
 
+		// Sync company roles — store as WP lowercase multi-value meta.
+		// Delete existing then re-add each role.
+		delete_user_meta( $user_id, 'frs_company_role' );
+		foreach ( $person_roles_wp as $wp_role ) {
+			add_user_meta( $user_id, 'frs_company_role', $wp_role );
+		}
+
+		// Sync specialties — convert from uppercase MULTI_SELECT to human-readable.
+		if ( isset( $person['specialties'] ) && is_array( $person['specialties'] ) ) {
+			$wp_specialties = array_map( function ( $s ) {
+				return ucwords( strtolower( str_replace( '_', ' ', $s ) ) );
+			}, $person['specialties'] );
+			update_user_meta( $user_id, 'frs_specialties', $wp_specialties );
+		}
+
+		// Sync languages — convert from uppercase MULTI_SELECT to human-readable.
+		if ( isset( $person['languages'] ) && is_array( $person['languages'] ) ) {
+			$wp_languages = array_map( function ( $l ) {
+				return ucwords( strtolower( str_replace( '_', ' ', $l ) ) );
+			}, $person['languages'] );
+			update_user_meta( $user_id, 'frs_languages', $wp_languages );
+		}
+
+		// Sync status — SELECT field, plain string.
+		if ( isset( $person['status'] ) ) {
+			$is_active = ( strtoupper( $person['status'] ) === 'ACTIVE' ) ? 1 : 0;
+			update_user_meta( $user_id, 'frs_is_active', $is_active );
+		}
+
+		// Sync headshot/avatar URLs.
+		if ( ! empty( $person['headshotUrl'] ) ) {
+			update_user_meta( $user_id, 'frs_headshot_url', $person['headshotUrl'] );
+		}
+		if ( ! empty( $person['avatarUrl'] ) ) {
+			update_user_meta( $user_id, 'frs_avatar_url', $person['avatarUrl'] );
+		}
+
+		// Sync service areas.
+		if ( isset( $person['serviceZipCodes'] ) ) {
+			update_user_meta( $user_id, 'frs_service_areas', $person['serviceZipCodes'] );
+		}
+
 		// Sync phone
 		if ( ! empty( $person['phones']['primaryPhoneNumber'] ) ) {
 			update_user_meta( $user_id, 'frs_phone_number', $person['phones']['primaryPhoneNumber'] );
 		}
 
-		// Sync biography
+		// Sync biography — RICH_TEXT_V2 has { markdown: "..." }
 		if ( ! empty( $person['biography']['markdown'] ) ) {
 			update_user_meta( $user_id, 'frs_biography', $person['biography']['markdown'] );
 		}

@@ -48,7 +48,6 @@ class Shortcodes {
 		$context = Roles::get_site_context();
 		if ( in_array( $context, array( 'hub', 'development' ), true ) ) {
 			add_shortcode( 'frs_hub_directory', array( __CLASS__, 'render_hub_directory' ) );
-			add_action( 'blocksy:header:before', array( __CLASS__, 'render_hub_directory_panel' ) );
 		}
 
 		// Allow other plugins to register additional FRS shortcodes
@@ -138,21 +137,4 @@ class Shortcodes {
 		return ob_get_clean();
 	}
 
-	/**
-	 * Render the hub directory slide-out profile panel.
-	 *
-	 * Hooked to blocksy:header:before so it lives outside page content.
-	 */
-	public static function render_hub_directory_panel() {
-		?>
-		<div class="frs-panel" id="frs-panel" aria-hidden="true">
-			<div class="frs-panel__inner">
-				<button class="frs-panel__close" id="frs-panel-close" type="button" aria-label="<?php esc_attr_e( 'Close', 'frs-users' ); ?>">
-					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-				</button>
-				<div class="frs-panel__body" id="frs-panel-body"></div>
-			</div>
-		</div>
-		<?php
-	}
 }

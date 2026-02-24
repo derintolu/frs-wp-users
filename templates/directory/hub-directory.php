@@ -536,7 +536,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 
 /* ── Slide-Out Profile Panel ─────────────────────────────── */
 .frs-panel {
-	--panel-width: var(--side-panel-width, 500px);
+	--panel-width: var(--side-panel-width, clamp(320px, 42vw, 500px));
 	--panel-top: calc(var(--workspace-header-height, 80px) + var(--workspace-bar-height, 60px));
 	position: fixed;
 	top: var(--panel-top);
@@ -570,9 +570,11 @@ body.sidebar-offcanvas .frs-panel {
 
 /* Visible panel on the right */
 .frs-panel__inner {
-	margin-left: auto;
+	position: absolute;
+	right: 0;
+	top: 0;
 	width: var(--panel-width);
-	max-width: 92vw;
+	max-width: 100%;
 	height: 100%;
 	display: flex;
 	flex-direction: column;
@@ -870,14 +872,27 @@ body.sidebar-offcanvas .frs-panel {
 .frs-panel__empty--small { font-size: 0.75rem; }
 .frs-panel__empty--center { text-align: center; padding: 1.5rem 0; }
 
+/* Panel responsive — tablet */
+@media (max-width: 1024px) {
+	.frs-panel {
+		--panel-width: var(--side-panel-width, min(460px, 60vw));
+	}
+}
+
+/* Panel responsive — small tablet */
+@media (max-width: 768px) {
+	.frs-panel {
+		--panel-width: var(--side-panel-width, 80vw);
+	}
+}
+
 /* Panel full-screen on mobile */
 @media (max-width: 640px) {
 	.frs-panel {
 		--panel-top: var(--workspace-bar-height, 60px);
+		--panel-width: 100%;
 	}
 	.frs-panel__inner {
-		width: 100%;
-		max-width: 100%;
 		box-shadow: none;
 	}
 }

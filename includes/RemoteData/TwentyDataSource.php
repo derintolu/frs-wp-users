@@ -131,7 +131,7 @@ class TwentyDataSource {
 	public function get_all_people( array $args = [] ): array {
 		$all       = array();
 		$cursor    = null;
-		$max_pages = 30; // Safety: max 1800 people.
+		$max_pages = 5; // Safety: max 300 people.
 		$page      = 0;
 
 		do {

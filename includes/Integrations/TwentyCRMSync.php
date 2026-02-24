@@ -228,35 +228,23 @@ class TwentyCRMSync {
 		}
 
 		// Add social links
-		// Standard Twenty CRM link fields use { primaryLinkUrl: url } format.
-		$standard_link_fields = array(
-			'linkedin_url' => 'linkedinLink',
-			'twitter_url'  => 'xLink',
+		// All social URL fields in Twenty CRM are LINKS type: { primaryLinkUrl: url }
+		$link_fields = array(
+			'linkedin_url'  => 'linkedinLink',
+			'twitter_url'   => 'xLink',
+			'facebook_url'  => 'facebookUrl',
+			'instagram_url' => 'instagramUrl',
+			'youtube_url'   => 'youtubeUrl',
+			'century21_url' => 'century21Url',
+			'zillow_url'    => 'zillowUrl',
 		);
 
-		foreach ( $standard_link_fields as $meta_key => $twenty_field ) {
+		foreach ( $link_fields as $meta_key => $twenty_field ) {
 			$url = get_user_meta( $user->ID, 'frs_' . $meta_key, true );
 			if ( $url ) {
 				$payload[ $twenty_field ] = array(
 					'primaryLinkUrl' => $url,
 				);
-			}
-		}
-
-		// Custom fields are plain string values.
-		$custom_link_fields = array(
-			'facebook_url'  => 'facebookUrl',
-			'instagram_url' => 'instagramUrl',
-			'youtube_url'   => 'youtubeUrl',
-			'tiktok_url'    => 'tiktokUrl',
-			'century21_url' => 'century21Url',
-			'zillow_url'    => 'zillowUrl',
-		);
-
-		foreach ( $custom_link_fields as $meta_key => $twenty_field ) {
-			$url = get_user_meta( $user->ID, 'frs_' . $meta_key, true );
-			if ( $url ) {
-				$payload[ $twenty_field ] = $url;
 			}
 		}
 
@@ -576,22 +564,21 @@ class TwentyCRMSync {
 			update_user_meta( $user_id, 'frs_biography', $person['biography']['markdown'] );
 		}
 
-		// Sync social links — standard Twenty fields use { primaryLinkUrl: url },
-		// custom fields are plain strings. Accept both formats on inbound.
+		// Sync social links — all are LINKS type in Twenty: { primaryLinkUrl: url }
 		$social_mapping = array(
 			'linkedinLink'  => 'frs_linkedin_url',
 			'xLink'         => 'frs_twitter_url',
 			'facebookUrl'   => 'frs_facebook_url',
 			'instagramUrl'  => 'frs_instagram_url',
 			'youtubeUrl'    => 'frs_youtube_url',
-			'tiktokUrl'     => 'frs_tiktok_url',
 			'century21Url'  => 'frs_century21_url',
 			'zillowUrl'     => 'frs_zillow_url',
+			'realtorUrl'    => 'frs_realtor_url',
 		);
 
 		foreach ( $social_mapping as $twenty_field => $wp_meta ) {
 			if ( isset( $person[ $twenty_field ] ) ) {
-				// Handle both wrapped { primaryLinkUrl: url } and plain string formats
+				// Extract URL from LINKS format { primaryLinkUrl: url }
 				if ( is_array( $person[ $twenty_field ] ) && ! empty( $person[ $twenty_field ]['primaryLinkUrl'] ) ) {
 					update_user_meta( $user_id, $wp_meta, $person[ $twenty_field ]['primaryLinkUrl'] );
 				} elseif ( is_string( $person[ $twenty_field ] ) && ! empty( $person[ $twenty_field ] ) ) {

@@ -874,7 +874,10 @@ body.admin-bar .frs-panel {
 /* Panel full-screen on mobile */
 @media (max-width: 640px) {
 	.frs-panel {
-		width: 100%;
+		--panel-top: 60px;
+		width: 100vw;
+		right: -24px;
+		height: calc(100vh - 60px);
 	}
 	.frs-panel__inner {
 		box-shadow: none;

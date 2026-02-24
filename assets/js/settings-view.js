@@ -19,6 +19,9 @@ const { state, actions, callbacks } = store('frs-users/settings', {
 		get isIntegrationsTab() {
 			return getContext().activeTab === 'integrations';
 		},
+		get isVcardTab() {
+			return getContext().activeTab === 'vcard';
+		},
 		get canSavePassword() {
 			const ctx = getContext();
 			return ctx.newPassword && ctx.confirmPassword && ctx.newPassword === ctx.confirmPassword && ctx.newPassword.length >= 8;
@@ -303,6 +306,51 @@ const { state, actions, callbacks } = store('frs-users/settings', {
 			getContext().message = null;
 		},
 
+		toggleVcardSwitch(event) {
+			const { field } = event.target.dataset;
+			if (field) {
+				getContext()[field] = !getContext()[field];
+			}
+		},
+
+		async saveVcardSettings() {
+			const ctx = getContext();
+			ctx.vcardSaving = true;
+			ctx.message = null;
+
+			try {
+				const response = await fetch(`${ctx.restUrl}frs-users/v1/settings/vcard`, {
+					method: 'PUT',
+					credentials: 'include',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-WP-Nonce': ctx.restNonce,
+					},
+					body: JSON.stringify({
+						include_office_phone: ctx.vcardIncludeOfficePhone,
+						include_mobile: ctx.vcardIncludeMobile,
+						include_email: ctx.vcardIncludeEmail,
+						include_biography: ctx.vcardIncludeBiography,
+						include_social_linkedin: ctx.vcardIncludeSocialLinkedin,
+						include_social_facebook: ctx.vcardIncludeSocialFacebook,
+						include_social_instagram: ctx.vcardIncludeSocialInstagram,
+						include_photo: ctx.vcardIncludePhoto,
+						include_nmls: ctx.vcardIncludeNmls,
+					}),
+				});
+
+				if (response.ok) {
+					ctx.message = { type: 'success', text: 'Contact card settings saved!' };
+				} else {
+					ctx.message = { type: 'error', text: 'Failed to save contact card settings' };
+				}
+			} catch (error) {
+				ctx.message = { type: 'error', text: 'An error occurred while saving' };
+			} finally {
+				ctx.vcardSaving = false;
+			}
+		},
+
 		async disconnectTelegram() {
 			const ctx = getContext();
 			ctx.isSaving = true;
@@ -400,6 +448,27 @@ const { state, actions, callbacks } = store('frs-users/settings', {
 					ctx.fubMaskedKey = fubData.masked_key || '';
 				}
 				ctx.fubLoading = false;
+
+				// Load vCard settings
+				const vcardResponse = await fetch(`${ctx.restUrl}frs-users/v1/settings/vcard`, {
+					credentials: 'include',
+					headers: {
+						'X-WP-Nonce': ctx.restNonce,
+					},
+				});
+
+				if (vcardResponse.ok) {
+					const vcardData = await vcardResponse.json();
+					ctx.vcardIncludeOfficePhone = vcardData.include_office_phone ?? true;
+					ctx.vcardIncludeMobile = vcardData.include_mobile ?? true;
+					ctx.vcardIncludeEmail = vcardData.include_email ?? true;
+					ctx.vcardIncludeBiography = vcardData.include_biography ?? false;
+					ctx.vcardIncludeSocialLinkedin = vcardData.include_social_linkedin ?? true;
+					ctx.vcardIncludeSocialFacebook = vcardData.include_social_facebook ?? false;
+					ctx.vcardIncludeSocialInstagram = vcardData.include_social_instagram ?? false;
+					ctx.vcardIncludePhoto = vcardData.include_photo ?? true;
+					ctx.vcardIncludeNmls = vcardData.include_nmls ?? true;
+				}
 			} catch (error) {
 				console.error('Failed to load user data:', error);
 				ctx.fubLoading = false;

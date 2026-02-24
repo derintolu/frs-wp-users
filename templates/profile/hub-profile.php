@@ -56,6 +56,16 @@ if (!empty($matched_roles)) {
         'service_areas' => $user_profile->get_service_areas(),
         'custom_links' => $user_profile->get_custom_links(),
     ];
+
+    // Load vCard sharing preferences
+    $raw_vcard = get_user_meta( $author->ID, 'frs_vcard_settings', true );
+    if ( is_string( $raw_vcard ) && ! empty( $raw_vcard ) ) {
+        $profile['vcard_settings'] = json_decode( $raw_vcard, true ) ?: [];
+    } elseif ( is_array( $raw_vcard ) ) {
+        $profile['vcard_settings'] = $raw_vcard;
+    } else {
+        $profile['vcard_settings'] = [];
+    }
 } else {
     $profile = null;
 }
@@ -1441,26 +1451,52 @@ get_header();
 
 <script>
 (function() {
-    // Save Contact (vCard)
+    // Save Contact (vCard) — respects LO sharing preferences
     const saveBtn = document.getElementById('save-contact-btn');
     if (saveBtn) {
         saveBtn.addEventListener('click', function() {
             const profile = <?php echo wp_json_encode($profile); ?>;
-            const vcard = [
+            const vs = profile.vcard_settings || {};
+            // Helper: check if a field is included (default true for backwards compat)
+            const inc = (key) => vs[key] !== undefined ? !!vs[key] : true;
+            // Biography defaults to false
+            const incBio = vs['include_biography'] !== undefined ? !!vs['include_biography'] : false;
+
+            const lines = [
                 'BEGIN:VCARD',
                 'VERSION:3.0',
                 'FN:' + (profile.first_name || '') + ' ' + (profile.last_name || ''),
                 'N:' + (profile.last_name || '') + ';' + (profile.first_name || '') + ';;;',
                 'ORG:' + (<?php echo wp_json_encode( get_option( 'frs_company_name', get_bloginfo( 'name' ) ) ); ?>),
                 'TITLE:' + (profile.job_title || 'Loan Officer'),
-                profile.email ? 'EMAIL;TYPE=WORK:' + profile.email : '',
-                profile.phone_number ? 'TEL;TYPE=WORK:' + profile.phone_number : '',
-                profile.mobile_number ? 'TEL;TYPE=CELL:' + profile.mobile_number : '',
-                profile.nmls ? 'NOTE:NMLS# ' + profile.nmls : '',
-                'URL:' + window.location.href,
-                'END:VCARD'
-            ].filter(Boolean).join('\r\n');
+            ];
 
+            if (inc('include_email') && profile.email) {
+                lines.push('EMAIL;TYPE=WORK:' + profile.email);
+            }
+            if (inc('include_office_phone') && profile.phone_number) {
+                lines.push('TEL;TYPE=WORK:' + profile.phone_number);
+            }
+            if (inc('include_mobile') && profile.mobile_number) {
+                lines.push('TEL;TYPE=CELL:' + profile.mobile_number);
+            }
+
+            const notes = [];
+            if (inc('include_nmls') && profile.nmls) {
+                notes.push('NMLS# ' + profile.nmls);
+            }
+            if (incBio && profile.biography) {
+                notes.push(profile.biography.replace(/<[^>]*>/g, ''));
+            }
+            if (notes.length) {
+                lines.push('NOTE:' + notes.join(' | '));
+            }
+
+            // Profile URL always included
+            lines.push('URL:' + window.location.href);
+            lines.push('END:VCARD');
+
+            const vcard = lines.join('\r\n');
             const blob = new Blob([vcard], { type: 'text/vcard' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');

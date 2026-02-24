@@ -31,6 +31,22 @@ class VCardGenerator {
 			$profile = $user_or_profile;
 		}
 
+		// Load sharing preferences (default: all included for backwards compat)
+		$vcard_settings = array();
+		$user_id        = $profile['user_id'] ?? 0;
+		if ( $user_id ) {
+			$raw = get_user_meta( $user_id, 'frs_vcard_settings', true );
+			if ( is_string( $raw ) ) {
+				$vcard_settings = json_decode( $raw, true ) ?: array();
+			} elseif ( is_array( $raw ) ) {
+				$vcard_settings = $raw;
+			}
+		}
+		// Helper to check if a field is included (default true = backwards compatible)
+		$include = function ( string $key ) use ( $vcard_settings ): bool {
+			return $vcard_settings[ $key ] ?? true;
+		};
+
 		$lines = array(
 			'BEGIN:VCARD',
 			'VERSION:3.0',
@@ -54,20 +70,20 @@ class VCardGenerator {
 		}
 
 		// Email
-		if ( ! empty( $profile['email'] ) ) {
+		if ( $include( 'include_email' ) && ! empty( $profile['email'] ) ) {
 			$lines[] = 'EMAIL;TYPE=WORK:' . self::escape( $profile['email'] );
 		}
 
 		// Phone numbers
-		if ( ! empty( $profile['phone_number'] ) ) {
+		if ( $include( 'include_office_phone' ) && ! empty( $profile['phone_number'] ) ) {
 			$lines[] = 'TEL;TYPE=WORK,VOICE:' . self::escape( self::clean_phone( $profile['phone_number'] ) );
 		}
 
-		if ( ! empty( $profile['mobile_number'] ) ) {
+		if ( $include( 'include_mobile' ) && ! empty( $profile['mobile_number'] ) ) {
 			$lines[] = 'TEL;TYPE=CELL,VOICE:' . self::escape( self::clean_phone( $profile['mobile_number'] ) );
 		}
 
-		if ( ! empty( $profile['office_number'] ) ) {
+		if ( $include( 'include_office_phone' ) && ! empty( $profile['office_number'] ) ) {
 			$lines[] = 'TEL;TYPE=WORK,VOICE:' . self::escape( self::clean_phone( $profile['office_number'] ) );
 		}
 
@@ -95,30 +111,39 @@ class VCardGenerator {
 			$lines[] = 'URL:' . self::escape( $profile['website'] );
 		}
 
-		// Profile URL
+		// Profile URL (always included — canonical link)
 		if ( ! empty( $profile['profile_slug'] ) ) {
 			$lines[] = 'URL;TYPE=PROFILE:' . home_url( '/lo/' . $profile['profile_slug'] );
 		}
 
 		// Photo (embedded as base64 for better compatibility)
-		$headshot_url = $profile['headshot_url'] ?? $profile['avatar_url'] ?? '';
-		if ( ! empty( $headshot_url ) ) {
-			$photo_data = self::get_photo_base64( $headshot_url );
-			if ( $photo_data ) {
-				$lines[] = 'PHOTO;ENCODING=b;TYPE=' . $photo_data['type'] . ':' . $photo_data['data'];
+		if ( $include( 'include_photo' ) ) {
+			$headshot_url = $profile['headshot_url'] ?? $profile['avatar_url'] ?? '';
+			if ( ! empty( $headshot_url ) ) {
+				$photo_data = self::get_photo_base64( $headshot_url );
+				if ( $photo_data ) {
+					$lines[] = 'PHOTO;ENCODING=b;TYPE=' . $photo_data['type'] . ':' . $photo_data['data'];
+				}
 			}
 		}
 
 		// NMLS number in note
 		$notes = array();
-		$nmls  = $profile['nmls'] ?? '';
-		if ( ! empty( $nmls ) ) {
-			$notes[] = 'NMLS# ' . $nmls;
+		if ( $include( 'include_nmls' ) ) {
+			$nmls = $profile['nmls'] ?? '';
+			if ( ! empty( $nmls ) ) {
+				$notes[] = 'NMLS# ' . $nmls;
+			}
+
+			// DRE license (grouped with NMLS)
+			if ( ! empty( $profile['dre_license'] ) ) {
+				$notes[] = 'DRE# ' . $profile['dre_license'];
+			}
 		}
 
-		// DRE license
-		if ( ! empty( $profile['dre_license'] ) ) {
-			$notes[] = 'DRE# ' . $profile['dre_license'];
+		// Biography in notes
+		if ( $include( 'include_biography' ) && ! empty( $profile['biography'] ) ) {
+			$notes[] = wp_strip_all_tags( $profile['biography'] );
 		}
 
 		if ( ! empty( $notes ) ) {
@@ -135,7 +160,8 @@ class VCardGenerator {
 		);
 
 		foreach ( $social_fields as $field => $property ) {
-			if ( ! empty( $profile[ $field ] ) ) {
+			$social_key = 'include_social_' . str_replace( '_url', '', $field );
+			if ( $include( $social_key ) && ! empty( $profile[ $field ] ) ) {
 				$lines[] = $property . ':' . self::escape( $profile[ $field ] );
 			}
 		}

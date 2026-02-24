@@ -540,7 +540,7 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 	--panel-top: calc(var(--workspace-header-height, 80px) + var(--workspace-bar-height, 60px));
 	position: fixed;
 	top: var(--panel-top);
-	right: -10px;
+	right: 0;
 	left: auto;
 	width: var(--panel-width);
 	max-width: 100vw;
@@ -875,8 +875,8 @@ body.admin-bar .frs-panel {
 @media (max-width: 640px) {
 	.frs-panel {
 		--panel-top: var(--header-height, 60px);
-		left: -20px;
-		right: -20px;
+		left: 0;
+		right: 0;
 		width: auto;
 		height: calc(100vh - var(--panel-top));
 	}

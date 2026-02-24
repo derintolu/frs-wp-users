@@ -74,7 +74,7 @@ class TwentyCRMSync {
 	 * @return string
 	 */
 	private static function get_api_url() {
-		return get_option( 'frs_twenty_crm_url', 'https://20.frs.works' );
+		return rtrim( get_option( 'frs_twenty_crm_url', 'https://20.frs.works' ), '/' );
 	}
 
 	/**
@@ -222,23 +222,35 @@ class TwentyCRMSync {
 		}
 
 		// Add social links
-		$social_fields = array(
-			'linkedin_url'  => 'linkedinLink',
+		// Standard Twenty CRM link fields use { primaryLinkUrl: url } format.
+		$standard_link_fields = array(
+			'linkedin_url' => 'linkedinLink',
+			'twitter_url'  => 'xLink',
+		);
+
+		foreach ( $standard_link_fields as $meta_key => $twenty_field ) {
+			$url = get_user_meta( $user->ID, 'frs_' . $meta_key, true );
+			if ( $url ) {
+				$payload[ $twenty_field ] = array(
+					'primaryLinkUrl' => $url,
+				);
+			}
+		}
+
+		// Custom fields are plain string values.
+		$custom_link_fields = array(
 			'facebook_url'  => 'facebookUrl',
 			'instagram_url' => 'instagramUrl',
-			'twitter_url'   => 'twitterUrl',
 			'youtube_url'   => 'youtubeUrl',
 			'tiktok_url'    => 'tiktokUrl',
 			'century21_url' => 'century21Url',
 			'zillow_url'    => 'zillowUrl',
 		);
 
-		foreach ( $social_fields as $meta_key => $twenty_field ) {
+		foreach ( $custom_link_fields as $meta_key => $twenty_field ) {
 			$url = get_user_meta( $user->ID, 'frs_' . $meta_key, true );
 			if ( $url ) {
-				$payload[ $twenty_field ] = array(
-					'primaryLinkUrl' => $url,
-				);
+				$payload[ $twenty_field ] = $url;
 			}
 		}
 
@@ -342,11 +354,11 @@ class TwentyCRMSync {
 			return new \WP_Error( 'twenty_api_error', "HTTP {$status}" );
 		}
 
-		// Save Twenty CRM ID
-		if ( ! empty( $body['data']['people']['id'] ) ) {
-			update_user_meta( $user->ID, 'frs_twenty_crm_id', $body['data']['people']['id'] );
-		} elseif ( ! empty( $body['data']['id'] ) ) {
+		// Save Twenty CRM ID — POST /rest/people returns { data: { id: "..." } }
+		if ( ! empty( $body['data']['id'] ) ) {
 			update_user_meta( $user->ID, 'frs_twenty_crm_id', $body['data']['id'] );
+		} elseif ( ! empty( $body['data']['people']['id'] ) ) {
+			update_user_meta( $user->ID, 'frs_twenty_crm_id', $body['data']['people']['id'] );
 		}
 
 		return array(
@@ -544,12 +556,13 @@ class TwentyCRMSync {
 			update_user_meta( $user_id, 'frs_biography', $person['biography']['markdown'] );
 		}
 
-		// Sync social links
+		// Sync social links — standard Twenty fields use { primaryLinkUrl: url },
+		// custom fields are plain strings. Accept both formats on inbound.
 		$social_mapping = array(
 			'linkedinLink'  => 'frs_linkedin_url',
+			'xLink'         => 'frs_twitter_url',
 			'facebookUrl'   => 'frs_facebook_url',
 			'instagramUrl'  => 'frs_instagram_url',
-			'twitterUrl'    => 'frs_twitter_url',
 			'youtubeUrl'    => 'frs_youtube_url',
 			'tiktokUrl'     => 'frs_tiktok_url',
 			'century21Url'  => 'frs_century21_url',
@@ -557,8 +570,13 @@ class TwentyCRMSync {
 		);
 
 		foreach ( $social_mapping as $twenty_field => $wp_meta ) {
-			if ( ! empty( $person[ $twenty_field ]['primaryLinkUrl'] ) ) {
-				update_user_meta( $user_id, $wp_meta, $person[ $twenty_field ]['primaryLinkUrl'] );
+			if ( isset( $person[ $twenty_field ] ) ) {
+				// Handle both wrapped { primaryLinkUrl: url } and plain string formats
+				if ( is_array( $person[ $twenty_field ] ) && ! empty( $person[ $twenty_field ]['primaryLinkUrl'] ) ) {
+					update_user_meta( $user_id, $wp_meta, $person[ $twenty_field ]['primaryLinkUrl'] );
+				} elseif ( is_string( $person[ $twenty_field ] ) && ! empty( $person[ $twenty_field ] ) ) {
+					update_user_meta( $user_id, $wp_meta, $person[ $twenty_field ] );
+				}
 			}
 		}
 

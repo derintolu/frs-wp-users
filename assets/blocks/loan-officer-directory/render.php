@@ -31,10 +31,17 @@ $subheadline = get_option('frs_directory_subheadline', 'Connect with a mortgage 
 
 // Preload profiles server-side
 $profiles_data = [];
-$profiles = \FRSUsers\Models\Profile::get_all(['type' => 'loan_originator']);
-if (!empty($profiles)) {
-    foreach ($profiles as $profile) {
-        $profiles_data[] = is_array($profile) ? $profile : (method_exists($profile, 'toArray') ? $profile->toArray() : (array) $profile);
+$remote_provider = new \FRSUsers\RemoteData\RemoteProfileProvider();
+if ( $remote_provider->should_use_remote() ) {
+    // Marketing site: fetch from Twenty CRM
+    $profiles_data = $remote_provider->get_directory_profiles( 'loan_originator' );
+} else {
+    // Hub/dev site: use local WordPress data
+    $profiles = \FRSUsers\Models\Profile::get_all(['type' => 'loan_originator']);
+    if (!empty($profiles)) {
+        foreach ($profiles as $profile) {
+            $profiles_data[] = is_array($profile) ? $profile : (method_exists($profile, 'toArray') ? $profile->toArray() : (array) $profile);
+        }
     }
 }
 

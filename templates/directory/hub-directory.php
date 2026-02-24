@@ -87,16 +87,6 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 
 </div>
 
-<!-- Profile Slide-Out Panel -->
-<div class="frs-panel" id="frs-panel" aria-hidden="true">
-	<div class="frs-panel__inner">
-		<button class="frs-panel__close" id="frs-panel-close" type="button" aria-label="<?php esc_attr_e( 'Close', 'frs-users' ); ?>">
-			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-		</button>
-		<div class="frs-panel__body" id="frs-panel-body"></div>
-	</div>
-</div>
-
 <style>
 /* ── FRS Branding Overrides for Frankenstyle ──────────────── */
 .frs-directory,

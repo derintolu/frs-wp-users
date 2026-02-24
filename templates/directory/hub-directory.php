@@ -87,16 +87,6 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 
 </div>
 
-<!-- Profile Slide-Out Panel -->
-<div class="frs-panel" id="frs-panel" aria-hidden="true">
-	<div class="frs-panel__inner">
-		<button class="frs-panel__close" id="frs-panel-close" type="button" aria-label="<?php esc_attr_e( 'Close', 'frs-users' ); ?>">
-			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-		</button>
-		<div class="frs-panel__body" id="frs-panel-body"></div>
-	</div>
-</div>
-
 <style>
 /* ── FRS Branding Overrides for Frankenstyle ──────────────── */
 .frs-directory,
@@ -537,31 +527,14 @@ $active_roles = \FRSUsers\Core\Roles::get_active_company_roles();
 /* ── Slide-Out Profile Panel ─────────────────────────────── */
 .frs-panel {
 	--panel-width: var(--side-panel-width, clamp(320px, 42vw, 500px));
-	--panel-top: calc(var(--workspace-header-height, 80px) + var(--workspace-bar-height, 60px));
 	position: fixed;
-	top: var(--panel-top);
-	left: 0;
+	top: 0;
 	right: 0;
-	height: calc(100vh - var(--panel-top));
+	width: var(--panel-width);
+	height: 100vh;
 	z-index: 99;
-	display: flex;
-	background: transparent;
-	overflow: hidden;
 	pointer-events: none;
 	visibility: hidden;
-	transition: left var(--workspace-transition, 0.3s ease);
-}
-body.admin-bar .frs-panel {
-	--panel-top: calc(var(--workspace-header-height, 80px) + var(--workspace-bar-height, 60px) + var(--admin-bar, 32px));
-}
-body.has-workspace-sidebar .frs-panel {
-	left: var(--workspace-sidebar-width, 0px);
-}
-body.has-workspace-sidebar.sidebar-collapsed .frs-panel {
-	left: var(--workspace-sidebar-width-collapsed, 0px);
-}
-body.sidebar-offcanvas .frs-panel {
-	left: 0;
 }
 .frs-panel.is-open {
 	pointer-events: auto;
@@ -570,11 +543,7 @@ body.sidebar-offcanvas .frs-panel {
 
 /* Visible panel on the right */
 .frs-panel__inner {
-	position: absolute;
-	right: 0;
-	top: 0;
-	width: var(--panel-width);
-	max-width: 100%;
+	width: 100%;
 	height: 100%;
 	display: flex;
 	flex-direction: column;
@@ -889,8 +858,7 @@ body.sidebar-offcanvas .frs-panel {
 /* Panel full-screen on mobile */
 @media (max-width: 640px) {
 	.frs-panel {
-		--panel-top: var(--workspace-bar-height, 60px);
-		--panel-width: 100%;
+		width: 100%;
 	}
 	.frs-panel__inner {
 		box-shadow: none;

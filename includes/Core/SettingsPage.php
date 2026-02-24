@@ -567,6 +567,18 @@ class SettingsPage {
 			'fubTotalSynced'       => 0,
 			'fubLastSync'          => null,
 			'fubConnectedAt'       => null,
+
+			// vCard sharing settings (defaults match API)
+			'vcardIncludeOfficePhone'    => true,
+			'vcardIncludeMobile'         => true,
+			'vcardIncludeEmail'          => true,
+			'vcardIncludeBiography'      => false,
+			'vcardIncludeSocialLinkedin' => true,
+			'vcardIncludeSocialFacebook' => false,
+			'vcardIncludeSocialInstagram' => false,
+			'vcardIncludePhoto'          => true,
+			'vcardIncludeNmls'           => true,
+			'vcardSaving'                => false,
 		);
 
 		ob_start();
@@ -584,6 +596,7 @@ class SettingsPage {
 					'account'       => array( 'icon' => 'user', 'label' => 'Account' ),
 					'notifications' => array( 'icon' => 'bell', 'label' => 'Notifications' ),
 					'integrations'  => array( 'icon' => 'zap', 'label' => 'Integrations' ),
+					'vcard'         => array( 'icon' => 'share-2', 'label' => 'Contact Card' ),
 				);
 
 				foreach ( $tabs as $tab_id => $tab ) :
@@ -612,6 +625,7 @@ class SettingsPage {
 			<?php $this->render_account_tab(); ?>
 			<?php $this->render_notifications_tab(); ?>
 			<?php $this->render_integrations_tab(); ?>
+			<?php $this->render_vcard_tab(); ?>
 		</div>
 		<?php
 		return ob_get_clean();
@@ -1125,6 +1139,71 @@ class SettingsPage {
 	}
 
 	/**
+	 * Render vCard / Contact Sharing Tab
+	 *
+	 * @return void
+	 */
+	private function render_vcard_tab() {
+		$toggles = array(
+			array( 'field' => 'vcardIncludeOfficePhone', 'label' => 'Phone Number', 'desc' => 'Include your office phone number' ),
+			array( 'field' => 'vcardIncludeMobile', 'label' => 'Mobile Number', 'desc' => 'Include your mobile phone number' ),
+			array( 'field' => 'vcardIncludeEmail', 'label' => 'Email Address', 'desc' => 'Include your email address' ),
+			array( 'field' => 'vcardIncludeBiography', 'label' => 'Biography', 'desc' => 'Include your professional biography' ),
+			array( 'field' => 'vcardIncludeSocialLinkedin', 'label' => 'LinkedIn', 'desc' => 'Include your LinkedIn profile URL' ),
+			array( 'field' => 'vcardIncludeSocialFacebook', 'label' => 'Facebook', 'desc' => 'Include your Facebook profile URL' ),
+			array( 'field' => 'vcardIncludeSocialInstagram', 'label' => 'Instagram', 'desc' => 'Include your Instagram profile URL' ),
+			array( 'field' => 'vcardIncludePhoto', 'label' => 'Headshot Photo', 'desc' => 'Include your profile photo in the contact card' ),
+			array( 'field' => 'vcardIncludeNmls', 'label' => 'NMLS Number', 'desc' => 'Include your NMLS and license numbers' ),
+		);
+		?>
+		<div role="tabpanel" data-wp-bind--hidden="!state.isVcardTab">
+			<div class="settings-card">
+				<div class="settings-card-header">
+					<h2 class="settings-card-title">
+						<?php echo $this->get_icon( 'share-2', 20 ); ?>
+						vCard / Contact Sharing
+					</h2>
+					<p class="settings-card-description">Choose which fields appear when someone saves your contact card. Name, job title, and profile URL are always included.</p>
+				</div>
+				<div class="settings-card-content settings-space-y-4">
+					<?php $this->render_message_alert(); ?>
+
+					<?php foreach ( $toggles as $item ) : ?>
+						<div class="settings-switch-row">
+							<div>
+								<span class="settings-switch-label"><?php echo esc_html( $item['label'] ); ?></span>
+								<p class="settings-switch-description"><?php echo esc_html( $item['desc'] ); ?></p>
+							</div>
+							<label class="settings-switch">
+								<input
+									type="checkbox"
+									data-field="<?php echo esc_attr( $item['field'] ); ?>"
+									data-wp-on--change="actions.toggleVcardSwitch"
+									data-wp-bind--checked="context.<?php echo esc_attr( $item['field'] ); ?>"
+								/>
+								<span class="settings-switch-thumb"></span>
+							</label>
+						</div>
+					<?php endforeach; ?>
+
+					<div class="settings-pt-4 settings-border-t">
+						<button
+							type="button"
+							data-wp-on--click="actions.saveVcardSettings"
+							data-wp-bind--disabled="context.vcardSaving"
+							class="settings-btn settings-btn-primary"
+						>
+							<?php echo $this->get_icon( 'save', 16 ); ?>
+							<span data-wp-text="context.vcardSaving ? 'Saving...' : 'Save'"></span>
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
 	 * Get SVG icon by name
 	 *
 	 * @param string $name Icon name.
@@ -1150,6 +1229,7 @@ class SettingsPage {
 			'alert-circle'  => '<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>',
 			'zap'           => '<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
 			'send'          => '<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" x2="11" y1="2" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>',
+			'share-2'       => '<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>',
 		);
 
 		if ( isset( $icons[ $name ] ) ) {

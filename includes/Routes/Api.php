@@ -564,6 +564,24 @@ class Api {
 			)
 		);
 
+		// vCard sharing settings for current user
+		register_rest_route(
+			self::$namespace,
+			'/settings/vcard',
+			array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( __CLASS__, 'get_vcard_settings' ),
+					'permission_callback' => array( self::$actions, 'check_authenticated' ),
+				),
+				array(
+					'methods'             => 'PUT',
+					'callback'            => array( __CLASS__, 'update_vcard_settings' ),
+					'permission_callback' => array( self::$actions, 'check_authenticated' ),
+				),
+			)
+		);
+
 		// Allow hooks to add more custom API routes
 		do_action( 'frs_users_api_routes', self::$namespace );
 	}
@@ -701,6 +719,82 @@ class Api {
 			'audio'    => "<!-- wp:audio -->\n<figure class=\"wp-block-audio\"><audio controls></audio></figure>\n<!-- /wp:audio -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
 			'quote'    => "<!-- wp:quote -->\n<blockquote class=\"wp-block-quote\">\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->\n</blockquote>\n<!-- /wp:quote -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
 			'link'     => "<!-- wp:paragraph {\"className\":\"link-format-fallback\",\"fontSize\":\"large\"} -->\n<p class=\"link-format-fallback has-large-font-size\"><a href=\"#\"></a></p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph -->\n<p></p>\n<!-- /wp:paragraph -->",
+		);
+	}
+
+	/**
+	 * Default vCard sharing settings.
+	 *
+	 * @return array
+	 */
+	private static function get_vcard_defaults(): array {
+		return array(
+			'include_office_phone'    => true,
+			'include_mobile'          => true,
+			'include_email'           => true,
+			'include_biography'       => false,
+			'include_social_linkedin' => true,
+			'include_social_facebook' => false,
+			'include_social_instagram' => false,
+			'include_photo'           => true,
+			'include_nmls'            => true,
+		);
+	}
+
+	/**
+	 * Get vCard sharing settings for current user
+	 *
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response
+	 */
+	public static function get_vcard_settings( $request ) {
+		$user_id  = get_current_user_id();
+		$defaults = self::get_vcard_defaults();
+
+		$raw = get_user_meta( $user_id, 'frs_vcard_settings', true );
+		if ( is_string( $raw ) && ! empty( $raw ) ) {
+			$saved = json_decode( $raw, true ) ?: array();
+		} elseif ( is_array( $raw ) ) {
+			$saved = $raw;
+		} else {
+			$saved = array();
+		}
+
+		// Merge saved on top of defaults
+		$settings = array_merge( $defaults, $saved );
+
+		return new \WP_REST_Response( $settings, 200 );
+	}
+
+	/**
+	 * Update vCard sharing settings for current user
+	 *
+	 * @param \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public static function update_vcard_settings( $request ) {
+		$user_id  = get_current_user_id();
+		$defaults = self::get_vcard_defaults();
+		$params   = $request->get_json_params();
+
+		// Only allow known keys, cast to bool
+		$settings = array();
+		foreach ( array_keys( $defaults ) as $key ) {
+			if ( isset( $params[ $key ] ) ) {
+				$settings[ $key ] = (bool) $params[ $key ];
+			}
+		}
+
+		update_user_meta( $user_id, 'frs_vcard_settings', wp_json_encode( $settings ) );
+
+		// Return merged result
+		$merged = array_merge( $defaults, $settings );
+		return new \WP_REST_Response(
+			array(
+				'success'  => true,
+				'settings' => $merged,
+			),
+			200
 		);
 	}
 

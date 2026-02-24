@@ -2,7 +2,7 @@
  * FRS Media CDN Worker
  *
  * Serves images from R2 and handles authenticated uploads from WordPress.
- * Deploy to media.frs.works custom domain.
+ * Deploy to media.myhub21.com custom domain.
  *
  * Routes:
  *   GET  /headshots/{filename}  - Public image serving
@@ -137,7 +137,7 @@ async function handleUpload(request, env, corsHeaders) {
 	});
 
 	// Build public URL
-	const publicUrl = `https://media.frs.works/${objectKey}`;
+	const publicUrl = `https://media.myhub21.com/${objectKey}`;
 
 	return jsonResponse(
 		{

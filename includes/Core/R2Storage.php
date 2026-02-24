@@ -3,7 +3,7 @@
  * R2 Storage - Cloudflare R2 CDN Integration
  *
  * Handles uploading, serving, and managing headshot images via
- * the frs-media-cdn Worker at media.frs.works.
+ * the frs-media-cdn Worker at media.myhub21.com.
  *
  * @package FRSUsers
  * @subpackage Core
@@ -31,7 +31,7 @@ class R2Storage {
 	/**
 	 * Default CDN URL.
 	 */
-	const DEFAULT_CDN_URL = 'https://media.frs.works';
+	const DEFAULT_CDN_URL = 'https://media.myhub21.com';
 
 	/**
 	 * Initialize hooks.
@@ -39,10 +39,57 @@ class R2Storage {
 	 * @return void
 	 */
 	public static function init() {
+		// Intercept WordPress avatar system to use CDN headshots
+		add_filter( 'pre_get_avatar_data', array( __CLASS__, 'filter_avatar_data' ), 10, 2 );
+
 		// Upload to R2 when headshot changes on hub
 		if ( Roles::is_profile_editing_enabled() ) {
 			add_action( 'frs_profile_saved', array( __CLASS__, 'maybe_upload_headshot' ), 5, 2 );
 		}
+	}
+
+	/**
+	 * Filter WordPress avatar data to use CDN headshot URLs.
+	 *
+	 * Intercepts get_avatar(), get_avatar_url(), and get_avatar_data()
+	 * so that any user with an frs_headshot_url meta gets their CDN
+	 * headshot served instead of Gravatar.
+	 *
+	 * @param array $args        Avatar data arguments.
+	 * @param mixed $id_or_email User ID, email, WP_User, WP_Post, or WP_Comment.
+	 * @return array
+	 */
+	public static function filter_avatar_data( $args, $id_or_email ) {
+		$user_id = 0;
+
+		if ( is_numeric( $id_or_email ) ) {
+			$user_id = (int) $id_or_email;
+		} elseif ( $id_or_email instanceof \WP_User ) {
+			$user_id = $id_or_email->ID;
+		} elseif ( $id_or_email instanceof \WP_Post ) {
+			$user_id = (int) $id_or_email->post_author;
+		} elseif ( $id_or_email instanceof \WP_Comment ) {
+			if ( ! empty( $id_or_email->user_id ) ) {
+				$user_id = (int) $id_or_email->user_id;
+			}
+		} elseif ( is_string( $id_or_email ) && is_email( $id_or_email ) ) {
+			$user = get_user_by( 'email', $id_or_email );
+			if ( $user ) {
+				$user_id = $user->ID;
+			}
+		}
+
+		if ( ! $user_id ) {
+			return $args;
+		}
+
+		$cdn_url = get_user_meta( $user_id, 'frs_headshot_url', true );
+		if ( ! empty( $cdn_url ) ) {
+			$args['url']          = $cdn_url;
+			$args['found_avatar'] = true;
+		}
+
+		return $args;
 	}
 
 	/**

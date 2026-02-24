@@ -365,7 +365,7 @@ class ProfileSync {
 		if ( ! empty( $profile_data['headshot_url'] ) ) {
 			$headshot_url = $profile_data['headshot_url'];
 
-			// If it's already a CDN URL (media.frs.works), store directly — no download needed
+			// If it's already a CDN URL (media.myhub21.com), store directly — no download needed
 			if ( R2Storage::is_enabled() && strpos( $headshot_url, R2Storage::get_cdn_url() ) === 0 ) {
 				update_user_meta( $user_id, 'frs_headshot_url', $headshot_url );
 				// Set avatar plugins to use CDN URL directly

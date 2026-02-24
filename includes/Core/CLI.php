@@ -1276,7 +1276,7 @@ class CLI {
 	 * Migrate existing headshots to R2 CDN.
 	 *
 	 * Uploads all local headshot attachments to Cloudflare R2 via the
-	 * media.frs.works Worker and stores CDN URLs in frs_headshot_url meta.
+	 * media.myhub21.com Worker and stores CDN URLs in frs_headshot_url meta.
 	 *
 	 * ## OPTIONS
 	 *

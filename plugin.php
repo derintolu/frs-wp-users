@@ -95,6 +95,12 @@ final class FRSUsers {
 		// Initialize Twenty CRM API routes (on rest_api_init hook)
 		add_action( 'rest_api_init', array( '\FRSUsers\Routes\TwentyCRMApi', 'register_routes' ) );
 
+		// Initialize Network Sync API routes for multisite (on rest_api_init hook)
+		add_action( 'rest_api_init', array( '\FRSUsers\Routes\NetworkSyncApi', 'register_routes' ) );
+
+		// Initialize Network Sync admin page for multisite
+		\FRSUsers\Admin\NetworkSyncPage::init();
+
 		// Initialize Gutenberg blocks
 		Blocks::init();
 

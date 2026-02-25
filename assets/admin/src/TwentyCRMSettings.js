@@ -28,7 +28,7 @@ import { check, warning } from '@wordpress/icons';
 function TwentyCRMSettings() {
 	const [settings, setSettings] = useState({
 		enabled: false,
-		api_url: 'https://20.frs.works',
+		api_url: 'https://data.c21frs.com',
 		api_key: '',
 		webhook_secret: '',
 		sync_roles: ['loan_originator'],
@@ -206,7 +206,7 @@ function TwentyCRMSettings() {
 							value={settings.api_url}
 							onChange={(value) => updateSetting('api_url', value)}
 							help={__('Your Twenty CRM instance URL', 'frs-users')}
-							placeholder="https://20.frs.works"
+							placeholder="https://data.c21frs.com"
 						/>
 					</PanelRow>
 

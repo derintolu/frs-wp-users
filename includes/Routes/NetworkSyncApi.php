@@ -157,7 +157,7 @@ class NetworkSyncApi {
 		return new \WP_REST_Response(
 			array(
 				'enabled'         => (bool) get_site_option( 'frs_twenty_crm_network_enabled', false ),
-				'api_url'         => get_site_option( 'frs_twenty_crm_url', 'https://20.frs.works' ),
+				'api_url'         => get_site_option( 'frs_twenty_crm_url', 'https://data.c21frs.com' ),
 				'api_key'         => get_site_option( 'frs_twenty_crm_api_key', '' ) ? '••••••••' : '',
 				'api_key_set'     => ! empty( get_site_option( 'frs_twenty_crm_api_key', '' ) ),
 				'webhook_secret'  => get_site_option( 'frs_twenty_crm_webhook_secret', '' ) ? '••••••••' : '',
@@ -501,7 +501,7 @@ class NetworkSyncApi {
 
 		// Copy network settings to site if enabling
 		if ( $enabled ) {
-			update_option( 'frs_twenty_crm_url', get_site_option( 'frs_twenty_crm_url', 'https://20.frs.works' ) );
+			update_option( 'frs_twenty_crm_url', get_site_option( 'frs_twenty_crm_url', 'https://data.c21frs.com' ) );
 			update_option( 'frs_twenty_crm_api_key', get_site_option( 'frs_twenty_crm_api_key', '' ) );
 			update_option( 'frs_twenty_crm_sync_roles', get_site_option( 'frs_twenty_crm_sync_roles', array( 'loan_originator' ) ) );
 		}

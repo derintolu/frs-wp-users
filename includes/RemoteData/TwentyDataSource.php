@@ -67,7 +67,7 @@ class TwentyDataSource {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->api_url   = rtrim( defined( 'FRS_TWENTY_CRM_URL' ) ? FRS_TWENTY_CRM_URL : 'https://20.frs.works', '/' );
+		$this->api_url   = rtrim( defined( 'FRS_TWENTY_CRM_URL' ) ? FRS_TWENTY_CRM_URL : 'https://data.c21frs.com', '/' );
 		$this->api_key   = defined( 'FRS_TWENTY_CRM_API_KEY' ) ? FRS_TWENTY_CRM_API_KEY : '';
 		$this->cache_ttl = (int) get_option( 'frs_remote_cache_ttl', 3600 );
 	}

@@ -131,7 +131,7 @@ class TwentyCRMApi {
 		return new \WP_REST_Response(
 			array(
 				'enabled'           => (bool) get_option( 'frs_twenty_crm_enabled', false ),
-				'api_url'           => get_option( 'frs_twenty_crm_url', 'https://20.frs.works' ),
+				'api_url'           => get_option( 'frs_twenty_crm_url', 'https://data.c21frs.com' ),
 				'api_key'           => get_option( 'frs_twenty_crm_api_key', '' ),
 				'webhook_secret'    => get_option( 'frs_twenty_crm_webhook_secret', '' ),
 				'sync_roles'        => get_option( 'frs_twenty_crm_sync_roles', array( 'loan_originator' ) ),

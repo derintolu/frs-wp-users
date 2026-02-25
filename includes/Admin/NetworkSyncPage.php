@@ -121,7 +121,7 @@ class NetworkSyncPage {
 				'mainSiteId'   => get_main_site_id(),
 				'twentyCRM'    => array(
 					'enabled'    => (bool) get_site_option( 'frs_twenty_crm_network_enabled', false ),
-					'api_url'    => get_site_option( 'frs_twenty_crm_url', 'https://20.frs.works' ),
+					'api_url'    => get_site_option( 'frs_twenty_crm_url', 'https://data.c21frs.com' ),
 					'api_key'    => get_site_option( 'frs_twenty_crm_api_key', '' ),
 					'sync_roles' => get_site_option( 'frs_twenty_crm_sync_roles', array( 'loan_originator' ) ),
 				),

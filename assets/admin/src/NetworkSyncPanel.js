@@ -39,7 +39,7 @@ function NetworkSyncPanel() {
 	const [activeTab, setActiveTab] = useState('overview');
 	const [networkSettings, setNetworkSettings] = useState({
 		enabled: twentyCRM.enabled || false,
-		api_url: twentyCRM.api_url || 'https://20.frs.works',
+		api_url: twentyCRM.api_url || 'https://data.c21frs.com',
 		api_key: '',
 		webhook_secret: '',
 		sync_roles: twentyCRM.sync_roles || ['loan_originator'],
@@ -649,7 +649,7 @@ function SettingsTab({ settings, availableRoles, onUpdateSetting, onToggleRole, 
 							label={__('Twenty CRM API URL', 'frs-users')}
 							value={settings.api_url}
 							onChange={(value) => onUpdateSetting('api_url', value)}
-							placeholder="https://20.frs.works"
+							placeholder="https://data.c21frs.com"
 						/>
 					</PanelRow>
 

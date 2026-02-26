@@ -38,14 +38,13 @@ class NetworkSyncPage {
 	 * @return void
 	 */
 	public static function register_menu() {
-		add_menu_page(
+		add_submenu_page(
+			'users.php',
 			__( 'User Sync Control', 'frs-users' ),
 			__( 'User Sync', 'frs-users' ),
 			'manage_network_options',
 			'frs-network-sync',
-			array( __CLASS__, 'render' ),
-			'dashicons-admin-multisite',
-			30
+			array( __CLASS__, 'render' )
 		);
 	}
 

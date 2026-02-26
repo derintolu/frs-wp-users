@@ -80,7 +80,7 @@ class NetworkSyncPage {
 
 		wp_enqueue_style(
 			'frs-network-sync',
-			FRS_USERS_URL . 'assets/admin/build/network-sync.css',
+			FRS_USERS_URL . 'assets/admin/build/style-index.css',
 			array( 'wp-components' ),
 			$asset['version']
 		);

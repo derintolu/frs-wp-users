@@ -2,6 +2,7 @@
  * Network Sync Control Panel
  *
  * Network-level admin panel for managing Twenty CRM sync across all subsites.
+ * Styled to match WordPress Site Editor / block interface patterns.
  */
 import { useState, useEffect, useMemo, useCallback } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
@@ -13,6 +14,7 @@ import {
 	TextControl,
 	CheckboxControl,
 	TabPanel,
+	Notice,
 } from '@wordpress/components';
 import { DataViews } from '@wordpress/dataviews';
 
@@ -200,7 +202,7 @@ function NetworkSyncPanel() {
 				id: 'display_name',
 				header: __('Name', 'frs-users'),
 				getValue: ({ item }) => item.display_name,
-				render: ({ item }) => <strong>{item.display_name}</strong>,
+				render: ({ item }) => <span className="dataviews-title-field">{item.display_name}</span>,
 				enableSorting: true,
 			},
 			{
@@ -213,21 +215,21 @@ function NetworkSyncPanel() {
 				id: 'company_role',
 				header: __('Role', 'frs-users'),
 				getValue: ({ item }) => item.company_role || '',
-				render: ({ item }) => (item.company_role ? <span className="frs-role-badge frs-role-badge--small">{item.company_role}</span> : <span className="frs-empty">—</span>),
+				render: ({ item }) => (item.company_role ? <span className="admin-ui-badge">{item.company_role}</span> : <span className="admin-ui-muted">—</span>),
 				enableSorting: true,
 			},
 			{
 				id: 'twenty_crm_id',
 				header: __('CRM ID', 'frs-users'),
 				getValue: ({ item }) => item.twenty_crm_id || '',
-				render: ({ item }) => (item.twenty_crm_id ? <code style={{ fontSize: '11px' }}>{item.twenty_crm_id.substring(0, 8)}...</code> : <span className="frs-empty">—</span>),
+				render: ({ item }) => (item.twenty_crm_id ? <code className="admin-ui-code">{item.twenty_crm_id.substring(0, 8)}...</code> : <span className="admin-ui-muted">—</span>),
 				enableSorting: false,
 			},
 			{
 				id: 'last_sync',
 				header: __('Last Sync', 'frs-users'),
 				getValue: ({ item }) => item.last_sync || '',
-				render: ({ item }) => item.last_sync || <span className="frs-empty">{__('Never', 'frs-users')}</span>,
+				render: ({ item }) => item.last_sync || <span className="admin-ui-muted">{__('Never', 'frs-users')}</span>,
 				enableSorting: true,
 			},
 		],
@@ -256,10 +258,10 @@ function NetworkSyncPanel() {
 				header: __('Site', 'frs-users'),
 				getValue: ({ item }) => item.name,
 				render: ({ item }) => (
-					<>
-						<strong>{item.name}</strong>
-						{item.id === 1 && <span className="frs-role-badge frs-role-badge--small" style={{ marginLeft: '8px' }}>{__('Main', 'frs-users')}</span>}
-					</>
+					<span className="dataviews-title-field">
+						{item.name}
+						{item.id === 1 && <span className="admin-ui-badge" style={{ marginLeft: '8px' }}>{__('Main', 'frs-users')}</span>}
+					</span>
 				),
 				enableSorting: true,
 			},
@@ -268,7 +270,7 @@ function NetworkSyncPanel() {
 				header: __('URL', 'frs-users'),
 				getValue: ({ item }) => item.path,
 				render: ({ item }) => (
-					<a href={item.url} target="_blank" rel="noopener noreferrer">
+					<a href={item.url} target="_blank" rel="noopener noreferrer" className="admin-ui-link">
 						{item.path}
 					</a>
 				),
@@ -299,18 +301,20 @@ function NetworkSyncPanel() {
 
 	const getItemId = useCallback((item) => item.ID || item.id, []);
 
+	const webhookUrl = `${window.location.origin}/wp-json/frs-users/v1/webhook/twenty-crm`;
+
+	// Loading state
 	if (isLoading) {
 		return (
-			<div className="frs-network-sync">
-				<div className="frs-network-sync__loading">
-					<Spinner />
-					<p>{__('Loading...', 'frs-users')}</p>
+			<div className="admin-ui-page">
+				<div className="admin-ui-page__content">
+					<div className="dataviews-loading">
+						<Spinner />
+					</div>
 				</div>
 			</div>
 		);
 	}
-
-	const webhookUrl = `${window.location.origin}/wp-json/frs-users/v1/webhook/twenty-crm`;
 
 	const tabs = [
 		{ name: 'users', title: __('Synced Users', 'frs-users') },
@@ -319,144 +323,159 @@ function NetworkSyncPanel() {
 	];
 
 	return (
-		<div className="frs-network-sync">
-			{/* Stats summary - header is rendered by PHP */}
-			{stats && (
-				<p className="frs-network-sync__subtitle">
-					{stats.total_synced} {__('synced', 'frs-users')} / {stats.eligible_count} {__('eligible users', 'frs-users')}
-				</p>
-			)}
+		<div className="admin-ui-page">
+			{/* Header */}
+			<div className="admin-ui-page__header">
+				{stats && (
+					<p className="admin-ui-page__header-subtitle">
+						{stats.total_synced} {__('synced', 'frs-users')} / {stats.eligible_count} {__('eligible users', 'frs-users')}
+					</p>
+				)}
+				<div className="admin-ui-page__header-actions">
+					{stats?.sync_enabled && (
+						<Button
+							variant="primary"
+							onClick={handleBulkSync}
+							isBusy={isSyncing}
+							disabled={isSyncing}
+						>
+							{isSyncing ? __('Syncing...', 'frs-users') : __('Sync All', 'frs-users')}
+						</Button>
+					)}
+				</div>
+			</div>
 
+			{/* Notices */}
 			{notice && (
-				<div className={`notice notice-${notice.type} is-dismissible`}>
-					<p>{notice.message}</p>
-					<button type="button" className="notice-dismiss" onClick={() => setNotice(null)}>
-						<span className="screen-reader-text">{__('Dismiss', 'frs-users')}</span>
-					</button>
+				<div className="admin-ui-page__notices">
+					<Notice
+						status={notice.type}
+						onRemove={() => setNotice(null)}
+						isDismissible
+					>
+						{notice.message}
+					</Notice>
 				</div>
 			)}
 
-			<TabPanel
-				className="frs-network-sync__tabs"
-				tabs={tabs}
-				initialTabName="users"
-			>
-				{(tab) => (
-					<div className="frs-network-sync__tab-content">
-						{tab.name === 'users' && (
-							<div className="frs-network-sync__card">
-								<div className="frs-network-sync__toolbar">
-									<Button
-										variant="primary"
-										onClick={handleBulkSync}
-										isBusy={isSyncing}
-										disabled={isSyncing || !stats?.sync_enabled}
-									>
-										{isSyncing ? __('Syncing...', 'frs-users') : __('Sync All Eligible', 'frs-users')}
-									</Button>
-								</div>
-								<DataViews
-									data={syncedUsers}
-									fields={usersFields}
-									view={usersView}
-									onChangeView={setUsersView}
-									actions={usersActions}
-									paginationInfo={{
-										totalItems: syncedUsers.length,
-										totalPages: Math.ceil(syncedUsers.length / usersView.perPage),
-									}}
-									getItemId={getItemId}
-								/>
-							</div>
-						)}
-
-						{tab.name === 'sites' && (
-							<div className="frs-network-sync__card">
-								<DataViews
-									data={sitesData}
-									fields={sitesFields}
-									view={sitesView}
-									onChangeView={setSitesView}
-									paginationInfo={{
-										totalItems: sitesData.length,
-										totalPages: Math.ceil(sitesData.length / sitesView.perPage),
-									}}
-									getItemId={getItemId}
-								/>
-							</div>
-						)}
-
-						{tab.name === 'settings' && (
-							<div className="frs-network-sync__card frs-network-sync__settings">
-								<div className="frs-network-sync__settings-section">
-									<h2>{__('Connection', 'frs-users')}</h2>
-									<ToggleControl
-										label={__('Enable Network Sync', 'frs-users')}
-										help={networkSettings.enabled ? __('Sync is active', 'frs-users') : __('Sync is disabled', 'frs-users')}
-										checked={networkSettings.enabled}
-										onChange={(v) => updateSetting('enabled', v)}
-									/>
-									<TextControl
-										label={__('Twenty CRM URL', 'frs-users')}
-										value={networkSettings.api_url}
-										onChange={(v) => updateSetting('api_url', v)}
-										placeholder="https://data.c21frs.com"
-									/>
-									<TextControl
-										label={__('API Key', 'frs-users')}
-										type="password"
-										value={networkSettings.api_key}
-										onChange={(v) => updateSetting('api_key', v)}
-										help={__('Leave blank to keep existing', 'frs-users')}
-									/>
-									<TextControl
-										label={__('Webhook Secret', 'frs-users')}
-										type="password"
-										value={networkSettings.webhook_secret}
-										onChange={(v) => updateSetting('webhook_secret', v)}
+			{/* Content with Tabs */}
+			<div className="admin-ui-page__content">
+				<TabPanel
+					className="admin-ui-tabs"
+					tabs={tabs}
+					initialTabName="users"
+				>
+					{(tab) => (
+						<>
+							{tab.name === 'users' && (
+								<div className="dataviews-wrapper">
+									<DataViews
+										data={syncedUsers}
+										fields={usersFields}
+										view={usersView}
+										onChangeView={setUsersView}
+										actions={usersActions}
+										paginationInfo={{
+											totalItems: syncedUsers.length,
+											totalPages: Math.ceil(syncedUsers.length / usersView.perPage),
+										}}
+										getItemId={getItemId}
 									/>
 								</div>
+							)}
 
-								<div className="frs-network-sync__settings-section">
-									<h2>{__('Sync Roles', 'frs-users')}</h2>
-									<p className="frs-network-sync__description">{__('Select roles to sync with Twenty CRM:', 'frs-users')}</p>
-									<div className="frs-network-sync__roles">
-										{Object.entries(availableRoles).map(([slug, label]) => (
-											<CheckboxControl
-												key={slug}
-												label={label}
-												checked={(networkSettings.sync_roles || []).includes(slug)}
-												onChange={() => toggleRole(slug)}
-												__nextHasNoMarginBottom
-											/>
-										))}
+							{tab.name === 'sites' && (
+								<div className="dataviews-wrapper">
+									<DataViews
+										data={sitesData}
+										fields={sitesFields}
+										view={sitesView}
+										onChangeView={setSitesView}
+										paginationInfo={{
+											totalItems: sitesData.length,
+											totalPages: Math.ceil(sitesData.length / sitesView.perPage),
+										}}
+										getItemId={getItemId}
+									/>
+								</div>
+							)}
+
+							{tab.name === 'settings' && (
+								<div className="admin-ui-settings">
+									<div className="admin-ui-settings__section">
+										<h2 className="admin-ui-settings__title">{__('Connection', 'frs-users')}</h2>
+										<ToggleControl
+											label={__('Enable Network Sync', 'frs-users')}
+											help={networkSettings.enabled ? __('Sync is active', 'frs-users') : __('Sync is disabled', 'frs-users')}
+											checked={networkSettings.enabled}
+											onChange={(v) => updateSetting('enabled', v)}
+											__nextHasNoMarginBottom
+										/>
+										<TextControl
+											label={__('Twenty CRM URL', 'frs-users')}
+											value={networkSettings.api_url}
+											onChange={(v) => updateSetting('api_url', v)}
+											placeholder="https://data.c21frs.com"
+											__nextHasNoMarginBottom
+										/>
+										<TextControl
+											label={__('API Key', 'frs-users')}
+											type="password"
+											value={networkSettings.api_key}
+											onChange={(v) => updateSetting('api_key', v)}
+											help={__('Leave blank to keep existing', 'frs-users')}
+											__nextHasNoMarginBottom
+										/>
+										<TextControl
+											label={__('Webhook Secret', 'frs-users')}
+											type="password"
+											value={networkSettings.webhook_secret}
+											onChange={(v) => updateSetting('webhook_secret', v)}
+											__nextHasNoMarginBottom
+										/>
 									</div>
-								</div>
 
-								<div className="frs-network-sync__settings-section">
-									<h2>{__('Webhook URL', 'frs-users')}</h2>
-									<p className="frs-network-sync__description">{__('Add this URL to Twenty CRM:', 'frs-users')}</p>
-									<div className="frs-network-sync__webhook">
-										<code>{webhookUrl}</code>
-										<Button variant="secondary" size="small" onClick={() => navigator.clipboard.writeText(webhookUrl)}>
-											{__('Copy', 'frs-users')}
+									<div className="admin-ui-settings__section">
+										<h2 className="admin-ui-settings__title">{__('Sync Roles', 'frs-users')}</h2>
+										<p className="admin-ui-settings__description">{__('Select roles to sync with Twenty CRM:', 'frs-users')}</p>
+										<div className="admin-ui-settings__checkboxes">
+											{Object.entries(availableRoles).map(([slug, label]) => (
+												<CheckboxControl
+													key={slug}
+													label={label}
+													checked={(networkSettings.sync_roles || []).includes(slug)}
+													onChange={() => toggleRole(slug)}
+													__nextHasNoMarginBottom
+												/>
+											))}
+										</div>
+									</div>
+
+									<div className="admin-ui-settings__section">
+										<h2 className="admin-ui-settings__title">{__('Webhook URL', 'frs-users')}</h2>
+										<p className="admin-ui-settings__description">{__('Add this URL to Twenty CRM:', 'frs-users')}</p>
+										<div className="admin-ui-settings__webhook">
+											<code className="admin-ui-code admin-ui-code--block">{webhookUrl}</code>
+											<Button variant="secondary" size="compact" onClick={() => navigator.clipboard.writeText(webhookUrl)}>
+												{__('Copy', 'frs-users')}
+											</Button>
+										</div>
+									</div>
+
+									<div className="admin-ui-settings__actions">
+										<Button variant="primary" onClick={handleSaveSettings} isBusy={isSaving} disabled={isSaving}>
+											{__('Save Settings', 'frs-users')}
+										</Button>
+										<Button variant="secondary" onClick={handleTestConnection} isBusy={isTesting} disabled={isTesting}>
+											{__('Test Connection', 'frs-users')}
 										</Button>
 									</div>
 								</div>
-
-								<div className="frs-network-sync__actions">
-									<Button variant="primary" onClick={handleSaveSettings} isBusy={isSaving} disabled={isSaving}>
-										{__('Save Settings', 'frs-users')}
-									</Button>
-									<Button variant="secondary" onClick={handleTestConnection} isBusy={isTesting} disabled={isTesting}>
-										{__('Test Connection', 'frs-users')}
-									</Button>
-								</div>
-							</div>
-						)}
-					</div>
-				)}
-			</TabPanel>
+							)}
+						</>
+					)}
+				</TabPanel>
+			</div>
 		</div>
 	);
 }

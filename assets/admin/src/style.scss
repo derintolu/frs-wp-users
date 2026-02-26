@@ -522,134 +522,220 @@
 
 /* ==========================================================================
    Network Sync Panel Styles
-   WordPress Admin Standard Styling
+   Matches WordPress Site Editor / Block Interface Patterns
    ========================================================================== */
 
-.frs-network-sync {
-	max-width: 1200px;
-	margin: 20px auto 0;
-}
-
-.frs-network-sync__subtitle {
-	color: #646970;
-	font-size: 14px;
-	margin: 0 0 20px;
-}
-
-.frs-network-sync__loading {
+/* Admin UI Page - Full-screen white layout like Site Editor */
+.admin-ui-page {
+	--wp-admin-theme-color: #007cba;
+	--wp-admin-theme-color--rgb: 0, 124, 186;
+	
+	background-color: #fff;
+	color: #1e1e1e;
 	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	padding: 80px 20px;
-	color: #646970;
-	background: #fff;
-	border: 1px solid #c3c4c7;
-	border-radius: 4px;
+	flex-flow: column;
+	min-height: calc(100vh - 32px); /* Account for admin bar */
+	margin: 0 -20px -10px 0;
+	position: relative;
+}
 
-	.components-spinner {
-		margin-bottom: 16px;
+.admin-ui-page__header {
+	background: #fff;
+	border-bottom: 1px solid #e0e0e0;
+	padding: 16px 24px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-shrink: 0;
+}
+
+.admin-ui-page__header-subtitle {
+	color: #757575;
+	font-size: 13px;
+	font-weight: 400;
+	line-height: 20px;
+	margin: 0;
+}
+
+.admin-ui-page__header-actions {
+	display: flex;
+	gap: 8px;
+}
+
+.admin-ui-page__notices {
+	padding: 0 24px;
+	
+	.components-notice {
+		margin: 16px 0 0;
 	}
 }
 
-/* Tabs - WordPress admin subsubsub style */
-.frs-network-sync__tabs {
+.admin-ui-page__content {
+	display: flex;
+	flex-direction: column;
+	flex-grow: 1;
+	overflow: auto;
+}
+
+/* Tabs - Site Editor style */
+.admin-ui-tabs {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	
 	.components-tab-panel__tabs {
 		display: flex;
-		gap: 4px;
-		border-bottom: 1px solid #c3c4c7;
-		margin-bottom: 0;
-		padding: 0;
-		background: transparent;
+		gap: 0;
+		border-bottom: 1px solid #e0e0e0;
+		padding: 0 24px;
+		background: #fff;
+		flex-shrink: 0;
 	}
 
 	.components-tab-panel__tabs-item {
-		padding: 8px 16px;
+		padding: 12px 16px;
 		font-size: 13px;
-		font-weight: 400;
-		color: #2271b1;
+		font-weight: 500;
+		color: #1e1e1e;
 		background: none;
-		border: 1px solid transparent;
-		border-bottom: none;
-		border-radius: 4px 4px 0 0;
+		border: none;
+		border-bottom: 3px solid transparent;
 		margin-bottom: -1px;
 		cursor: pointer;
-		transition: background-color 0.15s ease, color 0.15s ease;
+		transition: border-color 0.1s ease;
 
 		&:hover {
-			color: #135e96;
-			background: #f0f0f1;
+			color: var(--wp-admin-theme-color);
 		}
 
 		&:focus {
-			box-shadow: none;
-			outline: 1px dotted #2271b1;
-			outline-offset: -1px;
+			box-shadow: inset 0 0 0 2px var(--wp-admin-theme-color);
+			outline: none;
 		}
 
 		&.is-active {
-			color: #1d2327;
-			background: #fff;
-			border-color: #c3c4c7;
-			font-weight: 600;
+			color: var(--wp-admin-theme-color);
+			border-bottom-color: var(--wp-admin-theme-color);
 		}
 	}
-}
-
-.frs-network-sync__tab-content {
-	padding: 0;
-}
-
-/* White card with border - WordPress admin standard */
-.frs-network-sync__card {
-	background: #fff;
-	border: 1px solid #c3c4c7;
-	border-top: none;
-	padding: 20px;
-
-	/* DataViews styling within card */
-	.dataviews-view-table {
-		margin: 0;
-	}
-
-	.dataviews-view-table th,
-	.dataviews-view-table td {
-		padding: 10px 12px;
-	}
-
-	.dataviews-view-table th {
-		background: #f6f7f7;
-		border-bottom: 1px solid #c3c4c7;
-		font-weight: 600;
-		color: #1d2327;
-	}
-
-	.dataviews-view-table tr:nth-child(even) {
-		background: #f9f9f9;
-	}
-
-	.dataviews-view-table tr:hover {
-		background: #f0f6fc;
+	
+	.components-tab-panel__tab-content {
+		flex-grow: 1;
+		display: flex;
+		flex-direction: column;
 	}
 }
 
-.frs-network-sync__toolbar {
+/* DataViews wrapper - matches Site Editor */
+.dataviews-wrapper {
+	box-sizing: border-box;
 	display: flex;
-	justify-content: flex-end;
-	margin-bottom: 16px;
-	padding-bottom: 16px;
-	border-bottom: 1px solid #dcdcde;
+	flex-direction: column;
+	font-size: 13px;
+	height: 100%;
+	line-height: 1.4;
+	overflow: auto;
+	
+	.dataviews-filters__container,
+	.dataviews__view-actions {
+		padding: 16px 24px;
+	}
+	
+	.dataviews-view-table {
+		width: 100%;
+		
+		th, td {
+			padding: 12px 16px;
+			text-align: left;
+			border-bottom: 1px solid #e0e0e0;
+		}
+		
+		th {
+			font-weight: 500;
+			color: #1e1e1e;
+			background: #f6f7f7;
+		}
+		
+		td {
+			color: #1e1e1e;
+		}
+		
+		tr:hover td {
+			background: #f0f6fc;
+		}
+		
+		th:first-child,
+		td:first-child {
+			padding-left: 24px;
+		}
+		
+		th:last-child,
+		td:last-child {
+			padding-right: 24px;
+		}
+	}
+	
+	.dataviews-footer {
+		padding: 16px 24px;
+		border-top: 1px solid #e0e0e0;
+	}
 }
 
-/* Settings */
-.frs-network-sync__settings {
+/* Helper classes */
+.dataviews-title-field {
+	font-size: 13px;
+	font-weight: 500;
+	color: #1e1e1e;
+}
+
+.admin-ui-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	background: #f0f0f0;
+	border-radius: 2px;
+	font-size: 12px;
+	font-weight: 500;
+	color: #1e1e1e;
+}
+
+.admin-ui-muted {
+	color: #757575;
+}
+
+.admin-ui-code {
+	font-family: Consolas, Monaco, monospace;
+	font-size: 12px;
+	background: #f0f0f0;
+	padding: 2px 6px;
+	border-radius: 2px;
+	
+	&.admin-ui-code--block {
+		display: block;
+		padding: 12px 16px;
+		word-break: break-all;
+		flex: 1;
+	}
+}
+
+.admin-ui-link {
+	color: var(--wp-admin-theme-color);
+	text-decoration: none;
+	
+	&:hover {
+		text-decoration: underline;
+	}
+}
+
+/* Settings panel */
+.admin-ui-settings {
+	padding: 24px;
 	max-width: 600px;
 }
 
-.frs-network-sync__settings-section {
+.admin-ui-settings__section {
 	margin-bottom: 32px;
 	padding-bottom: 32px;
-	border-bottom: 1px solid #dcdcde;
+	border-bottom: 1px solid #e0e0e0;
 
 	&:last-of-type {
 		border-bottom: none;
@@ -657,27 +743,27 @@
 		padding-bottom: 0;
 	}
 
-	h2 {
-		font-size: 16px;
-		font-weight: 600;
-		margin: 0 0 16px;
-		color: #1d2327;
-	}
-
 	.components-base-control {
 		margin-bottom: 16px;
 	}
 }
 
-.frs-network-sync__description {
-	color: #646970;
+.admin-ui-settings__title {
+	font-size: 14px;
+	font-weight: 600;
+	margin: 0 0 16px;
+	color: #1e1e1e;
+}
+
+.admin-ui-settings__description {
+	color: #757575;
 	font-size: 13px;
 	margin: 0 0 12px;
 }
 
-.frs-network-sync__roles {
-	display: grid;
-	grid-template-columns: repeat(2, 1fr);
+.admin-ui-settings__checkboxes {
+	display: flex;
+	flex-direction: column;
 	gap: 8px;
 
 	.components-checkbox-control {
@@ -685,23 +771,13 @@
 	}
 }
 
-.frs-network-sync__webhook {
+.admin-ui-settings__webhook {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	gap: 12px;
-
-	code {
-		flex: 1;
-		padding: 10px 12px;
-		background: #f6f7f7;
-		border: 1px solid #dcdcde;
-		border-radius: 4px;
-		font-size: 12px;
-		word-break: break-all;
-	}
 }
 
-.frs-network-sync__actions {
+.admin-ui-settings__actions {
 	display: flex;
 	gap: 12px;
 	margin-top: 24px;

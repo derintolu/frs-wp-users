@@ -522,30 +522,18 @@
 
 /* ==========================================================================
    Network Sync Panel Styles
+   WordPress Admin Standard Styling
    ========================================================================== */
 
 .frs-network-sync {
 	max-width: 1200px;
-	margin: 0 auto;
-	padding: 0 20px;
-}
-
-.frs-network-sync__header {
-	text-align: center;
-	padding: 40px 0 24px;
-
-	h1 {
-		font-size: 28px;
-		font-weight: 400;
-		margin: 0 0 8px;
-		color: #1d2327;
-	}
+	margin: 20px auto 0;
 }
 
 .frs-network-sync__subtitle {
 	color: #646970;
 	font-size: 14px;
-	margin: 0;
+	margin: 0 0 20px;
 }
 
 .frs-network-sync__loading {
@@ -555,65 +543,107 @@
 	justify-content: center;
 	padding: 80px 20px;
 	color: #646970;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
 
 	.components-spinner {
 		margin-bottom: 16px;
 	}
 }
 
-/* Tabs - WordPress.com style centered */
+/* Tabs - WordPress admin subsubsub style */
 .frs-network-sync__tabs {
 	.components-tab-panel__tabs {
 		display: flex;
-		justify-content: center;
-		border-bottom: 1px solid #dcdcde;
+		gap: 4px;
+		border-bottom: 1px solid #c3c4c7;
 		margin-bottom: 0;
-		gap: 0;
+		padding: 0;
+		background: transparent;
 	}
 
 	.components-tab-panel__tabs-item {
-		padding: 12px 20px;
-		font-size: 14px;
-		font-weight: 500;
-		color: #646970;
+		padding: 8px 16px;
+		font-size: 13px;
+		font-weight: 400;
+		color: #2271b1;
 		background: none;
-		border: none;
-		border-bottom: 3px solid transparent;
+		border: 1px solid transparent;
+		border-bottom: none;
+		border-radius: 4px 4px 0 0;
 		margin-bottom: -1px;
 		cursor: pointer;
-		transition: color 0.15s ease, border-color 0.15s ease;
+		transition: background-color 0.15s ease, color 0.15s ease;
 
 		&:hover {
-			color: #1d2327;
+			color: #135e96;
+			background: #f0f0f1;
 		}
 
 		&:focus {
 			box-shadow: none;
-			outline: none;
+			outline: 1px dotted #2271b1;
+			outline-offset: -1px;
 		}
 
 		&.is-active {
-			color: #3858e9;
-			border-bottom-color: #3858e9;
+			color: #1d2327;
+			background: #fff;
+			border-color: #c3c4c7;
+			font-weight: 600;
 		}
 	}
 }
 
-.frs-network-sync__content {
+.frs-network-sync__tab-content {
+	padding: 0;
+}
+
+/* White card with border - WordPress admin standard */
+.frs-network-sync__card {
 	background: #fff;
-	padding: 24px 0;
+	border: 1px solid #c3c4c7;
+	border-top: none;
+	padding: 20px;
+
+	/* DataViews styling within card */
+	.dataviews-view-table {
+		margin: 0;
+	}
+
+	.dataviews-view-table th,
+	.dataviews-view-table td {
+		padding: 10px 12px;
+	}
+
+	.dataviews-view-table th {
+		background: #f6f7f7;
+		border-bottom: 1px solid #c3c4c7;
+		font-weight: 600;
+		color: #1d2327;
+	}
+
+	.dataviews-view-table tr:nth-child(even) {
+		background: #f9f9f9;
+	}
+
+	.dataviews-view-table tr:hover {
+		background: #f0f6fc;
+	}
 }
 
 .frs-network-sync__toolbar {
 	display: flex;
 	justify-content: flex-end;
 	margin-bottom: 16px;
+	padding-bottom: 16px;
+	border-bottom: 1px solid #dcdcde;
 }
 
 /* Settings */
 .frs-network-sync__settings {
 	max-width: 600px;
-	margin: 0 auto;
 }
 
 .frs-network-sync__settings-section {

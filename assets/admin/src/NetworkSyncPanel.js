@@ -320,14 +320,12 @@ function NetworkSyncPanel() {
 
 	return (
 		<div className="frs-network-sync">
-			<div className="frs-network-sync__header">
-				<h1>{__('Network User Sync', 'frs-users')}</h1>
-				{stats && (
-					<p className="frs-network-sync__subtitle">
-						{stats.total_synced} {__('synced', 'frs-users')} / {stats.eligible_count} {__('eligible users', 'frs-users')}
-					</p>
-				)}
-			</div>
+			{/* Stats summary - header is rendered by PHP */}
+			{stats && (
+				<p className="frs-network-sync__subtitle">
+					{stats.total_synced} {__('synced', 'frs-users')} / {stats.eligible_count} {__('eligible users', 'frs-users')}
+				</p>
+			)}
 
 			{notice && (
 				<div className={`notice notice-${notice.type} is-dismissible`}>
@@ -344,9 +342,9 @@ function NetworkSyncPanel() {
 				initialTabName="users"
 			>
 				{(tab) => (
-					<div className="frs-network-sync__content">
+					<div className="frs-network-sync__tab-content">
 						{tab.name === 'users' && (
-							<>
+							<div className="frs-network-sync__card">
 								<div className="frs-network-sync__toolbar">
 									<Button
 										variant="primary"
@@ -369,25 +367,27 @@ function NetworkSyncPanel() {
 									}}
 									getItemId={getItemId}
 								/>
-							</>
+							</div>
 						)}
 
 						{tab.name === 'sites' && (
-							<DataViews
-								data={sitesData}
-								fields={sitesFields}
-								view={sitesView}
-								onChangeView={setSitesView}
-								paginationInfo={{
-									totalItems: sitesData.length,
-									totalPages: Math.ceil(sitesData.length / sitesView.perPage),
-								}}
-								getItemId={getItemId}
-							/>
+							<div className="frs-network-sync__card">
+								<DataViews
+									data={sitesData}
+									fields={sitesFields}
+									view={sitesView}
+									onChangeView={setSitesView}
+									paginationInfo={{
+										totalItems: sitesData.length,
+										totalPages: Math.ceil(sitesData.length / sitesView.perPage),
+									}}
+									getItemId={getItemId}
+								/>
+							</div>
 						)}
 
 						{tab.name === 'settings' && (
-							<div className="frs-network-sync__settings">
+							<div className="frs-network-sync__card frs-network-sync__settings">
 								<div className="frs-network-sync__settings-section">
 									<h2>{__('Connection', 'frs-users')}</h2>
 									<ToggleControl

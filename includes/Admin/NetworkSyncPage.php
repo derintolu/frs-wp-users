@@ -55,8 +55,8 @@ class NetworkSyncPage {
 	 * @return void
 	 */
 	public static function enqueue_assets( $hook ) {
-		// Only load on our network admin page
-		if ( 'toplevel_page_frs-network-sync' !== $hook ) {
+		// Only load on our network admin page (submenu under Users)
+		if ( 'users_page_frs-network-sync' !== $hook ) {
 			return;
 		}
 

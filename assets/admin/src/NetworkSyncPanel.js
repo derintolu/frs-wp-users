@@ -2,8 +2,9 @@
  * Network Sync Control Panel
  *
  * Network-level admin panel for managing Twenty CRM sync across all subsites.
+ * Uses @wordpress/dataviews for native WordPress admin appearance.
  */
-import { useState, useEffect } from '@wordpress/element';
+import { useState, useEffect, useMemo } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 import {
@@ -12,25 +13,15 @@ import {
 	TextControl,
 	ToggleControl,
 	CheckboxControl,
-	Panel,
-	PanelBody,
-	PanelRow,
-	Flex,
-	FlexBlock,
-	FlexItem,
+	Spinner,
+	TabPanel,
 	Card,
 	CardHeader,
 	CardBody,
-	CardFooter,
-	Spinner,
-	TabPanel,
-	__experimentalHeading as Heading,
-	__experimentalText as Text,
-	__experimentalVStack as VStack,
-	__experimentalHStack as HStack,
-	__experimentalSpacer as Spacer,
 } from '@wordpress/components';
-import { Icon, check, close, update, people, settings, listView } from '@wordpress/icons';
+import { DataViews } from '@wordpress/dataviews';
+import { Icon, check, close, backup, people, cog } from '@wordpress/icons';
+import './style.scss';
 
 // Get localized data from PHP
 const { sites = [], twentyCRM = {}, availableRoles = {}, restUrl, nonce } = window.frsNetworkSync || {};
@@ -53,8 +44,39 @@ function NetworkSyncPanel() {
 	const [isTesting, setIsTesting] = useState(false);
 	const [isSyncing, setIsSyncing] = useState(false);
 	const [notice, setNotice] = useState(null);
-	const [usersPage, setUsersPage] = useState(1);
-	const [usersTotalPages, setUsersTotalPages] = useState(1);
+
+	// DataViews state for users
+	const [usersView, setUsersView] = useState({
+		type: 'table',
+		perPage: 25,
+		page: 1,
+		sort: { field: 'display_name', direction: 'asc' },
+		search: '',
+		filters: [],
+		fields: ['display_name', 'user_email', 'company_role', 'twenty_crm_id', 'last_sync'],
+	});
+
+	// DataViews state for sites
+	const [sitesView, setSitesView] = useState({
+		type: 'table',
+		perPage: 50,
+		page: 1,
+		sort: { field: 'name', direction: 'asc' },
+		search: '',
+		filters: [],
+		fields: ['name', 'url', 'user_count', 'sync_enabled'],
+	});
+
+	// DataViews state for log
+	const [logView, setLogView] = useState({
+		type: 'table',
+		perPage: 50,
+		page: 1,
+		sort: { field: 'timestamp', direction: 'desc' },
+		search: '',
+		filters: [],
+		fields: ['timestamp', 'action', 'status', 'user_name', 'details'],
+	});
 
 	// Load data on mount
 	useEffect(() => {
@@ -106,14 +128,12 @@ function NetworkSyncPanel() {
 		}
 	};
 
-	const loadSyncedUsers = async (page = 1) => {
+	const loadSyncedUsers = async () => {
 		try {
 			const response = await apiFetch({
-				path: `/frs-users/v1/network/sync/users?page=${page}&per_page=25`,
+				path: '/frs-users/v1/network/sync/users?per_page=1000',
 			});
 			setSyncedUsers(response.users || []);
-			setUsersPage(response.page);
-			setUsersTotalPages(response.total_pages);
 		} catch (error) {
 			console.error('Failed to load users:', error);
 		}
@@ -122,9 +142,9 @@ function NetworkSyncPanel() {
 	const loadSyncLog = async () => {
 		try {
 			const response = await apiFetch({
-				path: '/frs-users/v1/network/sync/log?limit=50',
+				path: '/frs-users/v1/network/sync/log?limit=100',
 			});
-			setSyncLog(response.log || []);
+			setSyncLog((response.log || []).map((entry, index) => ({ ...entry, id: index })));
 		} catch (error) {
 			console.error('Failed to load sync log:', error);
 		}
@@ -224,7 +244,7 @@ function NetworkSyncPanel() {
 				status: 'success',
 				message: response.message,
 			});
-			await loadSyncedUsers(usersPage);
+			await loadSyncedUsers();
 		} catch (error) {
 			setNotice({
 				status: 'error',
@@ -292,9 +312,163 @@ function NetworkSyncPanel() {
 		});
 	};
 
+	// Users DataViews fields
+	const usersFields = useMemo(() => [
+		{
+			id: 'display_name',
+			header: __('User', 'frs-users'),
+			getValue: ({ item }) => item.display_name,
+			render: ({ item }) => (
+				<strong>{item.display_name}</strong>
+			),
+			enableSorting: true,
+		},
+		{
+			id: 'user_email',
+			header: __('Email', 'frs-users'),
+			getValue: ({ item }) => item.user_email,
+			enableSorting: true,
+		},
+		{
+			id: 'company_role',
+			header: __('Company Role', 'frs-users'),
+			getValue: ({ item }) => item.company_role || '',
+			render: ({ item }) => item.company_role || '—',
+			enableSorting: true,
+		},
+		{
+			id: 'twenty_crm_id',
+			header: __('CRM ID', 'frs-users'),
+			getValue: ({ item }) => item.twenty_crm_id || '',
+			render: ({ item }) => (
+				item.twenty_crm_id ? (
+					<code className="frs-crm-id">{item.twenty_crm_id.substring(0, 8)}...</code>
+				) : '—'
+			),
+			enableSorting: false,
+		},
+		{
+			id: 'last_sync',
+			header: __('Last Sync', 'frs-users'),
+			getValue: ({ item }) => item.last_sync || '',
+			render: ({ item }) => item.last_sync || __('Never', 'frs-users'),
+			enableSorting: true,
+		},
+	], []);
+
+	// Users actions
+	const usersActions = useMemo(() => [
+		{
+			id: 'sync',
+			label: __('Sync Now', 'frs-users'),
+			callback: async ([item]) => {
+				await handleSyncUser(item.ID);
+			},
+		},
+	], []);
+
+	// Sites DataViews fields
+	const sitesFields = useMemo(() => [
+		{
+			id: 'name',
+			header: __('Site', 'frs-users'),
+			getValue: ({ item }) => item.name,
+			render: ({ item }) => (
+				<span className="frs-site-name">
+					<strong>{item.name}</strong>
+					{item.id === 1 && (
+						<span className="frs-badge frs-badge--primary">{__('Main', 'frs-users')}</span>
+					)}
+				</span>
+			),
+			enableSorting: true,
+		},
+		{
+			id: 'url',
+			header: __('URL', 'frs-users'),
+			getValue: ({ item }) => item.path,
+			render: ({ item }) => (
+				<a href={item.url} target="_blank" rel="noopener noreferrer">
+					{item.path}
+				</a>
+			),
+			enableSorting: true,
+		},
+		{
+			id: 'user_count',
+			header: __('Users', 'frs-users'),
+			getValue: ({ item }) => item.user_count,
+			enableSorting: true,
+		},
+		{
+			id: 'sync_enabled',
+			header: __('Sync', 'frs-users'),
+			getValue: ({ item }) => item.sync_enabled,
+			render: ({ item }) => (
+				<ToggleControl
+					checked={item.sync_enabled}
+					onChange={(enabled) => handleToggleSiteSync(item.id, enabled)}
+					__nextHasNoMarginBottom
+				/>
+			),
+			enableSorting: true,
+		},
+	], []);
+
+	// Log DataViews fields
+	const logFields = useMemo(() => [
+		{
+			id: 'timestamp',
+			header: __('Time', 'frs-users'),
+			getValue: ({ item }) => item.timestamp,
+			enableSorting: true,
+			width: 160,
+		},
+		{
+			id: 'action',
+			header: __('Action', 'frs-users'),
+			getValue: ({ item }) => item.action,
+			enableSorting: true,
+			width: 120,
+		},
+		{
+			id: 'status',
+			header: __('Status', 'frs-users'),
+			getValue: ({ item }) => item.status,
+			render: ({ item }) => (
+				<span className={`frs-status frs-status--${item.status}`}>
+					<Icon
+						icon={item.status === 'success' ? check : close}
+						size={16}
+					/>
+					{item.status}
+				</span>
+			),
+			enableSorting: true,
+			width: 100,
+		},
+		{
+			id: 'user_name',
+			header: __('User', 'frs-users'),
+			getValue: ({ item }) => item.user_name || '',
+			render: ({ item }) => item.user_name || '—',
+			enableSorting: true,
+		},
+		{
+			id: 'details',
+			header: __('Details', 'frs-users'),
+			getValue: ({ item }) => typeof item.details === 'object' ? JSON.stringify(item.details) : item.details || '',
+			render: ({ item }) => {
+				const details = typeof item.details === 'object' ? JSON.stringify(item.details) : item.details;
+				return details || '—';
+			},
+			enableSorting: false,
+		},
+	], []);
+
 	if (isLoading) {
 		return (
-			<div style={{ padding: '40px', textAlign: 'center' }}>
+			<div className="frs-network-sync-loading">
 				<Spinner />
 				<p>{__('Loading network sync data...', 'frs-users')}</p>
 			</div>
@@ -302,97 +476,114 @@ function NetworkSyncPanel() {
 	}
 
 	const tabs = [
-		{
-			name: 'overview',
-			title: __('Overview', 'frs-users'),
-			icon: listView,
-		},
-		{
-			name: 'users',
-			title: __('Synced Users', 'frs-users'),
-			icon: people,
-		},
-		{
-			name: 'sites',
-			title: __('Sites', 'frs-users'),
-			icon: update,
-		},
-		{
-			name: 'settings',
-			title: __('Settings', 'frs-users'),
-			icon: settings,
-		},
-		{
-			name: 'log',
-			title: __('Activity Log', 'frs-users'),
-			icon: listView,
-		},
+		{ name: 'overview', title: __('Overview', 'frs-users') },
+		{ name: 'users', title: __('Synced Users', 'frs-users') },
+		{ name: 'sites', title: __('Sites', 'frs-users') },
+		{ name: 'settings', title: __('Settings', 'frs-users') },
+		{ name: 'log', title: __('Activity Log', 'frs-users') },
 	];
 
 	return (
-		<div className="frs-network-sync-panel" style={{ maxWidth: '1200px' }}>
+		<div className="frs-network-sync wrap">
+			<h1 className="wp-heading-inline">{__('User Sync Control', 'frs-users')}</h1>
+
 			{notice && (
 				<Notice
 					status={notice.status}
 					isDismissible
 					onRemove={() => setNotice(null)}
-					style={{ marginBottom: '20px' }}
 				>
 					{notice.message}
 				</Notice>
 			)}
 
 			<TabPanel
+				className="frs-network-sync-tabs"
 				tabs={tabs}
 				onSelect={setActiveTab}
 				initialTabName="overview"
 			>
-				{(tab) => {
-					switch (tab.name) {
-						case 'overview':
-							return <OverviewTab stats={stats} onBulkSync={handleBulkSync} isSyncing={isSyncing} />;
-						case 'users':
-							return (
-								<UsersTab
-									users={syncedUsers}
-									page={usersPage}
-									totalPages={usersTotalPages}
-									onPageChange={(p) => loadSyncedUsers(p)}
-									onSyncUser={handleSyncUser}
+				{(tab) => (
+					<div className="frs-network-sync-content">
+						{tab.name === 'overview' && (
+							<OverviewTab
+								stats={stats}
+								onBulkSync={handleBulkSync}
+								isSyncing={isSyncing}
+							/>
+						)}
+
+						{tab.name === 'users' && (
+							<div className="frs-dataviews-container">
+								<DataViews
+									data={syncedUsers}
+									fields={usersFields}
+									view={usersView}
+									onChangeView={setUsersView}
+									actions={usersActions}
+									paginationInfo={{
+										totalItems: syncedUsers.length,
+										totalPages: Math.ceil(syncedUsers.length / usersView.perPage),
+									}}
+									getItemId={(item) => item.ID}
 								/>
-							);
-						case 'sites':
-							return (
-								<SitesTab
-									sites={sitesData}
-									onToggleSync={handleToggleSiteSync}
+							</div>
+						)}
+
+						{tab.name === 'sites' && (
+							<div className="frs-dataviews-container">
+								<DataViews
+									data={sitesData}
+									fields={sitesFields}
+									view={sitesView}
+									onChangeView={setSitesView}
+									paginationInfo={{
+										totalItems: sitesData.length,
+										totalPages: Math.ceil(sitesData.length / sitesView.perPage),
+									}}
+									getItemId={(item) => item.id}
 								/>
-							);
-						case 'settings':
-							return (
-								<SettingsTab
-									settings={networkSettings}
-									availableRoles={availableRoles}
-									onUpdateSetting={updateSetting}
-									onToggleRole={toggleRole}
-									onSave={handleSaveSettings}
-									onTest={handleTestConnection}
-									isSaving={isSaving}
-									isTesting={isTesting}
+							</div>
+						)}
+
+						{tab.name === 'settings' && (
+							<SettingsTab
+								settings={networkSettings}
+								availableRoles={availableRoles}
+								onUpdateSetting={updateSetting}
+								onToggleRole={toggleRole}
+								onSave={handleSaveSettings}
+								onTest={handleTestConnection}
+								isSaving={isSaving}
+								isTesting={isTesting}
+							/>
+						)}
+
+						{tab.name === 'log' && (
+							<div className="frs-dataviews-container">
+								<div className="frs-log-actions">
+									<Button variant="secondary" onClick={loadSyncLog}>
+										{__('Refresh', 'frs-users')}
+									</Button>
+									<Button variant="tertiary" isDestructive onClick={handleClearLog}>
+										{__('Clear Log', 'frs-users')}
+									</Button>
+								</div>
+								<DataViews
+									data={syncLog}
+									fields={logFields}
+									view={logView}
+									onChangeView={setLogView}
+									paginationInfo={{
+										totalItems: syncLog.length,
+										totalPages: Math.ceil(syncLog.length / logView.perPage),
+									}}
+									getItemId={(item) => item.id}
 								/>
-							);
-						case 'log':
-							return (
-								<LogTab
-									log={syncLog}
-									onClear={handleClearLog}
-									onRefresh={loadSyncLog}
-								/>
-							);
-						default:
-							return null;
-					}
-				}}
+							</div>
+						)}
+					</div>
+				)}
 			</TabPanel>
 		</div>
 	);
@@ -407,36 +598,63 @@ function OverviewTab({ stats, onBulkSync, isSyncing }) {
 	}
 
 	return (
-		<VStack spacing={6} style={{ padding: '20px 0' }}>
-			<HStack spacing={4} wrap>
-				<StatCard
-					title={__('Synced Users', 'frs-users')}
-					value={stats.total_synced}
-					description={__('Users linked to Twenty CRM', 'frs-users')}
-				/>
-				<StatCard
-					title={__('Eligible Users', 'frs-users')}
-					value={stats.eligible_count}
-					description={__('Users matching sync roles', 'frs-users')}
-				/>
-				<StatCard
-					title={__('Recent Syncs', 'frs-users')}
-					value={stats.recent_syncs}
-					description={__('In the last 24 hours', 'frs-users')}
-				/>
-				<StatCard
-					title={__('Sites with Sync', 'frs-users')}
-					value={`${stats.sites_with_sync} / ${stats.total_sites}`}
-					description={__('Subsites enabled', 'frs-users')}
-				/>
-			</HStack>
+		<div className="frs-overview">
+			<div className="frs-stats-grid">
+				<Card className="frs-stat-card">
+					<CardBody>
+						<div className="frs-stat-icon">
+							<Icon icon={people} size={24} />
+						</div>
+						<div className="frs-stat-content">
+							<span className="frs-stat-value">{stats.total_synced}</span>
+							<span className="frs-stat-label">{__('Synced Users', 'frs-users')}</span>
+						</div>
+					</CardBody>
+				</Card>
 
-			<Card>
+				<Card className="frs-stat-card">
+					<CardBody>
+						<div className="frs-stat-icon">
+							<Icon icon={people} size={24} />
+						</div>
+						<div className="frs-stat-content">
+							<span className="frs-stat-value">{stats.eligible_count}</span>
+							<span className="frs-stat-label">{__('Eligible Users', 'frs-users')}</span>
+						</div>
+					</CardBody>
+				</Card>
+
+				<Card className="frs-stat-card">
+					<CardBody>
+						<div className="frs-stat-icon">
+							<Icon icon={backup} size={24} />
+						</div>
+						<div className="frs-stat-content">
+							<span className="frs-stat-value">{stats.recent_syncs}</span>
+							<span className="frs-stat-label">{__('Recent Syncs (24h)', 'frs-users')}</span>
+						</div>
+					</CardBody>
+				</Card>
+
+				<Card className="frs-stat-card">
+					<CardBody>
+						<div className="frs-stat-icon">
+							<Icon icon={cog} size={24} />
+						</div>
+						<div className="frs-stat-content">
+							<span className="frs-stat-value">{stats.sites_with_sync} / {stats.total_sites}</span>
+							<span className="frs-stat-label">{__('Sites Enabled', 'frs-users')}</span>
+						</div>
+					</CardBody>
+				</Card>
+			</div>
+
+			<Card className="frs-actions-card">
 				<CardHeader>
-					<Heading level={4}>{__('Quick Actions', 'frs-users')}</Heading>
+					<h3>{__('Quick Actions', 'frs-users')}</h3>
 				</CardHeader>
 				<CardBody>
-					<HStack spacing={4}>
+					<div className="frs-actions-row">
 						<Button
 							variant="primary"
 							onClick={onBulkSync}
@@ -445,179 +663,38 @@ function OverviewTab({ stats, onBulkSync, isSyncing }) {
 						>
 							{isSyncing ? __('Syncing...', 'frs-users') : __('Sync All Eligible Users', 'frs-users')}
 						</Button>
+
 						{!stats.sync_enabled && (
-							<Text variant="muted">
+							<p className="frs-help-text">
 								{__('Enable network sync in Settings to use bulk sync.', 'frs-users')}
-							</Text>
+							</p>
 						)}
-					</HStack>
+					</div>
+
 					{stats.last_bulk_sync && (
-						<Text variant="muted" style={{ marginTop: '10px' }}>
+						<p className="frs-meta-text">
 							{__('Last bulk sync:', 'frs-users')} {stats.last_bulk_sync}
-						</Text>
+						</p>
 					)}
 				</CardBody>
 			</Card>
 
-			<Card>
+			<Card className="frs-status-card">
 				<CardHeader>
-					<Heading level={4}>{__('Sync Status', 'frs-users')}</Heading>
+					<h3>{__('Sync Status', 'frs-users')}</h3>
 				</CardHeader>
 				<CardBody>
-					<HStack spacing={2}>
-						<Icon
-							icon={stats.sync_enabled ? check : close}
-							style={{ fill: stats.sync_enabled ? '#00a32a' : '#d63638' }}
-						/>
-						<Text>
+					<div className={`frs-status-indicator frs-status-indicator--${stats.sync_enabled ? 'enabled' : 'disabled'}`}>
+						<Icon icon={stats.sync_enabled ? check : close} size={20} />
+						<span>
 							{stats.sync_enabled
 								? __('Network sync is enabled', 'frs-users')
 								: __('Network sync is disabled', 'frs-users')}
-						</Text>
-					</HStack>
+						</span>
+					</div>
 				</CardBody>
 			</Card>
-		</VStack>
-	);
-}
-
-/**
- * Stat Card Component
- */
-function StatCard({ title, value, description }) {
-	return (
-		<Card style={{ flex: '1 1 200px', minWidth: '200px' }}>
-			<CardBody>
-				<VStack spacing={1}>
-					<Text variant="muted" size="small">{title}</Text>
-					<Heading level={2} style={{ margin: 0 }}>{value}</Heading>
-					<Text variant="muted" size="small">{description}</Text>
-				</VStack>
-			</CardBody>
-		</Card>
-	);
-}
-
-/**
- * Users Tab - List of synced users
- */
-function UsersTab({ users, page, totalPages, onPageChange, onSyncUser }) {
-	if (!users.length) {
-		return (
-			<Card style={{ marginTop: '20px' }}>
-				<CardBody>
-					<Text>{__('No synced users found.', 'frs-users')}</Text>
-				</CardBody>
-			</Card>
-		);
-	}
-
-	return (
-		<VStack spacing={4} style={{ padding: '20px 0' }}>
-			<table className="wp-list-table widefat fixed striped">
-				<thead>
-					<tr>
-						<th>{__('User', 'frs-users')}</th>
-						<th>{__('Email', 'frs-users')}</th>
-						<th>{__('Company Role', 'frs-users')}</th>
-						<th>{__('Twenty CRM ID', 'frs-users')}</th>
-						<th>{__('Last Sync', 'frs-users')}</th>
-						<th>{__('Actions', 'frs-users')}</th>
-					</tr>
-				</thead>
-				<tbody>
-					{users.map((user) => (
-						<tr key={user.ID}>
-							<td>{user.display_name}</td>
-							<td>{user.user_email}</td>
-							<td>{user.company_role || '-'}</td>
-							<td>
-								<code style={{ fontSize: '11px' }}>
-									{user.twenty_crm_id ? user.twenty_crm_id.substring(0, 12) + '...' : '-'}
-								</code>
-							</td>
-							<td>{user.last_sync || __('Never', 'frs-users')}</td>
-							<td>
-								<Button
-									variant="secondary"
-									size="small"
-									onClick={() => onSyncUser(user.ID)}
-								>
-									{__('Sync Now', 'frs-users')}
-								</Button>
-							</td>
-						</tr>
-					))}
-				</tbody>
-			</table>
-
-			{totalPages > 1 && (
-				<HStack spacing={2} justify="center">
-					<Button
-						variant="secondary"
-						disabled={page <= 1}
-						onClick={() => onPageChange(page - 1)}
-					>
-						{__('Previous', 'frs-users')}
-					</Button>
-					<Text>
-						{__('Page', 'frs-users')} {page} {__('of', 'frs-users')} {totalPages}
-					</Text>
-					<Button
-						variant="secondary"
-						disabled={page >= totalPages}
-						onClick={() => onPageChange(page + 1)}
-					>
-						{__('Next', 'frs-users')}
-					</Button>
-				</HStack>
-			)}
-		</VStack>
-	);
-}
-
-/**
- * Sites Tab - Manage sync per subsite
- */
-function SitesTab({ sites, onToggleSync }) {
-	return (
-		<VStack spacing={4} style={{ padding: '20px 0' }}>
-			<table className="wp-list-table widefat fixed striped">
-				<thead>
-					<tr>
-						<th>{__('Site', 'frs-users')}</th>
-						<th>{__('URL', 'frs-users')}</th>
-						<th>{__('Users', 'frs-users')}</th>
-						<th>{__('Sync Enabled', 'frs-users')}</th>
-					</tr>
-				</thead>
-				<tbody>
-					{sites.map((site) => (
-						<tr key={site.id}>
-							<td>
-								<strong>{site.name}</strong>
-								{site.id === 1 && (
-									<span className="dashicons dashicons-admin-home" title={__('Main Site', 'frs-users')} style={{ marginLeft: '5px' }} />
-								)}
-							</td>
-							<td>
-								<a href={site.url} target="_blank" rel="noopener noreferrer">
-									{site.path}
-								</a>
-							</td>
-							<td>{site.user_count}</td>
-							<td>
-								<ToggleControl
-									checked={site.sync_enabled}
-									onChange={(enabled) => onToggleSync(site.id, enabled)}
-									__nextHasNoMarginBottom
-								/>
-							</td>
-						</tr>
-					))}
-				</tbody>
-			</table>
-		</VStack>
+		</div>
 	);
 }
 
@@ -628,10 +705,13 @@ function SettingsTab({ settings, availableRoles, onUpdateSetting, onToggleRole, 
 	const webhookUrl = `${window.location.origin}/wp-json/frs-users/v1/webhook/twenty-crm`;
 
 	return (
-		<div style={{ padding: '20px 0', maxWidth: '700px' }}>
-			<Panel>
-				<PanelBody title={__('Network Sync Settings', 'frs-users')} initialOpen>
-					<PanelRow>
+		<div className="frs-settings">
+			<Card>
+				<CardHeader>
+					<h3>{__('Connection Settings', 'frs-users')}</h3>
+				</CardHeader>
+				<CardBody>
+					<div className="frs-form-row">
 						<ToggleControl
 							label={__('Enable Network Sync', 'frs-users')}
 							help={
@@ -642,18 +722,19 @@ function SettingsTab({ settings, availableRoles, onUpdateSetting, onToggleRole, 
 							checked={settings.enabled}
 							onChange={(value) => onUpdateSetting('enabled', value)}
 						/>
-					</PanelRow>
+					</div>
 
-					<PanelRow>
+					<div className="frs-form-row">
 						<TextControl
 							label={__('Twenty CRM API URL', 'frs-users')}
 							value={settings.api_url}
 							onChange={(value) => onUpdateSetting('api_url', value)}
 							placeholder="https://data.c21frs.com"
+							__nextHasNoMarginBottom
 						/>
-					</PanelRow>
+					</div>
 
-					<PanelRow>
+					<div className="frs-form-row">
 						<TextControl
 							label={__('API Key', 'frs-users')}
 							type="password"
@@ -661,10 +742,11 @@ function SettingsTab({ settings, availableRoles, onUpdateSetting, onToggleRole, 
 							onChange={(value) => onUpdateSetting('api_key', value)}
 							help={__('Leave blank to keep existing key', 'frs-users')}
 							placeholder="Enter API key..."
+							__nextHasNoMarginBottom
 						/>
-					</PanelRow>
+					</div>
 
-					<PanelRow>
+					<div className="frs-form-row">
 						<TextControl
 							label={__('Webhook Secret', 'frs-users')}
 							type="password"
@@ -672,61 +754,56 @@ function SettingsTab({ settings, availableRoles, onUpdateSetting, onToggleRole, 
 							onChange={(value) => onUpdateSetting('webhook_secret', value)}
 							help={__('Shared secret for webhook verification', 'frs-users')}
 							placeholder="Enter webhook secret..."
+							__nextHasNoMarginBottom
 						/>
-					</PanelRow>
-				</PanelBody>
+					</div>
+				</CardBody>
+			</Card>
 
-				<PanelBody title={__('Sync Roles', 'frs-users')} initialOpen={false}>
-					<PanelRow>
-						<VStack spacing={2} style={{ width: '100%' }}>
-							<Text>
-								{__('Select which company roles should sync with Twenty CRM:', 'frs-users')}
-							</Text>
-							<div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', marginTop: '10px' }}>
-								{Object.entries(availableRoles).map(([slug, label]) => (
-									<CheckboxControl
-										key={slug}
-										label={label}
-										checked={(settings.sync_roles || []).includes(slug)}
-										onChange={() => onToggleRole(slug)}
-									/>
-								))}
-							</div>
-						</VStack>
-					</PanelRow>
-				</PanelBody>
+			<Card>
+				<CardHeader>
+					<h3>{__('Sync Roles', 'frs-users')}</h3>
+				</CardHeader>
+				<CardBody>
+					<p className="frs-help-text">
+						{__('Select which company roles should sync with Twenty CRM:', 'frs-users')}
+					</p>
+					<div className="frs-checkbox-grid">
+						{Object.entries(availableRoles).map(([slug, label]) => (
+							<CheckboxControl
+								key={slug}
+								label={label}
+								checked={(settings.sync_roles || []).includes(slug)}
+								onChange={() => onToggleRole(slug)}
+								__nextHasNoMarginBottom
+							/>
+						))}
+					</div>
+				</CardBody>
+			</Card>
 
-				<PanelBody title={__('Webhook URL', 'frs-users')} initialOpen={false}>
-					<PanelRow>
-						<VStack spacing={2} style={{ width: '100%' }}>
-							<Text>{__('Configure this URL in Twenty CRM:', 'frs-users')}</Text>
-							<code style={{
-								display: 'block',
-								padding: '10px',
-								background: '#f0f0f1',
-								borderRadius: '4px',
-								fontSize: '12px',
-								wordBreak: 'break-all',
-							}}>
-								{webhookUrl}
-							</code>
-							<Button
-								variant="secondary"
-								size="small"
-								onClick={() => {
-									navigator.clipboard.writeText(webhookUrl);
-								}}
-							>
-								{__('Copy URL', 'frs-users')}
-							</Button>
-						</VStack>
-					</PanelRow>
-				</PanelBody>
-			</Panel>
+			<Card>
+				<CardHeader>
+					<h3>{__('Webhook URL', 'frs-users')}</h3>
+				</CardHeader>
+				<CardBody>
+					<p className="frs-help-text">
+						{__('Configure this URL in Twenty CRM to receive updates:', 'frs-users')}
+					</p>
+					<div className="frs-webhook-url">
+						<code>{webhookUrl}</code>
+						<Button
+							variant="secondary"
+							size="small"
+							onClick={() => navigator.clipboard.writeText(webhookUrl)}
+						>
+							{__('Copy', 'frs-users')}
+						</Button>
+					</div>
+				</CardBody>
+			</Card>
 
-			<Spacer marginTop={4} />
-
-			<HStack spacing={3}>
+			<div className="frs-form-actions">
 				<Button
 					variant="primary"
 					onClick={onSave}
@@ -743,67 +820,8 @@ function SettingsTab({ settings, availableRoles, onUpdateSetting, onToggleRole, 
 				>
 					{__('Test Connection', 'frs-users')}
 				</Button>
-			</HStack>
+			</div>
 		</div>
-	);
-}
-
-/**
- * Log Tab - Activity log
- */
-function LogTab({ log, onClear, onRefresh }) {
-	return (
-		<VStack spacing={4} style={{ padding: '20px 0' }}>
-			<HStack spacing={2}>
-				<Button variant="secondary" onClick={onRefresh}>
-					{__('Refresh', 'frs-users')}
-				</Button>
-				<Button variant="tertiary" isDestructive onClick={onClear}>
-					{__('Clear Log', 'frs-users')}
-				</Button>
-			</HStack>
-
-			{!log.length ? (
-				<Card>
-					<CardBody>
-						<Text>{__('No sync activity recorded.', 'frs-users')}</Text>
-					</CardBody>
-				</Card>
-			) : (
-				<table className="wp-list-table widefat fixed striped">
-					<thead>
-						<tr>
-							<th style={{ width: '150px' }}>{__('Time', 'frs-users')}</th>
-							<th style={{ width: '120px' }}>{__('Action', 'frs-users')}</th>
-							<th style={{ width: '80px' }}>{__('Status', 'frs-users')}</th>
-							<th>{__('User', 'frs-users')}</th>
-							<th>{__('Details', 'frs-users')}</th>
-						</tr>
-					</thead>
-					<tbody>
-						{log.map((entry, index) => (
-							<tr key={index}>
-								<td>{entry.timestamp}</td>
-								<td>{entry.action}</td>
-								<td>
-									<span style={{
-										color: entry.status === 'success' ? '#00a32a' : entry.status === 'failed' ? '#d63638' : '#666',
-									}}>
-										{entry.status}
-									</span>
-								</td>
-								<td>{entry.user_name || '-'}</td>
-								<td>
-									{typeof entry.details === 'object'
-										? JSON.stringify(entry.details)
-										: entry.details || '-'}
-								</td>
-							</tr>
-						))}
-					</tbody>
-				</table>
-			)}
-		</VStack>
 	);
 }
 

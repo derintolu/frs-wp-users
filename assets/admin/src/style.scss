@@ -524,19 +524,6 @@
    Network Sync Panel Styles
    ========================================================================== */
 
-.frs-network-sync {
-	max-width: 1200px;
-	margin: 20px 20px 20px 0;
-
-	h1.wp-heading-inline {
-		margin-bottom: 20px;
-	}
-
-	.components-notice {
-		margin: 0 0 20px;
-	}
-}
-
 .frs-network-sync-loading {
 	display: flex;
 	flex-direction: column;
@@ -550,40 +537,12 @@
 	}
 }
 
-.frs-network-sync-tabs {
+.frs-network-sync-content {
 	background: #fff;
 	border: 1px solid #c3c4c7;
-	border-radius: 4px;
-
-	.components-tab-panel__tabs {
-		background: #f6f7f7;
-		border-bottom: 1px solid #c3c4c7;
-		padding: 0 12px;
-		margin: 0;
-
-		button {
-			padding: 12px 16px;
-			font-size: 13px;
-			font-weight: 500;
-			color: #646970;
-			border-bottom: 2px solid transparent;
-			margin-bottom: -1px;
-
-			&:hover {
-				color: #1d2327;
-			}
-
-			&.is-active {
-				color: #2271b1;
-				border-bottom-color: #2271b1;
-				background: #fff;
-			}
-		}
-	}
-}
-
-.frs-network-sync-content {
+	border-top: none;
 	padding: 24px;
+	max-width: 1200px;
 }
 
 .frs-dataviews-container {

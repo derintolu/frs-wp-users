@@ -14,7 +14,6 @@ import {
 	ToggleControl,
 	CheckboxControl,
 	Spinner,
-	TabPanel,
 	Card,
 	CardHeader,
 	CardBody,
@@ -484,8 +483,9 @@ function NetworkSyncPanel() {
 	];
 
 	return (
-		<div className="frs-network-sync wrap">
+		<div className="wrap">
 			<h1 className="wp-heading-inline">{__('User Sync Control', 'frs-users')}</h1>
+			<hr className="wp-header-end" />
 
 			{notice && (
 				<Notice
@@ -497,94 +497,98 @@ function NetworkSyncPanel() {
 				</Notice>
 			)}
 
-			<TabPanel
-				className="frs-network-sync-tabs"
-				tabs={tabs}
-				onSelect={setActiveTab}
-				initialTabName="overview"
-			>
-				{(tab) => (
-					<div className="frs-network-sync-content">
-						{tab.name === 'overview' && (
-							<OverviewTab
-								stats={stats}
-								onBulkSync={handleBulkSync}
-								isSyncing={isSyncing}
-							/>
-						)}
+			<nav className="nav-tab-wrapper">
+				{tabs.map((tab) => (
+					<button
+						key={tab.name}
+						type="button"
+						className={`nav-tab ${activeTab === tab.name ? 'nav-tab-active' : ''}`}
+						onClick={() => setActiveTab(tab.name)}
+					>
+						{tab.title}
+					</button>
+				))}
+			</nav>
 
-						{tab.name === 'users' && (
-							<div className="frs-dataviews-container">
-								<DataViews
-									data={syncedUsers}
-									fields={usersFields}
-									view={usersView}
-									onChangeView={setUsersView}
-									actions={usersActions}
-									paginationInfo={{
-										totalItems: syncedUsers.length,
-										totalPages: Math.ceil(syncedUsers.length / usersView.perPage),
-									}}
-									getItemId={(item) => item.ID}
-								/>
-							</div>
-						)}
+			<div className="frs-network-sync-content">
+				{activeTab === 'overview' && (
+					<OverviewTab
+						stats={stats}
+						onBulkSync={handleBulkSync}
+						isSyncing={isSyncing}
+					/>
+				)}
 
-						{tab.name === 'sites' && (
-							<div className="frs-dataviews-container">
-								<DataViews
-									data={sitesData}
-									fields={sitesFields}
-									view={sitesView}
-									onChangeView={setSitesView}
-									paginationInfo={{
-										totalItems: sitesData.length,
-										totalPages: Math.ceil(sitesData.length / sitesView.perPage),
-									}}
-									getItemId={(item) => item.id}
-								/>
-							</div>
-						)}
-
-						{tab.name === 'settings' && (
-							<SettingsTab
-								settings={networkSettings}
-								availableRoles={availableRoles}
-								onUpdateSetting={updateSetting}
-								onToggleRole={toggleRole}
-								onSave={handleSaveSettings}
-								onTest={handleTestConnection}
-								isSaving={isSaving}
-								isTesting={isTesting}
-							/>
-						)}
-
-						{tab.name === 'log' && (
-							<div className="frs-dataviews-container">
-								<div className="frs-log-actions">
-									<Button variant="secondary" onClick={loadSyncLog}>
-										{__('Refresh', 'frs-users')}
-									</Button>
-									<Button variant="tertiary" isDestructive onClick={handleClearLog}>
-										{__('Clear Log', 'frs-users')}
-									</Button>
-								</div>
-								<DataViews
-									data={syncLog}
-									fields={logFields}
-									view={logView}
-									onChangeView={setLogView}
-									paginationInfo={{
-										totalItems: syncLog.length,
-										totalPages: Math.ceil(syncLog.length / logView.perPage),
-									}}
-									getItemId={(item) => item.id}
-								/>
-							</div>
-						)}
+				{activeTab === 'users' && (
+					<div className="frs-dataviews-container">
+						<DataViews
+							data={syncedUsers}
+							fields={usersFields}
+							view={usersView}
+							onChangeView={setUsersView}
+							actions={usersActions}
+							paginationInfo={{
+								totalItems: syncedUsers.length,
+								totalPages: Math.ceil(syncedUsers.length / usersView.perPage),
+							}}
+							getItemId={(item) => item.ID}
+						/>
 					</div>
 				)}
-			</TabPanel>
+
+				{activeTab === 'sites' && (
+					<div className="frs-dataviews-container">
+						<DataViews
+							data={sitesData}
+							fields={sitesFields}
+							view={sitesView}
+							onChangeView={setSitesView}
+							paginationInfo={{
+								totalItems: sitesData.length,
+								totalPages: Math.ceil(sitesData.length / sitesView.perPage),
+							}}
+							getItemId={(item) => item.id}
+						/>
+					</div>
+				)}
+
+				{activeTab === 'settings' && (
+					<SettingsTab
+						settings={networkSettings}
+						availableRoles={availableRoles}
+						onUpdateSetting={updateSetting}
+						onToggleRole={toggleRole}
+						onSave={handleSaveSettings}
+						onTest={handleTestConnection}
+						isSaving={isSaving}
+						isTesting={isTesting}
+					/>
+				)}
+
+				{activeTab === 'log' && (
+					<div className="frs-dataviews-container">
+						<div className="frs-log-actions">
+							<Button variant="secondary" onClick={loadSyncLog}>
+								{__('Refresh', 'frs-users')}
+							</Button>
+							<Button variant="tertiary" isDestructive onClick={handleClearLog}>
+								{__('Clear Log', 'frs-users')}
+							</Button>
+						</div>
+						<DataViews
+							data={syncLog}
+							fields={logFields}
+							view={logView}
+							onChangeView={setLogView}
+							paginationInfo={{
+								totalItems: syncLog.length,
+								totalPages: Math.ceil(syncLog.length / logView.perPage),
+							}}
+							getItemId={(item) => item.id}
+						/>
+					</div>
+				)}
+			</div>
 		</div>
 	);
 }

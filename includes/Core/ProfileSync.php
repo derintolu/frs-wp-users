@@ -468,7 +468,7 @@ class ProfileSync {
 	 * @param string $image_url Remote image URL.
 	 * @return int|false Local attachment ID, or false on failure.
 	 */
-	private static function sync_remote_image( $image_url ) {
+	public static function sync_remote_image( $image_url ) {
 		if ( empty( $image_url ) ) {
 			return false;
 		}

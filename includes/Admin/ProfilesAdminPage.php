@@ -34,6 +34,7 @@ class ProfilesAdminPage {
 		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
+		add_action( 'admin_post_frs_sync_images', array( $this, 'handle_sync_images' ) );
 	}
 
 	/**
@@ -265,6 +266,10 @@ class ProfilesAdminPage {
 	 * @return void
 	 */
 	public function render_settings_page() {
+		$sync_result = get_transient( 'frs_sync_images_result' );
+		if ( $sync_result ) {
+			delete_transient( 'frs_sync_images_result' );
+		}
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'FRS Profiles Settings', 'frs-users' ); ?></h1>
@@ -275,8 +280,182 @@ class ProfilesAdminPage {
 				submit_button();
 				?>
 			</form>
+
+			<hr>
+			<h2><?php esc_html_e( 'Sync Images from Hub', 'frs-users' ); ?></h2>
+			<p><?php esc_html_e( 'Download profile headshots from the hub and save them to the local media library. Images that have already been downloaded will be skipped.', 'frs-users' ); ?></p>
+			<?php if ( $sync_result ) : ?>
+				<div class="notice notice-<?php echo $sync_result['success'] ? 'success' : 'error'; ?> inline">
+					<p><?php echo esc_html( $sync_result['message'] ); ?></p>
+					<?php if ( ! empty( $sync_result['details'] ) ) : ?>
+						<ul style="list-style: disc; padding-left: 1.5em;">
+							<?php foreach ( $sync_result['details'] as $detail ) : ?>
+								<li><?php echo esc_html( $detail ); ?></li>
+							<?php endforeach; ?>
+						</ul>
+					<?php endif; ?>
+				</div>
+			<?php endif; ?>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<?php wp_nonce_field( 'frs_sync_images', 'frs_sync_images_nonce' ); ?>
+				<input type="hidden" name="action" value="frs_sync_images">
+				<?php submit_button( __( 'Sync Images Now', 'frs-users' ), 'secondary', 'submit', false ); ?>
+			</form>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Handle the image sync form submission.
+	 *
+	 * Downloads headshots from hub profiles and saves them locally.
+	 *
+	 * @return void
+	 */
+	public function handle_sync_images() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'Unauthorized.', 'frs-users' ) );
+		}
+
+		check_admin_referer( 'frs_sync_images', 'frs_sync_images_nonce' );
+
+		$hub_url = get_option( 'frs_hub_url', '' );
+		if ( empty( $hub_url ) ) {
+			$hub_url = get_option( 'frs_hub_site_url', '' );
+		}
+
+		if ( empty( $hub_url ) ) {
+			set_transient( 'frs_sync_images_result', array(
+				'success' => false,
+				'message' => __( 'Hub URL not configured. Set it in Site Context settings or via WP-CLI: wp frs-users setup-sync', 'frs-users' ),
+				'details' => array(),
+			), 60 );
+			wp_safe_redirect( admin_url( 'admin.php?page=frs-profiles-settings' ) );
+			exit;
+		}
+
+		// Fetch profiles from hub API.
+		$api_url  = trailingslashit( $hub_url ) . 'wp-json/frs-users/v1/profiles?per_page=1000';
+		$response = wp_remote_get( $api_url, array(
+			'timeout' => 60,
+			'headers' => array( 'Accept' => 'application/json' ),
+		) );
+
+		if ( is_wp_error( $response ) ) {
+			set_transient( 'frs_sync_images_result', array(
+				'success' => false,
+				'message' => sprintf( __( 'Failed to fetch from hub: %s', 'frs-users' ), $response->get_error_message() ),
+				'details' => array(),
+			), 60 );
+			wp_safe_redirect( admin_url( 'admin.php?page=frs-profiles-settings' ) );
+			exit;
+		}
+
+		$body = wp_remote_retrieve_body( $response );
+		$data = json_decode( $body, true );
+
+		if ( ! isset( $data['data'] ) || ! is_array( $data['data'] ) ) {
+			set_transient( 'frs_sync_images_result', array(
+				'success' => false,
+				'message' => __( 'Invalid response from hub API.', 'frs-users' ),
+				'details' => array(),
+			), 60 );
+			wp_safe_redirect( admin_url( 'admin.php?page=frs-profiles-settings' ) );
+			exit;
+		}
+
+		$profiles   = $data['data'];
+		$downloaded = 0;
+		$skipped    = 0;
+		$failed     = 0;
+		$details    = array();
+
+		foreach ( $profiles as $profile ) {
+			$email = $profile['email'] ?? '';
+			$name  = trim( ( $profile['first_name'] ?? '' ) . ' ' . ( $profile['last_name'] ?? '' ) );
+
+			// Find local user by email.
+			$user = get_user_by( 'email', $email );
+			if ( ! $user ) {
+				continue;
+			}
+
+			$headshot_url = $profile['headshot_url'] ?? '';
+			if ( empty( $headshot_url ) ) {
+				$headshot_url = $profile['avatar_url'] ?? '';
+				// Skip gravatar URLs.
+				if ( $headshot_url && strpos( $headshot_url, 'gravatar.com' ) !== false ) {
+					$headshot_url = '';
+				}
+			}
+
+			if ( empty( $headshot_url ) ) {
+				++$skipped;
+				continue;
+			}
+
+			// Check if already downloaded (by URL hash).
+			$url_hash = md5( $headshot_url );
+			$existing = get_posts( array(
+				'post_type'      => 'attachment',
+				'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+					array(
+						'key'   => '_frs_image_url_hash',
+						'value' => $url_hash,
+					),
+				),
+				'posts_per_page' => 1,
+			) );
+
+			if ( $existing ) {
+				// Already have it locally — just make sure meta is set.
+				$attachment_id = $existing[0]->ID;
+				$local_url     = wp_get_attachment_url( $attachment_id );
+				update_user_meta( $user->ID, 'frs_headshot_id', $attachment_id );
+				update_user_meta( $user->ID, 'frs_headshot_url', $local_url );
+				update_user_meta( $user->ID, 'simple_local_avatar', array(
+					'media_id' => $attachment_id,
+					'full'     => $local_url,
+					'blog_id'  => get_current_blog_id(),
+				) );
+				++$skipped;
+				continue;
+			}
+
+			// Download the image.
+			$attachment_id = \FRSUsers\Core\ProfileSync::sync_remote_image( $headshot_url );
+
+			if ( $attachment_id ) {
+				$local_url = wp_get_attachment_url( $attachment_id );
+				update_user_meta( $user->ID, 'frs_headshot_id', $attachment_id );
+				update_user_meta( $user->ID, 'frs_headshot_url', $local_url );
+				update_user_meta( $user->ID, 'simple_local_avatar', array(
+					'media_id' => $attachment_id,
+					'full'     => $local_url,
+					'blog_id'  => get_current_blog_id(),
+				) );
+				$details[] = sprintf( '%s - downloaded', $name );
+				++$downloaded;
+			} else {
+				$details[] = sprintf( '%s - failed', $name );
+				++$failed;
+			}
+		}
+
+		set_transient( 'frs_sync_images_result', array(
+			'success' => true,
+			'message' => sprintf(
+				/* translators: 1: downloaded count, 2: skipped count, 3: failed count */
+				__( 'Image sync complete. Downloaded: %1$d, Skipped (already local): %2$d, Failed: %3$d', 'frs-users' ),
+				$downloaded,
+				$skipped,
+				$failed
+			),
+			'details' => $details,
+		), 60 );
+
+		wp_safe_redirect( admin_url( 'admin.php?page=frs-profiles-settings' ) );
+		exit;
 	}
 
 	/**

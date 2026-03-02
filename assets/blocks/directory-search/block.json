@@ -1,0 +1,32 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "frs/directory-search",
+    "version": "1.0.0",
+    "title": "Directory Search",
+    "category": "frs-blocks",
+    "icon": "search",
+    "description": "Search input for the loan officer directory. Works with Directory Filters and Directory Grid blocks.",
+    "keywords": ["search", "directory", "loan officer", "filter"],
+    "textdomain": "frs-users",
+    "supports": {
+        "html": false,
+        "align": ["wide", "full"]
+    },
+    "attributes": {
+        "placeholder": {
+            "type": "string",
+            "default": "Search by name, city, or state..."
+        },
+        "showButton": {
+            "type": "boolean",
+            "default": true
+        },
+        "buttonText": {
+            "type": "string",
+            "default": "Search"
+        }
+    },
+    "viewScriptModule": "file:./view.js",
+    "render": "file:./render.php"
+}

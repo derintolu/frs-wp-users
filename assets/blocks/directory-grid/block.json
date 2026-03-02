@@ -1,0 +1,37 @@
+{
+    "$schema": "https://schemas.wp.org/trunk/block.json",
+    "apiVersion": 3,
+    "name": "frs/directory-grid",
+    "version": "1.0.0",
+    "title": "Directory Grid",
+    "category": "frs-blocks",
+    "icon": "grid-view",
+    "description": "Card grid for the loan officer directory. Works with Directory Search and Directory Filters blocks.",
+    "keywords": ["grid", "directory", "loan officer", "cards", "team"],
+    "textdomain": "frs-users",
+    "supports": {
+        "html": false,
+        "align": ["wide", "full"]
+    },
+    "attributes": {
+        "perPage": {
+            "type": "number",
+            "default": 12
+        },
+        "columns": {
+            "type": "number",
+            "default": 3
+        },
+        "showCount": {
+            "type": "boolean",
+            "default": true
+        },
+        "showLoadMore": {
+            "type": "boolean",
+            "default": true
+        }
+    },
+    "viewScriptModule": "file:./view.js",
+    "render": "file:./render.php",
+    "style": "file:./style.css"
+}

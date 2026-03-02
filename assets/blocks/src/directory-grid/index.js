@@ -8,6 +8,7 @@ import { __ } from '@wordpress/i18n';
 import { grid as icon } from '@wordpress/icons';
 
 import metadata from './block.json';
+import './style.css';
 
 // Sample card for editor preview
 const SampleCard = ( { name, title, initials } ) => (

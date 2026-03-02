@@ -212,31 +212,35 @@ $wrapper_attributes = get_block_wrapper_attributes(
 /**
  * Helper function to format phone numbers.
  */
-function frs_format_phone( $phone ) {
-	if ( ! $phone ) {
-		return '';
+if ( ! function_exists( 'frs_format_phone' ) ) {
+	function frs_format_phone( $phone ) {
+		if ( ! $phone ) {
+			return '';
+		}
+		$digits = preg_replace( '/\D/', '', $phone );
+		if ( strlen( $digits ) === 10 ) {
+			return sprintf( '(%s) %s-%s', substr( $digits, 0, 3 ), substr( $digits, 3, 3 ), substr( $digits, 6, 4 ) );
+		}
+		if ( strlen( $digits ) === 11 && $digits[0] === '1' ) {
+			return sprintf( '(%s) %s-%s', substr( $digits, 1, 3 ), substr( $digits, 4, 3 ), substr( $digits, 7, 4 ) );
+		}
+		return $phone;
 	}
-	$digits = preg_replace( '/\D/', '', $phone );
-	if ( strlen( $digits ) === 10 ) {
-		return sprintf( '(%s) %s-%s', substr( $digits, 0, 3 ), substr( $digits, 3, 3 ), substr( $digits, 6, 4 ) );
-	}
-	if ( strlen( $digits ) === 11 && $digits[0] === '1' ) {
-		return sprintf( '(%s) %s-%s', substr( $digits, 1, 3 ), substr( $digits, 4, 3 ), substr( $digits, 7, 4 ) );
-	}
-	return $phone;
 }
 
 /**
  * Helper function to get profile image.
  */
-function frs_get_profile_image( $profile ) {
-	if ( ! empty( $profile['headshot_url'] ) && trim( $profile['headshot_url'] ) !== '' ) {
-		return $profile['headshot_url'];
+if ( ! function_exists( 'frs_get_profile_image' ) ) {
+	function frs_get_profile_image( $profile ) {
+		if ( ! empty( $profile['headshot_url'] ) && trim( $profile['headshot_url'] ) !== '' ) {
+			return $profile['headshot_url'];
+		}
+		if ( ! empty( $profile['avatar_url'] ) && trim( $profile['avatar_url'] ) !== '' && strpos( $profile['avatar_url'], 'gravatar.com/avatar' ) === false ) {
+			return preg_replace( '/-\d+x\d+\./', '-512x512.', $profile['avatar_url'] );
+		}
+		return '';
 	}
-	if ( ! empty( $profile['avatar_url'] ) && trim( $profile['avatar_url'] ) !== '' && strpos( $profile['avatar_url'], 'gravatar.com/avatar' ) === false ) {
-		return preg_replace( '/-\d+x\d+\./', '-512x512.', $profile['avatar_url'] );
-	}
-	return '';
 }
 ?>
 

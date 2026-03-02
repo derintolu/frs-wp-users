@@ -8,6 +8,7 @@ import { __ } from '@wordpress/i18n';
 import { filter as icon } from '@wordpress/icons';
 
 import metadata from './block.json';
+import './style.css';
 
 // Sample state chips for editor preview
 const SAMPLE_STATES = [ 'AZ', 'CA', 'CO', 'NV', 'TX', 'UT' ];

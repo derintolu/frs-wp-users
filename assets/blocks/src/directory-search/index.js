@@ -8,6 +8,7 @@ import { __ } from '@wordpress/i18n';
 import { search as icon } from '@wordpress/icons';
 
 import metadata from './block.json';
+import './style.css';
 
 registerBlockType( metadata.name, {
 	icon,

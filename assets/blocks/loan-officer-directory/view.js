@@ -335,10 +335,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 const title = (p.job_title || '').toLowerCase();
                 let rawAreas = p.service_areas || [];
                 if (typeof rawAreas === 'string') { try { rawAreas = JSON.parse(rawAreas); } catch (e) { rawAreas = []; } }
-                const areas = (Array.isArray(rawAreas) ? rawAreas : []).map(a => a.toLowerCase());
-                const areasText = areas.join(' ');
-                // Also get full state names for searching
-                const stateNames = areas.map(a => STATE_NAMES[a] || '').join(' ').toLowerCase();
+                const areas = (Array.isArray(rawAreas) ? rawAreas : []);
+                const areasText = areas.map(a => a.toLowerCase()).join(' ');
+                // Also get full state names for searching (normalize to uppercase for STATE_NAMES lookup)
+                const stateNames = areas.map(a => STATE_NAMES[normalizeState(a)] || '').join(' ').toLowerCase();
                 const searchText = `${name} ${loc} ${region} ${title} ${areasText} ${stateNames}`;
                 // Check if ANY word matches (more fuzzy)
                 const words = q.split(/\s+/).filter(w => w.length > 0);

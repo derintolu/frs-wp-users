@@ -10,7 +10,8 @@
     "keywords": ["filter", "directory", "loan officer", "service areas", "states"],
     "textdomain": "frs-users",
     "supports": {
-        "html": false
+        "html": false,
+        "interactivity": true
     },
     "attributes": {
         "title": {

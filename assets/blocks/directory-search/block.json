@@ -11,7 +11,8 @@
     "textdomain": "frs-users",
     "supports": {
         "html": false,
-        "align": ["wide", "full"]
+        "align": ["wide", "full"],
+        "interactivity": true
     },
     "attributes": {
         "placeholder": {

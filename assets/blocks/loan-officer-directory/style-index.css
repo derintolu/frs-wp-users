@@ -489,14 +489,14 @@
     pointer-events: none;
 }
 
-/* State Chips Grid */
-.frs-state-chips {
+/* Service Areas Grid */
+.frs-service-areas {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 0.375rem;
 }
 
-.frs-state-chip {
+.frs-service-area-chip {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -511,28 +511,28 @@
     color: var(--frs-text);
 }
 
-.frs-state-chip:hover {
+.frs-service-area-chip:hover {
     border-color: var(--frs-blue);
     color: var(--frs-blue);
 }
 
-.frs-state-chip--selected {
+.frs-service-area-chip--selected {
     background: linear-gradient(135deg, var(--frs-cyan), var(--frs-blue));
     color: white;
     border-color: transparent;
 }
 
-.frs-state-chip--selected:hover {
+.frs-service-area-chip--selected:hover {
     opacity: 0.9;
     color: white;
 }
 
-.frs-state-chip--empty {
+.frs-service-area-chip--empty {
     opacity: 0.4;
     color: var(--frs-text-light);
 }
 
-.frs-state-chip--empty:hover {
+.frs-service-area-chip--empty:hover {
     opacity: 0.6;
 }
 

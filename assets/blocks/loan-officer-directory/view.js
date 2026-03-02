@@ -1,7 +1,7 @@
 /**
  * Loan Officer Directory - Frontend JavaScript
  *
- * Full directory with hero, sidebar filters, state chips, and QR modal.
+ * Full directory with hero, sidebar filters, service areas, and QR modal.
  */
 document.addEventListener('DOMContentLoaded', function() {
     // Ensure page is scrollable
@@ -34,8 +34,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const clearBtn = document.getElementById('frs-clear');
     const clearAltBtn = document.getElementById('frs-clear-alt');
 
-    // State chips container
-    const stateChipsContainer = document.getElementById('frs-state-chips');
+    // Service areas filter container
+    const serviceAreasContainer = document.getElementById('frs-service-areas');
 
     // All 50 US states
     const ALL_STATES = [
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let selectedServiceAreas = [];
     let allServiceAreas = [];
     let dataLoaded = false;
-    let stateCounts = {};
+    let serviceAreaCounts = {};
 
     // Check URL params - if filters present, scroll to directory
     const urlParams = new URLSearchParams(window.location.search);
@@ -144,18 +144,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const retryBtn = document.getElementById('frs-retry');
     if (retryBtn) retryBtn.addEventListener('click', loadData);
 
-    // State chips click handler
-    if (stateChipsContainer) {
-        stateChipsContainer.addEventListener('click', (e) => {
-            const chip = e.target.closest('.frs-state-chip');
+    // Service areas click handler
+    if (serviceAreasContainer) {
+        serviceAreasContainer.addEventListener('click', (e) => {
+            const chip = e.target.closest('.frs-service-area-chip');
             if (chip) {
-                const state = chip.dataset.state;
+                const state = chip.dataset.serviceArea;
                 if (selectedServiceAreas.includes(state)) {
                     selectedServiceAreas = selectedServiceAreas.filter(s => s !== state);
-                    chip.classList.remove('frs-state-chip--selected');
+                    chip.classList.remove('frs-service-area-chip--selected');
                 } else {
                     selectedServiceAreas.push(state);
-                    chip.classList.add('frs-state-chip--selected');
+                    chip.classList.add('frs-service-area-chip--selected');
                 }
                 applyFilters();
                 updateURL();
@@ -262,9 +262,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function extractFilters() {
-        // Count how many LOs are licensed in each state
-        stateCounts = {};
-        ALL_STATES.forEach(s => stateCounts[s] = 0);
+        // Count how many LOs serve each state
+        serviceAreaCounts = {};
+        ALL_STATES.forEach(s => serviceAreaCounts[s] = 0);
 
         profiles.forEach(p => {
             let areas = p.service_areas;
@@ -274,8 +274,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (areas && Array.isArray(areas)) {
                 areas.forEach(area => {
                     const abbr = normalizeState(area);
-                    if (stateCounts.hasOwnProperty(abbr)) {
-                        stateCounts[abbr]++;
+                    if (serviceAreaCounts.hasOwnProperty(abbr)) {
+                        serviceAreaCounts[abbr]++;
                     }
                 });
             }
@@ -302,23 +302,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function populateFilters() {
-        if (!stateChipsContainer) return;
+        if (!serviceAreasContainer) return;
 
-        // Only show states that have LOs
-        const statesWithData = allServiceAreas.filter(state => (stateCounts[state] || 0) > 0);
+        // Only show service areas that have LOs
+        const areasWithData = allServiceAreas.filter(area => (serviceAreaCounts[area] || 0) > 0);
 
-        statesWithData.forEach(state => {
+        areasWithData.forEach(area => {
             const chip = document.createElement('div');
-            chip.className = 'frs-state-chip';
-            const count = stateCounts[state];
+            chip.className = 'frs-service-area-chip';
+            const count = serviceAreaCounts[area];
 
-            if (selectedServiceAreas.includes(state)) {
-                chip.classList.add('frs-state-chip--selected');
+            if (selectedServiceAreas.includes(area)) {
+                chip.classList.add('frs-service-area-chip--selected');
             }
-            chip.dataset.state = state;
-            chip.textContent = state;
-            chip.title = `${STATE_NAMES[state]} (${count})`;
-            stateChipsContainer.appendChild(chip);
+            chip.dataset.serviceArea = area;
+            chip.textContent = area;
+            chip.title = `${STATE_NAMES[area]} (${count})`;
+            serviceAreasContainer.appendChild(chip);
         });
     }
 
@@ -368,8 +368,8 @@ document.addEventListener('DOMContentLoaded', function() {
         selectedServiceAreas = [];
         if (searchInput) searchInput.value = '';
         if (heroSearch) heroSearch.value = '';
-        if (stateChipsContainer) {
-            stateChipsContainer.querySelectorAll('.frs-state-chip').forEach(c => c.classList.remove('frs-state-chip--selected'));
+        if (serviceAreasContainer) {
+            serviceAreasContainer.querySelectorAll('.frs-service-area-chip').forEach(c => c.classList.remove('frs-service-area-chip--selected'));
         }
         filteredProfiles = [...profiles];
         updateURL();

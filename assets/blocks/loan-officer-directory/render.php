@@ -145,11 +145,11 @@ $wrapper_attributes = get_block_wrapper_attributes([
                     </div>
                 </div>
 
-                <!-- Service Areas (Chip Grid) -->
+                <!-- Service Areas Filter -->
                 <div class="frs-sidebar__section">
                     <label class="frs-sidebar__label"><?php esc_html_e('Service Areas', 'frs-users'); ?></label>
-                    <p class="frs-sidebar__hint"><?php esc_html_e('Click states to filter', 'frs-users'); ?></p>
-                    <div class="frs-state-chips" id="frs-state-chips"></div>
+                    <p class="frs-sidebar__hint"><?php esc_html_e('Click to filter by service area', 'frs-users'); ?></p>
+                    <div class="frs-service-areas" id="frs-service-areas"></div>
                 </div>
 
             </aside>

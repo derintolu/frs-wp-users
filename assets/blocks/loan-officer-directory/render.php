@@ -43,13 +43,13 @@ if (!empty($profiles)) {
     }
 }
 
-// Sort alphabetically by last name, then first name
+// Sort alphabetically by first name, then last name
 usort($profiles_data, function($a, $b) {
-    $last_cmp = strcasecmp($a['last_name'] ?? '', $b['last_name'] ?? '');
-    if ($last_cmp !== 0) {
-        return $last_cmp;
+    $first_cmp = strcasecmp($a['first_name'] ?? '', $b['first_name'] ?? '');
+    if ($first_cmp !== 0) {
+        return $first_cmp;
     }
-    return strcasecmp($a['first_name'] ?? '', $b['first_name'] ?? '');
+    return strcasecmp($a['last_name'] ?? '', $b['last_name'] ?? '');
 });
 
 // Excluded names (configurable via WP option instead of hardcoding in JS)

@@ -72,14 +72,8 @@ class Blocks {
 			register_block_type( $blocks_dir . 'build/directory-search' );
 		}
 
-		// Register directory-filters block (frs/directory-filters)
-		// Service area filter chips that work with directory-search and directory-grid
-		if ( file_exists( $blocks_dir . 'build/directory-filters' ) ) {
-			register_block_type( $blocks_dir . 'build/directory-filters' );
-		}
-
 		// Register directory-grid block (frs/directory-grid)
-		// Card grid that displays filtered loan officers
+		// Sidebar filters + card grid + QR popup
 		if ( file_exists( $blocks_dir . 'build/directory-grid' ) ) {
 			register_block_type( $blocks_dir . 'build/directory-grid' );
 		}

@@ -195,6 +195,10 @@ wp_interactivity_state(
 		'hubUrl'                => $hub_url,
 		'excludedNames'         => $excluded_names,
 		'stateNames'            => $state_names,
+		// QR popup state.
+		'qrPopupOpen'           => false,
+		'qrImageSrc'            => '',
+		'qrName'                => '',
 		// Derived state (also computed in JS).
 		'hasFilters'            => $has_filters,
 		'hasMoreProfiles'       => $has_more,
@@ -206,6 +210,7 @@ $wrapper_attributes = get_block_wrapper_attributes(
 	array(
 		'class'               => 'frs-directory-grid',
 		'data-wp-interactive' => 'frs/directory',
+		'data-wp-init'        => 'callbacks.initEscapeHandler',
 	)
 );
 
@@ -245,27 +250,92 @@ if ( ! function_exists( 'frs_get_profile_image' ) ) {
 ?>
 
 <div <?php echo $wrapper_attributes; ?>>
-	<?php if ( $show_count ) : ?>
-		<div class="frs-directory__results-header">
-			<span class="frs-directory__count">
-				<span data-wp-text="state.totalCount"><?php echo esc_html( $total_count ); ?></span>
-				<?php esc_html_e( 'loan officers', 'frs-users' ); ?>
-			</span>
-		</div>
-	<?php endif; ?>
-
 	<!-- Loading State (hidden on server since isLoading=false) -->
 	<div class="frs-directory__loading" data-wp-bind--hidden="!state.isLoading" hidden>
 		<div class="frs-directory__spinner"></div>
 		<p><?php esc_html_e( 'Loading loan officers...', 'frs-users' ); ?></p>
 	</div>
 
-	<!-- Grid Container - Server-render initial cards -->
-	<div 
-		class="frs-directory__grid" 
-		id="frs-grid"
-		data-wp-bind--hidden="state.isLoading"
-	>
+	<!-- Main Layout -->
+	<div class="frs-directory__layout" data-wp-bind--hidden="state.isLoading">
+		<!-- Sidebar -->
+		<aside class="frs-directory__sidebar">
+			<div class="frs-sidebar__header">
+				<h3><?php esc_html_e( 'Filter Results', 'frs-users' ); ?></h3>
+				<button
+					class="frs-sidebar__clear"
+					data-wp-on-async--click="actions.clearFilters"
+					data-wp-bind--hidden="!state.hasFilters"
+					<?php echo ! $has_filters ? 'hidden' : ''; ?>
+				>
+					<?php esc_html_e( 'Clear All', 'frs-users' ); ?>
+				</button>
+			</div>
+
+			<!-- Search -->
+			<div class="frs-sidebar__section">
+				<label class="frs-sidebar__label" for="frs-search"><?php esc_html_e( 'Search', 'frs-users' ); ?></label>
+				<div class="frs-sidebar__input-wrap">
+					<input
+						type="text"
+						id="frs-search"
+						placeholder="<?php esc_attr_e( 'Name or location...', 'frs-users' ); ?>"
+						class="frs-sidebar__input"
+						value="<?php echo esc_attr( $initial_search ); ?>"
+						data-wp-bind--value="state.searchQuery"
+						data-wp-on--input="actions.setSearchQuery"
+					>
+					<svg class="frs-sidebar__input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+					</svg>
+				</div>
+			</div>
+
+			<!-- Service Areas Filter -->
+			<div class="frs-sidebar__section">
+				<label class="frs-sidebar__label"><?php esc_html_e( 'Service Areas', 'frs-users' ); ?></label>
+				<p class="frs-sidebar__hint"><?php esc_html_e( 'Click to filter by service area', 'frs-users' ); ?></p>
+				<div class="frs-service-areas" id="frs-service-areas">
+					<?php
+					foreach ( $available_service_areas as $area ) :
+						$is_selected = in_array( $area, $initial_areas, true );
+						$count       = $service_area_counts[ $area ] ?? 0;
+						$full_name   = $state_names[ $area ] ?? $area;
+						$classes     = 'frs-service-area-chip';
+						if ( $is_selected ) {
+							$classes .= ' frs-service-area-chip--selected';
+						}
+						?>
+						<div
+							class="<?php echo esc_attr( $classes ); ?>"
+							data-service-area="<?php echo esc_attr( $area ); ?>"
+							title="<?php echo esc_attr( $full_name . ' (' . $count . ')' ); ?>"
+							data-wp-on-async--click="actions.toggleServiceArea"
+							data-wp-class--frs-service-area-chip--selected="state.selectedServiceAreas.includes('<?php echo esc_js( $area ); ?>')"
+						>
+							<?php echo esc_html( $area ); ?>
+						</div>
+					<?php endforeach; ?>
+				</div>
+			</div>
+		</aside>
+
+		<!-- Main Content -->
+		<main class="frs-directory__main">
+			<?php if ( $show_count ) : ?>
+				<div class="frs-directory__results-header">
+					<span class="frs-directory__count">
+						<span data-wp-text="state.totalCount"><?php echo esc_html( $total_count ); ?></span>
+						<?php esc_html_e( 'loan officers', 'frs-users' ); ?>
+					</span>
+				</div>
+			<?php endif; ?>
+
+			<!-- Grid Container - Server-render initial cards -->
+			<div
+				class="frs-directory__grid"
+				id="frs-grid"
+			>
 		<?php
 		$visible_profiles = array_slice( $filtered_profiles, 0, $displayed_count );
 		foreach ( $visible_profiles as $lo ) :
@@ -293,7 +363,7 @@ if ( ! function_exists( 'frs_get_profile_image' ) ) {
 			<div class="frs-card">
 				<div class="frs-card__header">
 					<?php if ( $qr_data ) : ?>
-						<button class="frs-card__qr-btn" aria-label="<?php esc_attr_e( 'Show QR code', 'frs-users' ); ?>" data-qr="<?php echo esc_attr( $qr_data ); ?>" data-name="<?php echo esc_attr( $full_name ); ?>">
+						<button class="frs-card__qr-btn" aria-label="<?php esc_attr_e( 'Show QR code', 'frs-users' ); ?>" data-qr="<?php echo esc_attr( $qr_data ); ?>" data-name="<?php echo esc_attr( $full_name ); ?>" data-wp-on-async--click="actions.openQrPopup">
 							<svg viewBox="0 0 24 24" fill="none" stroke="url(#qr-grad-<?php echo esc_attr( $slug ); ?>)" stroke-width="2">
 								<defs><linearGradient id="qr-grad-<?php echo esc_attr( $slug ); ?>" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#2dd4da"/><stop offset="100%" stop-color="#2563eb"/></linearGradient></defs>
 								<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
@@ -354,36 +424,55 @@ if ( ! function_exists( 'frs_get_profile_image' ) ) {
 				</div>
 			</div>
 		<?php endforeach; ?>
-	</div>
+			</div>
 
-	<!-- No Results -->
-	<div 
-		class="frs-directory__no-results" 
-		data-wp-bind--hidden="state.totalCount > 0 || state.isLoading"
-		<?php echo $total_count > 0 ? 'hidden' : ''; ?>
-	>
-		<p><?php esc_html_e( 'No loan officers found matching your criteria.', 'frs-users' ); ?></p>
-		<button 
-			class="frs-btn frs-btn--outline"
-			data-wp-on-async--click="actions.clearFilters"
-		>
-			<?php esc_html_e( 'Clear Filters', 'frs-users' ); ?>
-		</button>
-	</div>
-
-	<?php if ( $show_load_more ) : ?>
-		<!-- Load More -->
-		<div 
-			class="frs-directory__load-more"
-			data-wp-bind--hidden="!state.hasMoreProfiles"
-			<?php echo ! $has_more ? 'hidden' : ''; ?>
-		>
-			<button 
-				class="frs-btn frs-btn--primary"
-				data-wp-on-async--click="actions.loadMore"
+			<!-- No Results -->
+			<div 
+				class="frs-directory__no-results" 
+				data-wp-bind--hidden="state.totalCount > 0 || state.isLoading"
+				<?php echo $total_count > 0 ? 'hidden' : ''; ?>
 			>
-				<?php esc_html_e( 'Load More', 'frs-users' ); ?>
+				<p><?php esc_html_e( 'No loan officers found matching your criteria.', 'frs-users' ); ?></p>
+				<button 
+					class="frs-btn frs-btn--outline"
+					data-wp-on-async--click="actions.clearFilters"
+				>
+					<?php esc_html_e( 'Clear Filters', 'frs-users' ); ?>
+				</button>
+			</div>
+
+			<?php if ( $show_load_more ) : ?>
+				<!-- Load More -->
+				<div 
+					class="frs-directory__load-more"
+					data-wp-bind--hidden="!state.hasMoreProfiles"
+					<?php echo ! $has_more ? 'hidden' : ''; ?>
+				>
+					<button 
+						class="frs-btn frs-btn--outline"
+						data-wp-on-async--click="actions.loadMore"
+					>
+						<?php esc_html_e( 'Load More', 'frs-users' ); ?>
+					</button>
+				</div>
+			<?php endif; ?>
+		</main>
+	</div><!-- .frs-directory__layout -->
+
+	<!-- QR Popup -->
+	<div class="frs-qr-popup" id="frs-qr-popup" data-wp-class--frs-qr-popup--open="state.qrPopupOpen">
+		<div class="frs-qr-popup__backdrop" data-wp-on-async--click="actions.closeQrPopup"></div>
+		<div class="frs-qr-popup__content">
+			<button class="frs-qr-popup__close" data-wp-on-async--click="actions.closeQrPopup" aria-label="<?php esc_attr_e( 'Close', 'frs-users' ); ?>">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+					<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+				</svg>
 			</button>
+			<div class="frs-qr-popup__qr">
+				<img id="frs-qr-image" data-wp-bind--src="state.qrImageSrc" src="" alt="QR Code">
+			</div>
+			<p class="frs-qr-popup__name" data-wp-text="state.qrName"></p>
+			<p class="frs-qr-popup__hint"><?php esc_html_e( 'Scan to view profile', 'frs-users' ); ?></p>
 		</div>
-	<?php endif; ?>
+	</div>
 </div>

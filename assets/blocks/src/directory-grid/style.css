@@ -1,5 +1,6 @@
 /* Variables */
-.frs-directory {
+.frs-directory,
+.frs-directory-grid {
     --frs-cyan: #2dd4da;
     --frs-blue: #2563eb;
     --frs-navy: #020817;

@@ -185,11 +185,6 @@ const { state, actions } = store( 'frs/directory', {
 			state.searchQuery = '';
 			state.selectedServiceAreas = [];
 
-			// Clear search inputs
-			document.querySelectorAll( '.frs-directory-search__input' ).forEach( ( input ) => {
-				input.value = '';
-			} );
-
 			actions.applyFilters();
 			actions.updateURL();
 			actions.renderGrid();
@@ -292,6 +287,40 @@ const { state, actions } = store( 'frs/directory', {
 
 			visibleProfiles.forEach( ( lo ) => {
 				grid.appendChild( createCard( lo, state.hubUrl, stateNames ) );
+			} );
+		},
+
+		/**
+		 * Open QR popup from a card's QR button click.
+		 */
+		openQrPopup() {
+			const element = getElement();
+			const qrData = element.ref.dataset.qr;
+			const name = element.ref.dataset.name;
+			if ( qrData ) {
+				state.qrImageSrc = qrData;
+				state.qrName = name || '';
+				state.qrPopupOpen = true;
+			}
+		},
+
+		/**
+		 * Close QR popup.
+		 */
+		closeQrPopup() {
+			state.qrPopupOpen = false;
+		},
+	},
+
+	callbacks: {
+		/**
+		 * Listen for Escape key to close QR popup.
+		 */
+		initEscapeHandler() {
+			document.addEventListener( 'keydown', ( e ) => {
+				if ( e.key === 'Escape' && state.qrPopupOpen ) {
+					state.qrPopupOpen = false;
+				}
 			} );
 		},
 	},

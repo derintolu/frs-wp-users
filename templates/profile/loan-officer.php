@@ -159,7 +159,16 @@ wp_enqueue_script_module(
 get_header();
 ?>
 
+<?php
+$directory_url = apply_filters( 'frs_directory_url', home_url( '/directory/' ) );
+?>
 <div class="frs-profile" id="frs-profile">
+    <!-- Back to Directory -->
+    <a href="<?php echo esc_url( $directory_url ); ?>" class="frs-profile__back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>
+        <?php esc_html_e( 'Back to Directory', 'frs-users' ); ?>
+    </a>
+
     <!-- Row 1: Profile Card + Action Buttons/Service Areas -->
     <div class="frs-profile__row frs-profile__row--main">
         <!-- Profile Card (65%) -->
@@ -518,6 +527,27 @@ get_header();
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem 1rem;
+}
+
+/* Back to Directory */
+.frs-profile__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--frs-text-light);
+    text-decoration: none;
+    margin-bottom: 1rem;
+    transition: color 0.15s;
+}
+
+.frs-profile__back:hover {
+    color: var(--frs-blue);
+}
+
+.frs-profile__back svg {
+    flex-shrink: 0;
 }
 
 /* Utility */

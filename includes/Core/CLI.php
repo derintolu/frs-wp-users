@@ -1202,6 +1202,29 @@ class CLI {
 			}
 		}
 
+		// Sync avatar/headshot URL from hub
+		// Use headshot_url if available, otherwise fall back to avatar_url
+		$headshot_url = $profile['headshot_url'] ?? '';
+		if ( empty( $headshot_url ) && ! empty( $profile['avatar_url'] ) ) {
+			// Only use avatar_url if it's not a Gravatar fallback
+			$avatar_url = $profile['avatar_url'];
+			if ( strpos( $avatar_url, 'gravatar.com' ) === false ) {
+				$headshot_url = $avatar_url;
+			}
+		}
+
+		if ( ! empty( $headshot_url ) ) {
+			update_user_meta( $user_id, 'frs_headshot_url', $headshot_url );
+
+			// Also update simple_local_avatar to use this URL
+			$avatar_data = array(
+				'media_id' => 0,
+				'full'     => $headshot_url,
+				'blog_id'  => get_current_blog_id(),
+			);
+			update_user_meta( $user_id, 'simple_local_avatar', $avatar_data );
+		}
+
 		return $result;
 	}
 

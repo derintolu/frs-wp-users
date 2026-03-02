@@ -647,6 +647,7 @@ get_header();
     color: white;
     font-size: 2.5rem;
     font-weight: 600;
+    border-radius: 50%;
 }
 
 .frs-profile .frs-profile__avatar-back {

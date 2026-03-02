@@ -49,6 +49,7 @@ class ProfilesAdminPage {
 		register_setting( 'frs_profiles_settings', 'frs_directory_headline' );
 		register_setting( 'frs_profiles_settings', 'frs_directory_subheadline' );
 		register_setting( 'frs_profiles_settings', 'frs_directory_video_url' );
+		register_setting( 'frs_profiles_settings', 'frs_directory_url' );
 
 		// Site Context Section.
 		add_settings_section(
@@ -143,6 +144,18 @@ class ProfilesAdminPage {
 				$value = get_option( 'frs_directory_video_url', '' );
 				echo '<input type="url" name="frs_directory_video_url" value="' . esc_attr( $value ) . '" class="regular-text">';
 				echo '<p class="description">' . esc_html__( 'MP4 video URL for card backgrounds.', 'frs-users' ) . '</p>';
+			},
+			'frs_profiles_settings',
+			'frs_directory_section'
+		);
+
+		add_settings_field(
+			'frs_directory_url',
+			__( 'Directory Page URL', 'frs-users' ),
+			function() {
+				$value = get_option( 'frs_directory_url', '' );
+				echo '<input type="url" name="frs_directory_url" value="' . esc_attr( $value ) . '" class="regular-text" placeholder="' . esc_attr( home_url( '/directory/' ) ) . '">';
+				echo '<p class="description">' . esc_html__( 'URL of the directory page. Used for the "Back to Directory" link on profile pages. Defaults to /directory/.', 'frs-users' ) . '</p>';
 			},
 			'frs_profiles_settings',
 			'frs_directory_section'

@@ -160,7 +160,8 @@ get_header();
 ?>
 
 <?php
-$directory_url = apply_filters( 'frs_directory_url', home_url( '/directory/' ) );
+$directory_url = get_option( 'frs_directory_url', '' ) ?: home_url( '/directory/' );
+$directory_url = apply_filters( 'frs_directory_url', $directory_url );
 ?>
 <div class="frs-profile" id="frs-profile">
     <!-- Back to Directory -->

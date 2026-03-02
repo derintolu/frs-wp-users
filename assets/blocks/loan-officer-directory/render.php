@@ -29,21 +29,28 @@ if (empty($video_url)) {
 $headline = get_option('frs_directory_headline', 'Find Your Loan Officer');
 $subheadline = get_option('frs_directory_subheadline', 'Connect with a mortgage professional in your area');
 
-// Preload profiles server-side
+// Preload profiles server-side from local WordPress data
+// Hub syncs profiles via webhook, so marketing sites always have up-to-date local copies
 $profiles_data = [];
-$remote_provider = new \FRSUsers\RemoteData\RemoteProfileProvider();
-if ( $remote_provider->should_use_remote() ) {
-    // Marketing site: fetch from Twenty CRM
-    $profiles_data = $remote_provider->get_directory_profiles( 'loan_originator' );
-} else {
-    // Hub/dev site: use local WordPress data
-    $profiles = \FRSUsers\Models\Profile::get_all(['type' => 'loan_originator']);
-    if (!empty($profiles)) {
-        foreach ($profiles as $profile) {
-            $profiles_data[] = is_array($profile) ? $profile : (method_exists($profile, 'toArray') ? $profile->toArray() : (array) $profile);
+$profiles = \FRSUsers\Models\Profile::get_all(['type' => 'loan_originator']);
+if (!empty($profiles)) {
+    foreach ($profiles as $profile) {
+        $profile_array = is_array($profile) ? $profile : (method_exists($profile, 'toArray') ? $profile->toArray() : (array) $profile);
+        // Only include active profiles
+        if (!empty($profile_array['is_active'])) {
+            $profiles_data[] = $profile_array;
         }
     }
 }
+
+// Sort alphabetically by last name, then first name
+usort($profiles_data, function($a, $b) {
+    $last_cmp = strcasecmp($a['last_name'] ?? '', $b['last_name'] ?? '');
+    if ($last_cmp !== 0) {
+        return $last_cmp;
+    }
+    return strcasecmp($a['first_name'] ?? '', $b['first_name'] ?? '');
+});
 
 // Excluded names (configurable via WP option instead of hardcoding in JS)
 $excluded_names = get_option( 'frs_directory_excluded', array() );

@@ -1,19 +1,6 @@
-/* Directory Search Block Styles */
+/* Search Bar - exact same styles as monolithic loan-officer-directory block */
 
-/* Variables */
-.frs-directory-search {
-    --frs-cyan: #2dd4da;
-    --frs-blue: #2563eb;
-    --frs-text: #374151;
-    --frs-text-light: #6b7280;
-    --frs-border: #e5e7eb;
-    --frs-bg: #ffffff;
-    --frs-radius: 8px;
-    font-family: 'Mona Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-/* Search Form */
-.frs-directory-search__form {
+.frs-directory .frs-search {
     position: relative;
     z-index: 10;
     display: flex;
@@ -25,65 +12,46 @@
     transition: box-shadow 0.2s, transform 0.2s;
 }
 
-.frs-directory-search__form:hover {
-    box-shadow: 0 6px 24px rgba(37, 99, 235, 0.2);
-    transform: translateY(-2px);
-}
-
-.frs-directory-search__input-wrap {
+.frs-directory .frs-search__input,
+.frs-directory input.frs-search__input,
+.frs-directory input[type="search"].frs-search__input {
     flex: 1;
-    position: relative;
-}
-
-.frs-directory-search__input,
-input.frs-directory-search__input,
-input[type="search"].frs-directory-search__input {
-    width: 100%;
+    width: auto;
     min-height: 60px;
     line-height: 60px;
     padding-left: 20px;
-    padding-right: 44px;
+    padding-right: 20px;
     padding-top: 0;
     padding-bottom: 0;
     margin: 0;
     border-width: 2px;
     border-style: solid;
-    border-color: var(--frs-border);
+    border-color: #e5e7eb;
     border-right-width: 0;
     border-top-left-radius: 8px;
     border-bottom-left-radius: 8px;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
-    background-color: var(--frs-bg);
+    background-color: #ffffff;
     font-size: 16px;
-    color: var(--frs-text);
+    color: #374151;
     outline: none;
     box-shadow: none;
     -webkit-appearance: none;
     appearance: none;
 }
 
-.frs-directory-search__input:focus {
-    border-color: var(--frs-blue);
+.frs-directory .frs-search__input:focus {
+    border-color: #2563eb;
 }
 
-.frs-directory-search__input::placeholder {
+.frs-directory .frs-search__input::placeholder {
     color: #9ca3af;
     line-height: normal;
 }
 
-.frs-directory-search__icon {
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 20px;
-    height: 20px;
-    color: var(--frs-text-light);
-    pointer-events: none;
-}
-
-.frs-directory-search__button {
+.frs-directory .frs-search__btn,
+.frs-directory button.frs-search__btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -94,7 +62,7 @@ input[type="search"].frs-directory-search__input {
     padding-top: 0;
     padding-bottom: 0;
     margin: 0;
-    background: linear-gradient(135deg, var(--frs-cyan), var(--frs-blue));
+    background: linear-gradient(135deg, #2dd4da, #2563eb);
     color: #ffffff;
     border: none;
     border-top-left-radius: 0;
@@ -107,37 +75,38 @@ input[type="search"].frs-directory-search__input {
     white-space: nowrap;
 }
 
-.frs-directory-search__button:hover {
-    background: linear-gradient(135deg, var(--frs-blue), var(--frs-cyan));
-}
-
-.frs-directory-search__button svg {
+.frs-directory .frs-search__btn svg {
     width: 20px;
     height: 20px;
     flex-shrink: 0;
 }
 
+.frs-directory .frs-search:hover {
+    box-shadow: 0 6px 24px rgba(37, 99, 235, 0.2);
+    transform: translateY(-2px);
+}
+
 /* Mobile */
 @media (max-width: 900px) {
-    .frs-directory-search__form {
+    .frs-directory .frs-search {
         flex-direction: column;
         max-width: 100%;
     }
 
-    .frs-directory-search__input,
-    input.frs-directory-search__input,
-    input[type="search"].frs-directory-search__input {
+    .frs-directory .frs-search__input,
+    .frs-directory input.frs-search__input,
+    .frs-directory input[type="search"].frs-search__input {
         width: 100%;
         min-height: 60px;
         line-height: 60px;
         text-align: center;
-        border: 2px solid var(--frs-border);
+        border: 2px solid #e5e7eb;
         border-bottom: none;
         border-radius: 8px 8px 0 0;
-        border-right-width: 2px;
     }
 
-    .frs-directory-search__button {
+    .frs-directory .frs-search__btn,
+    .frs-directory button.frs-search__btn {
         width: 100%;
         min-height: 60px;
         border: none;

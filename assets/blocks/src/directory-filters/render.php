@@ -2,15 +2,14 @@
 /**
  * Directory Filters Block - Server-side render
  *
- * Renders service area filter chips with proper Interactivity API state.
- * Uses exact same CSS classes as the original loan-officer-directory block.
+ * Uses exact same HTML/CSS classes as the monolithic loan-officer-directory sidebar.
  *
  * @package FRSUsers
  */
 
 defined( 'ABSPATH' ) || exit;
 
-$title             = $attributes['title'] ?? __( 'Service Areas', 'frs-users' );
+$title             = $attributes['title'] ?? __( 'Filter Results', 'frs-users' );
 $hint              = $attributes['hint'] ?? __( 'Click to filter by service area', 'frs-users' );
 $show_clear_button = $attributes['showClearButton'] ?? true;
 
@@ -36,39 +35,58 @@ $state_names = array(
 );
 
 // Get state from the shared Interactivity API store (initialized by grid block).
-// If grid block hasn't initialized yet, we'll get empty values but JS will update.
 $interactivity_state = wp_interactivity_state( 'frs/directory' );
 $available_areas     = $interactivity_state['availableServiceAreas'] ?? array();
 $area_counts         = $interactivity_state['serviceAreaCounts'] ?? array();
 
 $wrapper_attributes = get_block_wrapper_attributes(
 	array(
-		'class'               => 'frs-directory-filters',
+		'class'               => 'frs-directory__sidebar',
 		'data-wp-interactive' => 'frs/directory',
 	)
 );
 ?>
 
-<div <?php echo $wrapper_attributes; ?>>
+<aside <?php echo $wrapper_attributes; ?>>
+	<div class="frs-sidebar__header">
+		<h3><?php echo esc_html( $title ); ?></h3>
+		<?php if ( $show_clear_button ) : ?>
+			<button
+				class="frs-sidebar__clear"
+				data-wp-on-async--click="actions.clearFilters"
+				data-wp-bind--hidden="!state.hasFilters"
+				<?php echo ! $has_filters ? 'hidden' : ''; ?>
+			>
+				<?php esc_html_e( 'Clear All', 'frs-users' ); ?>
+			</button>
+		<?php endif; ?>
+	</div>
+
+	<!-- Sidebar Search -->
 	<div class="frs-sidebar__section">
-		<div class="frs-sidebar__header">
-			<label class="frs-sidebar__label"><?php echo esc_html( $title ); ?></label>
-			<?php if ( $show_clear_button ) : ?>
-				<button 
-					class="frs-sidebar__clear"
-					data-wp-on-async--click="actions.clearFilters"
-					data-wp-bind--hidden="!state.hasFilters"
-					<?php echo ! $has_filters ? 'hidden' : ''; ?>
-				>
-					<?php esc_html_e( 'Clear All', 'frs-users' ); ?>
-				</button>
-			<?php endif; ?>
+		<label class="frs-sidebar__label" for="frs-search"><?php esc_html_e( 'Search', 'frs-users' ); ?></label>
+		<div class="frs-sidebar__input-wrap">
+			<input
+				type="text"
+				id="frs-search"
+				placeholder="<?php esc_attr_e( 'Name or location...', 'frs-users' ); ?>"
+				class="frs-sidebar__input"
+				value="<?php echo esc_attr( $initial_search ); ?>"
+				data-wp-bind--value="state.searchQuery"
+				data-wp-on--input="actions.setSearchQuery"
+			>
+			<svg class="frs-sidebar__input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+			</svg>
 		</div>
+	</div>
+
+	<!-- Service Areas Filter -->
+	<div class="frs-sidebar__section">
+		<label class="frs-sidebar__label"><?php esc_html_e( 'Service Areas', 'frs-users' ); ?></label>
 		<p class="frs-sidebar__hint"><?php echo esc_html( $hint ); ?></p>
-		<div class="frs-service-areas">
+		<div class="frs-service-areas" id="frs-service-areas">
 			<?php
-			// Server-render the chips based on available areas from state.
-			// If the grid block rendered first, we have the data. Otherwise, JS will populate.
 			if ( ! empty( $available_areas ) ) :
 				foreach ( $available_areas as $area ) :
 					$is_selected = in_array( $area, $initial_areas, true );
@@ -79,7 +97,7 @@ $wrapper_attributes = get_block_wrapper_attributes(
 						$classes .= ' frs-service-area-chip--selected';
 					}
 					?>
-					<div 
+					<div
 						class="<?php echo esc_attr( $classes ); ?>"
 						data-service-area="<?php echo esc_attr( $area ); ?>"
 						title="<?php echo esc_attr( $full_name . ' (' . $count . ')' ); ?>"
@@ -94,4 +112,4 @@ $wrapper_attributes = get_block_wrapper_attributes(
 			?>
 		</div>
 	</div>
-</div>
+</aside>

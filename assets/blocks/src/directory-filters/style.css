@@ -1,7 +1,7 @@
-/* Directory Filters Block Styles */
+/* Directory Filters Block - exact same styles as monolithic loan-officer-directory sidebar */
 
-/* Variables */
-.frs-directory-filters {
+/* Variables (monolithic defines these on .frs-directory parent; standalone needs own) */
+.frs-directory__sidebar {
     --frs-cyan: #2dd4da;
     --frs-blue: #2563eb;
     --frs-navy: #020817;
@@ -11,9 +11,21 @@
     --frs-bg: #ffffff;
     --frs-radius: 8px;
     font-family: 'Mona Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--frs-bg);
+    border: 1px solid var(--frs-border);
+    border-radius: var(--frs-radius);
+    padding: 1.5rem;
+    position: sticky;
+    top: calc(var(--header-sticky-height, 80px) + 1rem);
 }
 
-/* Sidebar Header */
+@media (max-width: 900px) {
+    .frs-directory__sidebar {
+        position: static;
+        margin-bottom: 1.5rem;
+    }
+}
+
 .frs-sidebar__header {
     display: flex;
     justify-content: space-between;
@@ -30,7 +42,6 @@
     color: var(--frs-navy);
 }
 
-/* Clear Button */
 .frs-sidebar__clear {
     background: none;
     border: none;
@@ -44,7 +55,6 @@
     text-decoration: underline;
 }
 
-/* Section */
 .frs-sidebar__section {
     margin-bottom: 1.5rem;
 }
@@ -53,7 +63,6 @@
     margin-bottom: 0;
 }
 
-/* Label */
 .frs-sidebar__label {
     display: block;
     font-size: 0.875rem;
@@ -62,11 +71,42 @@
     margin-bottom: 0.5rem;
 }
 
-/* Hint */
 .frs-sidebar__hint {
     font-size: 0.75rem;
     color: var(--frs-text-light);
     margin: 0 0 0.5rem;
+}
+
+/* Sidebar Input */
+.frs-sidebar__input-wrap {
+    position: relative;
+}
+
+.frs-sidebar__input {
+    width: 100%;
+    padding: 0.625rem 2.5rem 0.625rem 0.75rem;
+    border: 1px solid var(--frs-border);
+    border-radius: var(--frs-radius);
+    font-size: 0.875rem;
+    background: var(--frs-bg);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.frs-sidebar__input:focus {
+    outline: none;
+    border-color: var(--frs-blue);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.frs-sidebar__input-icon {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: var(--frs-text-light);
+    pointer-events: none;
 }
 
 /* Service Areas Grid */

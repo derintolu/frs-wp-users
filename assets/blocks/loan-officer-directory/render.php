@@ -147,7 +147,7 @@ $wrapper_attributes = get_block_wrapper_attributes([
 
                 <!-- Service Areas (Chip Grid) -->
                 <div class="frs-sidebar__section">
-                    <label class="frs-sidebar__label"><?php esc_html_e('Licensed States', 'frs-users'); ?></label>
+                    <label class="frs-sidebar__label"><?php esc_html_e('Service Areas', 'frs-users'); ?></label>
                     <p class="frs-sidebar__hint"><?php esc_html_e('Click states to filter', 'frs-users'); ?></p>
                     <div class="frs-state-chips" id="frs-state-chips"></div>
                 </div>

@@ -68,20 +68,20 @@ class Blocks {
 
 		// Register directory-search block (frs/directory-search)
 		// Search input that works with directory-filters and directory-grid via shared Interactivity API store
-		if ( file_exists( $blocks_dir . 'directory-search' ) ) {
-			register_block_type( $blocks_dir . 'directory-search' );
+		if ( file_exists( $blocks_dir . 'build/directory-search' ) ) {
+			register_block_type( $blocks_dir . 'build/directory-search' );
 		}
 
 		// Register directory-filters block (frs/directory-filters)
 		// Service area filter chips that work with directory-search and directory-grid
-		if ( file_exists( $blocks_dir . 'directory-filters' ) ) {
-			register_block_type( $blocks_dir . 'directory-filters' );
+		if ( file_exists( $blocks_dir . 'build/directory-filters' ) ) {
+			register_block_type( $blocks_dir . 'build/directory-filters' );
 		}
 
 		// Register directory-grid block (frs/directory-grid)
 		// Card grid that displays filtered loan officers
-		if ( file_exists( $blocks_dir . 'directory-grid' ) ) {
-			register_block_type( $blocks_dir . 'directory-grid' );
+		if ( file_exists( $blocks_dir . 'build/directory-grid' ) ) {
+			register_block_type( $blocks_dir . 'build/directory-grid' );
 		}
 
 		// Register profile-editor block (frs/profile-editor)

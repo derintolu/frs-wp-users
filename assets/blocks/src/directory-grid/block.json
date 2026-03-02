@@ -32,6 +32,7 @@
             "default": true
         }
     },
+    "editorScript": "file:./index.js",
     "viewScriptModule": "file:./view.js",
     "render": "file:./render.php",
     "style": "file:./style.css"

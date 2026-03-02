@@ -8,6 +8,7 @@
     "start": "WP_EXPERIMENTAL_MODULES=true wp-scripts start"
   },
   "devDependencies": {
+    "@wordpress/icons": "^11.7.0",
     "@wordpress/scripts": "^27.0.0"
   }
 }

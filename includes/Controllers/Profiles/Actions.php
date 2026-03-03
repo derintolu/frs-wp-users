@@ -519,9 +519,11 @@ class Actions {
 		// Handle headshot_id separately (needs to also set headshot_url).
 		if ( isset( $data['headshot_id'] ) ) {
 			$headshot_id = absint( $data['headshot_id'] );
+			error_log( 'UPDATE PROFILE - Setting headshot_id: ' . $headshot_id . ' for user: ' . $user_id );
 			update_user_meta( $user_id, 'frs_headshot_id', $headshot_id );
 			if ( $headshot_id ) {
 				$headshot_url = wp_get_attachment_url( $headshot_id );
+				error_log( 'UPDATE PROFILE - Headshot URL resolved: ' . ( $headshot_url ?: 'FAILED' ) );
 				if ( $headshot_url ) {
 					update_user_meta( $user_id, 'frs_headshot_url', $headshot_url );
 					update_user_meta( $user_id, 'simple_local_avatar', array(
@@ -529,6 +531,7 @@ class Actions {
 						'full'     => $headshot_url,
 						'blog_id'  => get_current_blog_id(),
 					) );
+					error_log( 'UPDATE PROFILE - Headshot meta saved successfully' );
 				}
 			}
 		}

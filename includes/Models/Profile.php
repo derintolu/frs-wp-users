@@ -746,6 +746,19 @@ class Profile {
 		update_user_meta( $this->user_id, 'frs_company_logo_id', $this->company_logo_id );
 		update_user_meta( $this->user_id, 'frs_company_website', $this->company_website );
 		update_user_meta( $this->user_id, 'frs_headshot_id', $this->headshot_id );
+		// Also update headshot_url so directory displays are always in sync.
+		if ( $this->headshot_id ) {
+			$headshot_url = wp_get_attachment_url( $this->headshot_id );
+			if ( $headshot_url ) {
+				update_user_meta( $this->user_id, 'frs_headshot_url', $headshot_url );
+				// Update Simple Local Avatars for avatar system compatibility.
+				update_user_meta( $this->user_id, 'simple_local_avatar', array(
+					'media_id' => $this->headshot_id,
+					'full'     => $headshot_url,
+					'blog_id'  => get_current_blog_id(),
+				) );
+			}
+		}
 		update_user_meta( $this->user_id, 'frs_job_title', $this->job_title );
 		update_user_meta( $this->user_id, 'frs_biography', $this->biography );
 		update_user_meta( $this->user_id, 'frs_date_of_birth', $this->date_of_birth );

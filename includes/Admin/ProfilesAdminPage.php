@@ -413,11 +413,7 @@ class ProfilesAdminPage {
 				$local_url     = wp_get_attachment_url( $attachment_id );
 				update_user_meta( $user->ID, 'frs_headshot_id', $attachment_id );
 				update_user_meta( $user->ID, 'frs_headshot_url', $local_url );
-				update_user_meta( $user->ID, 'simple_local_avatar', array(
-					'media_id' => $attachment_id,
-					'full'     => $local_url,
-					'blog_id'  => get_current_blog_id(),
-				) );
+				\FRSUsers\Core\ProfileStorage::set_user_avatar( $user->ID, $attachment_id, $local_url );
 				++$skipped;
 				continue;
 			}
@@ -429,11 +425,7 @@ class ProfilesAdminPage {
 				$local_url = wp_get_attachment_url( $attachment_id );
 				update_user_meta( $user->ID, 'frs_headshot_id', $attachment_id );
 				update_user_meta( $user->ID, 'frs_headshot_url', $local_url );
-				update_user_meta( $user->ID, 'simple_local_avatar', array(
-					'media_id' => $attachment_id,
-					'full'     => $local_url,
-					'blog_id'  => get_current_blog_id(),
-				) );
+				\FRSUsers\Core\ProfileStorage::set_user_avatar( $user->ID, $attachment_id, $local_url );
 				$details[] = sprintf( '%s - downloaded', $name );
 				++$downloaded;
 			} else {

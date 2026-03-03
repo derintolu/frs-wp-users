@@ -526,11 +526,8 @@ class Actions {
 				error_log( 'UPDATE PROFILE - Headshot URL resolved: ' . ( $headshot_url ?: 'FAILED' ) );
 				if ( $headshot_url ) {
 					update_user_meta( $user_id, 'frs_headshot_url', $headshot_url );
-					update_user_meta( $user_id, 'simple_local_avatar', array(
-						'media_id' => $headshot_id,
-						'full'     => $headshot_url,
-						'blog_id'  => get_current_blog_id(),
-					) );
+					// Use ProfileStorage helper to set avatar for active plugin
+					\FRSUsers\Core\ProfileStorage::set_user_avatar( $user_id, $headshot_id, $headshot_url );
 					error_log( 'UPDATE PROFILE - Headshot meta saved successfully' );
 				}
 			}

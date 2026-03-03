@@ -751,12 +751,8 @@ class Profile {
 			$headshot_url = wp_get_attachment_url( $this->headshot_id );
 			if ( $headshot_url ) {
 				update_user_meta( $this->user_id, 'frs_headshot_url', $headshot_url );
-				// Update Simple Local Avatars for avatar system compatibility.
-				update_user_meta( $this->user_id, 'simple_local_avatar', array(
-					'media_id' => $this->headshot_id,
-					'full'     => $headshot_url,
-					'blog_id'  => get_current_blog_id(),
-				) );
+				// Update avatar plugin meta for avatar system compatibility.
+				\FRSUsers\Core\ProfileStorage::set_user_avatar( $this->user_id, $this->headshot_id, $headshot_url );
 			}
 		}
 		update_user_meta( $this->user_id, 'frs_job_title', $this->job_title );

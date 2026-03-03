@@ -40,12 +40,22 @@ class ProfileStorage {
 	 * @return string Meta key for the active avatar plugin.
 	 */
 	public static function get_avatar_meta_key() {
-		// Check for Basic User Avatars plugin
-		if ( is_dir( WP_PLUGIN_DIR . '/basic-user-avatars' ) ) {
+		// Ensure is_plugin_active() is available
+		if ( ! function_exists( 'is_plugin_active' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+
+		// Check for Basic User Avatars plugin (must be active)
+		if ( is_plugin_active( 'basic-user-avatars/init.php' ) ) {
 			return 'basic_user_avatar';
 		}
 
-		// Default to Simple Local Avatars
+		// Check for Simple Local Avatars plugin (must be active)
+		if ( is_plugin_active( 'simple-local-avatars/simple-local-avatars.php' ) ) {
+			return 'simple_local_avatar';
+		}
+
+		// Default to Simple Local Avatars format (works even without a dedicated avatar plugin)
 		return 'simple_local_avatar';
 	}
 

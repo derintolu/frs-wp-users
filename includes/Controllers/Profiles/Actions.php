@@ -472,32 +472,64 @@ class Actions {
 			'facebook_url',
 			'instagram_url',
 			'twitter_url',
+			'youtube_url',
+			'tiktok_url',
 			'is_active',
 			'select_person_type',
 			'profile_slug',
 			'arrive',
+			'booking_url',
 			'service_areas',
+			'specialties_lo',
+			'namb_certifications',
+			'custom_links',
 		);
+
+		// URL fields that need esc_url_raw sanitization.
+		$url_fields = array( 'linkedin_url', 'facebook_url', 'instagram_url', 'twitter_url', 'youtube_url', 'tiktok_url', 'arrive', 'booking_url' );
+
+		// Array fields that should be stored as arrays.
+		$array_fields = array( 'service_areas', 'specialties_lo', 'namb_certifications', 'custom_links' );
 
 		foreach ( $meta_fields as $field ) {
 			if ( isset( $data[ $field ] ) ) {
 				$value = $data[ $field ];
 				// Sanitize based on field type
-				if ( in_array( $field, array( 'linkedin_url', 'facebook_url', 'instagram_url', 'twitter_url', 'arrive' ), true ) ) {
+				if ( in_array( $field, $url_fields, true ) ) {
 					$value = esc_url_raw( $value );
 				} elseif ( $field === 'biography' ) {
 					$value = wp_kses_post( $value );
 				} elseif ( $field === 'is_active' ) {
 					$value = (bool) $value ? 1 : 0;
-				} elseif ( $field === 'service_areas' ) {
+				} elseif ( in_array( $field, $array_fields, true ) ) {
 					// Ensure it's stored as array
 					if ( is_string( $value ) ) {
 						$value = array_filter( array_map( 'trim', explode( ',', $value ) ) );
+					}
+					if ( ! is_array( $value ) ) {
+						$value = array();
 					}
 				} else {
 					$value = sanitize_text_field( $value );
 				}
 				update_user_meta( $user_id, 'frs_' . $field, $value );
+			}
+		}
+
+		// Handle headshot_id separately (needs to also set headshot_url).
+		if ( isset( $data['headshot_id'] ) ) {
+			$headshot_id = absint( $data['headshot_id'] );
+			update_user_meta( $user_id, 'frs_headshot_id', $headshot_id );
+			if ( $headshot_id ) {
+				$headshot_url = wp_get_attachment_url( $headshot_id );
+				if ( $headshot_url ) {
+					update_user_meta( $user_id, 'frs_headshot_url', $headshot_url );
+					update_user_meta( $user_id, 'simple_local_avatar', array(
+						'media_id' => $headshot_id,
+						'full'     => $headshot_url,
+						'blog_id'  => get_current_blog_id(),
+					) );
+				}
 			}
 		}
 

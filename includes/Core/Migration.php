@@ -394,9 +394,21 @@ class Migration {
 			'assistant'        => __( 'Assistant', 'frs-users' ),
 		);
 
+		// Capabilities for FRS roles - includes upload_files for headshot uploads.
+		$capabilities = array(
+			'read'         => true,
+			'upload_files' => true,
+		);
+
 		foreach ( $wp_roles as $role_slug => $role_name ) {
-			if ( ! get_role( $role_slug ) ) {
-				add_role( $role_slug, $role_name, array( 'read' => true ) );
+			$role = get_role( $role_slug );
+			if ( ! $role ) {
+				add_role( $role_slug, $role_name, $capabilities );
+			} else {
+				// Ensure existing roles have upload_files capability.
+				if ( ! $role->has_cap( 'upload_files' ) ) {
+					$role->add_cap( 'upload_files' );
+				}
 			}
 		}
 	}

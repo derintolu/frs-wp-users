@@ -505,11 +505,15 @@ class Actions {
 
 		// Re-fetch the profile
 		$updated_profile = Profile::find( $user_id );
+		$profile_data    = $updated_profile ? $updated_profile->toArray() : $profile->toArray();
+
+		// Fire the profile saved action to trigger webhooks to marketing sites.
+		do_action( 'frs_profile_saved', $user_id, $profile_data );
 
 		return new WP_REST_Response(
 			array(
 				'success' => true,
-				'data'    => $updated_profile ? $updated_profile->toArray() : $profile->toArray(),
+				'data'    => $profile_data,
 				'message' => __( 'Profile updated successfully', 'frs-users' ),
 			),
 			200

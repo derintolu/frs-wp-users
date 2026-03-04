@@ -82,38 +82,34 @@ final class FRSUsers {
 		// Check plugin dependencies (must run first)
 		PluginDependencies::get_instance()->init();
 
-		// Initialize native avatar system (replaces basic-user-avatars plugin)
-		Avatar::init();
+		// Initialize core components with error isolation
+		$core_components = array(
+			'Avatar'         => array( Avatar::class, 'init' ),
+			'ProfileStorage' => array( ProfileStorage::class, 'init' ),
+			'R2Storage'      => array( R2Storage::class, 'init' ),
+			'QRCode'         => array( QRCode::class, 'init' ),
+			'Api'            => array( Api::class, 'init' ),
+			'ProfileApi'     => array( ProfileApi::class, 'get_instance' ),
+			'NetworkSync'    => array( '\FRSUsers\Admin\NetworkSyncPage', 'init' ),
+			'Blocks'         => array( Blocks::class, 'init' ),
+			'Shortcodes'     => array( Shortcodes::class, 'init' ),
+		);
 
-		// Initialize profile storage utilities
-		ProfileStorage::init();
+		foreach ( $core_components as $name => $callable ) {
+			try {
+				$result = call_user_func( $callable );
+				// If get_instance was called, also call init
+				if ( $name === 'ProfileApi' && $result ) {
+					$result->init();
+				}
+			} catch ( \Throwable $e ) {
+				error_log( sprintf( 'FRS Users: Failed to init %s - %s', $name, $e->getMessage() ) );
+			}
+		}
 
-		// Initialize R2 CDN storage for headshot images
-		R2Storage::init();
-
-		// Initialize QR code generation (auto-generates on hub, syncs globally)
-		QRCode::init();
-
-		// Initialize REST API routes
-		Api::init();
-
-		// Initialize Profile API with CRUD and webhooks
-		ProfileApi::get_instance()->init();
-
-		// Initialize Twenty CRM API routes (on rest_api_init hook)
+		// Initialize REST API routes (hook-based, less likely to fail)
 		add_action( 'rest_api_init', array( '\FRSUsers\Routes\TwentyCRMApi', 'register_routes' ) );
-
-		// Initialize Network Sync API routes for multisite (on rest_api_init hook)
 		add_action( 'rest_api_init', array( '\FRSUsers\Routes\NetworkSyncApi', 'register_routes' ) );
-
-		// Initialize Network Sync admin page for multisite
-		\FRSUsers\Admin\NetworkSyncPage::init();
-
-		// Initialize Gutenberg blocks
-		Blocks::init();
-
-		// Initialize frontend shortcodes
-		Shortcodes::init();
 
 		// Initialize template handler for public profiles (legacy /profile/{slug})
 		Template::get_instance()->init();
@@ -178,16 +174,29 @@ final class FRSUsers {
 		// Initialize WordPress Abilities API integration
 		AbilitiesRegistry::init();
 
-		// Initialize admin interface
+		// Initialize admin interface with error isolation
 		if ( is_admin() ) {
-			// New WordPress-native admin pages
-			\FRSUsers\Admin\ProfilesAdminPage::get_instance()->init();
-			\FRSUsers\Admin\ProfileEditPage::get_instance()->init();
-			\FRSUsers\Admin\ProfileAddPage::get_instance()->init();
-			\FRSUsers\Admin\UserProfileFields::get_instance()->init();
-			\FRSUsers\Admin\CsvImportExport::get_instance()->init();
-			\FRSUsers\Admin\TwentyCRMSettingsPage::init();
-			\FRSUsers\Admin\NotificationsPage::init();
+			$admin_components = array(
+				'ProfilesAdminPage'    => '\FRSUsers\Admin\ProfilesAdminPage',
+				'ProfileEditPage'      => '\FRSUsers\Admin\ProfileEditPage',
+				'ProfileAddPage'       => '\FRSUsers\Admin\ProfileAddPage',
+				'UserProfileFields'    => '\FRSUsers\Admin\UserProfileFields',
+				'CsvImportExport'      => '\FRSUsers\Admin\CsvImportExport',
+				'TwentyCRMSettingsPage' => '\FRSUsers\Admin\TwentyCRMSettingsPage',
+				'NotificationsPage'    => '\FRSUsers\Admin\NotificationsPage',
+			);
+
+			foreach ( $admin_components as $name => $class ) {
+				try {
+					if ( method_exists( $class, 'get_instance' ) ) {
+						$class::get_instance()->init();
+					} else {
+						$class::init();
+					}
+				} catch ( \Throwable $e ) {
+					error_log( sprintf( 'FRS Users: Failed to init %s - %s', $name, $e->getMessage() ) );
+				}
+			}
 		}
 
 		// Initialize internationalization

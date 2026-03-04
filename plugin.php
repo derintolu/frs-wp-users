@@ -7,6 +7,7 @@
  */
 
 use FRSUsers\Core\Avatar;
+use FRSUsers\Core\QRCode;
 use FRSUsers\Core\ProfileStorage;
 use FRSUsers\Core\R2Storage;
 use FRSUsers\Core\CLI;
@@ -89,6 +90,9 @@ final class FRSUsers {
 
 		// Initialize R2 CDN storage for headshot images
 		R2Storage::init();
+
+		// Initialize QR code generation (auto-generates on hub, syncs globally)
+		QRCode::init();
 
 		// Initialize REST API routes
 		Api::init();

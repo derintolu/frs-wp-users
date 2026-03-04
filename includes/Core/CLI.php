@@ -267,13 +267,13 @@ class CLI {
 	/**
 	 * Generate QR codes for all profiles
 	 *
-	 * Generates styled QR codes linking to /qr/{slug} and saves them
-	 * as SVG files in wp-content/uploads/frs-qr-codes/. Stores the URL in user meta.
+	 * Generates styled QR codes linking to /qr/{slug} and uploads them to CDN.
+	 * Uses centralized QRCode class for consistent generation across sites.
 	 *
 	 * ## OPTIONS
 	 *
 	 * [--force]
-	 * : Regenerate QR codes even if they already exist
+	 * : Regenerate QR codes even if they already exist on CDN
 	 *
 	 * [--id=<user_id>]
 	 * : Generate for a specific user ID only
@@ -281,35 +281,39 @@ class CLI {
 	 * [--type=<type>]
 	 * : Profile type to generate for (loan_officer, partner, staff, leadership). Default: all active users
 	 *
+	 * [--dry-run]
+	 * : Preview what would be generated without making changes
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp frs-users generate-qr-codes
 	 *     wp frs-users generate-qr-codes --force
 	 *     wp frs-users generate-qr-codes --id=123
 	 *     wp frs-users generate-qr-codes --type=loan_officer
+	 *     wp frs-users generate-qr-codes --dry-run
 	 *
 	 * @when after_wp_load
 	 */
 	public static function generate_qr_codes( $args, $assoc_args ) {
 		$force   = isset( $assoc_args['force'] );
+		$dry_run = isset( $assoc_args['dry-run'] );
 		$user_id = isset( $assoc_args['id'] ) ? intval( $assoc_args['id'] ) : null;
 		$type    = isset( $assoc_args['type'] ) ? sanitize_text_field( $assoc_args['type'] ) : null;
 
-		\WP_CLI::line( 'Generating QR codes for user profiles...' );
+		\WP_CLI::line( $dry_run ? 'Previewing QR code generation...' : 'Generating QR codes for user profiles...' );
 
-		// Check if Node.js is available
-		$node_check = shell_exec( 'which node' );
-		if ( empty( $node_check ) ) {
-			\WP_CLI::error( 'Node.js is required to generate styled QR codes. Please install Node.js.' );
+		// Check if R2 is enabled for CDN upload
+		$r2_enabled = R2Storage::is_enabled();
+		if ( $r2_enabled ) {
+			\WP_CLI::line( 'R2 CDN is enabled - QR codes will be uploaded to CDN for global sync.' );
+		} else {
+			\WP_CLI::line( 'R2 CDN is not enabled - QR codes will be saved locally.' );
 		}
 
-		// Setup QR codes directory in uploads
-		$upload_dir  = wp_upload_dir();
-		$qr_dir      = $upload_dir['basedir'] . '/frs-qr-codes';
-		$qr_url_base = $upload_dir['baseurl'] . '/frs-qr-codes';
-
-		if ( ! file_exists( $qr_dir ) ) {
-			wp_mkdir_p( $qr_dir );
+		// Check if Node.js is available
+		$node_check = shell_exec( 'which node 2>/dev/null' );
+		if ( empty( $node_check ) ) {
+			\WP_CLI::error( 'Node.js is required to generate styled QR codes. Please install Node.js.' );
 		}
 
 		// Build user query args
@@ -339,55 +343,24 @@ class CLI {
 			);
 		}
 
-		// Only get users without QR codes unless force is set
-		if ( ! $force && ! $user_id ) {
-			$user_args['meta_query']['relation'] = 'AND';
-			$user_args['meta_query'][]           = array(
-				'relation' => 'OR',
-				array(
-					'key'     => 'frs_qr_code_data',
-					'compare' => 'NOT EXISTS',
-				),
-				array(
-					'key'     => 'frs_qr_code_data',
-					'value'   => '',
-					'compare' => '=',
-				),
-			);
-		}
-
 		$users = get_users( $user_args );
 		$total = count( $users );
 
 		if ( $total === 0 ) {
-			\WP_CLI::success( 'No users need QR codes generated.' );
+			\WP_CLI::success( 'No users found matching criteria.' );
 			return;
 		}
 
 		\WP_CLI::line( sprintf( 'Found %d users to process.', $total ) );
 
-		// Path to the QR generator script
-		$script_path = FRS_USERS_DIR . 'scripts/generate-qr.js';
-
-		if ( ! file_exists( $script_path ) ) {
-			\WP_CLI::error( sprintf( 'QR generator script not found at: %s', $script_path ) );
-		}
-
-		// Make sure node_modules are installed
-		$node_modules = FRS_USERS_DIR . 'scripts/node_modules';
-		if ( ! file_exists( $node_modules ) ) {
-			\WP_CLI::line( 'Installing Node.js dependencies...' );
-			$install_cmd = sprintf( 'cd %s && npm install 2>&1', escapeshellarg( FRS_USERS_DIR . 'scripts' ) );
-			shell_exec( $install_cmd );
-		}
-
 		$generated = 0;
+		$skipped   = 0;
 		$errors    = 0;
 
 		$progress = \WP_CLI\Utils\make_progress_bar( 'Generating QR codes', $total );
 
 		foreach ( $users as $user ) {
-			// Get profile slug (custom or nicename)
+			// Get profile slug
 			$profile_slug = get_user_meta( $user->ID, 'frs_profile_slug', true );
 			if ( empty( $profile_slug ) ) {
 				$profile_slug = $user->user_nicename;
@@ -399,34 +372,30 @@ class CLI {
 				continue;
 			}
 
-			// Build URL for QR code content - points to /qr/{slug} landing page
-			$qr_content_url = home_url( '/qr/' . $profile_slug );
+			// Check existing QR code
+			$existing = get_user_meta( $user->ID, 'frs_qr_code_data', true );
+			$is_cdn_url = $existing && strpos( $existing, R2Storage::get_cdn_url() ) === 0;
 
-			// Call Node.js script to generate QR code SVG
-			$cmd = sprintf(
-				'node %s %s 2>&1',
-				escapeshellarg( $script_path ),
-				escapeshellarg( $qr_content_url )
-			);
+			if ( ! $force && $is_cdn_url ) {
+				$skipped++;
+				$progress->tick();
+				continue;
+			}
 
-			$svg_output = shell_exec( $cmd );
+			if ( $dry_run ) {
+				\WP_CLI::log( sprintf( '  [DRY RUN] Would generate: %s (%s)', $user->display_name, $profile_slug ) );
+				$generated++;
+				$progress->tick();
+				continue;
+			}
 
-			if ( $svg_output && strpos( $svg_output, '<svg' ) !== false ) {
-				// Save SVG to file
-				$filename = $profile_slug . '.svg';
-				$filepath = $qr_dir . '/' . $filename;
-				$file_url = $qr_url_base . '/' . $filename;
+			// Use centralized QRCode class
+			$result = QRCode::generate( $user->ID, $profile_slug, $force );
 
-				if ( file_put_contents( $filepath, $svg_output ) ) {
-					// Store URL in user meta
-					update_user_meta( $user->ID, 'frs_qr_code_data', $file_url );
-					$generated++;
-				} else {
-					\WP_CLI::warning( sprintf( 'Failed to save QR file for %s', $profile_slug ) );
-					$errors++;
-				}
+			if ( $result ) {
+				$generated++;
 			} else {
-				\WP_CLI::warning( sprintf( 'Failed to generate QR for %s: %s', $profile_slug, substr( $svg_output ?? '', 0, 100 ) ) );
+				\WP_CLI::warning( sprintf( 'Failed to generate QR for %s', $profile_slug ) );
 				$errors++;
 			}
 
@@ -435,8 +404,17 @@ class CLI {
 
 		$progress->finish();
 
-		\WP_CLI::success( sprintf( 'QR code generation complete! Generated: %d, Errors: %d', $generated, $errors ) );
-		\WP_CLI::line( sprintf( 'QR codes saved to: %s', $qr_dir ) );
+		\WP_CLI::log( '' );
+		\WP_CLI::log( 'Results:' );
+		\WP_CLI::log( sprintf( '  Generated: %d', $generated ) );
+		\WP_CLI::log( sprintf( '  Skipped:   %d (already on CDN)', $skipped ) );
+		\WP_CLI::log( sprintf( '  Errors:    %d', $errors ) );
+
+		if ( $dry_run ) {
+			\WP_CLI::success( 'Dry run complete. Use without --dry-run to apply changes.' );
+		} else {
+			\WP_CLI::success( 'QR code generation complete!' );
+		}
 	}
 
 	/**

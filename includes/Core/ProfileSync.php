@@ -353,6 +353,7 @@ class ProfileSync {
 			'languages',
 			'company_roles',
 			'booking_url',
+			'qr_code_data', // CDN URL for QR code image
 		);
 
 		foreach ( $meta_fields as $field ) {

@@ -152,6 +152,9 @@ final class FRSUsers {
 		// Initialize FluentBooking Outlook OAuth proxy (bypasses fluentbooking.com)
 		FluentBookingSync::init();
 
+		// Initialize FluentBooking auto-host creation on onboarding completion (site 2)
+		FluentBookingSync::init_auto_host();
+
 		// Initialize activity recording hooks
 		ActivityRecorder::init();
 

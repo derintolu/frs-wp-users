@@ -278,4 +278,184 @@ class FluentBookingSync {
 
 		return $transient;
 	}
+
+	// -------------------------------------------------------------------------
+	// Auto-Create Hosts on Onboarding Completion (Site 2 only)
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Site ID where Fluent Booking hosts should be auto-created.
+	 */
+	const HOST_TARGET_SITE_ID = 2;
+
+	/**
+	 * Initialize auto-host creation hooks.
+	 *
+	 * @return void
+	 */
+	public static function init_auto_host(): void {
+		// Create host when onboarding is completed.
+		add_action( 'updated_user_meta', array( __CLASS__, 'maybe_create_host_on_onboarding' ), 10, 4 );
+		add_action( 'added_user_meta', array( __CLASS__, 'maybe_create_host_on_onboarding' ), 10, 4 );
+
+		// Also check on login for users who completed onboarding but don't have a host.
+		add_action( 'wp_login', array( __CLASS__, 'check_host_on_login' ), 10, 2 );
+	}
+
+	/**
+	 * Maybe create Fluent Booking host when onboarding meta is updated.
+	 *
+	 * @param int    $meta_id    Meta ID.
+	 * @param int    $user_id    User ID.
+	 * @param string $meta_key   Meta key.
+	 * @param mixed  $meta_value Meta value.
+	 * @return void
+	 */
+	public static function maybe_create_host_on_onboarding( $meta_id, $user_id, $meta_key, $meta_value ): void {
+		if ( '_frs_onboarding_complete' !== $meta_key ) {
+			return;
+		}
+
+		if ( empty( $meta_value ) ) {
+			return;
+		}
+
+		self::create_host_for_user( $user_id );
+	}
+
+	/**
+	 * Check and create host on user login if onboarding is complete.
+	 *
+	 * @param string   $user_login Username.
+	 * @param \WP_User $user       User object.
+	 * @return void
+	 */
+	public static function check_host_on_login( $user_login, $user ): void {
+		$onboarding_complete = get_user_meta( $user->ID, '_frs_onboarding_complete', true );
+
+		if ( ! empty( $onboarding_complete ) ) {
+			self::create_host_for_user( $user->ID );
+		}
+	}
+
+	/**
+	 * Create a Fluent Booking calendar/host for a user on site 2.
+	 *
+	 * @param int $user_id User ID.
+	 * @return bool Whether the host was created.
+	 */
+	public static function create_host_for_user( int $user_id ): bool {
+		global $wpdb;
+
+		// Build table name for site 2.
+		$table = $wpdb->base_prefix . self::HOST_TARGET_SITE_ID . '_fcal_calendars';
+
+		// Check if Fluent Booking table exists on site 2.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$table_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) );
+		if ( $table_exists !== $table ) {
+			return false;
+		}
+
+		// Check if user already has a calendar on site 2.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$existing = $wpdb->get_var(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT id FROM {$table} WHERE user_id = %d",
+				$user_id
+			)
+		);
+
+		if ( $existing ) {
+			return false;
+		}
+
+		$user = get_userdata( $user_id );
+		if ( ! $user ) {
+			return false;
+		}
+
+		$calendar_data = array(
+			'hash'              => md5( $user_id . time() . wp_rand() ),
+			'user_id'           => $user_id,
+			'title'             => $user->display_name . ' - Calendar',
+			'slug'              => sanitize_title( $user->display_name . '-' . $user_id ),
+			'description'       => 'Booking calendar for ' . $user->display_name,
+			'settings'          => maybe_serialize(
+				array(
+					'event_color'        => '#2563eb',
+					'max_book_per_slot'  => 1,
+					'buffer_time_before' => 0,
+					'buffer_time_after'  => 0,
+				)
+			),
+			'status'            => 'active',
+			'type'              => 'simple',
+			'event_type'        => 'scheduling',
+			'account_type'      => 'free',
+			'visibility'        => 'public',
+			'author_timezone'   => 'America/Los_Angeles',
+			'max_book_per_slot' => 1,
+			'created_at'        => current_time( 'mysql' ),
+			'updated_at'        => current_time( 'mysql' ),
+		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$result = $wpdb->insert( $table, $calendar_data );
+
+		if ( $result ) {
+			error_log(
+				sprintf(
+					'FRS: Created Fluent Booking host on site %d for user %d (%s)',
+					self::HOST_TARGET_SITE_ID,
+					$user_id,
+					$user->display_name
+				)
+			);
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Bulk create hosts for all users with completed onboarding.
+	 *
+	 * @return array Results with created and skipped counts.
+	 */
+	public static function bulk_create_hosts(): array {
+		global $wpdb;
+
+		$table = $wpdb->base_prefix . self::HOST_TARGET_SITE_ID . '_fcal_calendars';
+
+		// Get users with completed onboarding who don't have a host on site 2.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$users = $wpdb->get_col(
+			"SELECT um.user_id 
+			FROM {$wpdb->usermeta} um
+			WHERE um.meta_key = '_frs_onboarding_complete'
+			AND um.meta_value != ''
+			AND um.user_id NOT IN (
+				SELECT user_id FROM {$table}
+			)"
+		);
+
+		$created = 0;
+		$failed  = 0;
+
+		foreach ( $users as $user_id ) {
+			if ( self::create_host_for_user( (int) $user_id ) ) {
+				++$created;
+			} else {
+				++$failed;
+			}
+		}
+
+		return array(
+			'created' => $created,
+			'failed'  => $failed,
+			'total'   => count( $users ),
+		);
+	}
 }

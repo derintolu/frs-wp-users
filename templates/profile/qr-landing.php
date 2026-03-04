@@ -37,15 +37,8 @@ $email = $user->user_email;
 $phone = get_user_meta($user_id, 'frs_phone_number', true) ?: get_user_meta($user_id, 'frs_mobile_number', true);
 $profile_slug = get_user_meta($user_id, 'frs_profile_slug', true) ?: $user->user_nicename;
 
-// Get headshot URL
-$headshot_url = get_user_meta($user_id, 'frs_headshot_url', true);
-if (!$headshot_url) {
-    // Try Simple Local Avatars
-    $avatar = get_user_meta($user_id, 'simple_local_avatar', true);
-    if (is_array($avatar) && !empty($avatar['full'])) {
-        $headshot_url = $avatar['full'];
-    }
-}
+// Get headshot URL using native Avatar system
+$headshot_url = \FRSUsers\Core\Avatar::get_avatar_url($user_id, 512);
 
 // Determine profile URL based on role (use centralized Roles class)
 $user_roles = $user->roles ?? [];

@@ -209,16 +209,8 @@ class VCardGenerator {
 			}
 		}
 
-		// Get avatar URL
-		$avatar_url = get_user_meta( $user_id, 'frs_headshot_url', true );
-		if ( ! $avatar_url ) {
-			// Try Simple Local Avatars
-			$avatar_url = get_user_meta( $user_id, 'simple_local_avatar', true );
-			if ( is_array( $avatar_url ) && ! empty( $avatar_url['full'] ) ) {
-				$avatar_url = $avatar_url['full'];
-			}
-		}
-		$profile['avatar_url'] = $avatar_url;
+		// Get avatar URL using native Avatar system
+		$profile['avatar_url'] = Avatar::get_avatar_url( $user_id, 512 );
 
 		// Get profile slug
 		if ( empty( $profile['profile_slug'] ) ) {

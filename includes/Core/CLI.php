@@ -43,6 +43,7 @@ class CLI {
 		\WP_CLI::add_command( 'frs-users sync-from-hub', array( __CLASS__, 'sync_from_hub' ) );
 		\WP_CLI::add_command( 'frs-users setup-sync', array( __CLASS__, 'setup_sync' ) );
 		\WP_CLI::add_command( 'frs-users set-cdn-headshots', array( __CLASS__, 'set_cdn_headshots' ) );
+		\WP_CLI::add_command( 'frs-users migrate-avatars', array( __CLASS__, 'migrate_avatars' ) );
 	}
 
 	/**
@@ -1214,15 +1215,8 @@ class CLI {
 		}
 
 		if ( ! empty( $headshot_url ) ) {
-			update_user_meta( $user_id, 'frs_headshot_url', $headshot_url );
-
-			// Also update simple_local_avatar to use this URL
-			$avatar_data = array(
-				'media_id' => 0,
-				'full'     => $headshot_url,
-				'blog_id'  => get_current_blog_id(),
-			);
-			update_user_meta( $user_id, 'simple_local_avatar', $avatar_data );
+			// Set native avatar system
+			Avatar::set_avatar( $user_id, 0, $headshot_url );
 		}
 
 		return $result;
@@ -1394,5 +1388,46 @@ class CLI {
 		}
 
 		\WP_CLI::success( sprintf( '%s: %d set, %d skipped.', $dry_run ? 'Preview' : 'Done', $set, $skipped ) );
+	}
+
+	/**
+	 * Migrate avatars from legacy plugins to native system.
+	 *
+	 * Migrates avatars from basic-user-avatars and simple-local-avatars plugins
+	 * to the native FRS avatar system, then removes the legacy meta.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--dry-run]
+	 * : Preview what would be migrated without making changes.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp frs-users migrate-avatars
+	 *     wp frs-users migrate-avatars --dry-run
+	 *
+	 * @param array $args       Positional arguments.
+	 * @param array $assoc_args Associative arguments.
+	 * @return void
+	 */
+	public static function migrate_avatars( $args, $assoc_args ) {
+		$dry_run = isset( $assoc_args['dry-run'] );
+
+		\WP_CLI::log( $dry_run ? 'Previewing avatar migration...' : 'Migrating avatars to native system...' );
+
+		$results = Avatar::migrate_legacy_avatars( $dry_run );
+
+		\WP_CLI::log( '' );
+		\WP_CLI::log( 'Results:' );
+		\WP_CLI::log( sprintf( '  Migrated:    %d', $results['migrated'] ) );
+		\WP_CLI::log( sprintf( '  Already set: %d', $results['already_set'] ) );
+		\WP_CLI::log( sprintf( '  Skipped:     %d', $results['skipped'] ) );
+		\WP_CLI::log( sprintf( '  Errors:      %d', $results['errors'] ) );
+
+		if ( $dry_run ) {
+			\WP_CLI::success( 'Dry run complete. Use without --dry-run to apply changes.' );
+		} else {
+			\WP_CLI::success( 'Avatar migration complete.' );
+		}
 	}
 }

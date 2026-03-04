@@ -1034,15 +1034,9 @@ class CsvImportExport {
 		if ( $import_images && ! empty( $data['headshot_url'] ) ) {
 			$attachment_id = $this->import_image_from_url( $data['headshot_url'], $user_id );
 			if ( $attachment_id ) {
-				update_user_meta( $user_id, 'frs_headshot_id', $attachment_id );
-
-				// Also set as Simple Local Avatars if available
-				if ( function_exists( 'simple_local_avatar' ) ) {
-					update_user_meta( $user_id, 'simple_local_avatar', array(
-						'media_id' => $attachment_id,
-						'full'     => wp_get_attachment_url( $attachment_id ),
-					) );
-				}
+				$local_url = wp_get_attachment_url( $attachment_id );
+				// Set native avatar system
+				\FRSUsers\Core\Avatar::set_avatar( $user_id, $attachment_id, $local_url );
 			}
 		}
 

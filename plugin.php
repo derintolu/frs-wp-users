@@ -6,6 +6,7 @@
  * @since 1.0.0
  */
 
+use FRSUsers\Core\Avatar;
 use FRSUsers\Core\ProfileStorage;
 use FRSUsers\Core\R2Storage;
 use FRSUsers\Core\CLI;
@@ -80,7 +81,10 @@ final class FRSUsers {
 		// Check plugin dependencies (must run first)
 		PluginDependencies::get_instance()->init();
 
-		// Initialize profile storage utilities (avatar sync)
+		// Initialize native avatar system (replaces basic-user-avatars plugin)
+		Avatar::init();
+
+		// Initialize profile storage utilities
 		ProfileStorage::init();
 
 		// Initialize R2 CDN storage for headshot images

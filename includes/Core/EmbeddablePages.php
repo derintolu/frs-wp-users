@@ -266,8 +266,50 @@ class EmbeddablePages {
 					<p>Slug: <?php echo esc_html( $data['slug'] ?? 'N/A' ); ?></p>
 				<?php endif; ?>
 			</div>
+			<?php self::render_external_links_script(); ?>
 		</body>
 		</html>
+		<?php
+	}
+
+	/**
+	 * Render JavaScript to open external links in new tab.
+	 * Call this in custom templates before </body>.
+	 *
+	 * @return void
+	 */
+	public static function render_external_links_script(): void {
+		?>
+		<script>
+		(function() {
+			document.addEventListener('DOMContentLoaded', function() {
+				var links = document.querySelectorAll('a[href]');
+				var currentHost = window.location.hostname;
+				
+				links.forEach(function(link) {
+					var href = link.getAttribute('href');
+					if (!href) return;
+					
+					// Skip anchors, javascript, mailto, tel
+					if (href.startsWith('#') || href.startsWith('javascript:') || 
+					    href.startsWith('mailto:') || href.startsWith('tel:')) {
+						return;
+					}
+					
+					// Check if external link
+					try {
+						var url = new URL(href, window.location.origin);
+						if (url.hostname !== currentHost) {
+							link.setAttribute('target', '_blank');
+							link.setAttribute('rel', 'noopener noreferrer');
+						}
+					} catch (e) {
+						// Invalid URL, skip
+					}
+				});
+			});
+		})();
+		</script>
 		<?php
 	}
 

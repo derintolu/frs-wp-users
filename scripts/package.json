@@ -1,0 +1,12 @@
+{
+  "name": "frs-qr-generator",
+  "version": "1.0.0",
+  "description": "QR code generator for FRS WP Users plugin",
+  "main": "generate-qr.js",
+  "scripts": {
+    "generate": "node generate-qr.js"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.3"
+  }
+}

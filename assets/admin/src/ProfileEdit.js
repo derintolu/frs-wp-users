@@ -24,7 +24,7 @@ import {
 	BaseControl,
 	CheckboxControl,
 } from '@wordpress/components';
-import { external } from '@wordpress/icons';
+import { external, download } from '@wordpress/icons';
 
 const {
 	profile: initialProfile,
@@ -387,6 +387,41 @@ function ProfileEdit() {
 								onChange={(value) => updateField('arrive', value)}
 								__nextHasNoMarginBottom
 							/>
+						</PanelRow>
+					</PanelBody>
+					<PanelBody title={__('QR Code', 'frs-users')} initialOpen={true}>
+						<PanelRow>
+							<BaseControl
+								label={__('Profile QR Code', 'frs-users')}
+								help={__('Scan to visit this profile. QR codes are auto-generated when profiles are saved.', 'frs-users')}
+								__nextHasNoMarginBottom
+							>
+								<div className="frs-qr-code">
+									{profile.qr_code_data ? (
+										<>
+											<img
+												src={profile.qr_code_data}
+												alt={__('Profile QR Code', 'frs-users')}
+												className="frs-qr-code__preview"
+											/>
+											<Flex direction="row" gap={2}>
+												<Button
+													variant="secondary"
+													icon={download}
+													href={profile.qr_code_data}
+													download={`${profile.profile_slug || profile.user_nicename || 'profile'}-qr.svg`}
+												>
+													{__('Download QR Code', 'frs-users')}
+												</Button>
+											</Flex>
+										</>
+									) : (
+										<p className="frs-qr-code__empty">
+											{__('No QR code generated yet. Save the profile to generate one.', 'frs-users')}
+										</p>
+									)}
+								</div>
+							</BaseControl>
 						</PanelRow>
 					</PanelBody>
 				</Panel>

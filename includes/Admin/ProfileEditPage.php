@@ -202,6 +202,7 @@ class ProfileEditPage {
 			'specialties'        => $profile->specialties ?: array(),
 			'languages'          => $profile->languages ?: array(),
 			'avatar_url'         => get_avatar_url( $user_id, array( 'size' => 96 ) ),
+			'qr_code_data'       => $profile->qr_code_data ?: '',
 		);
 	}
 

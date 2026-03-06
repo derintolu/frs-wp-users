@@ -213,3 +213,31 @@
 		margin: 0;
 	}
 }
+
+// QR Code section
+.frs-qr-code {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.frs-qr-code__preview {
+	width: 160px;
+	height: 160px;
+	object-fit: contain;
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	padding: 8px;
+	background: #fff;
+}
+
+.frs-qr-code__empty {
+	color: #757575;
+	font-style: italic;
+	margin: 0;
+	padding: 24px;
+	text-align: center;
+	background: #f9f9f9;
+	border: 1px dashed #e0e0e0;
+	border-radius: 8px;
+}

@@ -61,7 +61,7 @@ class QRCode {
 		// Check for existing QR code unless forcing
 		if ( ! $force ) {
 			$existing = get_user_meta( $user_id, self::META_KEY, true );
-			if ( $existing && self::is_cdn_url( $existing ) ) {
+			if ( ! empty( $existing ) ) {
 				return $existing;
 			}
 		}
@@ -252,6 +252,9 @@ class QRCode {
 	/**
 	 * Hook: Auto-generate QR code when profile is saved on hub.
 	 *
+	 * Only generates if no QR code exists. Never overwrites existing QR codes
+	 * to preserve consistency across synced sites.
+	 *
 	 * @param int   $profile_id   Profile/user ID.
 	 * @param array $profile_data Profile data that was saved.
 	 * @return void
@@ -259,6 +262,12 @@ class QRCode {
 	public static function maybe_generate_qr_code( $profile_id, $profile_data ) {
 		// Only auto-generate if R2 is enabled (centralized storage)
 		if ( ! R2Storage::is_enabled() ) {
+			return;
+		}
+
+		// Never overwrite existing QR codes - they're synced across sites
+		$existing = get_user_meta( $profile_id, self::META_KEY, true );
+		if ( ! empty( $existing ) ) {
 			return;
 		}
 
@@ -276,16 +285,6 @@ class QRCode {
 
 		if ( ! $slug ) {
 			return;
-		}
-
-		// Check if QR code already exists on CDN
-		$existing = get_user_meta( $profile_id, self::META_KEY, true );
-		if ( $existing && self::is_cdn_url( $existing ) ) {
-			// Check if slug changed (QR needs regeneration)
-			$existing_slug = self::extract_slug_from_url( $existing );
-			if ( $existing_slug === $slug ) {
-				return; // No change needed
-			}
 		}
 
 		// Generate and upload

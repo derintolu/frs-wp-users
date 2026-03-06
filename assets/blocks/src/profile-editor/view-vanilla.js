@@ -247,20 +247,83 @@
 						body: JSON.stringify(formData)
 					});
 
-					if (!response.ok) {
-						const errorData = await response.json().catch(function() { return {}; });
-						throw new Error(errorData.message || 'Failed to save profile');
-					}
-
-					// Reload to show updated data
-					window.location.reload();
-				} catch (err) {
-					alert('Failed to save profile: ' + err.message);
-					isSaving = false;
-					saveBtn.disabled = false;
-					if (saveText) saveText.textContent = 'Save Changes';
+				if (!response.ok) {
+					const errorData = await response.json().catch(function() { return {}; });
+					throw new Error(errorData.message || 'Failed to save profile');
 				}
+
+				// Parse response and update UI
+				const result = await response.json();
+				if (result.success && result.data) {
+					// Update view mode elements from response
+					updateViewModeFromResponse(result.data);
+				}
+
+				// Exit edit mode
+				isSaving = false;
+				saveBtn.disabled = false;
+				if (saveText) saveText.textContent = 'Save Changes';
+				setEditMode(false);
+
+				// Dispatch success event
+				window.dispatchEvent(new CustomEvent('frs:profileSaved', {
+					detail: { success: true, data: result.data }
+				}));
+			} catch (err) {
+				alert('Failed to save profile: ' + err.message);
+				isSaving = false;
+				saveBtn.disabled = false;
+				if (saveText) saveText.textContent = 'Save Changes';
+			}
 			});
+		}
+
+		/**
+		 * Update view mode elements from API response data.
+		 */
+		function updateViewModeFromResponse(data) {
+			if (!data) return;
+
+			// Update text fields
+			var fieldMap = {
+				'job_title': '.frs-profile__title [data-view-mode]',
+				'city_state': '.frs-profile__location [data-view-mode]',
+				'biography': '.frs-profile__bio-content [data-view-mode]',
+			};
+
+			for (var field in fieldMap) {
+				if (data[field] !== undefined) {
+					var el = container.querySelector(fieldMap[field]);
+					if (el) {
+						if (field === 'biography') {
+							el.innerHTML = data[field] ? '<p>' + data[field].replace(/\n/g, '</p><p>') + '</p>' : '<p class="frs-profile__empty">No biography provided.</p>';
+						} else {
+							el.textContent = data[field];
+						}
+					}
+				}
+			}
+
+			// Update email link
+			if (data.email) {
+				var emailLink = container.querySelector('.frs-profile__contact-item[href^="mailto:"]');
+				if (emailLink) {
+					emailLink.href = 'mailto:' + data.email;
+					emailLink.textContent = data.email;
+				}
+			}
+
+			// Update phone link
+			if (data.phone_number) {
+				var phoneLink = container.querySelector('.frs-profile__contact-item[href^="tel:"]');
+				if (phoneLink) {
+					phoneLink.href = 'tel:' + data.phone_number.replace(/[^\d+]/g, '');
+					var phoneText = phoneLink.querySelector(':scope > :not(svg)') || phoneLink;
+					if (phoneText.nodeType === 1) {
+						phoneText.textContent = data.phone_number;
+					}
+				}
+			}
 		}
 
 		// ============================================

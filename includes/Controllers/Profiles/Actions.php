@@ -468,6 +468,7 @@ class Actions {
 			'city_state',
 			'region',
 			'office',
+			'website',
 			'linkedin_url',
 			'facebook_url',
 			'instagram_url',
@@ -486,10 +487,32 @@ class Actions {
 		);
 
 		// URL fields that need esc_url_raw sanitization.
-		$url_fields = array( 'linkedin_url', 'facebook_url', 'instagram_url', 'twitter_url', 'youtube_url', 'tiktok_url', 'arrive', 'booking_url' );
+		$url_fields = array( 'website', 'linkedin_url', 'facebook_url', 'instagram_url', 'twitter_url', 'youtube_url', 'tiktok_url', 'arrive', 'booking_url' );
 
 		// Array fields that should be stored as arrays.
 		$array_fields = array( 'service_areas', 'specialties_lo', 'namb_certifications', 'custom_links' );
+
+		// Whitelists for array field validation.
+		$array_whitelists = array(
+			'service_areas'       => array(
+				'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FL',
+				'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME',
+				'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH',
+				'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI',
+				'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY',
+			),
+			'specialties_lo'      => array(
+				'Residential Mortgages', 'Consumer Loans', 'VA Loans', 'FHA Loans',
+				'Jumbo Loans', 'Construction Loans', 'Investment Property',
+				'Reverse Mortgages', 'USDA Rural Loans', 'Bridge Loans',
+			),
+			'namb_certifications' => array(
+				'CMC - Certified Mortgage Consultant',
+				'CRMS - Certified Residential Mortgage Specialist',
+				'GMA - General Mortgage Associate',
+				'CVLS - Certified Veterans Lending Specialist',
+			),
+		);
 
 		foreach ( $meta_fields as $field ) {
 			if ( isset( $data[ $field ] ) ) {
@@ -508,6 +531,29 @@ class Actions {
 					}
 					if ( ! is_array( $value ) ) {
 						$value = array();
+					}
+					// Apply whitelist validation if available.
+					if ( isset( $array_whitelists[ $field ] ) ) {
+						$whitelist = $array_whitelists[ $field ];
+						$value     = array_values( array_filter( $value, function ( $v ) use ( $whitelist ) {
+							return in_array( $v, $whitelist, true );
+						} ) );
+					}
+					// Validate custom_links structure.
+					if ( $field === 'custom_links' ) {
+						$validated_links = array();
+						foreach ( $value as $link ) {
+							if ( is_array( $link ) && isset( $link['url'] ) ) {
+								$url = esc_url_raw( $link['url'] );
+								if ( $url && filter_var( $url, FILTER_VALIDATE_URL ) ) {
+									$validated_links[] = array(
+										'title' => sanitize_text_field( $link['title'] ?? '' ),
+										'url'   => $url,
+									);
+								}
+							}
+						}
+						$value = $validated_links;
 					}
 				} else {
 					$value = sanitize_text_field( $value );

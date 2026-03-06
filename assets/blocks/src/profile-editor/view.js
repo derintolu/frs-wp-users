@@ -375,7 +375,12 @@ const { state, actions } = store('frs/profile-editor', {
             };
 
             try {
-                const response = await fetch('/wp-json/frs-users/v1/profiles/user/me', {
+                const userId = window.frsProfileEditor?.userId;
+                if (!userId) {
+                    throw new Error('User ID not found');
+                }
+
+                const response = await fetch(`/wp-json/frs-users/v1/profiles/${userId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',

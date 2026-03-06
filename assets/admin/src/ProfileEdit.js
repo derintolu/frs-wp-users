@@ -417,7 +417,7 @@ function ProfileEdit() {
 										</>
 									) : (
 										<p className="frs-qr-code__empty">
-											{__('No QR code generated yet. Save the profile to generate one.', 'frs-users')}
+											{__('No QR code available.', 'frs-users')}
 										</p>
 									)}
 								</div>

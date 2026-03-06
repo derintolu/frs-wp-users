@@ -1960,3 +1960,131 @@
 @media (max-width: 768px) {
     .frs-composer { display: none; }
 }
+
+/* ====================
+   GLOBAL TOAST NOTIFICATIONS
+   ==================== */
+
+.frs-profile__toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.75rem 1.5rem;
+    background: #10b981;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 99999;
+    animation: frs-toast-in 0.3s ease;
+    max-width: 90vw;
+    text-align: center;
+}
+
+.frs-profile__toast[hidden] {
+    display: none;
+}
+
+.frs-profile__toast--success {
+    background: #10b981;
+}
+
+.frs-profile__toast--error {
+    background: #ef4444;
+}
+
+.frs-profile__toast--warning {
+    background: #f59e0b;
+}
+
+@keyframes frs-toast-in {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* ====================
+   INLINE SPINNER
+   ==================== */
+
+.frs-profile__spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: frs-spin 0.6s linear infinite;
+    vertical-align: middle;
+    margin-right: 0.375rem;
+}
+
+.frs-profile__spinner--dark {
+    border-color: rgba(0, 0, 0, 0.15);
+    border-top-color: var(--frs-blue);
+}
+
+/* ====================
+   CARD LOADING STATE
+   ==================== */
+
+.frs-profile__card--loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.frs-profile__card--loading::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--frs-radius);
+}
+
+.frs-profile__card--loading::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    margin: -12px 0 0 -12px;
+    border: 3px solid #e5e7eb;
+    border-top-color: var(--frs-blue);
+    border-radius: 50%;
+    animation: frs-spin 0.6s linear infinite;
+    z-index: 1;
+}
+
+/* ====================
+   FIELD ERROR STATES
+   ==================== */
+
+.frs-profile__edit-input--error,
+.frs-profile__edit-textarea--error {
+    border-color: #ef4444 !important;
+    background: #fef2f2 !important;
+}
+
+.frs-profile__edit-input--error:focus,
+.frs-profile__edit-textarea--error:focus {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+}
+
+.frs-profile__field-error {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: #dc2626;
+}

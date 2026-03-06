@@ -5,6 +5,79 @@
 (function() {
 	'use strict';
 
+	// Global toast for notifications
+	let globalToast = null;
+
+	function createGlobalToast() {
+		if (globalToast) return globalToast;
+		globalToast = document.createElement('div');
+		globalToast.className = 'frs-profile__toast';
+		globalToast.hidden = true;
+		document.body.appendChild(globalToast);
+		return globalToast;
+	}
+
+	function showGlobalToast(message, type, duration) {
+		var toast = createGlobalToast();
+		toast.textContent = message;
+		toast.className = 'frs-profile__toast frs-profile__toast--' + (type || 'success');
+		toast.hidden = false;
+		clearTimeout(toast._timeout);
+		toast._timeout = setTimeout(function() {
+			toast.hidden = true;
+		}, duration || 3000);
+	}
+
+	// Field validation helpers
+	function validateEmail(email) {
+		if (!email) return true; // Optional
+		return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+	}
+
+	function validateUrl(url) {
+		if (!url) return true; // Optional
+		try {
+			new URL(url);
+			return true;
+		} catch (e) {
+			return false;
+		}
+	}
+
+	function validatePhone(phone) {
+		if (!phone) return true; // Optional
+		// Allow digits, spaces, dashes, parentheses, plus sign
+		return /^[\d\s\-\(\)\+\.]+$/.test(phone) && phone.replace(/\D/g, '').length >= 10;
+	}
+
+	function setFieldError(input, message) {
+		if (!input) return;
+		input.classList.add('frs-profile__edit-input--error');
+		// Remove existing error
+		var existing = input.parentNode.querySelector('.frs-profile__field-error');
+		if (existing) existing.remove();
+		// Add error message
+		if (message) {
+			var errorEl = document.createElement('span');
+			errorEl.className = 'frs-profile__field-error';
+			errorEl.textContent = message;
+			input.parentNode.appendChild(errorEl);
+		}
+	}
+
+	function clearFieldError(input) {
+		if (!input) return;
+		input.classList.remove('frs-profile__edit-input--error');
+		var existing = input.parentNode.querySelector('.frs-profile__field-error');
+		if (existing) existing.remove();
+	}
+
+	function clearAllFieldErrors(container) {
+		container.querySelectorAll('.frs-profile__edit-input--error').forEach(function(input) {
+			clearFieldError(input);
+		});
+	}
+
 	function initProfileEditor() {
 		const container = document.getElementById('frs-profile');
 		if (!container) return;
@@ -44,13 +117,13 @@
 
 				// Validate file type
 				if (!file.type.startsWith('image/')) {
-					alert('Please select an image file');
+					showGlobalToast('Please select an image file', 'error', 4000);
 					return;
 				}
 
 				// Validate file size (max 5MB)
 				if (file.size > 5 * 1024 * 1024) {
-					alert('Image must be less than 5MB');
+					showGlobalToast('Image must be less than 5MB', 'error', 4000);
 					return;
 				}
 
@@ -58,7 +131,7 @@
 				const userId = config.userId;
 
 				if (!userId) {
-					alert('User ID not found');
+					showGlobalToast('User ID not found', 'error', 4000);
 					return;
 				}
 
@@ -112,7 +185,7 @@
 					avatarUploadBtn.disabled = false;
 
 				} catch (err) {
-					alert('Upload failed: ' + err.message);
+					showGlobalToast('Upload failed: ' + err.message, 'error', 5000);
 					avatarUploadBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Change Photo';
 					avatarUploadBtn.disabled = false;
 				}
@@ -204,14 +277,52 @@
 
 				isSaving = true;
 				saveBtn.disabled = true;
-				if (saveText) saveText.textContent = 'Saving...';
+				if (saveText) {
+					saveText.innerHTML = '<span class="frs-profile__spinner"></span> Saving...';
+				}
 
 				try {
+					// Clear previous errors
+					clearAllFieldErrors(container);
+
 					// Gather form data from inputs
 					const formData = {};
 					container.querySelectorAll('[data-field]').forEach(function(input) {
 						formData[input.dataset.field] = input.value;
 					});
+
+					// Validate fields
+					var hasErrors = false;
+					var emailInput = container.querySelector('[data-field="email"]');
+					if (emailInput && !validateEmail(emailInput.value)) {
+						setFieldError(emailInput, 'Please enter a valid email address');
+						hasErrors = true;
+					}
+
+					var phoneInput = container.querySelector('[data-field="phone_number"]');
+					if (phoneInput && !validatePhone(phoneInput.value)) {
+						setFieldError(phoneInput, 'Please enter a valid phone number');
+						hasErrors = true;
+					}
+
+					var websiteInput = container.querySelector('[data-field="website"]');
+					if (websiteInput && !validateUrl(websiteInput.value)) {
+						setFieldError(websiteInput, 'Please enter a valid URL (e.g., https://example.com)');
+						hasErrors = true;
+					}
+
+					// Validate social URLs
+					['facebook_url', 'instagram_url', 'linkedin_url', 'twitter_url', 'youtube_url', 'tiktok_url'].forEach(function(field) {
+						var input = container.querySelector('[data-field="' + field + '"]');
+						if (input && !validateUrl(input.value)) {
+							setFieldError(input, 'Please enter a valid URL');
+							hasErrors = true;
+						}
+					});
+
+					if (hasErrors) {
+						throw new Error('Please fix the errors below');
+					}
 
 					// Gather checkboxes for arrays
 					formData.specialties_lo = Array.from(container.querySelectorAll('[data-specialty]:checked')).map(function(cb) { return cb.value; });
@@ -269,8 +380,11 @@
 				window.dispatchEvent(new CustomEvent('frs:profileSaved', {
 					detail: { success: true, data: result.data }
 				}));
+
+				// Show success toast
+				showGlobalToast('Profile saved successfully', 'success', 3000);
 			} catch (err) {
-				alert('Failed to save profile: ' + err.message);
+				showGlobalToast('Failed to save: ' + err.message, 'error', 5000);
 				isSaving = false;
 				saveBtn.disabled = false;
 				if (saveText) saveText.textContent = 'Save Changes';
@@ -327,6 +441,35 @@
 		}
 
 		// ============================================
+		// REAL-TIME FIELD VALIDATION
+		// ============================================
+		container.querySelectorAll('[data-field]').forEach(function(input) {
+			input.addEventListener('blur', function() {
+				var field = this.dataset.field;
+				var value = this.value;
+
+				// Clear error first
+				clearFieldError(this);
+
+				// Validate based on field type
+				if (field === 'email' && value && !validateEmail(value)) {
+					setFieldError(this, 'Please enter a valid email address');
+				} else if (field === 'phone_number' && value && !validatePhone(value)) {
+					setFieldError(this, 'Please enter a valid phone number');
+				} else if (field === 'website' && value && !validateUrl(value)) {
+					setFieldError(this, 'Please enter a valid URL');
+				} else if (field.endsWith('_url') && value && !validateUrl(value)) {
+					setFieldError(this, 'Please enter a valid URL');
+				}
+			});
+
+			// Clear error on input
+			input.addEventListener('input', function() {
+				clearFieldError(this);
+			});
+		});
+
+		// ============================================
 		// TAB SWITCHING
 		// ============================================
 		let settingsLoaded = false;
@@ -374,11 +517,20 @@
 		const settingsToast = document.getElementById('frs-settings-toast');
 
 		async function loadSettings() {
+			// Show loading state
+			var settingsPanel = container.querySelector('[data-tab-panel="settings"]');
+			var settingsCards = settingsPanel ? settingsPanel.querySelectorAll('.frs-profile__card') : [];
+			settingsCards.forEach(function(card) {
+				card.classList.add('frs-profile__card--loading');
+			});
+
 			try {
 				const response = await fetch(config.restUrl + 'profiles/me/settings', {
 					headers: { 'X-WP-Nonce': config.nonce || '' }
 				});
-				if (!response.ok) return;
+				if (!response.ok) {
+					throw new Error('Failed to load settings');
+				}
 
 				const result = await response.json();
 				const data = result.data || {};
@@ -402,6 +554,12 @@
 				settingsLoaded = true;
 			} catch (err) {
 				console.error('Failed to load settings:', err);
+				showGlobalToast('Failed to load settings', 'error', 4000);
+			} finally {
+				// Remove loading state
+				settingsCards.forEach(function(card) {
+					card.classList.remove('frs-profile__card--loading');
+				});
 			}
 		}
 
@@ -442,11 +600,13 @@
 						showToast('Saved');
 					} else {
 						showToast('Failed to save');
+						showGlobalToast('Setting change failed. Please try again.', 'error', 4000);
 						// Revert toggle
 						this.checked = !value;
 					}
 				} catch (err) {
 					showToast('Failed to save');
+					showGlobalToast('Connection error. Please check your internet.', 'error', 4000);
 					this.checked = !value;
 				}
 			});
@@ -503,6 +663,12 @@
 		async function loadActivityFeed(append) {
 			if (!activityFeed) return;
 
+			// Show loading state
+			if (loadMoreBtn) {
+				loadMoreBtn.disabled = true;
+				loadMoreBtn.innerHTML = '<span class="frs-profile__spinner"></span> Loading...';
+			}
+
 			try {
 				const userId = config.userId;
 				const response = await fetch(config.restUrl + 'profiles/' + userId + '/activity?page=' + activityPage + '&per_page=20', {
@@ -529,6 +695,15 @@
 				activityLoaded = true;
 			} catch (err) {
 				console.error('Activity feed error:', err);
+				showGlobalToast('Failed to load activity. Please try again.', 'error', 4000);
+				// Revert page number on failure
+				if (append && activityPage > 1) activityPage--;
+			} finally {
+				// Reset load more button
+				if (loadMoreBtn) {
+					loadMoreBtn.disabled = false;
+					loadMoreBtn.textContent = 'Load more';
+				}
 			}
 		}
 

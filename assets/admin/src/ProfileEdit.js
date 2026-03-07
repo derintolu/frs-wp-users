@@ -389,6 +389,19 @@ function ProfileEdit() {
 							/>
 						</PanelRow>
 					</PanelBody>
+					<PanelBody title={__('Scheduling', 'frs-users')} initialOpen={true}>
+						<PanelRow>
+							<TextControl
+								label={__('Booking URL', 'frs-users')}
+								help={__('FluentBooking or Calendly URL. If empty, visitors will see a contact form instead.', 'frs-users')}
+								type="url"
+								value={profile.booking_url || ''}
+								onChange={(value) => updateField('booking_url', value)}
+								placeholder="https://cal.myhub21.com/your-name"
+								__nextHasNoMarginBottom
+							/>
+						</PanelRow>
+					</PanelBody>
 					<PanelBody title={__('QR Code', 'frs-users')} initialOpen={true}>
 						<PanelRow>
 							<BaseControl

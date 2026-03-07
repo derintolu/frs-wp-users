@@ -372,6 +372,10 @@ class UserProfile {
         return get_user_meta($this->user_id, 'frs_qr_code_data', true) ?: '';
     }
 
+    public function get_booking_url(): string {
+        return get_user_meta($this->user_id, 'frs_booking_url', true) ?: '';
+    }
+
     // ===========================================
     // Additional Fields
     // ===========================================

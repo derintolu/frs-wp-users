@@ -63,6 +63,7 @@ $profile = array(
 	'namb_certifications' => $user_profile->get_namb_certifications(),
 	'service_areas'       => $user_profile->get_service_areas(),
 	'custom_links'        => $user_profile->get_custom_links(),
+	'booking_url'         => $user_profile->get_booking_url(),
 );
 
 // Profile data for template
@@ -83,6 +84,7 @@ $headshot_url  = $profile['headshot_url'] ?? '';
 $profile_slug  = $profile['profile_slug'] ?? '';
 $qr_code_data  = $profile['qr_code_data'] ?? '';
 $apply_url     = $profile['arrive'] ?? $profile['apply_url'] ?? '';
+$booking_url   = $profile['booking_url'] ?? '';
 $website       = $profile['website'] ?? '';
 $facebook      = $profile['facebook_url'] ?? '';
 $instagram     = $profile['instagram_url'] ?? '';
@@ -370,6 +372,19 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 		<div class="frs-profile__sidebar">
 			<!-- Action Buttons Card -->
 			<div class="frs-profile__card frs-profile__card--actions">
+				<?php if ( $booking_url ) : ?>
+				<!-- Schedule button (links to FluentBooking/Calendly) -->
+				<a href="<?php echo esc_url( $booking_url ); ?>" class="frs-profile__action-btn frs-profile__action-btn--primary" target="_blank" rel="noopener">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+						<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+						<line x1="16" y1="2" x2="16" y2="6"/>
+						<line x1="8" y1="2" x2="8" y2="6"/>
+						<line x1="3" y1="10" x2="21" y2="10"/>
+					</svg>
+					Schedule Meeting
+				</a>
+				<?php else : ?>
+				<!-- Contact form button (no booking URL set) -->
 				<button class="frs-profile__action-btn" id="open-contact-modal">
 					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
 						<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -377,6 +392,7 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 					</svg>
 					Contact <?php echo esc_html( $first_name ); ?>
 				</button>
+				<?php endif; ?>
 				<?php if ( $phone ) : ?>
 				<a href="tel:<?php echo esc_attr( preg_replace( '/[^\d+]/', '', $phone ) ); ?>" class="frs-profile__action-btn">
 					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">

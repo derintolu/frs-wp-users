@@ -572,10 +572,15 @@ class Actions {
 				error_log( 'UPDATE PROFILE - Headshot URL resolved: ' . ( $headshot_url ?: 'FAILED' ) );
 				if ( $headshot_url ) {
 					update_user_meta( $user_id, 'frs_headshot_url', $headshot_url );
-					// Use ProfileStorage helper to set avatar for active plugin
-					\FRSUsers\Core\ProfileStorage::set_user_avatar( $user_id, $headshot_id, $headshot_url );
+					// Use Avatar helper to set avatar (syncs to WordPress avatar system)
+					\FRSUsers\Core\Avatar::set_avatar( $user_id, $headshot_id, $headshot_url );
 					error_log( 'UPDATE PROFILE - Headshot meta saved successfully' );
 				}
+			} else {
+				// Headshot removed - clear URL and delete avatar
+				delete_user_meta( $user_id, 'frs_headshot_url' );
+				\FRSUsers\Core\Avatar::delete_avatar( $user_id );
+				error_log( 'UPDATE PROFILE - Headshot removed for user: ' . $user_id );
 			}
 		}
 

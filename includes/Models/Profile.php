@@ -838,24 +838,24 @@ class Profile {
 	/**
 	 * Get headshot URL.
 	 *
-	 * Prefers R2 CDN URL (frs_headshot_url meta) over local attachment.
+	 * Uses WordPress avatar system - our Avatar class hooks into pre_get_avatar_data
+	 * to serve frs_headshot_url. This is the global WordPress-appropriate approach.
 	 *
 	 * @return string|null
 	 */
 	public function get_headshot_url() {
-		// Prefer CDN URL if R2 is enabled and URL exists
-		if ( $this->user_id ) {
-			$cdn_url = get_user_meta( $this->user_id, 'frs_headshot_url', true );
-			if ( ! empty( $cdn_url ) ) {
-				return $cdn_url;
-			}
-		}
-
-		// Fallback to local attachment
-		if ( ! $this->headshot_id ) {
+		if ( ! $this->user_id ) {
 			return null;
 		}
-		return wp_get_attachment_url( $this->headshot_id );
+
+		$avatar_url = get_avatar_url( $this->user_id, array( 'size' => 512 ) );
+
+		// Only return if it's not a Gravatar (means user has custom avatar)
+		if ( $avatar_url && strpos( $avatar_url, 'gravatar.com' ) === false ) {
+			return $avatar_url;
+		}
+
+		return null;
 	}
 
 	/**

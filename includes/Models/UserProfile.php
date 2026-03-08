@@ -357,19 +357,13 @@ class UserProfile {
     }
 
     public function get_headshot_url(): string {
-        // Prefer CDN URL from meta (set by profile editor)
-        $cdn_url = get_user_meta($this->user_id, 'frs_headshot_url', true);
-        if (!empty($cdn_url)) {
-            return $cdn_url;
-        }
+        // Use WordPress avatar system - our Avatar class hooks into pre_get_avatar_data
+        // to serve frs_headshot_url. This is the global WordPress-appropriate approach.
+        $avatar_url = get_avatar_url($this->user_id, array('size' => 512));
 
-        // Fallback to local attachment
-        $headshot_id = $this->get_headshot_id();
-        if ($headshot_id) {
-            $url = wp_get_attachment_url($headshot_id);
-            if ($url) {
-                return $url;
-            }
+        // Only return if it's not a Gravatar (means user has custom avatar)
+        if ($avatar_url && strpos($avatar_url, 'gravatar.com') === false) {
+            return $avatar_url;
         }
 
         return '';

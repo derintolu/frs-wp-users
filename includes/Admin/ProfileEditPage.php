@@ -185,7 +185,7 @@ class ProfileEditPage {
 			'dre_license'        => $profile->dre_license,
 			'biography'          => $profile->biography,
 			'headshot_id'        => $profile->headshot_id,
-			'headshot_url'       => $profile->headshot_id ? wp_get_attachment_image_url( $profile->headshot_id, 'thumbnail' ) : '',
+			'headshot_url'       => $profile->get_headshot_url() ?: '',
 			'city_state'         => $profile->city_state,
 			'region'             => $profile->region,
 			'service_areas'      => $profile->service_areas ?: array(),

@@ -39,10 +39,8 @@ class R2Storage {
 	 * @return void
 	 */
 	public static function init() {
-		// Intercept WordPress avatar system to use CDN headshots
-		add_filter( 'pre_get_avatar_data', array( __CLASS__, 'filter_avatar_data' ), 10, 2 );
-
-		// Upload to R2 when headshot changes on hub
+		// Avatar reading is handled by Avatar class (single source of truth).
+		// R2Storage only handles uploading to CDN.
 		if ( Roles::is_profile_editing_enabled() ) {
 			add_action( 'frs_profile_saved', array( __CLASS__, 'maybe_upload_headshot' ), 5, 2 );
 		}
@@ -351,8 +349,8 @@ class R2Storage {
 		$cdn_url = self::upload_attachment( $profile->headshot_id, $profile );
 
 		if ( $cdn_url ) {
-			// Store the CDN URL and the attachment ID we uploaded
-			update_user_meta( $profile_id, 'frs_headshot_url', $cdn_url );
+			// Store the CDN URL (Avatar::get_url checks this first)
+			update_user_meta( $profile_id, Avatar::CDN_META_KEY, $cdn_url );
 			update_user_meta( $profile_id, '_frs_r2_last_headshot_id', $profile->headshot_id );
 
 			error_log( sprintf(
@@ -366,24 +364,11 @@ class R2Storage {
 	/**
 	 * Get the R2 CDN URL for a profile, or fall back to local attachment.
 	 *
+	 * @deprecated Use Avatar::get_url() instead.
 	 * @param int $user_id WordPress user ID.
 	 * @return string|null CDN URL, local attachment URL, or null.
 	 */
 	public static function get_headshot_url( $user_id ) {
-		// Prefer CDN URL if available
-		if ( self::is_enabled() ) {
-			$cdn_url = get_user_meta( $user_id, 'frs_headshot_url', true );
-			if ( ! empty( $cdn_url ) ) {
-				return $cdn_url;
-			}
-		}
-
-		// Fallback to local attachment
-		$headshot_id = (int) get_user_meta( $user_id, 'frs_headshot_id', true );
-		if ( $headshot_id ) {
-			return wp_get_attachment_url( $headshot_id );
-		}
-
-		return null;
+		return Avatar::get_url( $user_id, 512 ) ?: null;
 	}
 }

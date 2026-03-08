@@ -221,8 +221,8 @@ class TwentyCRMSync {
 			);
 		}
 
-		// Sync headshot CDN URL to Twenty CRM as avatarUrl (Twenty's built-in field).
-		$headshot_url = get_user_meta( $user->ID, 'frs_headshot_url', true );
+		// Sync headshot URL to Twenty CRM as avatarUrl (Twenty's built-in field).
+		$headshot_url = \FRSUsers\Core\Avatar::get_url( $user->ID, 512 );
 		if ( $headshot_url ) {
 			$payload['avatarUrl'] = $headshot_url;
 		}
@@ -629,10 +629,12 @@ class TwentyCRMSync {
 			update_user_meta( $user_id, 'frs_is_active', $is_active );
 		}
 
-		// Sync avatar URL (Twenty's built-in field stores the headshot).
+		// Sync avatar from Twenty CRM - download and store as local attachment.
 		if ( ! empty( $person['avatarUrl'] ) ) {
-			update_user_meta( $user_id, 'frs_headshot_url', $person['avatarUrl'] );
-			update_user_meta( $user_id, 'frs_avatar_url', $person['avatarUrl'] );
+			$attachment_id = \FRSUsers\Core\ProfileSync::sync_remote_image( $person['avatarUrl'] );
+			if ( $attachment_id ) {
+				\FRSUsers\Core\Avatar::set( $user_id, $attachment_id );
+			}
 		}
 
 		// Sync service areas.

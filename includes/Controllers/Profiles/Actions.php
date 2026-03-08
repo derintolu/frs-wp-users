@@ -562,21 +562,9 @@ class Actions {
 			}
 		}
 
-		// Handle headshot_id separately (needs to also set headshot_url).
+		// Handle headshot_id via Avatar helper (single source of truth).
 		if ( isset( $data['headshot_id'] ) ) {
-			$headshot_id = absint( $data['headshot_id'] );
-			error_log( 'UPDATE PROFILE - Setting headshot_id: ' . $headshot_id . ' for user: ' . $user_id );
-			update_user_meta( $user_id, 'frs_headshot_id', $headshot_id );
-			if ( $headshot_id ) {
-				$headshot_url = wp_get_attachment_url( $headshot_id );
-				error_log( 'UPDATE PROFILE - Headshot URL resolved: ' . ( $headshot_url ?: 'FAILED' ) );
-				if ( $headshot_url ) {
-					update_user_meta( $user_id, 'frs_headshot_url', $headshot_url );
-					// Use ProfileStorage helper to set avatar for active plugin
-					\FRSUsers\Core\ProfileStorage::set_user_avatar( $user_id, $headshot_id, $headshot_url );
-					error_log( 'UPDATE PROFILE - Headshot meta saved successfully' );
-				}
-			}
+			\FRSUsers\Core\Avatar::set( $user_id, absint( $data['headshot_id'] ) );
 		}
 
 		error_log( 'UPDATE PROFILE - Update completed for user ' . $user_id );

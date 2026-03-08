@@ -1312,11 +1312,11 @@ class CLI {
 			$meta_query[] = array(
 				'relation' => 'OR',
 				array(
-					'key'     => 'frs_headshot_url',
+					'key'     => Avatar::CDN_META_KEY,
 					'compare' => 'NOT EXISTS',
 				),
 				array(
-					'key'   => 'frs_headshot_url',
+					'key'   => Avatar::CDN_META_KEY,
 					'value' => '',
 				),
 			);
@@ -1359,7 +1359,7 @@ class CLI {
 			if ( $dry_run ) {
 				\WP_CLI::log( sprintf( '  [DRY RUN] %d (%s) → %s', $user->ID, $user->display_name, $cdn_url ) );
 			} else {
-				update_user_meta( $user->ID, 'frs_headshot_url', $cdn_url );
+				update_user_meta( $user->ID, Avatar::CDN_META_KEY, $cdn_url );
 				\WP_CLI::log( sprintf( '  Set: %d (%s) → %s', $user->ID, $user->display_name, $cdn_url ) );
 			}
 			$set++;

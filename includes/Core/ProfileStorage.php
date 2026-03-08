@@ -35,15 +35,15 @@ class ProfileStorage {
 	/**
 	 * Set user avatar using native Avatar system.
 	 *
-	 * @deprecated Use Avatar::set_avatar() directly.
+	 * @deprecated Use Avatar::set() directly.
 	 *
 	 * @param int    $user_id       User ID.
 	 * @param int    $attachment_id Attachment ID for the avatar image.
-	 * @param string $avatar_url    URL to the avatar image.
+	 * @param string $avatar_url    URL to the avatar image (ignored).
 	 * @return bool Whether the avatar was set.
 	 */
-	public static function set_user_avatar( $user_id, $attachment_id, $avatar_url ) {
-		return Avatar::set_avatar( $user_id, $attachment_id, $avatar_url );
+	public static function set_user_avatar( $user_id, $attachment_id, $avatar_url = '' ) {
+		return Avatar::set( $user_id, $attachment_id );
 	}
 
 	/**
@@ -61,27 +61,7 @@ class ProfileStorage {
 			return;
 		}
 
-		// Get the attachment URL for the headshot (prefer CDN URL)
-		$headshot_url = get_user_meta( $profile->user_id, 'frs_headshot_url', true );
-		if ( ! $headshot_url ) {
-			$headshot_url = wp_get_attachment_url( $profile->headshot_id );
-		}
-
-		if ( ! $headshot_url ) {
-			error_log( sprintf(
-				'FRS Profiles: Failed to get URL for headshot %d',
-				$profile->headshot_id
-			) );
-			return;
-		}
-
-		// Use native Avatar system
-		Avatar::set_avatar( $profile->user_id, $profile->headshot_id, $headshot_url );
-
-		error_log( sprintf(
-			'FRS Profiles: Synced headshot %d to avatar for user %d',
-			$profile->headshot_id,
-			$profile->user_id
-		) );
+		// Avatar::set is already called by Profile model save
+		// This hook is kept for R2Storage CDN upload which runs at priority 5
 	}
 }

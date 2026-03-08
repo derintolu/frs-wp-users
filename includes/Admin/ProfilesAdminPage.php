@@ -410,10 +410,7 @@ class ProfilesAdminPage {
 			if ( $existing ) {
 				// Already have it locally — just make sure meta is set.
 				$attachment_id = $existing[0]->ID;
-				$local_url     = wp_get_attachment_url( $attachment_id );
-				update_user_meta( $user->ID, 'frs_headshot_id', $attachment_id );
-				update_user_meta( $user->ID, 'frs_headshot_url', $local_url );
-				\FRSUsers\Core\ProfileStorage::set_user_avatar( $user->ID, $attachment_id, $local_url );
+				\FRSUsers\Core\Avatar::set( $user->ID, $attachment_id );
 				++$skipped;
 				continue;
 			}
@@ -422,10 +419,7 @@ class ProfilesAdminPage {
 			$attachment_id = \FRSUsers\Core\ProfileSync::sync_remote_image( $headshot_url );
 
 			if ( $attachment_id ) {
-				$local_url = wp_get_attachment_url( $attachment_id );
-				update_user_meta( $user->ID, 'frs_headshot_id', $attachment_id );
-				update_user_meta( $user->ID, 'frs_headshot_url', $local_url );
-				\FRSUsers\Core\ProfileStorage::set_user_avatar( $user->ID, $attachment_id, $local_url );
+				\FRSUsers\Core\Avatar::set( $user->ID, $attachment_id );
 				$details[] = sprintf( '%s - downloaded', $name );
 				++$downloaded;
 			} else {

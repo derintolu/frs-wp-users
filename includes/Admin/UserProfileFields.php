@@ -143,8 +143,8 @@ class UserProfileFields {
 			<th><label for="frs_headshot_id"><?php esc_html_e( 'Profile Photo', 'frs-users' ); ?></label></th>
 			<td>
 				<?php
-				$headshot_id = get_user_meta( $user->ID, 'frs_headshot_id', true );
-				$headshot_url = $headshot_id ? wp_get_attachment_url( $headshot_id ) : '';
+				$headshot_id  = \FRSUsers\Core\Avatar::get_id( $user->ID );
+				$headshot_url = \FRSUsers\Core\Avatar::get_url( $user->ID, 150 );
 				?>
 				<div class="frs-image-upload">
 					<div class="frs-image-preview" style="margin-bottom: 10px;">
@@ -284,7 +284,10 @@ class UserProfileFields {
 		$this->update_user_meta( $user_id, 'frs_nmls', 'text' );
 		$this->update_user_meta( $user_id, 'frs_dre_license', 'text' );
 		$this->update_user_meta( $user_id, 'frs_biography', 'textarea' );
-		$this->update_user_meta( $user_id, 'frs_headshot_id', 'int' );
+		// Use Avatar helper (single source of truth)
+		if ( isset( $_POST['frs_headshot_id'] ) ) {
+			\FRSUsers\Core\Avatar::set( $user_id, absint( $_POST['frs_headshot_id'] ) );
+		}
 
 		// Location fields
 		$this->update_user_meta( $user_id, 'frs_city_state', 'text' );

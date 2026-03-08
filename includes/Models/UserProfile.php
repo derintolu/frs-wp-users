@@ -353,20 +353,11 @@ class UserProfile {
     // ===========================================
 
     public function get_headshot_id(): int {
-        return (int) get_user_meta($this->user_id, 'frs_headshot_id', true);
+        return \FRSUsers\Core\Avatar::get_id($this->user_id);
     }
 
     public function get_headshot_url(): string {
-        // Use WordPress avatar system - our Avatar class hooks into pre_get_avatar_data
-        // to serve frs_headshot_url. This is the global WordPress-appropriate approach.
-        $avatar_url = get_avatar_url($this->user_id, array('size' => 512));
-
-        // Only return if it's not a Gravatar (means user has custom avatar)
-        if ($avatar_url && strpos($avatar_url, 'gravatar.com') === false) {
-            return $avatar_url;
-        }
-
-        return '';
+        return \FRSUsers\Core\Avatar::get_url($this->user_id, 512) ?: '';
     }
 
     public function get_qr_code_data(): string {

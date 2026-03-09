@@ -68,12 +68,20 @@ class FluentBookingSync {
 			return;
 		}
 
+		// Temporarily suppress FluentBooking update nags.
+		add_filter( 'site_transient_update_plugins', array( __CLASS__, 'hide_update_nag' ) );
+
+		// Outlook iframe escape - wrap Outlook auth URL to open in new tab when in iframe.
+		add_filter( 'fluent_booking/remote_calendar_providers', array( __CLASS__, 'filter_outlook_auth_url_for_iframe' ), 100, 1 );
+		add_action( 'template_redirect', array( __CLASS__, 'handle_outlook_oauth_escape' ), 1 );
+		add_action( 'fluent_booking/front_footer', array( __CLASS__, 'output_outlook_iframe_return_script' ) );
+
+		// Azure-specific: Override FluentBooking's Outlook OAuth to use our Azure app + proxy.
 		$azure = self::get_azure_config();
 		if ( empty( $azure['tenant_id'] ) || empty( $azure['app_id'] ) || empty( $azure['app_secret'] ) ) {
 			return;
 		}
 
-		// Override FluentBooking's Outlook OAuth to use our Azure app + proxy.
 		add_filter( 'fluent_booking/outlook_app_credentials', array( __CLASS__, 'filter_outlook_credentials' ) );
 		add_filter( 'fluent_booking/outlook_app_redirect_url', array( __CLASS__, 'filter_redirect_url' ) );
 		add_filter( 'fluent_booking/outlook_token_url', array( __CLASS__, 'filter_token_url' ) );
@@ -82,9 +90,6 @@ class FluentBookingSync {
 
 		// Register the OAuth proxy endpoint.
 		add_action( 'rest_api_init', array( __CLASS__, 'register_routes' ) );
-
-		// Temporarily suppress FluentBooking update nags.
-		add_filter( 'site_transient_update_plugins', array( __CLASS__, 'hide_update_nag' ) );
 	}
 
 	/**
@@ -284,6 +289,114 @@ class FluentBookingSync {
 		}
 
 		return $transient;
+	}
+
+	// -------------------------------------------------------------------------
+	// Outlook Iframe OAuth Escape
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Filter Outlook auth URL to wrap it in our iframe escape endpoint.
+	 *
+	 * @param array $providers Calendar providers with auth_url.
+	 * @return array Modified providers.
+	 */
+	public static function filter_outlook_auth_url_for_iframe( array $providers ): array {
+		if ( empty( $providers['outlook']['auth_url'] ) ) {
+			return $providers;
+		}
+
+		$providers['outlook']['auth_url'] = add_query_arg(
+			array(
+				'frs_outlook_oauth_escape' => '1',
+				'target'                   => rawurlencode( $providers['outlook']['auth_url'] ),
+			),
+			home_url( '/' )
+		);
+
+		return $providers;
+	}
+
+	/**
+	 * Handle the Outlook OAuth iframe escape endpoint.
+	 *
+	 * Opens OAuth in new tab, stores return URL for after completion.
+	 */
+	public static function handle_outlook_oauth_escape(): void {
+		if ( empty( $_GET['frs_outlook_oauth_escape'] ) || empty( $_GET['target'] ) ) {
+			return;
+		}
+
+		$target_url = rawurldecode( $_GET['target'] );
+
+		// Validate target URL is our OAuth proxy or Microsoft.
+		$parsed = wp_parse_url( $target_url );
+		$host   = $parsed['host'] ?? '';
+
+		$is_allowed = strpos( $host, 'login.microsoftonline.com' ) !== false
+			|| strpos( $host, wp_parse_url( home_url(), PHP_URL_HOST ) ) !== false;
+
+		if ( ! $is_allowed ) {
+			wp_die( 'Invalid OAuth URL', 'Error', array( 'response' => 400 ) );
+		}
+
+		header( 'Content-Type: text/html; charset=utf-8' );
+		?>
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Connecting to Outlook...</title>
+	<style>
+		body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; background: #f5f5f5; }
+		.container { text-align: center; padding: 40px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 400px; }
+		h2 { margin: 0 0 16px; color: #1e3a5f; }
+		p { color: #666; margin: 0 0 20px; }
+		.btn { display: inline-block; padding: 12px 24px; background: #1e3a5f; color: white; text-decoration: none; border-radius: 6px; }
+		.btn:hover { background: #2d4a6f; }
+	</style>
+</head>
+<body>
+	<div class="container">
+		<h2>Connecting to Outlook</h2>
+		<p>A new tab has opened for authentication. Complete the process there, then return here.</p>
+		<p><a href="<?php echo esc_url( home_url( '/lending/me/calendar/' ) ); ?>" class="btn">Return to Calendar</a></p>
+	</div>
+	<script>
+		(function() {
+			try { localStorage.setItem('frs_outlook_oauth_return_url', document.referrer || '<?php echo esc_js( home_url( '/lending/me/calendar/' ) ); ?>'); } catch(e) {}
+			window.open('<?php echo esc_js( $target_url ); ?>', '_blank');
+		})();
+	</script>
+</body>
+</html>
+		<?php
+		exit;
+	}
+
+	/**
+	 * Output script to redirect back to portal after Outlook OAuth completes.
+	 */
+	public static function output_outlook_iframe_return_script(): void {
+		?>
+		<script>
+		(function() {
+			var STORAGE_KEY = 'frs_outlook_oauth_return_url';
+			var inIframe = window.self !== window.top;
+
+			if (!inIframe) {
+				// Not in iframe - check if we should redirect back to portal.
+				try {
+					var returnUrl = localStorage.getItem(STORAGE_KEY);
+					if (returnUrl) {
+						localStorage.removeItem(STORAGE_KEY);
+						setTimeout(function() { window.location.href = returnUrl; }, 1500);
+					}
+				} catch(e) {}
+			}
+		})();
+		</script>
+		<?php
 	}
 
 	// -------------------------------------------------------------------------

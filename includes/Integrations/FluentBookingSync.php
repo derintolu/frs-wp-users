@@ -407,9 +407,15 @@ class FluentBookingSync {
 		// Provider display name.
 		$provider_name = 'outlook' === $provider ? 'Microsoft Outlook' : 'Google Calendar';
 
-		// Output escape page HTML.
+		// Send HTML headers to prevent REST API from wrapping as JSON.
+		if ( ! headers_sent() ) {
+			header( 'Content-Type: text/html; charset=utf-8' );
+			header( 'X-Robots-Tag: noindex, nofollow' );
+		}
+
+		// Output escape page HTML and die to prevent REST API processing.
 		self::render_oauth_escape_page( $target_url, $return_url, $provider_name );
-		exit;
+		die();
 	}
 
 	/**

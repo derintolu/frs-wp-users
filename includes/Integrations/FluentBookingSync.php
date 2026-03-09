@@ -287,64 +287,50 @@ class FluentBookingSync {
 	}
 
 	/**
-	 * Output JavaScript to escape iframe for OAuth flows.
-	 * Intercepts navigation to OAuth URLs and opens them in new tab.
+	 * Output JavaScript to escape iframe for Outlook OAuth only.
 	 */
 	public static function output_outlook_iframe_escape(): void {
 		?>
 		<script type="text/javascript">
 		(function() {
-			console.log('[FRS] Iframe escape script loaded, in iframe:', window.self !== window.top);
 			if (window.self === window.top) return;
-			console.log('[FRS] Setting up OAuth interception');
 
-			// Outlook OAuth URLs
 			function isOutlookOAuth(url) {
 				if (!url) return false;
 				return url.indexOf('/calendar/oauth-proxy') !== -1 ||
 				       url.indexOf('login.microsoftonline.com') !== -1;
 			}
 
-			// Google OAuth URLs
-			function isGoogleOAuth(url) {
-				if (!url) return false;
-				return url.indexOf('accounts.google.com') !== -1 ||
-				       url.indexOf('fluentbooking.com/oauth/google') !== -1;
-			}
-
-			function shouldEscape(url) {
-				return isOutlookOAuth(url) || isGoogleOAuth(url);
-			}
-
-			// Intercept location.href setter
-			var origHref = Object.getOwnPropertyDescriptor(window.location, 'href');
-			if (origHref && origHref.set) {
-				Object.defineProperty(window.location, 'href', {
-					get: origHref.get,
-					set: function(url) {
-						if (shouldEscape(url)) {
-							window.open(url, '_blank');
-						} else {
-							origHref.set.call(window.location, url);
-						}
+			// Watch for beforeunload and check if navigating to OAuth
+			var lastClickedUrl = null;
+			
+			document.addEventListener('click', function(e) {
+				var el = e.target;
+				while (el && el !== document) {
+					if (el.href && isOutlookOAuth(el.href)) {
+						e.preventDefault();
+						e.stopPropagation();
+						window.open(el.href, '_blank');
+						return false;
 					}
-				});
-			}
+					el = el.parentNode;
+				}
+			}, true);
 
-			// Intercept location.assign
+			// Intercept location changes
 			var origAssign = window.location.assign.bind(window.location);
+			var origReplace = window.location.replace.bind(window.location);
+
 			window.location.assign = function(url) {
-				if (shouldEscape(url)) {
+				if (isOutlookOAuth(url)) {
 					window.open(url, '_blank');
 				} else {
 					origAssign(url);
 				}
 			};
 
-			// Intercept location.replace
-			var origReplace = window.location.replace.bind(window.location);
 			window.location.replace = function(url) {
-				if (shouldEscape(url)) {
+				if (isOutlookOAuth(url)) {
 					window.open(url, '_blank');
 				} else {
 					origReplace(url);

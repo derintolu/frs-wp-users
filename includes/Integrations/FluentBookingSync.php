@@ -287,125 +287,42 @@ class FluentBookingSync {
 	}
 
 	/**
-	 * Output JavaScript to escape iframe for OAuth flows.
+	 * Output JavaScript to escape iframe for Outlook OAuth.
 	 *
-	 * When FluentBooking is loaded inside an iframe (e.g., Greenshift iframe block),
-	 * OAuth redirects fail because providers like Microsoft/Google set X-Frame-Options: DENY.
-	 * This script detects OAuth links and opens them in the parent window or new tab.
+	 * Outlook OAuth goes through our proxy (/calendar/oauth-proxy) then to Microsoft.
+	 * When in iframe, intercept and open in new tab.
 	 */
 	public static function output_iframe_oauth_script(): void {
-		// Only output if we're in an iframe.
 		?>
 		<script type="text/javascript">
 		(function() {
-			// Check if we're inside an iframe.
-			if (window.self === window.top) {
-				return; // Not in iframe, nothing to do.
-			}
+			if (window.self === window.top) return;
 
-			// OAuth-related URL patterns to intercept.
-			var oauthPatterns = [
-				'login.microsoftonline.com',
-				'accounts.google.com',
-				'oauth',
-				'authorize',
-				'calendar/oauth-proxy',
-				'fluentbooking.com/oauth'
-			];
-
-			// Check if URL matches OAuth patterns.
-			function isOAuthUrl(url) {
+			// Outlook: our proxy or Microsoft login
+			function isOutlookOAuth(url) {
 				if (!url) return false;
-				url = url.toLowerCase();
-				for (var i = 0; i < oauthPatterns.length; i++) {
-					if (url.indexOf(oauthPatterns[i]) !== -1) {
-						return true;
-					}
-				}
-				return false;
+				return url.indexOf('/calendar/oauth-proxy') !== -1 ||
+				       url.indexOf('login.microsoftonline.com') !== -1;
 			}
 
-			// Intercept clicks on OAuth links.
-			document.addEventListener('click', function(e) {
-				var target = e.target;
-
-				// Walk up to find anchor or button.
-				while (target && target !== document) {
-					// Handle anchor tags.
-					if (target.tagName === 'A' && target.href) {
-						if (isOAuthUrl(target.href)) {
-							e.preventDefault();
-							e.stopPropagation();
-							// Try parent window first, fall back to new tab.
-							try {
-								window.top.location.href = target.href;
-							} catch (err) {
-								// Cross-origin restriction, open in new tab.
-								window.open(target.href, '_blank');
-							}
-							return false;
-						}
-					}
-
-					// Handle buttons that might trigger OAuth (connect calendar buttons).
-					if (target.tagName === 'BUTTON' || (target.tagName === 'A' && !target.href)) {
-						var text = (target.textContent || target.innerText || '').toLowerCase();
-						if (text.indexOf('connect') !== -1 && 
-							(text.indexOf('calendar') !== -1 || text.indexOf('outlook') !== -1 || text.indexOf('google') !== -1)) {
-							// This might be a connect calendar button.
-							// We can't intercept the actual OAuth URL yet, so we'll watch for navigation.
-							console.log('[FRS OAuth Escape] Detected calendar connect button click');
-						}
-					}
-
-					target = target.parentNode;
-				}
-			}, true); // Use capture phase.
-
-			// Also intercept form submissions that go to OAuth URLs.
-			document.addEventListener('submit', function(e) {
-				var form = e.target;
-				if (form.action && isOAuthUrl(form.action)) {
-					e.preventDefault();
-					try {
-						window.top.location.href = form.action;
-					} catch (err) {
-						window.open(form.action, '_blank');
-					}
-					return false;
-				}
-			}, true);
-
-			// Watch for programmatic navigation attempts (window.location changes).
-			// Override window.location.assign and window.location.replace.
-			var originalAssign = window.location.assign.bind(window.location);
-			var originalReplace = window.location.replace.bind(window.location);
+			var origAssign = window.location.assign.bind(window.location);
+			var origReplace = window.location.replace.bind(window.location);
 
 			window.location.assign = function(url) {
-				if (isOAuthUrl(url)) {
-					try {
-						window.top.location.href = url;
-					} catch (err) {
-						window.open(url, '_blank');
-					}
-					return;
+				if (isOutlookOAuth(url)) {
+					window.open(url, '_blank');
+				} else {
+					origAssign(url);
 				}
-				return originalAssign(url);
 			};
 
 			window.location.replace = function(url) {
-				if (isOAuthUrl(url)) {
-					try {
-						window.top.location.href = url;
-					} catch (err) {
-						window.open(url, '_blank');
-					}
-					return;
+				if (isOutlookOAuth(url)) {
+					window.open(url, '_blank');
+				} else {
+					origReplace(url);
 				}
-				return originalReplace(url);
 			};
-
-			console.log('[FRS OAuth Escape] Iframe OAuth escape handler initialized');
 		})();
 		</script>
 		<?php

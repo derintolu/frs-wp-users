@@ -82,9 +82,6 @@ class FluentBookingSync {
 
 		// Temporarily suppress FluentBooking update nags.
 		add_filter( 'site_transient_update_plugins', array( __CLASS__, 'hide_update_nag' ) );
-
-		// Add iframe OAuth escape script to FluentBooking frontend.
-		add_action( 'fluent_booking/front_footer', array( __CLASS__, 'output_iframe_oauth_script' ) );
 	}
 
 	/**

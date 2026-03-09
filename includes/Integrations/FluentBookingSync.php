@@ -25,7 +25,8 @@ class FluentBookingSync {
 	const PROXY_ROUTE    = '/calendar/oauth-proxy';
 
 	/**
-	 * Get Azure AD credentials from wpo365 network config.
+	 * Get Azure AD credentials from WPO365 config.
+	 * Reads from WPO_OVERRIDES_1 constant (defined in wpo365-config.php), falls back to database.
 	 */
 	private static function get_azure_config(): array {
 		static $config = null;
@@ -33,9 +34,15 @@ class FluentBookingSync {
 			return $config;
 		}
 
-		$wpo_options = is_multisite()
-			? get_site_option( 'wpo365_options', array() )
-			: get_option( 'wpo365_options', array() );
+		// Try WPO_OVERRIDES_1 constant first (production uses this).
+		if ( defined( 'WPO_OVERRIDES_1' ) && is_array( \WPO_OVERRIDES_1 ) ) {
+			$wpo_options = \WPO_OVERRIDES_1;
+		} else {
+			// Fall back to database options.
+			$wpo_options = is_multisite()
+				? get_site_option( 'wpo365_options', array() )
+				: get_option( 'wpo365_options', array() );
+		}
 
 		$config = array(
 			'tenant_id'  => $wpo_options['tenant_id'] ?? '',

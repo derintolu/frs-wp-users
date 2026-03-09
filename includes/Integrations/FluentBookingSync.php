@@ -82,6 +82,9 @@ class FluentBookingSync {
 
 		// Temporarily suppress FluentBooking update nags.
 		add_filter( 'site_transient_update_plugins', array( __CLASS__, 'hide_update_nag' ) );
+
+		// Add iframe OAuth escape script to FluentBooking frontend.
+		add_action( 'fluent_booking/front_footer', array( __CLASS__, 'output_iframe_oauth_script' ) );
 	}
 
 	/**
@@ -281,6 +284,131 @@ class FluentBookingSync {
 		}
 
 		return $transient;
+	}
+
+	/**
+	 * Output JavaScript to escape iframe for OAuth flows.
+	 *
+	 * When FluentBooking is loaded inside an iframe (e.g., Greenshift iframe block),
+	 * OAuth redirects fail because providers like Microsoft/Google set X-Frame-Options: DENY.
+	 * This script detects OAuth links and opens them in the parent window or new tab.
+	 */
+	public static function output_iframe_oauth_script(): void {
+		// Only output if we're in an iframe.
+		?>
+		<script type="text/javascript">
+		(function() {
+			// Check if we're inside an iframe.
+			if (window.self === window.top) {
+				return; // Not in iframe, nothing to do.
+			}
+
+			// OAuth-related URL patterns to intercept.
+			var oauthPatterns = [
+				'login.microsoftonline.com',
+				'accounts.google.com',
+				'oauth',
+				'authorize',
+				'calendar/oauth-proxy',
+				'fluentbooking.com/oauth'
+			];
+
+			// Check if URL matches OAuth patterns.
+			function isOAuthUrl(url) {
+				if (!url) return false;
+				url = url.toLowerCase();
+				for (var i = 0; i < oauthPatterns.length; i++) {
+					if (url.indexOf(oauthPatterns[i]) !== -1) {
+						return true;
+					}
+				}
+				return false;
+			}
+
+			// Intercept clicks on OAuth links.
+			document.addEventListener('click', function(e) {
+				var target = e.target;
+
+				// Walk up to find anchor or button.
+				while (target && target !== document) {
+					// Handle anchor tags.
+					if (target.tagName === 'A' && target.href) {
+						if (isOAuthUrl(target.href)) {
+							e.preventDefault();
+							e.stopPropagation();
+							// Try parent window first, fall back to new tab.
+							try {
+								window.top.location.href = target.href;
+							} catch (err) {
+								// Cross-origin restriction, open in new tab.
+								window.open(target.href, '_blank');
+							}
+							return false;
+						}
+					}
+
+					// Handle buttons that might trigger OAuth (connect calendar buttons).
+					if (target.tagName === 'BUTTON' || (target.tagName === 'A' && !target.href)) {
+						var text = (target.textContent || target.innerText || '').toLowerCase();
+						if (text.indexOf('connect') !== -1 && 
+							(text.indexOf('calendar') !== -1 || text.indexOf('outlook') !== -1 || text.indexOf('google') !== -1)) {
+							// This might be a connect calendar button.
+							// We can't intercept the actual OAuth URL yet, so we'll watch for navigation.
+							console.log('[FRS OAuth Escape] Detected calendar connect button click');
+						}
+					}
+
+					target = target.parentNode;
+				}
+			}, true); // Use capture phase.
+
+			// Also intercept form submissions that go to OAuth URLs.
+			document.addEventListener('submit', function(e) {
+				var form = e.target;
+				if (form.action && isOAuthUrl(form.action)) {
+					e.preventDefault();
+					try {
+						window.top.location.href = form.action;
+					} catch (err) {
+						window.open(form.action, '_blank');
+					}
+					return false;
+				}
+			}, true);
+
+			// Watch for programmatic navigation attempts (window.location changes).
+			// Override window.location.assign and window.location.replace.
+			var originalAssign = window.location.assign.bind(window.location);
+			var originalReplace = window.location.replace.bind(window.location);
+
+			window.location.assign = function(url) {
+				if (isOAuthUrl(url)) {
+					try {
+						window.top.location.href = url;
+					} catch (err) {
+						window.open(url, '_blank');
+					}
+					return;
+				}
+				return originalAssign(url);
+			};
+
+			window.location.replace = function(url) {
+				if (isOAuthUrl(url)) {
+					try {
+						window.top.location.href = url;
+					} catch (err) {
+						window.open(url, '_blank');
+					}
+					return;
+				}
+				return originalReplace(url);
+			};
+
+			console.log('[FRS OAuth Escape] Iframe OAuth escape handler initialized');
+		})();
+		</script>
+		<?php
 	}
 
 	// -------------------------------------------------------------------------

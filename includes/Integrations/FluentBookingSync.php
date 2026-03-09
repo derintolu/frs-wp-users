@@ -287,10 +287,8 @@ class FluentBookingSync {
 	}
 
 	/**
-	 * Output JavaScript to escape iframe for Outlook OAuth.
-	 *
-	 * Outlook OAuth goes through our proxy (/calendar/oauth-proxy) then to Microsoft.
-	 * When in iframe, intercept and open in new tab.
+	 * Output JavaScript to escape iframe for OAuth flows.
+	 * Intercepts navigation to OAuth URLs and opens them in new tab.
 	 */
 	public static function output_outlook_iframe_escape(): void {
 		?>
@@ -298,26 +296,53 @@ class FluentBookingSync {
 		(function() {
 			if (window.self === window.top) return;
 
-			// Outlook: our proxy or Microsoft login
+			// Outlook OAuth URLs
 			function isOutlookOAuth(url) {
 				if (!url) return false;
 				return url.indexOf('/calendar/oauth-proxy') !== -1 ||
 				       url.indexOf('login.microsoftonline.com') !== -1;
 			}
 
-			var origAssign = window.location.assign.bind(window.location);
-			var origReplace = window.location.replace.bind(window.location);
+			// Google OAuth URLs
+			function isGoogleOAuth(url) {
+				if (!url) return false;
+				return url.indexOf('accounts.google.com') !== -1 ||
+				       url.indexOf('fluentbooking.com/oauth/google') !== -1;
+			}
 
+			function shouldEscape(url) {
+				return isOutlookOAuth(url) || isGoogleOAuth(url);
+			}
+
+			// Intercept location.href setter
+			var origHref = Object.getOwnPropertyDescriptor(window.location, 'href');
+			if (origHref && origHref.set) {
+				Object.defineProperty(window.location, 'href', {
+					get: origHref.get,
+					set: function(url) {
+						if (shouldEscape(url)) {
+							window.open(url, '_blank');
+						} else {
+							origHref.set.call(window.location, url);
+						}
+					}
+				});
+			}
+
+			// Intercept location.assign
+			var origAssign = window.location.assign.bind(window.location);
 			window.location.assign = function(url) {
-				if (isOutlookOAuth(url)) {
+				if (shouldEscape(url)) {
 					window.open(url, '_blank');
 				} else {
 					origAssign(url);
 				}
 			};
 
+			// Intercept location.replace
+			var origReplace = window.location.replace.bind(window.location);
 			window.location.replace = function(url) {
-				if (isOutlookOAuth(url)) {
+				if (shouldEscape(url)) {
 					window.open(url, '_blank');
 				} else {
 					origReplace(url);

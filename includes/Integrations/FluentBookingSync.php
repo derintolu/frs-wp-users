@@ -294,7 +294,9 @@ class FluentBookingSync {
 		?>
 		<script type="text/javascript">
 		(function() {
+			console.log('[FRS] Iframe escape script loaded, in iframe:', window.self !== window.top);
 			if (window.self === window.top) return;
+			console.log('[FRS] Setting up OAuth interception');
 
 			// Outlook OAuth URLs
 			function isOutlookOAuth(url) {

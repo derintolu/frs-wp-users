@@ -21,8 +21,9 @@ defined( 'ABSPATH' ) || exit;
 
 class FluentBookingSync {
 
-	const PROXY_ROUTE_NS = 'frs-users/v1';
-	const PROXY_ROUTE    = '/calendar/oauth-proxy';
+	const PROXY_ROUTE_NS  = 'frs-users/v1';
+	const PROXY_ROUTE     = '/calendar/oauth-proxy';
+	const ESCAPE_ROUTE    = '/calendar/oauth-escape';
 
 	/**
 	 * Get Azure AD credentials from WPO365 config.
@@ -58,6 +59,13 @@ class FluentBookingSync {
 	}
 
 	/**
+	 * Get the full URL of our OAuth escape endpoint.
+	 */
+	private static function get_escape_url(): string {
+		return rest_url( self::PROXY_ROUTE_NS . self::ESCAPE_ROUTE );
+	}
+
+	/**
 	 * Initialize hooks and filters.
 	 */
 	public static function init(): void {
@@ -83,8 +91,8 @@ class FluentBookingSync {
 		// Temporarily suppress FluentBooking update nags.
 		add_filter( 'site_transient_update_plugins', array( __CLASS__, 'hide_update_nag' ) );
 
-		// Add Outlook iframe OAuth escape script to FluentBooking frontend.
-		add_action( 'fluent_booking/front_footer', array( __CLASS__, 'output_outlook_iframe_escape' ) );
+		// Wrap OAuth auth_url through escape page for iframe compatibility.
+		add_filter( 'fluent_booking/remote_calendar_providers', array( __CLASS__, 'wrap_oauth_urls_for_iframe' ), 999, 2 );
 	}
 
 	/**
@@ -141,6 +149,17 @@ class FluentBookingSync {
 			array(
 				'methods'             => 'GET',
 				'callback'            => array( __CLASS__, 'handle_oauth_proxy' ),
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		// OAuth escape endpoint - opens OAuth in new tab from iframe.
+		register_rest_route(
+			self::PROXY_ROUTE_NS,
+			self::ESCAPE_ROUTE,
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'handle_oauth_escape' ),
 				'permission_callback' => '__return_true',
 			)
 		);
@@ -286,58 +305,232 @@ class FluentBookingSync {
 		return $transient;
 	}
 
+	// -------------------------------------------------------------------------
+	// OAuth Iframe Escape - Opens OAuth in new tab when embedded in iframe
+	// -------------------------------------------------------------------------
+
 	/**
-	 * Output JavaScript to escape iframe for Outlook OAuth only.
+	 * Filter calendar providers to wrap auth_url through escape page.
+	 *
+	 * This allows OAuth to work from within an iframe by opening
+	 * the OAuth flow in a new tab instead of navigating the iframe.
+	 *
+	 * @param array $providers Calendar providers.
+	 * @param int   $user_id   User ID.
+	 * @return array Modified providers.
 	 */
-	public static function output_outlook_iframe_escape(): void {
-		?>
-		<script type="text/javascript">
-		(function() {
-			if (window.self === window.top) return;
+	public static function wrap_oauth_urls_for_iframe( array $providers, int $user_id ): array {
+		// Only wrap URLs for Outlook (our proxy) - Google goes through fluentbooking.com
+		if ( isset( $providers['outlook']['auth_url'] ) && ! empty( $providers['outlook']['auth_url'] ) ) {
+			$original_url                     = $providers['outlook']['auth_url'];
+			$providers['outlook']['auth_url'] = add_query_arg(
+				array(
+					'target'   => rawurlencode( $original_url ),
+					'provider' => 'outlook',
+				),
+				self::get_escape_url()
+			);
+		}
 
-			function isOutlookOAuth(url) {
-				if (!url) return false;
-				return url.indexOf('/calendar/oauth-proxy') !== -1 ||
-				       url.indexOf('login.microsoftonline.com') !== -1;
+		// Also wrap Google OAuth URLs
+		if ( isset( $providers['google']['auth_url'] ) && ! empty( $providers['google']['auth_url'] ) ) {
+			$original_url                    = $providers['google']['auth_url'];
+			$providers['google']['auth_url'] = add_query_arg(
+				array(
+					'target'   => rawurlencode( $original_url ),
+					'provider' => 'google',
+				),
+				self::get_escape_url()
+			);
+		}
+
+		return $providers;
+	}
+
+	/**
+	 * OAuth escape page handler.
+	 *
+	 * Renders a page that opens the actual OAuth URL in a new tab.
+	 * This is needed when FluentBooking is embedded in an iframe because
+	 * OAuth providers block being loaded in iframes (X-Frame-Options).
+	 *
+	 * @param \WP_REST_Request $request Request object.
+	 */
+	public static function handle_oauth_escape( \WP_REST_Request $request ): void {
+		$target   = $request->get_param( 'target' );
+		$provider = $request->get_param( 'provider' ) ?: 'calendar';
+
+		if ( empty( $target ) ) {
+			wp_die(
+				'Missing OAuth target URL.',
+				'OAuth Error',
+				array( 'response' => 400, 'back_link' => true )
+			);
+			return;
+		}
+
+		// Decode the target URL.
+		$target_url = rawurldecode( $target );
+
+		// Validate the URL is pointing to expected destinations.
+		$allowed_hosts = array(
+			'login.microsoftonline.com',
+			'fluentbooking.com',
+			wp_parse_url( home_url(), PHP_URL_HOST ),
+		);
+
+		$target_host = wp_parse_url( $target_url, PHP_URL_HOST );
+		if ( ! in_array( $target_host, $allowed_hosts, true ) ) {
+			wp_die(
+				'Invalid OAuth target URL.',
+				'OAuth Error',
+				array( 'response' => 400, 'back_link' => true )
+			);
+			return;
+		}
+
+		// Get portal return URL (where to go after OAuth completes).
+		$return_url = '';
+		if ( is_multisite() ) {
+			// On multisite, return to the lending site calendar page.
+			$lending_site = get_site_by_path( wp_parse_url( network_home_url(), PHP_URL_HOST ), '/lending/' );
+			if ( $lending_site ) {
+				switch_to_blog( $lending_site->blog_id );
+				$return_url = home_url( '/me/calendar/' );
+				restore_current_blog();
 			}
+		}
+		if ( empty( $return_url ) ) {
+			$return_url = admin_url( 'admin.php?page=fluent-booking#/calendars' );
+		}
 
-			// Watch for beforeunload and check if navigating to OAuth
-			var lastClickedUrl = null;
-			
-			document.addEventListener('click', function(e) {
-				var el = e.target;
-				while (el && el !== document) {
-					if (el.href && isOutlookOAuth(el.href)) {
-						e.preventDefault();
-						e.stopPropagation();
-						window.open(el.href, '_blank');
-						return false;
+		// Provider display name.
+		$provider_name = 'outlook' === $provider ? 'Microsoft Outlook' : 'Google Calendar';
+
+		// Output escape page HTML.
+		self::render_oauth_escape_page( $target_url, $return_url, $provider_name );
+		exit;
+	}
+
+	/**
+	 * Render the OAuth escape page HTML.
+	 *
+	 * @param string $target_url   The OAuth URL to open in new tab.
+	 * @param string $return_url   URL to return to after OAuth.
+	 * @param string $provider_name Display name of the provider.
+	 */
+	private static function render_oauth_escape_page( string $target_url, string $return_url, string $provider_name ): void {
+		$escaped_target = esc_url( $target_url );
+		$escaped_return = esc_url( $return_url );
+		$escaped_name   = esc_html( $provider_name );
+
+		?>
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<meta charset="UTF-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+			<title>Connect <?php echo $escaped_name; ?></title>
+			<style>
+				* { box-sizing: border-box; margin: 0; padding: 0; }
+				body {
+					font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+					background: #f0f0f1;
+					min-height: 100vh;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					padding: 20px;
+				}
+				.card {
+					background: white;
+					border-radius: 8px;
+					box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+					padding: 40px;
+					max-width: 480px;
+					text-align: center;
+				}
+				h1 {
+					font-size: 24px;
+					color: #1e1e1e;
+					margin-bottom: 16px;
+				}
+				p {
+					color: #50575e;
+					line-height: 1.6;
+					margin-bottom: 24px;
+				}
+				.btn {
+					display: inline-block;
+					padding: 12px 24px;
+					border-radius: 4px;
+					text-decoration: none;
+					font-weight: 500;
+					font-size: 14px;
+					cursor: pointer;
+					border: none;
+				}
+				.btn-primary {
+					background: #2271b1;
+					color: white;
+					margin-right: 12px;
+				}
+				.btn-primary:hover {
+					background: #135e96;
+				}
+				.btn-secondary {
+					background: #f0f0f1;
+					color: #50575e;
+				}
+				.btn-secondary:hover {
+					background: #dcdcde;
+				}
+				.status {
+					margin-top: 24px;
+					padding: 16px;
+					background: #f0f7fc;
+					border-radius: 4px;
+					color: #2271b1;
+					display: none;
+				}
+				.status.show {
+					display: block;
+				}
+			</style>
+		</head>
+		<body>
+			<div class="card">
+				<h1>Connect to <?php echo $escaped_name; ?></h1>
+				<p>
+					A new window will open for you to sign in to <?php echo $escaped_name; ?>.
+					Complete the authorization there, then return to this page.
+				</p>
+				<div>
+					<a href="<?php echo $escaped_target; ?>" target="_blank" rel="noopener" class="btn btn-primary" id="open-oauth">
+						Open <?php echo $escaped_name; ?>
+					</a>
+					<a href="<?php echo $escaped_return; ?>" class="btn btn-secondary" id="return-btn">
+						Return to Calendar
+					</a>
+				</div>
+				<div class="status" id="status">
+					Authorization window opened. Complete the sign-in process there, then click "Return to Calendar" when done.
+				</div>
+			</div>
+			<script>
+				document.getElementById('open-oauth').addEventListener('click', function() {
+					document.getElementById('status').classList.add('show');
+				});
+				// Auto-open the OAuth window.
+				window.onload = function() {
+					var opened = window.open('<?php echo esc_js( $target_url ); ?>', '_blank');
+					if (opened) {
+						document.getElementById('status').classList.add('show');
 					}
-					el = el.parentNode;
-				}
-			}, true);
-
-			// Intercept location changes
-			var origAssign = window.location.assign.bind(window.location);
-			var origReplace = window.location.replace.bind(window.location);
-
-			window.location.assign = function(url) {
-				if (isOutlookOAuth(url)) {
-					window.open(url, '_blank');
-				} else {
-					origAssign(url);
-				}
-			};
-
-			window.location.replace = function(url) {
-				if (isOutlookOAuth(url)) {
-					window.open(url, '_blank');
-				} else {
-					origReplace(url);
-				}
-			};
-		})();
-		</script>
+				};
+			</script>
+		</body>
+		</html>
 		<?php
 	}
 

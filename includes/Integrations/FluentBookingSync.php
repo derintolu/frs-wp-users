@@ -61,12 +61,20 @@ class FluentBookingSync {
 			return;
 		}
 
+		// Iframe OAuth escape - modify auth URLs to open in new tab when in iframe.
+		add_action( 'fluent_booking/front_footer', array( __CLASS__, 'output_iframe_oauth_script' ) );
+		add_filter( 'fluent_booking/remote_calendar_providers', array( __CLASS__, 'filter_auth_urls_for_iframe' ), 100, 1 );
+		add_action( 'template_redirect', array( __CLASS__, 'handle_oauth_escape' ), 1 );
+
+		// Temporarily suppress FluentBooking update nags.
+		add_filter( 'site_transient_update_plugins', array( __CLASS__, 'hide_update_nag' ) );
+
+		// Azure-specific: Override FluentBooking's Outlook OAuth to use our Azure app + proxy.
 		$azure = self::get_azure_config();
 		if ( empty( $azure['tenant_id'] ) || empty( $azure['app_id'] ) || empty( $azure['app_secret'] ) ) {
 			return;
 		}
 
-		// Override FluentBooking's Outlook OAuth to use our Azure app + proxy.
 		add_filter( 'fluent_booking/outlook_app_credentials', array( __CLASS__, 'filter_outlook_credentials' ) );
 		add_filter( 'fluent_booking/outlook_app_redirect_url', array( __CLASS__, 'filter_redirect_url' ) );
 		add_filter( 'fluent_booking/outlook_token_url', array( __CLASS__, 'filter_token_url' ) );
@@ -75,9 +83,6 @@ class FluentBookingSync {
 
 		// Register the OAuth proxy endpoint.
 		add_action( 'rest_api_init', array( __CLASS__, 'register_routes' ) );
-
-		// Temporarily suppress FluentBooking update nags.
-		add_filter( 'site_transient_update_plugins', array( __CLASS__, 'hide_update_nag' ) );
 	}
 
 	/**
@@ -277,6 +282,216 @@ class FluentBookingSync {
 		}
 
 		return $transient;
+	}
+
+	/**
+	 * Filter auth URLs to wrap them in our iframe escape endpoint.
+	 *
+	 * When in an iframe, instead of navigating directly to OAuth, we navigate
+	 * to our endpoint which serves an HTML page that opens the OAuth URL in
+	 * a new tab and shows a message to the user.
+	 *
+	 * @param array $providers Calendar providers with auth_url.
+	 * @return array Modified providers.
+	 */
+	public static function filter_auth_urls_for_iframe( array $providers ): array {
+		foreach ( $providers as $key => $provider ) {
+			if ( ! empty( $provider['auth_url'] ) ) {
+				// Wrap the auth URL in our iframe escape endpoint.
+				$providers[ $key ]['auth_url'] = add_query_arg(
+					array(
+						'frs_oauth_escape' => '1',
+						'target'           => rawurlencode( $provider['auth_url'] ),
+						'provider'         => $key,
+					),
+					home_url( '/' )
+				);
+			}
+		}
+		return $providers;
+	}
+
+	/**
+	 * Handle the OAuth iframe escape endpoint.
+	 *
+	 * Serves an HTML page that:
+	 * 1. Opens the real OAuth URL in a new tab
+	 * 2. Shows a message to the user
+	 * 3. Stores the return URL for after OAuth completes
+	 */
+	public static function handle_oauth_escape(): void {
+		if ( empty( $_GET['frs_oauth_escape'] ) || empty( $_GET['target'] ) ) {
+			return;
+		}
+
+		$target_url = rawurldecode( $_GET['target'] );
+		$provider   = sanitize_text_field( $_GET['provider'] ?? 'calendar' );
+
+		// Validate the target URL is an OAuth URL.
+		$allowed_domains = array(
+			'accounts.google.com',
+			'login.microsoftonline.com',
+			'appleid.apple.com',
+			'zoom.us',
+			'fluentbooking.com',
+		);
+
+		$parsed = wp_parse_url( $target_url );
+		$host   = $parsed['host'] ?? '';
+
+		$is_allowed = false;
+		foreach ( $allowed_domains as $domain ) {
+			if ( strpos( $host, $domain ) !== false ) {
+				$is_allowed = true;
+				break;
+			}
+		}
+
+		// Also allow our own domain (for OAuth proxy).
+		if ( strpos( $host, wp_parse_url( home_url(), PHP_URL_HOST ) ) !== false ) {
+			$is_allowed = true;
+		}
+
+		if ( ! $is_allowed ) {
+			wp_die( 'Invalid OAuth URL', 'Error', array( 'response' => 400 ) );
+		}
+
+		// Output the escape page.
+		header( 'Content-Type: text/html; charset=utf-8' );
+		?>
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Connecting to <?php echo esc_html( ucfirst( $provider ) ); ?>...</title>
+	<style>
+		body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; background: #f5f5f5; }
+		.container { text-align: center; padding: 40px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 400px; }
+		h2 { margin: 0 0 16px; color: #1e3a5f; }
+		p { color: #666; margin: 0 0 20px; }
+		.btn { display: inline-block; padding: 12px 24px; background: #1e3a5f; color: white; text-decoration: none; border-radius: 6px; }
+		.btn:hover { background: #2d4a6f; }
+	</style>
+</head>
+<body>
+	<div class="container">
+		<h2>Connecting to <?php echo esc_html( ucfirst( $provider ) ); ?></h2>
+		<p>A new tab has opened for authentication. Complete the process there, then return here.</p>
+		<p><a href="javascript:history.back()" class="btn">Go Back</a></p>
+	</div>
+	<script>
+		// Store return URL and open OAuth in new tab.
+		(function() {
+			var returnUrl = document.referrer || '<?php echo esc_js( home_url( '/lending/me/calendar/' ) ); ?>';
+			try { localStorage.setItem('frs_oauth_return_url', returnUrl); } catch(e) {}
+			window.open('<?php echo esc_js( $target_url ); ?>', '_blank');
+		})();
+	</script>
+</body>
+</html>
+		<?php
+		exit;
+	}
+
+	// -------------------------------------------------------------------------
+	// Iframe OAuth Escape
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Output JavaScript to handle OAuth in iframes.
+	 *
+	 * When FluentBooking is in an iframe:
+	 * 1. Intercept OAuth navigation and open in new tab
+	 * 2. Store parent page URL so user can return after OAuth
+	 *
+	 * When FluentBooking is loaded directly after OAuth:
+	 * 1. Check for stored return URL
+	 * 2. Redirect back to parent page (e.g., /lending/me/calendar/)
+	 */
+	public static function output_iframe_oauth_script(): void {
+		?>
+		<script>
+		(function() {
+			var STORAGE_KEY = 'frs_oauth_return_url';
+			var inIframe = window.self !== window.top;
+
+			function isOAuth(url) {
+				if (!url) return false;
+				// Check for our marker param or known OAuth providers.
+				return url.indexOf('frs_iframe_oauth=1') !== -1 ||
+					url.indexOf('accounts.google.com') !== -1 ||
+					url.indexOf('login.microsoftonline.com') !== -1 ||
+					url.indexOf('appleid.apple.com') !== -1 ||
+					url.indexOf('zoom.us/oauth') !== -1;
+			}
+
+			if (inIframe) {
+				var parentUrl;
+				try { parentUrl = window.top.location.href; } catch(e) { parentUrl = document.referrer; }
+
+				function storeReturnUrl() {
+					if (parentUrl) {
+						try { localStorage.setItem(STORAGE_KEY, parentUrl); } catch(e) {}
+					}
+				}
+
+				// Intercept clicks on any element and check if it triggers OAuth.
+				document.addEventListener('click', function(e) {
+					var el = e.target;
+					while (el && el !== document) {
+						// Check anchors.
+						if (el.tagName === 'A' && el.href && isOAuth(el.href)) {
+							e.preventDefault();
+							e.stopPropagation();
+							storeReturnUrl();
+							window.open(el.href, '_blank');
+							return;
+						}
+						// Check buttons/elements with data attributes that might contain OAuth URL.
+						if (el.dataset && el.dataset.authUrl && isOAuth(el.dataset.authUrl)) {
+							e.preventDefault();
+							e.stopPropagation();
+							storeReturnUrl();
+							window.open(el.dataset.authUrl, '_blank');
+							return;
+						}
+						el = el.parentNode;
+					}
+				}, true);
+
+				// Monkey-patch fetch to detect OAuth URLs being fetched.
+				var originalFetch = window.fetch;
+				window.fetch = function(url, options) {
+					if (typeof url === 'string' && isOAuth(url)) {
+						storeReturnUrl();
+					}
+					return originalFetch.apply(this, arguments);
+				};
+
+				// Monkey-patch XMLHttpRequest to detect OAuth URLs.
+				var originalXHROpen = XMLHttpRequest.prototype.open;
+				XMLHttpRequest.prototype.open = function(method, url) {
+					if (typeof url === 'string' && isOAuth(url)) {
+						storeReturnUrl();
+					}
+					return originalXHROpen.apply(this, arguments);
+				};
+
+			} else {
+				// Not in iframe - check if we should redirect back to portal.
+				// This fires on /my-bookings/ after OAuth completes (no OAuth params left in URL).
+				try {
+					var returnUrl = localStorage.getItem(STORAGE_KEY);
+					if (returnUrl) {
+						localStorage.removeItem(STORAGE_KEY);
+						// Small delay to let FluentBooking finish any processing.
+						setTimeout(function() { window.location.href = returnUrl; }, 1000);
+					}
+				} catch(e) {}
+			}
+		})();
+		</script>
+		<?php
 	}
 
 	// -------------------------------------------------------------------------

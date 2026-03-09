@@ -159,6 +159,9 @@ final class FRSUsers {
 		// Initialize FluentBooking auto-host creation on onboarding completion (site 2)
 		FluentBookingSync::init_auto_host();
 
+		// Initialize OAuth listener on all sites (for portal iframe communication)
+		FluentBookingSync::init_oauth_listener();
+
 		// Initialize activity recording hooks
 		ActivityRecorder::init();
 

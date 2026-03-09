@@ -86,8 +86,16 @@ class FluentBookingSync {
 		// Add script inside FluentBooking iframe to post OAuth URLs to parent.
 		add_action( 'fluent_booking/front_footer', array( __CLASS__, 'output_iframe_oauth_messenger' ) );
 
-		// Add listener on parent page (portal) to receive OAuth messages and open new tab.
+	}
+
+	/**
+	 * Initialize the parent-side OAuth listener.
+	 * This runs on ALL sites (including the portal) to listen for OAuth messages from iframes.
+	 * Called separately from init() so it doesn't depend on FluentBooking being active.
+	 */
+	public static function init_oauth_listener(): void {
 		add_action( 'wp_footer', array( __CLASS__, 'output_oauth_parent_listener' ) );
+		add_action( 'wp_footer', array( __CLASS__, 'output_oauth_completion_handler' ) );
 	}
 
 	/**
@@ -311,9 +319,51 @@ class FluentBookingSync {
 			// Listen for OAuth open requests from iframe
 			window.addEventListener('message', function(e) {
 				if (e.data && e.data.type === 'frs-oauth-open' && e.data.url) {
+					// Store that we're waiting for OAuth to complete
+					sessionStorage.setItem('frs-oauth-pending', '1');
 					window.open(e.data.url, '_blank');
 				}
+				// Listen for OAuth completion from the popup
+				if (e.data && e.data.type === 'frs-oauth-complete') {
+					sessionStorage.removeItem('frs-oauth-pending');
+					// Refresh the iframe
+					var iframe = document.querySelector('iframe');
+					if (iframe) {
+						iframe.src = iframe.src;
+					}
+				}
 			});
+		})();
+		</script>
+		<?php
+	}
+
+	/**
+	 * Output script on /my-booking page to notify opener and close.
+	 * This runs after OAuth completes and user lands on FluentBooking frontend.
+	 */
+	public static function output_oauth_completion_handler(): void {
+		// Only run on /my-booking page
+		if ( ! is_user_logged_in() ) {
+			return;
+		}
+
+		// Check if this is the my-booking page (FluentBooking frontend)
+		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
+		if ( strpos( $request_uri, '/my-booking' ) === false ) {
+			return;
+		}
+
+		?>
+		<script>
+		(function() {
+			// If this window was opened by another window (OAuth popup)
+			if (window.opener) {
+				// Notify the opener that OAuth is complete
+				window.opener.postMessage({ type: 'frs-oauth-complete' }, '*');
+				// Close this tab
+				window.close();
+			}
 		})();
 		</script>
 		<?php

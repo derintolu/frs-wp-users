@@ -655,13 +655,20 @@ class FluentBookingSync {
 
 		// Avatar attachments are stored on the main site (site 1), so we need
 		// to switch to it to get the correct URL.
-		$switched = false;
-		if ( is_multisite() && get_current_blog_id() !== 1 ) {
+		$original_blog = get_current_blog_id();
+		$switched      = false;
+		if ( is_multisite() && $original_blog !== 1 ) {
 			switch_to_blog( 1 );
 			$switched = true;
 		}
 
 		$avatar_url = Avatar::get_url( $user_id, 256 );
+
+		// Debug: Log what we found.
+		if ( defined( 'WP_CLI' ) && \WP_CLI ) {
+			$headshot_id = get_user_meta( $user_id, 'frs_headshot_id', true );
+			\WP_CLI::debug( "Calendar $calendar_id, User $user_id: headshot_id=$headshot_id, url=" . ( $avatar_url ?: 'NONE' ) );
+		}
 
 		if ( $switched ) {
 			restore_current_blog();

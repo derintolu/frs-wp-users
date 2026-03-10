@@ -242,7 +242,7 @@ if ( ! function_exists( 'frs_get_profile_image' ) ) {
 			return $profile['headshot_url'];
 		}
 		if ( ! empty( $profile['avatar_url'] ) && trim( $profile['avatar_url'] ) !== '' && strpos( $profile['avatar_url'], 'gravatar.com/avatar' ) === false ) {
-			return preg_replace( '/-\d+x\d+\./', '-512x512.', $profile['avatar_url'] );
+			return $profile['avatar_url'];
 		}
 		return '';
 	}

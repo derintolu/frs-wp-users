@@ -43,7 +43,7 @@ function getProfileImage( profile ) {
 		return profile.headshot_url;
 	}
 	if ( profile.avatar_url && profile.avatar_url.trim() !== '' && ! profile.avatar_url.includes( 'gravatar.com/avatar' ) ) {
-		return profile.avatar_url.replace( /-\d+x\d+\./, '-512x512.' );
+		return profile.avatar_url;
 	}
 	return '';
 }

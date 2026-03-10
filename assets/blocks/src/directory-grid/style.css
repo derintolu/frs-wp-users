@@ -886,6 +886,93 @@
     color: white !important;
 }
 
+.frs-card__btn--book {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    background: transparent;
+    color: var(--frs-blue) !important;
+    border: 1px solid var(--frs-blue);
+}
+
+.frs-card__btn--book:hover {
+    background: var(--frs-blue);
+    color: white !important;
+}
+
+.frs-card__btn--book svg {
+    flex-shrink: 0;
+}
+
+.frs-card__actions {
+    flex-direction: column;
+}
+
+/* Contact Modal */
+.frs-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.frs-modal--open {
+    display: flex;
+}
+
+.frs-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.frs-modal__content {
+    position: relative;
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.frs-modal__close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--frs-text-light);
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: color 0.2s;
+}
+
+.frs-modal__close:hover {
+    color: var(--frs-navy);
+}
+
+.frs-modal__title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--frs-navy);
+    margin: 0 0 0.25rem;
+}
+
+.frs-modal__subtitle {
+    font-size: 0.875rem;
+    color: var(--frs-text-light);
+    margin: 0 0 1.5rem;
+}
+
 /* No Results / Error */
 .frs-directory__no-results,
 .frs-directory__error {

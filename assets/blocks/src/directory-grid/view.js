@@ -87,6 +87,12 @@ function createCard( lo, hubUrl, stateNames ) {
 		serviceAreasTags = `<div class="frs-card__service-areas">${ displayAreas.map( ( a ) => `<span class="frs-card__area-tag">${ a }</span>` ).join( '' ) }${ remaining > 0 ? `<span class="frs-card__area-tag frs-card__area-tag--more">+${ remaining } more</span>` : '' }</div>`;
 	}
 
+	const bookingUrl = lo.booking_url || '';
+	const calendarIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+	const bookBtn = bookingUrl
+		? `<a href="${ bookingUrl }" class="frs-card__btn frs-card__btn--book" target="_blank" rel="noopener">${ calendarIcon } Book Appointment</a>`
+		: `<button class="frs-card__btn frs-card__btn--book frs-card__contact-btn" data-lo-email="${ email }" data-lo-name="${ fullName }" data-lo-id="${ lo.id || '' }">${ calendarIcon } Book Appointment</button>`;
+
 	card.innerHTML = `
 		<div class="frs-card__header">
 			${ qrData ? `<button class="frs-card__qr-btn" aria-label="Show QR code" data-qr="${ qrData }" data-name="${ fullName }">
@@ -114,9 +120,7 @@ function createCard( lo, hubUrl, stateNames ) {
 		</div>
 		<div class="frs-card__actions">
 			<a href="${ profileUrl }" class="frs-card__btn frs-card__btn--primary">View Profile</a>
-			${ phone ? `<a href="tel:${ phone.replace( /[^\d+]/g, '' ) }" class="frs-card__btn frs-card__btn--outline">Call</a>` :
-		( email ? `<a href="mailto:${ email }" class="frs-card__btn frs-card__btn--outline">Email</a>` :
-			`<a href="${ profileUrl }" class="frs-card__btn frs-card__btn--outline">Contact</a>` ) }
+			${ bookBtn }
 		</div>
 	`;
 
@@ -302,6 +306,13 @@ const { state, actions } = store( 'frs/directory', {
 					}
 				} );
 			} );
+
+			// Attach contact modal handlers to dynamic contact buttons
+			grid.querySelectorAll( '.frs-card__contact-btn' ).forEach( ( btn ) => {
+				btn.addEventListener( 'click', () => {
+					actions.openContactModal( btn.dataset.loName, btn.dataset.loEmail, btn.dataset.loId );
+				} );
+			} );
 		},
 
 		/**
@@ -324,17 +335,78 @@ const { state, actions } = store( 'frs/directory', {
 		closeQrPopup() {
 			state.qrPopupOpen = false;
 		},
+
+		/**
+		 * Open contact modal for a specific LO.
+		 */
+		openContactModal( name, email, loId ) {
+			const modal = document.getElementById( 'frs-contact-modal' );
+			const title = document.getElementById( 'frs-contact-title' );
+			const subtitle = document.getElementById( 'frs-contact-subtitle' );
+			const loData = document.getElementById( 'frs-contact-lo-data' );
+
+			if ( ! modal ) return;
+
+			const firstName = ( name || '' ).split( ' ' )[ 0 ] || '';
+			if ( title ) title.textContent = `Book an Appointment with ${ name }`;
+			if ( subtitle ) subtitle.textContent = `Send a message and ${ firstName } will get back to you.`;
+			if ( loData ) {
+				loData.dataset.id = loId || '';
+				loData.dataset.email = email || '';
+				loData.dataset.name = name || '';
+			}
+
+			// Prefill hidden LO ID field in Fluent Form
+			modal.querySelectorAll( 'input[name*="frs_loan_officer_id"], input[name*="loan_officer"]' ).forEach( ( f ) => {
+				f.value = loId || '';
+			} );
+
+			modal.classList.add( 'frs-modal--open' );
+			document.body.style.overflow = 'hidden';
+		},
+
+		/**
+		 * Close contact modal.
+		 */
+		closeContactModal() {
+			const modal = document.getElementById( 'frs-contact-modal' );
+			if ( modal ) {
+				modal.classList.remove( 'frs-modal--open' );
+				document.body.style.overflow = '';
+			}
+		},
 	},
 
 	callbacks: {
 		/**
-		 * Listen for Escape key to close QR popup.
+		 * Listen for Escape key to close QR popup and contact modal.
 		 */
 		initEscapeHandler() {
 			document.addEventListener( 'keydown', ( e ) => {
-				if ( e.key === 'Escape' && state.qrPopupOpen ) {
-					state.qrPopupOpen = false;
+				if ( e.key === 'Escape' ) {
+					if ( state.qrPopupOpen ) {
+						state.qrPopupOpen = false;
+					}
+					actions.closeContactModal();
 				}
+			} );
+
+			// Attach handlers to server-rendered contact buttons
+			document.querySelectorAll( '.frs-card__contact-btn' ).forEach( ( btn ) => {
+				btn.addEventListener( 'click', () => {
+					actions.openContactModal( btn.dataset.loName, btn.dataset.loEmail, btn.dataset.loId );
+				} );
+			} );
+
+			// Contact modal close handlers
+			const closeBtn = document.getElementById( 'frs-contact-close' );
+			const backdrop = document.getElementById( 'frs-contact-backdrop' );
+			if ( closeBtn ) closeBtn.addEventListener( 'click', () => actions.closeContactModal() );
+			if ( backdrop ) backdrop.addEventListener( 'click', () => actions.closeContactModal() );
+
+			// Close modal after Fluent Form submission
+			document.addEventListener( 'fluentform_submission_success', () => {
+				setTimeout( () => actions.closeContactModal(), 1500 );
 			} );
 		},
 	},

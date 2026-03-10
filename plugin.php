@@ -29,6 +29,7 @@ use FRSUsers\Integrations\FluentBookingSync;
 use FRSUsers\Integrations\FollowUpBoss;
 use FRSUsers\Integrations\TwentyCRMSync;
 use FRSUsers\Integrations\FluentCRMNotifications;
+use FRSUsers\Integrations\FluentFormRouting;
 use FRSUsers\Controllers\Blocks;
 use FRSUsers\Abilities\AbilitiesRegistry;
 use FRSUsers\Core\ActivityRecorder;
@@ -173,6 +174,9 @@ final class FRSUsers {
 
 		// Initialize Follow Up Boss integration
 		FollowUpBoss::init();
+
+		// Route Fluent Form 7 (Schedule A Call) emails to the loan officer
+		FluentFormRouting::init();
 
 		// Initialize WordPress Abilities API integration
 		AbilitiesRegistry::init();

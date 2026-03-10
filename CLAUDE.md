@@ -209,3 +209,58 @@ Uses WordPress Interactivity API (`view.js`).
 - **FluentCRM:** Real-time sync on user create/update/role change
 - **Simple Local Avatars:** Avatar system for headshots
 - **Arrive:** Auto-populate loan application URLs
+
+## DO NOT MODIFY (myhub21.com)
+
+These files on myhub21.com control login redirects and must NOT be changed without explicit user approval:
+
+1. **Fluent Snippet**: `/app/data/public/wp-content/fluent-snippet-storage/6-login-redirect.php`
+   - Contains `login_redirect` filter that returns `home_url('/')`
+   - Contains redirect from main site to `/lending/`
+
+2. **WPO365 Config**: `/app/data/public/wpo365-config.php`
+   - `goto_after_signon_url` must be empty (let fluent snippet handle redirect)
+   - `redirect_url` = `https://myhub21.com/`
+   - See "Azure AD Two-App Architecture" section below for app settings
+
+3. **FRS M365 Widgets**: The widgets use `https://graph.microsoft.com/User.Read` as the scope for all `/me` endpoint calls. See inline documentation in `frs-m365-widgets.php` and `widgets.js`.
+
+## Azure AD Two-App Architecture (myhub21.com)
+
+**DO NOT CHANGE** these settings without understanding the full architecture:
+
+### Two Apps Required
+
+| Setting | App Name | App ID | Purpose |
+|---------|----------|--------|---------|
+| `application_id` | hub21 | `09c85172-9ea1-4f34-a6f8-f19afabb4e0b` | SSO login, M365 widgets (delegated tokens) |
+| `app_only_application_id` | hub21-app-only | `3c74e9b9-1dbc-4a67-9d99-28a2eaf3b039` | User Sync, background tasks (app-only tokens) |
+
+### Critical Setting
+
+```php
+"use_app_only_token" => false,  // MUST be false!
+```
+
+**Why false?** The M365 widgets call `/me` endpoint which REQUIRES delegated tokens (user context). App-only tokens have no user context, so `/me` fails.
+
+### Why Two Apps?
+
+| Scenario | Token Type Needed |
+|----------|-------------------|
+| M365 widgets (`/me` endpoint) | Delegated (requires user) |
+| User Sync (background job) | App-only (no user logged in) |
+
+With `use_app_only_token=false`, WPO365:
+- Uses delegated tokens by default (widgets work)
+- Still uses `app_only_application_id` when app-only is explicitly needed (User Sync works)
+
+### App-Only App Permissions (hub21-app-only)
+
+User.Read.All, Mail.Read, Calendars.Read, GroupMember.Read.All, GroupMember.ReadWrite.All, Group.Read.All, Files.Read.All, Contacts.Read, Contacts.ReadWrite
+
+### If Widgets Break
+
+Error: `/me request is only valid with delegated authentication flow`
+
+Fix: Ensure `use_app_only_token` = `false` in `/app/data/public/wpo365-config.php`

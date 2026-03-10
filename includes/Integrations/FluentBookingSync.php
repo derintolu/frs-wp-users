@@ -664,12 +664,6 @@ class FluentBookingSync {
 
 		$avatar_url = Avatar::get_url( $user_id, 256 );
 
-		// Debug: Log what we found.
-		if ( defined( 'WP_CLI' ) && \WP_CLI ) {
-			$headshot_id = get_user_meta( $user_id, 'frs_headshot_id', true );
-			\WP_CLI::debug( "Calendar $calendar_id, User $user_id: headshot_id=$headshot_id, url=" . ( $avatar_url ?: 'NONE' ) );
-		}
-
 		if ( $switched ) {
 			restore_current_blog();
 		}
@@ -685,9 +679,6 @@ class FluentBookingSync {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		$table_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $meta_table ) );
 		if ( $table_exists !== $meta_table ) {
-			if ( defined( 'WP_CLI' ) && \WP_CLI ) {
-				\WP_CLI::debug( "Meta table $meta_table does not exist" );
-			}
 			return false;
 		}
 

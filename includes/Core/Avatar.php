@@ -202,6 +202,148 @@ class Avatar {
 	}
 
 	/**
+	 * Migrate all legacy avatar sources into frs_headshot_id.
+	 *
+	 * Finds photos from WPO365 profile-images folder, basic_user_avatar meta,
+	 * and simple_local_avatar meta. Imports them into the WordPress media library
+	 * and sets frs_headshot_id so Avatar::get_url() returns them.
+	 *
+	 * @param bool $dry_run If true, report what would happen without changing anything.
+	 * @return array Results with keys: migrated, already_set, skipped, errors.
+	 */
+	public static function migrate_legacy_avatars( $dry_run = false ) {
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+
+		$results = array(
+			'migrated'    => 0,
+			'already_set' => 0,
+			'skipped'     => 0,
+			'errors'      => 0,
+		);
+
+		$users = get_users( array( 'fields' => array( 'ID' ) ) );
+
+		foreach ( $users as $user ) {
+			$user_id = (int) $user->ID;
+
+			if ( self::get_id( $user_id ) > 0 ) {
+				$results['already_set']++;
+				continue;
+			}
+
+			$photo_url = self::find_legacy_photo( $user_id );
+			if ( ! $photo_url ) {
+				$results['skipped']++;
+				continue;
+			}
+
+			if ( $dry_run ) {
+				if ( class_exists( 'WP_CLI' ) ) {
+					\WP_CLI::log( sprintf( '  Would migrate user %d: %s', $user_id, $photo_url ) );
+				}
+				$results['migrated']++;
+				continue;
+			}
+
+			$attachment_id = self::import_photo( $user_id, $photo_url );
+			if ( $attachment_id ) {
+				self::set( $user_id, $attachment_id );
+				$results['migrated']++;
+			} else {
+				$results['errors']++;
+			}
+		}
+
+		return $results;
+	}
+
+	/**
+	 * Find a legacy photo URL for a user from any source.
+	 *
+	 * @param int $user_id User ID.
+	 * @return string|false Photo URL or false.
+	 */
+	private static function find_legacy_photo( $user_id ) {
+		// WPO365 profile image
+		$upload_dir = wp_upload_dir();
+		$wpo_path   = $upload_dir['basedir'] . '/wpo365/profile-images/' . $user_id . '.png';
+		if ( file_exists( $wpo_path ) ) {
+			return $upload_dir['baseurl'] . '/wpo365/profile-images/' . $user_id . '.png';
+		}
+
+		// basic_user_avatar meta
+		$bua = get_user_meta( $user_id, 'basic_user_avatar', true );
+		if ( is_array( $bua ) && ! empty( $bua['full'] ) ) {
+			return $bua['full'];
+		}
+
+		// simple_local_avatar meta
+		$sla = get_user_meta( $user_id, 'simple_local_avatar', true );
+		if ( is_array( $sla ) && ! empty( $sla['full'] ) ) {
+			return $sla['full'];
+		}
+
+		return false;
+	}
+
+	/**
+	 * Import a photo into the media library for a user.
+	 *
+	 * @param int    $user_id   User ID.
+	 * @param string $photo_url URL or local path to photo.
+	 * @return int|false Attachment ID or false on failure.
+	 */
+	private static function import_photo( $user_id, $photo_url ) {
+		// Check if this URL was already imported
+		$url_hash = md5( $photo_url );
+		$existing = get_posts( array(
+			'post_type'      => 'attachment',
+			'meta_query'     => array(
+				array(
+					'key'   => '_frs_image_url_hash',
+					'value' => $url_hash,
+				),
+			),
+			'posts_per_page' => 1,
+		) );
+
+		if ( $existing ) {
+			return $existing[0]->ID;
+		}
+
+		// If it's a local file path (same server), use it directly
+		$upload_dir = wp_upload_dir();
+		$local_path = str_replace( $upload_dir['baseurl'], $upload_dir['basedir'], $photo_url );
+		if ( file_exists( $local_path ) ) {
+			$tmp = wp_tempnam( basename( $local_path ) );
+			copy( $local_path, $tmp );
+		} else {
+			$tmp = download_url( $photo_url );
+			if ( is_wp_error( $tmp ) ) {
+				return false;
+			}
+		}
+
+		$file_array = array(
+			'name'     => sanitize_file_name( 'headshot-' . $user_id . '-' . basename( $photo_url ) ),
+			'tmp_name' => $tmp,
+		);
+
+		$attachment_id = media_handle_sideload( $file_array, 0 );
+		if ( is_wp_error( $attachment_id ) ) {
+			@unlink( $tmp );
+			return false;
+		}
+
+		update_post_meta( $attachment_id, '_frs_image_url_hash', $url_hash );
+		update_post_meta( $attachment_id, '_frs_original_url', $photo_url );
+
+		return $attachment_id;
+	}
+
+	/**
 	 * Map pixel size to WordPress image size.
 	 *
 	 * @param int $size Size in pixels.

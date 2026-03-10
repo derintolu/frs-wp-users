@@ -678,12 +678,16 @@ class FluentBookingSync {
 			return false;
 		}
 
-		$meta_table = $wpdb->base_prefix . self::HOST_TARGET_SITE_ID . '_fcal_calendar_metas';
+		// FluentBooking stores meta in wp_X_fcal_meta table with object_type/object_id structure.
+		$meta_table = $wpdb->base_prefix . self::HOST_TARGET_SITE_ID . '_fcal_meta';
 
 		// Check if table exists.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		$table_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $meta_table ) );
 		if ( $table_exists !== $meta_table ) {
+			if ( defined( 'WP_CLI' ) && \WP_CLI ) {
+				\WP_CLI::debug( "Meta table $meta_table does not exist" );
+			}
 			return false;
 		}
 
@@ -692,7 +696,7 @@ class FluentBookingSync {
 		$existing = $wpdb->get_var(
 			$wpdb->prepare(
 				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				"SELECT id FROM {$meta_table} WHERE calendar_id = %d AND meta_key = 'profile_photo_url'",
+				"SELECT id FROM {$meta_table} WHERE object_type = 'Calendar' AND object_id = %d AND `key` = 'profile_photo_url'",
 				$calendar_id
 			)
 		);
@@ -702,7 +706,10 @@ class FluentBookingSync {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery
 			$wpdb->update(
 				$meta_table,
-				array( 'value' => $avatar_url ),
+				array(
+					'value'      => $avatar_url,
+					'updated_at' => current_time( 'mysql' ),
+				),
 				array( 'id' => $existing )
 			);
 		} else {
@@ -711,8 +718,9 @@ class FluentBookingSync {
 			$wpdb->insert(
 				$meta_table,
 				array(
-					'calendar_id' => $calendar_id,
-					'meta_key'    => 'profile_photo_url',
+					'object_type' => 'Calendar',
+					'object_id'   => $calendar_id,
+					'key'         => 'profile_photo_url',
 					'value'       => $avatar_url,
 					'created_at'  => current_time( 'mysql' ),
 					'updated_at'  => current_time( 'mysql' ),

@@ -563,6 +563,8 @@ class TwentyCRMSync {
 				$username .= wp_rand( 1, 999 );
 			}
 
+			$default_role = \FRSUsers\Core\Roles::is_profile_editing_enabled() ? 'subscriber' : '';
+
 			$user_id = wp_insert_user( array(
 				'user_login'   => $username,
 				'user_email'   => $email,
@@ -570,7 +572,7 @@ class TwentyCRMSync {
 				'last_name'    => $last_name,
 				'display_name' => trim( $first_name . ' ' . $last_name ),
 				'user_pass'    => wp_generate_password(),
-				'role'         => 'subscriber',
+				'role'         => $default_role,
 			) );
 
 			if ( is_wp_error( $user_id ) ) {

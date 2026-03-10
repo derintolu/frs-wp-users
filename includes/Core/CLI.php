@@ -1111,6 +1111,8 @@ class CLI {
 				$username .= wp_rand( 1, 999 );
 			}
 
+			$default_role = Roles::is_profile_editing_enabled() ? 'subscriber' : '';
+
 			$user_id = wp_insert_user( array(
 				'user_login'   => $username,
 				'user_email'   => $email,
@@ -1118,7 +1120,7 @@ class CLI {
 				'last_name'    => $last_name,
 				'display_name' => $display_name,
 				'user_pass'    => wp_generate_password(),
-				'role'         => 'subscriber',
+				'role'         => $default_role,
 			) );
 
 			if ( is_wp_error( $user_id ) ) {
@@ -1168,17 +1170,22 @@ class CLI {
 			}
 		}
 
-		// Set WordPress role (add_role preserves existing roles like subscriber)
+		// Set WordPress role.
 		if ( ! empty( $profile['select_person_type'] ) ) {
 			$wp_role = Roles::get_wp_role_for_company_role( $profile['select_person_type'] );
 			if ( $wp_role ) {
 				$user = new \WP_User( $user_id );
-				// Remove any existing FRS roles first
+				// Remove any existing FRS roles first.
 				$frs_roles = array_keys( Roles::get_wp_roles() );
 				foreach ( $frs_roles as $frs_role ) {
 					$user->remove_role( $frs_role );
 				}
 				$user->add_role( $wp_role );
+
+				// On non-hub sites, synced users are directory-only — strip subscriber so they cannot log in.
+				if ( ! Roles::is_profile_editing_enabled() ) {
+					$user->remove_role( 'subscriber' );
+				}
 			}
 		}
 

@@ -17,6 +17,8 @@
 
 namespace FRSUsers\Integrations;
 
+use FRSUsers\Core\Avatar;
+
 defined( 'ABSPATH' ) || exit;
 
 class FluentBookingSync {
@@ -86,6 +88,44 @@ class FluentBookingSync {
 		// Add script inside FluentBooking iframe to post OAuth URLs to parent.
 		add_action( 'fluent_booking/front_footer', array( __CLASS__, 'output_iframe_oauth_messenger' ) );
 
+		// Hook into FluentBooking avatar to use FRS headshots.
+		add_filter( 'fluent_booking/author_photo', array( __CLASS__, 'filter_author_photo' ), 10, 2 );
+
+	}
+
+	// -------------------------------------------------------------------------
+	// Avatar Sync - Use FRS headshots in FluentBooking
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Filter FluentBooking author photo to use FRS avatar.
+	 *
+	 * @param string $photo_url Current photo URL (from get_avatar_url).
+	 * @param mixed  $args      User ID or WP_User object.
+	 * @return string Photo URL.
+	 */
+	public static function filter_author_photo( $photo_url, $args ) {
+		$user_id = null;
+
+		if ( is_numeric( $args ) ) {
+			$user_id = absint( $args );
+		} elseif ( $args instanceof \WP_User ) {
+			$user_id = $args->ID;
+		} elseif ( is_object( $args ) && isset( $args->ID ) ) {
+			$user_id = $args->ID;
+		}
+
+		if ( ! $user_id ) {
+			return $photo_url;
+		}
+
+		$frs_avatar = Avatar::get_url( $user_id, 256 );
+
+		if ( $frs_avatar ) {
+			return $frs_avatar;
+		}
+
+		return $photo_url;
 	}
 
 	/**
@@ -572,6 +612,11 @@ class FluentBookingSync {
 		$result = $wpdb->insert( $table, $calendar_data );
 
 		if ( $result ) {
+			$calendar_id = $wpdb->insert_id;
+
+			// Sync avatar to FluentBooking calendar meta.
+			self::sync_avatar_to_calendar( $calendar_id, $user_id );
+
 			error_log(
 				sprintf(
 					'FRS: Created Fluent Booking host on site %d for user %d (%s)',
@@ -584,6 +629,101 @@ class FluentBookingSync {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Sync FRS avatar to FluentBooking calendar meta.
+	 *
+	 * @param int $calendar_id FluentBooking calendar ID.
+	 * @param int $user_id     WordPress user ID.
+	 * @return bool Whether avatar was synced.
+	 */
+	public static function sync_avatar_to_calendar( int $calendar_id, int $user_id ): bool {
+		global $wpdb;
+
+		$avatar_url = Avatar::get_url( $user_id, 256 );
+		if ( ! $avatar_url ) {
+			return false;
+		}
+
+		$meta_table = $wpdb->base_prefix . self::HOST_TARGET_SITE_ID . '_fcal_calendar_metas';
+
+		// Check if table exists.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$table_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $meta_table ) );
+		if ( $table_exists !== $meta_table ) {
+			return false;
+		}
+
+		// Check if profile_photo_url meta already exists.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$existing = $wpdb->get_var(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT id FROM {$meta_table} WHERE calendar_id = %d AND meta_key = 'profile_photo_url'",
+				$calendar_id
+			)
+		);
+
+		if ( $existing ) {
+			// Update existing.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$wpdb->update(
+				$meta_table,
+				array( 'value' => $avatar_url ),
+				array( 'id' => $existing )
+			);
+		} else {
+			// Insert new.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$wpdb->insert(
+				$meta_table,
+				array(
+					'calendar_id' => $calendar_id,
+					'meta_key'    => 'profile_photo_url',
+					'value'       => $avatar_url,
+					'created_at'  => current_time( 'mysql' ),
+					'updated_at'  => current_time( 'mysql' ),
+				)
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Sync avatars for all existing FluentBooking calendars.
+	 *
+	 * @return array Results with synced and skipped counts.
+	 */
+	public static function bulk_sync_avatars(): array {
+		global $wpdb;
+
+		$table = $wpdb->base_prefix . self::HOST_TARGET_SITE_ID . '_fcal_calendars';
+
+		// Get all calendars with their user IDs.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$calendars = $wpdb->get_results(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			"SELECT id, user_id FROM {$table} WHERE user_id > 0"
+		);
+
+		$synced  = 0;
+		$skipped = 0;
+
+		foreach ( $calendars as $calendar ) {
+			if ( self::sync_avatar_to_calendar( (int) $calendar->id, (int) $calendar->user_id ) ) {
+				++$synced;
+			} else {
+				++$skipped;
+			}
+		}
+
+		return array(
+			'synced'  => $synced,
+			'skipped' => $skipped,
+			'total'   => count( $calendars ),
+		);
 	}
 
 	/**

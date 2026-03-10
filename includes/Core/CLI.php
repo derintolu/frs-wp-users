@@ -44,6 +44,7 @@ class CLI {
 		\WP_CLI::add_command( 'frs-users setup-sync', array( __CLASS__, 'setup_sync' ) );
 		\WP_CLI::add_command( 'frs-users set-cdn-headshots', array( __CLASS__, 'set_cdn_headshots' ) );
 		\WP_CLI::add_command( 'frs-users migrate-avatars', array( __CLASS__, 'migrate_avatars' ) );
+		\WP_CLI::add_command( 'frs-users sync-fluentbooking-avatars', array( __CLASS__, 'sync_fluentbooking_avatars' ) );
 	}
 
 	/**
@@ -1410,5 +1411,33 @@ class CLI {
 		} else {
 			\WP_CLI::success( 'Avatar migration complete.' );
 		}
+	}
+
+	/**
+	 * Sync FRS avatars to FluentBooking calendars.
+	 *
+	 * Updates the profile_photo_url meta in FluentBooking calendar records
+	 * to use the FRS headshot URLs.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp frs-users sync-fluentbooking-avatars
+	 *
+	 * @param array $args       Positional arguments.
+	 * @param array $assoc_args Associative arguments.
+	 * @return void
+	 */
+	public static function sync_fluentbooking_avatars( $args, $assoc_args ) {
+		\WP_CLI::log( 'Syncing FRS avatars to FluentBooking calendars...' );
+
+		$results = \FRSUsers\Integrations\FluentBookingSync::bulk_sync_avatars();
+
+		\WP_CLI::log( '' );
+		\WP_CLI::log( 'Results:' );
+		\WP_CLI::log( sprintf( '  Synced:  %d', $results['synced'] ) );
+		\WP_CLI::log( sprintf( '  Skipped: %d (no FRS avatar)', $results['skipped'] ) );
+		\WP_CLI::log( sprintf( '  Total:   %d calendars', $results['total'] ) );
+
+		\WP_CLI::success( 'FluentBooking avatar sync complete.' );
 	}
 }

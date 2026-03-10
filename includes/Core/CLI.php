@@ -1193,8 +1193,11 @@ class CLI {
 		}
 
 		if ( ! empty( $headshot_url ) ) {
-			// Set native avatar system
-			Avatar::set_avatar( $user_id, 0, $headshot_url );
+			// Download image to local media library, then set via Avatar
+			$attachment_id = ProfileSync::sync_remote_image( $headshot_url );
+			if ( $attachment_id ) {
+				Avatar::set( $user_id, $attachment_id );
+			}
 		}
 
 		return $result;

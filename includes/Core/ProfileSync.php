@@ -362,12 +362,10 @@ class ProfileSync {
 			}
 		}
 
-		// Sync headshot/avatar image from hub
-		if ( ! empty( $profile_data['headshot_id'] ) ) {
-			// Use attachment ID directly (single source of truth)
-			Avatar::set( $user_id, absint( $profile_data['headshot_id'] ) );
-		} elseif ( ! empty( $profile_data['headshot_url'] ) ) {
-			// Fallback: download remote image to local media library
+		// Sync headshot/avatar image from hub.
+		// Always use URL download — headshot_id from hub is a hub-side attachment ID
+		// that does not exist in this site's media library.
+		if ( ! empty( $profile_data['headshot_url'] ) ) {
 			$attachment_id = self::sync_remote_image( $profile_data['headshot_url'] );
 			if ( $attachment_id ) {
 				Avatar::set( $user_id, $attachment_id );

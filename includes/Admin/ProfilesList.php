@@ -377,47 +377,60 @@ class ProfilesList extends \WP_List_Table {
 		$current_page = $this->get_pagenum();
 		$offset       = ( $current_page - 1 ) * $per_page;
 
-		// Build query
-		$query = Profile::query();
+		// Fetch all profiles using WordPress-native query
+		$all_profiles = Profile::get_all();
+
+		// Convert to arrays for filtering
+		$results = array_map( function( $p ) {
+			return $p->toArray();
+		}, $all_profiles );
 
 		// Filter by active/archived status
 		if ( $show_archived ) {
-			$query->where( 'is_active', 0 );
+			$results = array_filter( $results, function( $p ) {
+				return empty( $p['is_active'] );
+			} );
 		} else {
-			$query->where( 'is_active', 1 );
+			$results = array_filter( $results, function( $p ) {
+				return ! empty( $p['is_active'] );
+			} );
 		}
 
-		// Filter by guest profiles
+		// Filter by guest profiles (no user_id)
 		if ( $guests_only ) {
-			$query->whereNull( 'user_id' );
+			$results = array_filter( $results, function( $p ) {
+				return empty( $p['user_id'] );
+			} );
 		}
 
 		// Filter by type
 		if ( $filter_type ) {
-			$query->where( 'select_person_type', $filter_type );
+			$results = array_filter( $results, function( $p ) use ( $filter_type ) {
+				return ( $p['select_person_type'] ?? '' ) === $filter_type;
+			} );
 		}
 
 		// Search functionality
 		if ( ! empty( $search ) ) {
-			$query->where( function( $q ) use ( $search ) {
-				$q->where( 'first_name', 'LIKE', '%' . $search . '%' )
-				  ->orWhere( 'last_name', 'LIKE', '%' . $search . '%' )
-				  ->orWhere( 'email', 'LIKE', '%' . $search . '%' )
-				  ->orWhere( 'phone_number', 'LIKE', '%' . $search . '%' )
-				  ->orWhere( 'nmls', 'LIKE', '%' . $search . '%' )
-				  ->orWhere( 'nmls_number', 'LIKE', '%' . $search . '%' )
-				  ->orWhereRaw( 'JSON_SEARCH(service_areas, "one", ?) IS NOT NULL', array( '%' . $search . '%' ) );
-			});
+			$search_lower = strtolower( $search );
+			$results = array_filter( $results, function( $p ) use ( $search_lower ) {
+				$haystack = strtolower(
+					( $p['first_name'] ?? '' ) . ' ' .
+					( $p['last_name'] ?? '' ) . ' ' .
+					( $p['email'] ?? '' ) . ' ' .
+					( $p['phone_number'] ?? '' ) . ' ' .
+					( $p['nmls'] ?? '' ) . ' ' .
+					( $p['nmls_number'] ?? '' )
+				);
+				return strpos( $haystack, $search_lower ) !== false;
+			} );
 		}
 
-		// Get total count
-		$total_items = $query->count();
+		$results     = array_values( $results );
+		$total_items = count( $results );
 
-		// Get paginated items
-		$items = $query->orderBy( 'first_name', 'asc' )
-			->skip( $offset )
-			->take( $per_page )
-			->get();
+		// Paginate
+		$items = array_slice( $results, $offset, $per_page );
 
 		$this->items = $items;
 

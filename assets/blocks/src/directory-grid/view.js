@@ -288,6 +288,20 @@ const { state, actions } = store( 'frs/directory', {
 			visibleProfiles.forEach( ( lo ) => {
 				grid.appendChild( createCard( lo, state.hubUrl, stateNames ) );
 			} );
+
+			// Attach QR popup handlers to dynamically created cards
+			// (innerHTML cards don't get Interactivity API directives)
+			grid.querySelectorAll( '.frs-card__qr-btn' ).forEach( ( btn ) => {
+				btn.addEventListener( 'click', () => {
+					const qrData = btn.dataset.qr;
+					const name = btn.dataset.name;
+					if ( qrData ) {
+						state.qrImageSrc = qrData;
+						state.qrName = name || '';
+						state.qrPopupOpen = true;
+					}
+				} );
+			} );
 		},
 
 		/**

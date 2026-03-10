@@ -235,50 +235,63 @@ class ProfileApi {
 	 * @return WP_REST_Response
 	 */
 	public function get_profiles( $request ) {
-		$page            = $request->get_param( 'page' );
-		$per_page        = $request->get_param( 'per_page' );
+		$page            = (int) ( $request->get_param( 'page' ) ?: 1 );
+		$per_page        = (int) ( $request->get_param( 'per_page' ) ?: 20 );
 		$search          = $request->get_param( 'search' );
 		$status          = $request->get_param( 'status' );
 		$with_users_only = $request->get_param( 'with_users_only' );
 
-		// Build query
-		$query = Profile::query();
+		// Fetch all profiles using WordPress-native query
+		$all_profiles = Profile::get_all();
+
+		// Convert to arrays for filtering
+		$results = array_map( function( $p ) {
+			return $p->toArray();
+		}, $all_profiles );
 
 		// Search filter
 		if ( $search ) {
-			$query->where( function( $q ) use ( $search ) {
-				$q->where( 'first_name', 'LIKE', "%{$search}%" )
-				  ->orWhere( 'last_name', 'LIKE', "%{$search}%" )
-				  ->orWhere( 'email', 'LIKE', "%{$search}%" )
-				  ->orWhere( 'nmls', 'LIKE', "%{$search}%" );
-			});
+			$search_lower = strtolower( $search );
+			$results = array_filter( $results, function( $p ) use ( $search_lower ) {
+				$haystack = strtolower(
+					( $p['first_name'] ?? '' ) . ' ' .
+					( $p['last_name'] ?? '' ) . ' ' .
+					( $p['email'] ?? '' ) . ' ' .
+					( $p['nmls'] ?? '' )
+				);
+				return strpos( $haystack, $search_lower ) !== false;
+			} );
 		}
 
 		// Status filter
 		if ( $status ) {
-			$query->where( 'status', $status );
+			$results = array_filter( $results, function( $p ) use ( $status ) {
+				return ( $p['status'] ?? '' ) === $status;
+			} );
 		}
 
 		// Users only filter
 		if ( $with_users_only ) {
-			$query->whereNotNull( 'user_id' );
+			$results = array_filter( $results, function( $p ) {
+				return ! empty( $p['user_id'] );
+			} );
 		}
 
-		// Get total count before pagination
-		$total = $query->count();
+		$results = array_values( $results );
+		$total   = count( $results );
 
 		// Pagination
-		$offset = ( $page - 1 ) * $per_page;
-		$profiles = $query->offset( $offset )->limit( $per_page )->get();
+		$offset   = ( $page - 1 ) * $per_page;
+		$profiles = array_slice( $results, $offset, $per_page );
 
 		return new WP_REST_Response(
 			array(
-				'success'    => true,
-				'profiles'   => $profiles,
-				'total'      => $total,
-				'page'       => $page,
-				'per_page'   => $per_page,
-				'total_pages' => ceil( $total / $per_page ),
+				'success'     => true,
+				'profiles'    => $profiles,
+				'total'       => $total,
+				'page'        => $page,
+				'per_page'    => $per_page,
+				'total_pages' => (int) ceil( $total / $per_page ),
 			),
 			200
 		);

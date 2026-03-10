@@ -119,7 +119,19 @@ class FluentBookingSync {
 			return $photo_url;
 		}
 
+		// Avatar attachments are stored on the main site (site 1), so we need
+		// to switch to it to get the correct URL.
+		$switched = false;
+		if ( is_multisite() && get_current_blog_id() !== 1 ) {
+			switch_to_blog( 1 );
+			$switched = true;
+		}
+
 		$frs_avatar = Avatar::get_url( $user_id, 256 );
+
+		if ( $switched ) {
+			restore_current_blog();
+		}
 
 		if ( $frs_avatar ) {
 			return $frs_avatar;
@@ -641,7 +653,20 @@ class FluentBookingSync {
 	public static function sync_avatar_to_calendar( int $calendar_id, int $user_id ): bool {
 		global $wpdb;
 
+		// Avatar attachments are stored on the main site (site 1), so we need
+		// to switch to it to get the correct URL.
+		$switched = false;
+		if ( is_multisite() && get_current_blog_id() !== 1 ) {
+			switch_to_blog( 1 );
+			$switched = true;
+		}
+
 		$avatar_url = Avatar::get_url( $user_id, 256 );
+
+		if ( $switched ) {
+			restore_current_blog();
+		}
+
 		if ( ! $avatar_url ) {
 			return false;
 		}

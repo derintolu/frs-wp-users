@@ -130,14 +130,7 @@ class Avatar {
 			return false;
 		}
 
-		// Get sized image
-		$image = wp_get_attachment_image_src( $attachment_id, self::get_wp_size( $size ) );
-		if ( $image && ! empty( $image[0] ) ) {
-			return $image[0];
-		}
-
-		// Fallback to full size
-		return wp_get_attachment_url( $attachment_id );
+		return self::get_attachment_url_on_main_site( $attachment_id, self::get_wp_size( $size ) );
 	}
 
 	/**
@@ -341,6 +334,45 @@ class Avatar {
 		update_post_meta( $attachment_id, '_frs_original_url', $photo_url );
 
 		return $attachment_id;
+	}
+
+	/**
+	 * Resolve an attachment URL on the main site (blog 1).
+	 *
+	 * On multisite with a central media library, all attachments live on blog 1.
+	 * This helper switches to blog 1 before resolving so URLs are always correct,
+	 * regardless of which subsite is currently active.
+	 *
+	 * Can be called from anywhere in the plugin — not just Avatar methods.
+	 *
+	 * @param int    $attachment_id Attachment ID (must exist on blog 1).
+	 * @param string $size          WordPress image size name.
+	 * @return string|false         Attachment URL or false.
+	 */
+	public static function get_attachment_url_on_main_site( $attachment_id, $size = 'thumbnail' ) {
+		if ( ! $attachment_id ) {
+			return false;
+		}
+
+		$switched = false;
+		if ( is_multisite() && get_current_blog_id() !== 1 ) {
+			switch_to_blog( 1 );
+			$switched = true;
+		}
+
+		$url   = false;
+		$image = wp_get_attachment_image_src( $attachment_id, $size );
+		if ( $image && ! empty( $image[0] ) ) {
+			$url = $image[0];
+		} else {
+			$url = wp_get_attachment_url( $attachment_id );
+		}
+
+		if ( $switched ) {
+			restore_current_blog();
+		}
+
+		return $url;
 	}
 
 	/**

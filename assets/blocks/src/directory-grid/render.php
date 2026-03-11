@@ -467,6 +467,20 @@ if ( ! function_exists( 'frs_get_profile_image' ) ) {
 					</button>
 				</div>
 			<?php endif; ?>
+
+			<!-- Clear Filters (below Load More, only when filters active) -->
+			<div
+				class="frs-directory__clear-filters"
+				data-wp-bind--hidden="!state.hasFilters"
+				<?php echo ! $has_filters ? 'hidden' : ''; ?>
+			>
+				<button
+					class="frs-btn frs-btn--outline"
+					data-wp-on-async--click="actions.clearFilters"
+				>
+					<?php esc_html_e( 'Clear Filters', 'frs-users' ); ?>
+				</button>
+			</div>
 		</main>
 	</div><!-- .frs-directory__layout -->
 

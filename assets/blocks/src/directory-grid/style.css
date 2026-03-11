@@ -987,6 +987,15 @@
     margin-top: 2rem;
 }
 
+.frs-directory__clear-filters {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.frs-directory__clear-filters[hidden] {
+    display: none;
+}
+
 /* Mobile */
 @media (max-width: 900px) {
     .frs-directory__sidebar {

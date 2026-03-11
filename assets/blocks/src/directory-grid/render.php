@@ -344,7 +344,12 @@ if ( ! function_exists( 'frs_get_profile_image' ) ) {
 			$last_name      = $lo['last_name'] ?? '';
 			$full_name      = trim( $first_name . ' ' . $last_name );
 			$initials       = strtoupper( substr( $first_name, 0, 1 ) . substr( $last_name, 0, 1 ) ) ?: '?';
-			$title          = $lo['job_title'] ?? 'Loan Officer';
+			$raw_title      = trim( $lo['job_title'] ?? '' );
+			if ( $raw_title === '' || strcasecmp( $raw_title, 'Loan Originator' ) === 0 ) {
+				$title = 'Loan Originator';
+			} else {
+				$title = 'Loan Originator / ' . $raw_title;
+			}
 			$nmls           = $lo['nmls'] ?? $lo['nmls_number'] ?? '';
 			$email          = $lo['email'] ?? '';
 			$phone          = $lo['phone_number'] ?? $lo['mobile_number'] ?? '';

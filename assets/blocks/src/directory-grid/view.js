@@ -56,7 +56,10 @@ function createCard( lo, hubUrl, stateNames ) {
 	const lastName = lo.last_name || '';
 	const fullName = `${ firstName } ${ lastName }`.trim();
 	const initials = ( firstName.charAt( 0 ) + lastName.charAt( 0 ) ).toUpperCase() || '?';
-	const title = lo.job_title || 'Loan Officer';
+	const rawTitle = ( lo.job_title || '' ).trim();
+	const title = ( ! rawTitle || rawTitle.toLowerCase() === 'loan originator' )
+		? 'Loan Originator'
+		: `Loan Originator / ${ rawTitle }`;
 	const nmls = lo.nmls || lo.nmls_number || '';
 	const email = lo.email || '';
 	const phone = lo.phone_number || lo.mobile_number || '';

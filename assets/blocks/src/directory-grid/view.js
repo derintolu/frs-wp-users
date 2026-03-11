@@ -198,7 +198,8 @@ const { state, actions } = store( 'frs/directory', {
 		 * Apply current filters to profiles.
 		 */
 		applyFilters() {
-			let filtered = [ ...state.profiles ];
+			// Only include profiles with an NMLS number.
+			let filtered = state.profiles.filter( ( p ) => p.nmls || p.nmls_number );
 			const stateNames = state.stateNames || {};
 
 			// Search filter

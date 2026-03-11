@@ -21,8 +21,9 @@ $profiles      = \FRSUsers\Models\Profile::get_all( array( 'type' => 'loan_origi
 if ( ! empty( $profiles ) ) {
 	foreach ( $profiles as $profile ) {
 		$profile_array = is_array( $profile ) ? $profile : ( method_exists( $profile, 'toArray' ) ? $profile->toArray() : (array) $profile );
-		// Only include active profiles.
-		if ( ! empty( $profile_array['is_active'] ) ) {
+		// Only include profiles with an NMLS number.
+		$nmls = $profile_array['nmls'] ?? $profile_array['nmls_number'] ?? '';
+		if ( ! empty( $nmls ) ) {
 			$profiles_data[] = $profile_array;
 		}
 	}

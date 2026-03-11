@@ -334,11 +334,6 @@ class TemplateLoader {
      * @return string Modified template path
      */
     public function load_profile_template($template) {
-        // TEMP DEBUG — remove after diagnosis
-        if (strpos($_SERVER['REQUEST_URI'] ?? '', '/lo/') !== false) {
-            file_put_contents('/app/data/public/wp-content/frs_debug.txt', date('H:i:s') . ' load_profile_template is_author=' . (is_author() ? 'Y' : 'N') . ' tpl=' . $template . "\n", FILE_APPEND);
-        }
-
         if (!is_author()) {
             return $template;
         }

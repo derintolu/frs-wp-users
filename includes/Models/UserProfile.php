@@ -357,7 +357,7 @@ class UserProfile {
     }
 
     public function get_headshot_url(): string {
-        return \FRSUsers\Core\Avatar::get_url($this->user_id, 512) ?: '';
+        return \FRSUsers\Core\Avatar::get_url($this->user_id) ?: '';
     }
 
     public function get_qr_code_data(): string {

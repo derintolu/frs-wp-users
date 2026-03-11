@@ -144,7 +144,7 @@ class UserProfileFields {
 			<td>
 				<?php
 				$headshot_id  = \FRSUsers\Core\Avatar::get_id( $user->ID );
-				$headshot_url = \FRSUsers\Core\Avatar::get_url( $user->ID, 150 );
+				$headshot_url = \FRSUsers\Core\Avatar::get_url( $user->ID );
 				?>
 				<div class="frs-image-upload">
 					<div class="frs-image-preview" style="margin-bottom: 10px;">

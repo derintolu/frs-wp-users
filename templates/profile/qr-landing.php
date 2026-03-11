@@ -38,7 +38,7 @@ $phone = get_user_meta($user_id, 'frs_phone_number', true) ?: get_user_meta($use
 $profile_slug = get_user_meta($user_id, 'frs_profile_slug', true) ?: $user->user_nicename;
 
 // Get headshot URL using native Avatar system
-$headshot_url = \FRSUsers\Core\Avatar::get_url($user_id, 512) ?: get_avatar_url($user_id, array('size' => 512));
+$headshot_url = \FRSUsers\Core\Avatar::get_url($user_id) ?: get_avatar_url($user_id, array('size' => 512));
 
 // Determine profile URL based on role (use centralized Roles class)
 $user_roles = $user->roles ?? [];

@@ -185,7 +185,7 @@ class ProfileEditPage {
 			'dre_license'        => $profile->dre_license,
 			'biography'          => $profile->biography,
 			'headshot_id'        => \FRSUsers\Core\Avatar::get_id( $user_id ),
-			'headshot_url'       => \FRSUsers\Core\Avatar::get_url( $user_id, 512 ) ?: '',
+			'headshot_url'       => \FRSUsers\Core\Avatar::get_url( $user_id ) ?: '',
 			'city_state'         => $profile->city_state,
 			'region'             => $profile->region,
 			'service_areas'      => $profile->service_areas ?: array(),

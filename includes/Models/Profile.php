@@ -838,7 +838,7 @@ class Profile {
 		if ( ! $this->user_id ) {
 			return null;
 		}
-		return \FRSUsers\Core\Avatar::get_url( $this->user_id, 512 ) ?: null;
+		return \FRSUsers\Core\Avatar::get_url( $this->user_id ) ?: null;
 	}
 
 	/**

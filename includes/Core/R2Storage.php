@@ -369,6 +369,6 @@ class R2Storage {
 	 * @return string|null CDN URL, local attachment URL, or null.
 	 */
 	public static function get_headshot_url( $user_id ) {
-		return Avatar::get_url( $user_id, 512 ) ?: null;
+		return Avatar::get_url( $user_id ) ?: null;
 	}
 }

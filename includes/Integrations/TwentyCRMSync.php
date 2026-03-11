@@ -222,7 +222,7 @@ class TwentyCRMSync {
 		}
 
 		// Sync headshot URL to Twenty CRM as avatarUrl (Twenty's built-in field).
-		$headshot_url = \FRSUsers\Core\Avatar::get_url( $user->ID, 512 );
+		$headshot_url = \FRSUsers\Core\Avatar::get_url( $user->ID );
 		if ( $headshot_url ) {
 			$payload['avatarUrl'] = $headshot_url;
 		}

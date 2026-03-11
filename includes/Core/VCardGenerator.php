@@ -210,7 +210,7 @@ class VCardGenerator {
 		}
 
 		// Get avatar URL using native Avatar system
-		$profile['avatar_url'] = Avatar::get_url( $user_id, 512 ) ?: get_avatar_url( $user_id, array( 'size' => 512 ) );
+		$profile['avatar_url'] = Avatar::get_url( $user_id ) ?: get_avatar_url( $user_id, array( 'size' => 512 ) );
 
 		// Get profile slug
 		if ( empty( $profile['profile_slug'] ) ) {

@@ -1170,6 +1170,21 @@ class CLI {
 			}
 		}
 
+		// Set frs_company_role (singular, multi-value meta) from company_roles or select_person_type.
+		// The rest of the codebase queries frs_company_role (singular) as multi-value rows.
+		$roles_to_set = array();
+		if ( ! empty( $profile['company_roles'] ) && is_array( $profile['company_roles'] ) ) {
+			$roles_to_set = $profile['company_roles'];
+		} elseif ( ! empty( $profile['select_person_type'] ) ) {
+			$roles_to_set = array( $profile['select_person_type'] );
+		}
+		if ( ! empty( $roles_to_set ) ) {
+			delete_user_meta( $user_id, 'frs_company_role' );
+			foreach ( $roles_to_set as $role ) {
+				add_user_meta( $user_id, 'frs_company_role', $role );
+			}
+		}
+
 		// Set WordPress role.
 		if ( ! empty( $profile['select_person_type'] ) ) {
 			$wp_role = Roles::get_wp_role_for_company_role( $profile['select_person_type'] );
@@ -1193,9 +1208,10 @@ class CLI {
 		// Use headshot_url if available, otherwise fall back to avatar_url
 		$headshot_url = $profile['headshot_url'] ?? '';
 		if ( empty( $headshot_url ) && ! empty( $profile['avatar_url'] ) ) {
-			// Only use avatar_url if it's not a Gravatar fallback
+			// Only use avatar_url if it's not a Gravatar or WPO365 silhouette fallback
 			$avatar_url = $profile['avatar_url'];
-			if ( strpos( $avatar_url, 'gravatar.com' ) === false ) {
+			if ( strpos( $avatar_url, 'gravatar.com' ) === false
+				&& strpos( $avatar_url, '/wpo365/profile-images/' ) === false ) {
 				$headshot_url = $avatar_url;
 			}
 		}

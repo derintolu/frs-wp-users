@@ -364,6 +364,21 @@ class ProfileSync {
 			}
 		}
 
+		// Set frs_company_role (singular, multi-value meta) from company_roles or select_person_type.
+		// The rest of the codebase queries frs_company_role (singular) as multi-value rows.
+		$roles_to_set = array();
+		if ( ! empty( $profile_data['company_roles'] ) && is_array( $profile_data['company_roles'] ) ) {
+			$roles_to_set = $profile_data['company_roles'];
+		} elseif ( ! empty( $profile_data['select_person_type'] ) ) {
+			$roles_to_set = array( $profile_data['select_person_type'] );
+		}
+		if ( ! empty( $roles_to_set ) ) {
+			delete_user_meta( $user_id, 'frs_company_role' );
+			foreach ( $roles_to_set as $role ) {
+				add_user_meta( $user_id, 'frs_company_role', $role );
+			}
+		}
+
 		// Sync headshot/avatar image from hub.
 		// Always use URL download — headshot_id from hub is a hub-side attachment ID
 		// that does not exist in this site's media library.
@@ -457,6 +472,11 @@ class ProfileSync {
 	public static function sync_remote_image( $image_url ) {
 		if ( empty( $image_url ) ) {
 			return false;
+		}
+
+		// Fix protocol-relative URLs (//example.com/...) → https://example.com/...
+		if ( strpos( $image_url, '//' ) === 0 ) {
+			$image_url = 'https:' . $image_url;
 		}
 
 		$url_hash = md5( $image_url );

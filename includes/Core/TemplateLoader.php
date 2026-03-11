@@ -334,6 +334,11 @@ class TemplateLoader {
      * @return string Modified template path
      */
     public function load_profile_template($template) {
+        // TEMP DEBUG — remove after diagnosis
+        if (strpos($_SERVER['REQUEST_URI'] ?? '', '/lo/') !== false) {
+            error_log('FRS_TEMPLATE_DEBUG: entered load_profile_template, is_author=' . (is_author() ? 'Y' : 'N') . ' template=' . $template);
+        }
+
         if (!is_author()) {
             return $template;
         }

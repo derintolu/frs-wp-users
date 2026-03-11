@@ -54,7 +54,7 @@ class Avatar {
 			return $args;
 		}
 
-		$avatar_url = self::get_url( $user_id, $args['size'] ?? 96 );
+		$avatar_url = self::get_url( $user_id );
 
 		if ( ! $avatar_url ) {
 			return $args;
@@ -107,13 +107,12 @@ class Avatar {
 	 * GET: Get avatar URL for a user.
 	 *
 	 * This is THE method to get avatar URL. All code should use this.
-	 * Priority: CDN URL (if set) > Local attachment URL
+	 * Priority: CDN URL (if set) > Local attachment URL (full size, no rewrites)
 	 *
 	 * @param int $user_id User ID.
-	 * @param int $size    Desired size in pixels.
 	 * @return string|false Avatar URL or false if none.
 	 */
-	public static function get_url( $user_id, $size = 96 ) {
+	public static function get_url( $user_id ) {
 		if ( ! $user_id ) {
 			return false;
 		}
@@ -124,13 +123,13 @@ class Avatar {
 			return $cdn_url;
 		}
 
-		// Fall back to local attachment
+		// Fall back to local attachment — always full size, no size rewrites
 		$attachment_id = self::get_id( $user_id );
 		if ( ! $attachment_id ) {
 			return false;
 		}
 
-		return self::get_attachment_url_on_main_site( $attachment_id, self::get_wp_size( $size ) );
+		return self::get_attachment_url_on_main_site( $attachment_id );
 	}
 
 	/**
@@ -345,11 +344,10 @@ class Avatar {
 	 *
 	 * Can be called from anywhere in the plugin — not just Avatar methods.
 	 *
-	 * @param int    $attachment_id Attachment ID (must exist on blog 1).
-	 * @param string $size          WordPress image size name.
-	 * @return string|false         Attachment URL or false.
+	 * @param int $attachment_id Attachment ID (must exist on blog 1).
+	 * @return string|false     Full-size attachment URL or false.
 	 */
-	public static function get_attachment_url_on_main_site( $attachment_id, $size = 'thumbnail' ) {
+	public static function get_attachment_url_on_main_site( $attachment_id ) {
 		if ( ! $attachment_id ) {
 			return false;
 		}
@@ -360,13 +358,8 @@ class Avatar {
 			$switched = true;
 		}
 
-		$url   = false;
-		$image = wp_get_attachment_image_src( $attachment_id, $size );
-		if ( $image && ! empty( $image[0] ) ) {
-			$url = $image[0];
-		} else {
-			$url = wp_get_attachment_url( $attachment_id );
-		}
+		// Always full size — no size rewrites
+		$url = wp_get_attachment_url( $attachment_id );
 
 		if ( $switched ) {
 			restore_current_blog();
@@ -375,22 +368,5 @@ class Avatar {
 		return $url;
 	}
 
-	/**
-	 * Map pixel size to WordPress image size.
-	 *
-	 * @param int $size Size in pixels.
-	 * @return string WordPress image size name.
-	 */
-	private static function get_wp_size( $size ) {
-		if ( $size <= 96 ) {
-			return 'thumbnail';
-		}
-		if ( $size <= 256 ) {
-			return 'medium';
-		}
-		if ( $size <= 512 ) {
-			return 'medium_large';
-		}
-		return 'full';
-	}
+
 }

@@ -358,7 +358,6 @@ if ( ! function_exists( 'frs_get_profile_image' ) ) {
 			$slug           = $lo['profile_slug'] ?? $lo['id'] ?? '';
 			$profile_url    = $hub_url . $slug . '/';
 			$qr_data        = $lo['qr_code_data'] ?? '';
-			$booking_url    = $lo['booking_url'] ?? '';
 			$service_areas  = $lo['service_areas'] ?? array();
 			if ( is_string( $service_areas ) ) {
 				$service_areas = json_decode( $service_areas, true ) ?: array();
@@ -421,17 +420,6 @@ if ( ! function_exists( 'frs_get_profile_image' ) ) {
 				</div>
 				<div class="frs-card__actions">
 					<a href="<?php echo esc_url( $profile_url ); ?>" class="frs-card__btn frs-card__btn--primary"><?php esc_html_e( 'View Profile', 'frs-users' ); ?></a>
-					<?php if ( $booking_url ) : ?>
-						<a href="<?php echo esc_url( $booking_url ); ?>" class="frs-card__btn frs-card__btn--book" target="_blank" rel="noopener">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-							<?php esc_html_e( 'Book Appointment', 'frs-users' ); ?>
-						</a>
-					<?php else : ?>
-						<button class="frs-card__btn frs-card__btn--book frs-card__contact-btn" data-lo-email="<?php echo esc_attr( $email ); ?>" data-lo-name="<?php echo esc_attr( $full_name ); ?>" data-lo-id="<?php echo esc_attr( $lo['id'] ?? '' ); ?>">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-							<?php esc_html_e( 'Book Appointment', 'frs-users' ); ?>
-						</button>
-					<?php endif; ?>
 				</div>
 			</div>
 		<?php endforeach; ?>
@@ -483,23 +471,6 @@ if ( ! function_exists( 'frs_get_profile_image' ) ) {
 			</div>
 		</main>
 	</div><!-- .frs-directory__layout -->
-
-	<!-- Contact Modal -->
-	<div class="frs-modal" id="frs-contact-modal">
-		<div class="frs-modal__backdrop" id="frs-contact-backdrop"></div>
-		<div class="frs-modal__content">
-			<button class="frs-modal__close" id="frs-contact-close" aria-label="<?php esc_attr_e( 'Close', 'frs-users' ); ?>">
-				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
-					<line x1="18" y1="6" x2="6" y2="18"/>
-					<line x1="6" y1="6" x2="18" y2="18"/>
-				</svg>
-			</button>
-			<h2 class="frs-modal__title" id="frs-contact-title"><?php esc_html_e( 'Book an Appointment', 'frs-users' ); ?></h2>
-			<p class="frs-modal__subtitle" id="frs-contact-subtitle"></p>
-			<div id="frs-contact-lo-data" data-id="" data-email="" data-name="" style="display:none;"></div>
-			<?php echo do_shortcode( '[fluentform id="7"]' ); ?>
-		</div>
-	</div>
 
 	<!-- QR Popup -->
 	<div class="frs-qr-popup" id="frs-qr-popup" data-wp-class--frs-qr-popup--open="state.qrPopupOpen">

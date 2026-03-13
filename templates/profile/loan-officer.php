@@ -302,19 +302,7 @@ $directory_url = apply_filters( 'frs_directory_url', $directory_url );
         <div class="frs-profile__sidebar">
             <!-- Action Buttons Card -->
             <div class="frs-profile__card frs-profile__card--actions">
-                <?php if ($booking_url) : ?>
-                <!-- Schedule button (links to FluentBooking/Calendly) -->
-                <a href="<?php echo esc_url($booking_url); ?>" class="frs-profile__action-btn frs-profile__action-btn--primary" target="_blank" rel="noopener">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                        <line x1="16" y1="2" x2="16" y2="6"/>
-                        <line x1="8" y1="2" x2="8" y2="6"/>
-                        <line x1="3" y1="10" x2="21" y2="10"/>
-                    </svg>
-                    Schedule Meeting
-                </a>
-                <?php else : ?>
-                <!-- Contact form button (no booking URL set) -->
+                <!-- Contact form button (always present) -->
                 <button class="frs-profile__action-btn" id="open-contact-modal">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
                         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -322,7 +310,6 @@ $directory_url = apply_filters( 'frs_directory_url', $directory_url );
                     </svg>
                     Contact <?php echo esc_html($first_name); ?>
                 </button>
-                <?php endif; ?>
                 <?php if ($phone) : ?>
                 <a href="tel:<?php echo esc_attr(preg_replace('/[^\d+]/', '', $phone)); ?>" class="frs-profile__action-btn">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
@@ -330,6 +317,28 @@ $directory_url = apply_filters( 'frs_directory_url', $directory_url );
                     </svg>
                     Call Me
                 </a>
+                <?php endif; ?>
+                <!-- Book Appointment: links out if booking URL exists, otherwise opens contact modal -->
+                <?php if ($booking_url) : ?>
+                <a href="<?php echo esc_url($booking_url); ?>" class="frs-profile__action-btn frs-profile__action-btn--book" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    Book Appointment
+                </a>
+                <?php else : ?>
+                <button class="frs-profile__action-btn frs-profile__action-btn--book" id="open-book-modal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    Book Appointment
+                </button>
                 <?php endif; ?>
             </div>
 
@@ -1360,7 +1369,10 @@ $directory_url = apply_filters( 'frs_directory_url', $directory_url );
         document.body.style.overflow = '';
     }
 
+    const openBookBtn = document.getElementById('open-book-modal');
+
     if (openModalBtn) openModalBtn.addEventListener('click', openModal);
+    if (openBookBtn) openBookBtn.addEventListener('click', openModal);
     if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
     if (modalBackdrop) modalBackdrop.addEventListener('click', closeModal);
 
@@ -1396,6 +1408,11 @@ $directory_url = apply_filters( 'frs_directory_url', $directory_url );
     // Also prefill when modal opens (in case form loads late)
     if (openModalBtn) {
         openModalBtn.addEventListener('click', function() {
+            setTimeout(prefillFluentForm, 100);
+        });
+    }
+    if (openBookBtn) {
+        openBookBtn.addEventListener('click', function() {
             setTimeout(prefillFluentForm, 100);
         });
     }

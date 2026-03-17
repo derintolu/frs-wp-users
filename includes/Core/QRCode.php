@@ -222,20 +222,16 @@ class QRCode {
 	/**
 	 * Get the QR landing page URL for a profile.
 	 *
-	 * Always uses the hub domain for consistency across all sites.
+	 * Always uses the public marketing site URL for consistency.
+	 * QR codes should direct users to the public-facing site, not the hub.
 	 *
 	 * @param string $slug Profile slug.
 	 * @return string QR landing URL.
 	 */
 	public static function get_qr_landing_url( $slug ) {
-		// On hub, use home_url; on marketing sites, use hub URL
-		if ( Roles::is_profile_editing_enabled() ) {
-			return home_url( '/qr/' . $slug );
-		}
-
-		// Marketing sites use hub URL for QR landing
-		$hub_url = get_option( 'frs_hub_url', 'https://myhub21.com' );
-		return rtrim( $hub_url, '/' ) . '/qr/' . $slug;
+		// Always use the public marketing site URL for QR codes
+		$public_site_url = get_option( 'frs_public_site_url', 'https://21stcenturylending.com' );
+		return rtrim( $public_site_url, '/' ) . '/qr/' . $slug;
 	}
 
 	/**

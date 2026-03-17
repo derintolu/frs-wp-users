@@ -409,6 +409,7 @@ class TemplateLoader {
      * Redirects:
      * - /profile/{slug} → /lo/{slug} (old custom URL)
      * - /directory/lo/{slug} → /lo/{slug} (from frs-profile-directory)
+     * - /team-member/{slug} → /lo/{slug} (old theme URL structure)
      * - /author/{slug} → /{role-prefix}/{slug} (for FRS users)
      *
      * Uses site-relative paths so redirects work on multisite subsites.
@@ -434,6 +435,13 @@ class TemplateLoader {
             $prefix = $matches[1];
             $slug = $matches[2];
             wp_redirect(home_url("/{$prefix}/{$slug}/"), 301);
+            exit;
+        }
+
+        // Redirect /team-member/{slug} → /lo/{slug} (old theme URL structure)
+        if (preg_match('#^/team-member/([^/]+)#', $relative_path, $matches)) {
+            $slug = $matches[1];
+            wp_redirect(home_url("/lo/{$slug}/"), 301);
             exit;
         }
 

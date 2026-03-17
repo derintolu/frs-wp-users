@@ -532,6 +532,19 @@ class TemplateLoader {
             exit;
         }
 
+        // Redirect old theme pages to new equivalents
+        $page_redirects = [
+            '/21st-century-lending-loan-officers-2/' => '/directory/',
+            '/21st-century-lending-management/'     => '/about/',
+            '/apply-online/'                        => '/apply/',
+        ];
+        foreach ($page_redirects as $old_path => $new_path) {
+            if ($relative_path === $old_path || $relative_path === rtrim($old_path, '/')) {
+                wp_redirect(home_url($new_path), 301);
+                exit;
+            }
+        }
+
         // Redirect /profile/{slug} → determine role and redirect
         if (preg_match('#^/profile/([^/]+)#', $relative_path, $matches)) {
             $slug = $matches[1];

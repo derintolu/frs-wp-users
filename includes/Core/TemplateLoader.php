@@ -453,7 +453,8 @@ class TemplateLoader {
                 'batesh-mahmud'            => 'batesh-muhmud',
                 'daniel-beutter'           => 'dan-beutter',
                 'matt-thompson'            => 'matthew-thompson',
-                'keith-thompson'           => 'randy-keiththompson',
+                'keith-thompson'           => 'randy-thompson',
+                'randy-keith-thompson'     => 'randy-thompson',
             ];
 
             $resolved_slug = $slug_aliases[$slug] ?? $slug;

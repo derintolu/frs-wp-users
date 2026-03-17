@@ -57,6 +57,9 @@ class TemplateLoader {
         // Rewrite rules - map /lo/{slug} etc. back to author queries
         add_action('init', [$this, 'add_rewrite_rules']);
 
+        // Resolve frs_profile_slug to actual user (for Microsoft SSO users with email-based nicenames)
+        add_action('pre_get_posts', [$this, 'resolve_profile_slug'], 1);
+
         // Legacy URL redirects
         add_action('template_redirect', [$this, 'redirect_legacy_urls'], 1);
 
@@ -80,6 +83,50 @@ class TemplateLoader {
         $vars[] = self::QR_QUERY_VAR;
         $vars[] = 'frs_profile_slug';
         return $vars;
+    }
+
+    /**
+     * Resolve frs_profile_slug to actual WordPress user.
+     *
+     * Users synced from Microsoft SSO have email-based user_nicename values
+     * (e.g., "keithfullrealtyservices-com") but we want friendly URLs like
+     * "/leader/keith-thompson/". This hook checks frs_profile_slug meta
+     * when WordPress can't find a user by the URL slug.
+     *
+     * @param \WP_Query $query The query object.
+     * @return void
+     */
+    public function resolve_profile_slug($query) {
+        // Only run on main query for author archives.
+        if (!$query->is_main_query() || is_admin()) {
+            return;
+        }
+
+        $author_name = $query->get('author_name');
+        if (empty($author_name)) {
+            return;
+        }
+
+        // Check if WordPress already found a user by user_nicename.
+        $user = get_user_by('slug', $author_name);
+        if ($user) {
+            return; // Found by nicename, no intervention needed.
+        }
+
+        // Try to find user by frs_profile_slug meta.
+        $users = get_users([
+            'meta_key'   => 'frs_profile_slug',
+            'meta_value' => sanitize_title($author_name),
+            'number'     => 1,
+        ]);
+
+        if (!empty($users)) {
+            $user = $users[0];
+            // Update query to use the actual user_nicename.
+            $query->set('author_name', $user->user_nicename);
+            // Also set author ID for reliability.
+            $query->set('author', $user->ID);
+        }
     }
 
     /**
@@ -145,6 +192,8 @@ class TemplateLoader {
      * Mask author URLs to role-based URLs
      *
      * Changes /author/john-smith to /lo/john-smith for loan officers, etc.
+     * Prefers frs_profile_slug over user_nicename for friendly URLs
+     * (Microsoft SSO users have email-based nicenames).
      *
      * @param string $link Author URL
      * @param int $author_id Author user ID
@@ -165,7 +214,10 @@ class TemplateLoader {
             $role = reset($user_frs_roles);
             $url_prefix = $this->role_urls[$role];
             if ($url_prefix) {
-                return home_url("/{$url_prefix}/{$author_nicename}/");
+                // Prefer frs_profile_slug for friendly URLs (SSO users have email-based nicenames).
+                $profile_slug = get_user_meta($author_id, 'frs_profile_slug', true);
+                $slug = $profile_slug ?: $author_nicename;
+                return home_url("/{$url_prefix}/{$slug}/");
             }
         }
 

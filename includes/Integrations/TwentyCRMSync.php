@@ -540,7 +540,7 @@ class TwentyCRMSync {
 		$last_name  = $person['name']['lastName'] ?? $person['last_name'] ?? '';
 		$twenty_id  = $person['id'] ?? '';
 
-		// Find or create user
+		// Find existing user - do NOT create new users on marketing sites
 		$user = get_user_by( 'email', $email );
 
 		if ( $user ) {
@@ -555,15 +555,23 @@ class TwentyCRMSync {
 
 			$action = 'updated';
 		} else {
-			// Create new user
+			// On marketing sites (non-editing contexts), don't create users.
+			// Profiles are fetched remotely from Twenty CRM instead.
+			if ( ! \FRSUsers\Core\Roles::is_profile_editing_enabled() ) {
+				return new \WP_Error(
+					'user_creation_skipped',
+					'Marketing site does not create local users.',
+					array( 'status' => 200 )
+				);
+			}
+
+			// Create new user (hub/development only)
 			$username = sanitize_user( strtolower( $first_name . '.' . $last_name ) );
 			$username = str_replace( ' ', '', $username );
 
 			if ( username_exists( $username ) ) {
 				$username .= wp_rand( 1, 999 );
 			}
-
-			$default_role = \FRSUsers\Core\Roles::is_profile_editing_enabled() ? 'subscriber' : '';
 
 			$user_id = wp_insert_user( array(
 				'user_login'   => $username,
@@ -572,7 +580,7 @@ class TwentyCRMSync {
 				'last_name'    => $last_name,
 				'display_name' => trim( $first_name . ' ' . $last_name ),
 				'user_pass'    => wp_generate_password(),
-				'role'         => $default_role,
+				'role'         => 'subscriber',
 			) );
 
 			if ( is_wp_error( $user_id ) ) {

@@ -409,7 +409,9 @@ class TemplateLoader {
      * Redirects:
      * - /profile/{slug} → /lo/{slug} (old custom URL)
      * - /directory/lo/{slug} → /lo/{slug} (from frs-profile-directory)
-     * - /team-member/{slug} → /lo/{slug} (old theme URL structure)
+     * - /team-member/{slug} → /lo/{slug} (old theme URL structure, with slug aliases)
+     * - /lp_our_team_member_category/* → /21st-century-lending-loan-officers-2/
+     * - /team-members-archive/* → /21st-century-lending-loan-officers-2/
      * - /author/{slug} → /{role-prefix}/{slug} (for FRS users)
      *
      * Uses site-relative paths so redirects work on multisite subsites.
@@ -439,9 +441,35 @@ class TemplateLoader {
         }
 
         // Redirect /team-member/{slug} → /lo/{slug} (old theme URL structure)
+        // Also handles legacy slug aliases for users whose URLs changed
         if (preg_match('#^/team-member/([^/]+)#', $relative_path, $matches)) {
             $slug = $matches[1];
-            wp_redirect(home_url("/lo/{$slug}/"), 301);
+
+            // Legacy slug aliases - old theme used different naming conventions
+            $slug_aliases = [
+                'blake-anthony-corkill'    => 'blakeanthonycorkill',
+                'wendy-lynn-mcgowan'       => 'wendy-mcgowan',
+                'zhong-cheng-zhao'         => 'zhong-chengzhao',
+                'batesh-mahmud'            => 'batesh-muhmud',
+                'daniel-beutter'           => 'dan-beutter',
+                'matt-thompson'            => 'matthew-thompson',
+                'keith-thompson'           => 'randy-keiththompson',
+            ];
+
+            $resolved_slug = $slug_aliases[$slug] ?? $slug;
+            wp_redirect(home_url("/lo/{$resolved_slug}/"), 301);
+            exit;
+        }
+
+        // Redirect /lp_our_team_member_category/{category} → /21st-century-lending-loan-officers-2/
+        if (preg_match('#^/lp_our_team_member_category/#', $relative_path)) {
+            wp_redirect(home_url('/21st-century-lending-loan-officers-2/'), 301);
+            exit;
+        }
+
+        // Redirect /team-members-archive/ → /21st-century-lending-loan-officers-2/
+        if (preg_match('#^/team-members-archive/#', $relative_path)) {
+            wp_redirect(home_url('/21st-century-lending-loan-officers-2/'), 301);
             exit;
         }
 

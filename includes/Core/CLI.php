@@ -311,12 +311,6 @@ class CLI {
 			\WP_CLI::line( 'R2 CDN is not enabled - QR codes will be saved locally.' );
 		}
 
-		// Check if Node.js is available
-		$node_check = shell_exec( 'which node 2>/dev/null' );
-		if ( empty( $node_check ) ) {
-			\WP_CLI::error( 'Node.js is required to generate styled QR codes. Please install Node.js.' );
-		}
-
 		// Build user query args
 		$user_args = array(
 			'meta_query' => array(

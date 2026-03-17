@@ -278,7 +278,7 @@ class ProfileSync {
 			);
 		}
 
-		// Find or create user
+		// Find existing user - do NOT create new users on marketing sites
 		$user = get_user_by( 'email', $email );
 
 		if ( $user ) {
@@ -294,7 +294,19 @@ class ProfileSync {
 
 			$action = 'updated';
 		} else {
-			// Create new user
+			// On marketing sites (non-editing contexts), don't create users.
+			// Profiles are fetched remotely from Twenty CRM instead.
+			if ( ! Roles::is_profile_editing_enabled() ) {
+				return new \WP_REST_Response(
+					array(
+						'success' => true,
+						'message' => 'Profile skipped (marketing site does not create local users).',
+					),
+					200
+				);
+			}
+
+			// Create new user (hub/development only)
 			$first_name = $profile_data['first_name'] ?? '';
 			$last_name  = $profile_data['last_name'] ?? '';
 			$username   = sanitize_user( strtolower( $first_name . '.' . $last_name ) );
@@ -304,8 +316,6 @@ class ProfileSync {
 				$username .= wp_rand( 1, 999 );
 			}
 
-			$default_role = Roles::is_profile_editing_enabled() ? 'subscriber' : '';
-
 			$user_id = wp_insert_user( array(
 				'user_login'   => $username,
 				'user_email'   => $email,
@@ -313,7 +323,7 @@ class ProfileSync {
 				'last_name'    => $last_name,
 				'display_name' => $profile_data['display_name'] ?? trim( $first_name . ' ' . $last_name ),
 				'user_pass'    => wp_generate_password(),
-				'role'         => $default_role,
+				'role'         => 'subscriber',
 			) );
 
 			if ( is_wp_error( $user_id ) ) {

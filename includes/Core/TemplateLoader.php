@@ -410,8 +410,8 @@ class TemplateLoader {
      * - /profile/{slug} → /lo/{slug} (old custom URL)
      * - /directory/lo/{slug} → /lo/{slug} (from frs-profile-directory)
      * - /team-member/{slug} → /lo/{slug} (old theme URL structure, with slug aliases)
-     * - /lp_our_team_member_category/* → /21st-century-lending-loan-officers-2/
-     * - /team-members-archive/* → /21st-century-lending-loan-officers-2/
+     * - /lp_our_team_member_category/* → /directory/
+     * - /team-members-archive/* → /directory/
      * - /author/{slug} → /{role-prefix}/{slug} (for FRS users)
      *
      * Uses site-relative paths so redirects work on multisite subsites.
@@ -461,15 +461,15 @@ class TemplateLoader {
             exit;
         }
 
-        // Redirect /lp_our_team_member_category/{category} → /21st-century-lending-loan-officers-2/
+        // Redirect /lp_our_team_member_category/{category} → /directory/
         if (preg_match('#^/lp_our_team_member_category/#', $relative_path)) {
-            wp_redirect(home_url('/21st-century-lending-loan-officers-2/'), 301);
+            wp_redirect(home_url('/directory/'), 301);
             exit;
         }
 
-        // Redirect /team-members-archive/ → /21st-century-lending-loan-officers-2/
+        // Redirect /team-members-archive/ → /directory/
         if (preg_match('#^/team-members-archive/#', $relative_path)) {
-            wp_redirect(home_url('/21st-century-lending-loan-officers-2/'), 301);
+            wp_redirect(home_url('/directory/'), 301);
             exit;
         }
 

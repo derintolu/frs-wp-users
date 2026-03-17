@@ -109,71 +109,60 @@ class QRCode {
 	}
 
 	/**
-	 * Generate SVG QR code using Node.js script or Google Charts API fallback.
+	 * Generate SVG QR code using chillerlan/php-qrcode library.
 	 *
 	 * @param string $content URL or text to encode in QR.
-	 * @return string|false SVG/PNG content or false on failure.
+	 * @return string|false SVG content or false on failure.
 	 */
 	private static function generate_svg( $content ) {
-		// Try Node.js first for styled SVG
-		$node_check = shell_exec( 'which node 2>/dev/null' );
-		if ( ! empty( $node_check ) ) {
-			$script_path = FRS_USERS_DIR . 'scripts/generate-qr.js';
-			if ( file_exists( $script_path ) ) {
-				// Ensure node_modules are installed
-				$node_modules = FRS_USERS_DIR . 'scripts/node_modules';
-				if ( ! file_exists( $node_modules ) ) {
-					$scripts_dir = FRS_USERS_DIR . 'scripts';
-					shell_exec( sprintf( 'cd %s && npm install 2>&1', escapeshellarg( $scripts_dir ) ) );
-				}
-
-				$cmd = sprintf(
-					'node %s %s 2>&1',
-					escapeshellarg( $script_path ),
-					escapeshellarg( $content )
-				);
-
-				$output = shell_exec( $cmd );
-
-				if ( $output && strpos( $output, '<svg' ) !== false ) {
-					return $output;
-				}
-			}
-		}
-
-		// Fallback to Google Charts API
-		return self::generate_via_google_charts( $content );
-	}
-
-	/**
-	 * Generate QR code using Google Charts API.
-	 *
-	 * @param string $content URL or text to encode.
-	 * @return string|false PNG image data or false on failure.
-	 */
-	private static function generate_via_google_charts( $content ) {
-		$qr_api_url = 'https://chart.googleapis.com/chart?' . http_build_query( [
-			'chs'  => '300x300',
-			'cht'  => 'qr',
-			'chl'  => $content,
-			'choe' => 'UTF-8',
-			'chld' => 'M|2',
-		] );
-
-		$response = wp_remote_get( $qr_api_url, [ 'timeout' => 15 ] );
-
-		if ( is_wp_error( $response ) ) {
-			error_log( 'FRS QRCode: Google Charts API failed - ' . $response->get_error_message() );
+		// Check if the PHP QR code library is available
+		$autoload = FRS_USERS_DIR . 'vendor/autoload.php';
+		if ( ! file_exists( $autoload ) ) {
+			error_log( 'FRS QRCode: Composer autoload not found. Run composer install.' );
 			return false;
 		}
 
-		$image_data = wp_remote_retrieve_body( $response );
-		if ( empty( $image_data ) ) {
-			error_log( 'FRS QRCode: Google Charts API returned empty response' );
+		require_once $autoload;
+
+		if ( ! class_exists( '\chillerlan\QRCode\QRCode' ) ) {
+			error_log( 'FRS QRCode: chillerlan/php-qrcode library not installed.' );
 			return false;
 		}
 
-		return $image_data;
+		try {
+			$options = new \chillerlan\QRCode\QROptions( [
+				'outputType'          => \chillerlan\QRCode\Output\QROutputInterface::MARKUP_SVG,
+				'eccLevel'            => \chillerlan\QRCode\Common\EccLevel::M,
+				'addQuietzone'        => false,
+				'drawCircularModules' => true,
+				'circleRadius'        => 0.4,
+				'svgDefs'             => '
+					<linearGradient id="qrGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+						<stop offset="0%" style="stop-color:#2dd4da"/>
+						<stop offset="100%" style="stop-color:#2563eb"/>
+					</linearGradient>
+				',
+				'moduleValues'        => [
+					// Dark modules use gradient
+					\chillerlan\QRCode\Data\QRMatrix::M_DATA_DARK      => 'url(#qrGrad)',
+					\chillerlan\QRCode\Data\QRMatrix::M_FINDER_DARK    => 'url(#qrGrad)',
+					\chillerlan\QRCode\Data\QRMatrix::M_ALIGNMENT_DARK => 'url(#qrGrad)',
+					\chillerlan\QRCode\Data\QRMatrix::M_TIMING_DARK    => 'url(#qrGrad)',
+					\chillerlan\QRCode\Data\QRMatrix::M_FORMAT_DARK    => 'url(#qrGrad)',
+					\chillerlan\QRCode\Data\QRMatrix::M_VERSION_DARK   => 'url(#qrGrad)',
+					\chillerlan\QRCode\Data\QRMatrix::M_DARKMODULE     => 'url(#qrGrad)',
+				],
+			] );
+
+			$qrcode = new \chillerlan\QRCode\QRCode( $options );
+			$svg    = $qrcode->render( $content );
+
+			return $svg;
+
+		} catch ( \Exception $e ) {
+			error_log( sprintf( 'FRS QRCode: Generation failed - %s', $e->getMessage() ) );
+			return false;
+		}
 	}
 
 	/**
@@ -219,13 +208,13 @@ class QRCode {
 	}
 
 	/**
-	 * Save QR code locally as fallback.
+	 * Save QR code SVG locally as fallback.
 	 *
-	 * @param string $slug    Profile slug.
-	 * @param string $content SVG or PNG content.
+	 * @param string $slug Profile slug.
+	 * @param string $svg  SVG content.
 	 * @return string|false Local URL or false on failure.
 	 */
-	private static function save_locally( $slug, $content ) {
+	private static function save_locally( $slug, $svg ) {
 		$upload_dir  = wp_upload_dir();
 		$qr_dir      = $upload_dir['basedir'] . '/frs-qr-codes';
 		$qr_url_base = $upload_dir['baseurl'] . '/frs-qr-codes';
@@ -234,13 +223,10 @@ class QRCode {
 			wp_mkdir_p( $qr_dir );
 		}
 
-		// Detect if content is SVG or PNG
-		$is_svg   = strpos( $content, '<svg' ) !== false;
-		$ext      = $is_svg ? 'svg' : 'png';
-		$filename = sanitize_file_name( $slug ) . '.' . $ext;
+		$filename = sanitize_file_name( $slug ) . '.svg';
 		$filepath = $qr_dir . '/' . $filename;
 
-		if ( file_put_contents( $filepath, $content ) ) {
+		if ( file_put_contents( $filepath, $svg ) ) {
 			return $qr_url_base . '/' . $filename;
 		}
 

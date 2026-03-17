@@ -109,46 +109,71 @@ class QRCode {
 	}
 
 	/**
-	 * Generate SVG QR code using Node.js script.
+	 * Generate SVG QR code using Node.js script or Google Charts API fallback.
 	 *
 	 * @param string $content URL or text to encode in QR.
-	 * @return string|false SVG content or false on failure.
+	 * @return string|false SVG/PNG content or false on failure.
 	 */
 	private static function generate_svg( $content ) {
-		// Check Node.js availability
+		// Try Node.js first for styled SVG
 		$node_check = shell_exec( 'which node 2>/dev/null' );
-		if ( empty( $node_check ) ) {
-			error_log( 'FRS QRCode: Node.js not available' );
+		if ( ! empty( $node_check ) ) {
+			$script_path = FRS_USERS_DIR . 'scripts/generate-qr.js';
+			if ( file_exists( $script_path ) ) {
+				// Ensure node_modules are installed
+				$node_modules = FRS_USERS_DIR . 'scripts/node_modules';
+				if ( ! file_exists( $node_modules ) ) {
+					$scripts_dir = FRS_USERS_DIR . 'scripts';
+					shell_exec( sprintf( 'cd %s && npm install 2>&1', escapeshellarg( $scripts_dir ) ) );
+				}
+
+				$cmd = sprintf(
+					'node %s %s 2>&1',
+					escapeshellarg( $script_path ),
+					escapeshellarg( $content )
+				);
+
+				$output = shell_exec( $cmd );
+
+				if ( $output && strpos( $output, '<svg' ) !== false ) {
+					return $output;
+				}
+			}
+		}
+
+		// Fallback to Google Charts API
+		return self::generate_via_google_charts( $content );
+	}
+
+	/**
+	 * Generate QR code using Google Charts API.
+	 *
+	 * @param string $content URL or text to encode.
+	 * @return string|false PNG image data or false on failure.
+	 */
+	private static function generate_via_google_charts( $content ) {
+		$qr_api_url = 'https://chart.googleapis.com/chart?' . http_build_query( [
+			'chs'  => '300x300',
+			'cht'  => 'qr',
+			'chl'  => $content,
+			'choe' => 'UTF-8',
+			'chld' => 'M|2',
+		] );
+
+		$response = wp_remote_get( $qr_api_url, [ 'timeout' => 15 ] );
+
+		if ( is_wp_error( $response ) ) {
+			error_log( 'FRS QRCode: Google Charts API failed - ' . $response->get_error_message() );
 			return false;
 		}
 
-		$script_path = FRS_USERS_DIR . 'scripts/generate-qr.js';
-		if ( ! file_exists( $script_path ) ) {
-			error_log( sprintf( 'FRS QRCode: Script not found at %s', $script_path ) );
+		$image_data = wp_remote_retrieve_body( $response );
+		if ( empty( $image_data ) ) {
+			error_log( 'FRS QRCode: Google Charts API returned empty response' );
 			return false;
 		}
 
-		// Ensure node_modules are installed
-		$node_modules = FRS_USERS_DIR . 'scripts/node_modules';
-		if ( ! file_exists( $node_modules ) ) {
-			$scripts_dir = FRS_USERS_DIR . 'scripts';
-			shell_exec( sprintf( 'cd %s && npm install 2>&1', escapeshellarg( $scripts_dir ) ) );
-		}
-
-		$cmd = sprintf(
-			'node %s %s 2>&1',
-			escapeshellarg( $script_path ),
-			escapeshellarg( $content )
-		);
-
-		$output = shell_exec( $cmd );
-
-		if ( $output && strpos( $output, '<svg' ) !== false ) {
-			return $output;
-		}
-
-		error_log( sprintf( 'FRS QRCode: Generation failed for %s: %s', $content, substr( $output ?? '', 0, 200 ) ) );
-		return false;
+		return $image_data;
 	}
 
 	/**
@@ -194,13 +219,13 @@ class QRCode {
 	}
 
 	/**
-	 * Save QR code SVG locally as fallback.
+	 * Save QR code locally as fallback.
 	 *
-	 * @param string $slug Profile slug.
-	 * @param string $svg  SVG content.
+	 * @param string $slug    Profile slug.
+	 * @param string $content SVG or PNG content.
 	 * @return string|false Local URL or false on failure.
 	 */
-	private static function save_locally( $slug, $svg ) {
+	private static function save_locally( $slug, $content ) {
 		$upload_dir  = wp_upload_dir();
 		$qr_dir      = $upload_dir['basedir'] . '/frs-qr-codes';
 		$qr_url_base = $upload_dir['baseurl'] . '/frs-qr-codes';
@@ -209,10 +234,13 @@ class QRCode {
 			wp_mkdir_p( $qr_dir );
 		}
 
-		$filename = sanitize_file_name( $slug ) . '.svg';
+		// Detect if content is SVG or PNG
+		$is_svg   = strpos( $content, '<svg' ) !== false;
+		$ext      = $is_svg ? 'svg' : 'png';
+		$filename = sanitize_file_name( $slug ) . '.' . $ext;
 		$filepath = $qr_dir . '/' . $filename;
 
-		if ( file_put_contents( $filepath, $svg ) ) {
+		if ( file_put_contents( $filepath, $content ) ) {
 			return $qr_url_base . '/' . $filename;
 		}
 

@@ -161,7 +161,93 @@ wp_enqueue_script_module(
 );
 
 get_header();
+
+// Build JSON-LD structured data for SEO
+$profile_url = home_url( '/lo/' . $profile_slug . '/' );
+$company_name = get_bloginfo( 'name' ) ?: '21st Century Lending';
+$company_url = home_url();
+
+$json_ld = [
+    '@context' => 'https://schema.org',
+    '@type' => 'Person',
+    'name' => $full_name,
+    'givenName' => $first_name,
+    'familyName' => $last_name,
+    'jobTitle' => $job_title,
+    'url' => $profile_url,
+    'worksFor' => [
+        '@type' => 'Organization',
+        'name' => $company_name,
+        'url' => $company_url,
+    ],
+];
+
+// Add optional fields only if they have values
+if ( $headshot_url ) {
+    $json_ld['image'] = $headshot_url;
+}
+if ( $email ) {
+    $json_ld['email'] = 'mailto:' . $email;
+}
+if ( $phone ) {
+    $json_ld['telephone'] = $phone;
+}
+if ( $bio ) {
+    $json_ld['description'] = wp_strip_all_tags( $bio );
+}
+if ( $location ) {
+    $json_ld['workLocation'] = [
+        '@type' => 'Place',
+        'name' => $location,
+    ];
+}
+if ( $nmls ) {
+    // NMLS is a credential/identifier for mortgage professionals
+    $json_ld['hasCredential'] = [
+        '@type' => 'EducationalOccupationalCredential',
+        'credentialCategory' => 'license',
+        'name' => 'NMLS License',
+        'identifier' => $nmls,
+        'recognizedBy' => [
+            '@type' => 'Organization',
+            'name' => 'Nationwide Multistate Licensing System',
+            'url' => 'https://www.nmlsconsumeraccess.org/',
+        ],
+    ];
+}
+
+// Add social/same-as links
+$same_as = array_filter( [ $linkedin, $facebook, $instagram, $twitter, $website ] );
+if ( ! empty( $same_as ) ) {
+    $json_ld['sameAs'] = array_values( $same_as );
+}
+
+// Add service areas as areaServed
+if ( ! empty( $service_areas ) ) {
+    $areas_served = [];
+    foreach ( $service_areas as $area ) {
+        $state_name = $area['state'] ?? '';
+        if ( $state_name ) {
+            $areas_served[] = [
+                '@type' => 'State',
+                'name' => $state_name,
+            ];
+        }
+    }
+    if ( ! empty( $areas_served ) ) {
+        $json_ld['worksFor']['areaServed'] = $areas_served;
+    }
+}
+
+// Add specialties as knowsAbout
+if ( ! empty( $specialties ) ) {
+    $json_ld['knowsAbout'] = $specialties;
+}
 ?>
+
+<script type="application/ld+json">
+<?php echo wp_json_encode( $json_ld, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT ); ?>
+</script>
 
 <?php
 $directory_url = get_option( 'frs_directory_url', '' ) ?: home_url( '/directory/' );

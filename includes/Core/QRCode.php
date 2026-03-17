@@ -132,6 +132,7 @@ class QRCode {
 		try {
 			$options = new \chillerlan\QRCode\QROptions( [
 				'outputType'          => \chillerlan\QRCode\Output\QROutputInterface::MARKUP_SVG,
+				'outputBase64'        => false,
 				'eccLevel'            => \chillerlan\QRCode\Common\EccLevel::M,
 				'addQuietzone'        => false,
 				'drawCircularModules' => true,

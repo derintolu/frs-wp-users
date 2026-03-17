@@ -526,6 +526,12 @@ class TemplateLoader {
             exit;
         }
 
+        // Redirect /team-members/ → /directory/
+        if (preg_match('#^/team-members/?$#', $relative_path)) {
+            wp_redirect(home_url('/directory/'), 301);
+            exit;
+        }
+
         // Redirect /profile/{slug} → determine role and redirect
         if (preg_match('#^/profile/([^/]+)#', $relative_path, $matches)) {
             $slug = $matches[1];

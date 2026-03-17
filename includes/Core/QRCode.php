@@ -235,18 +235,19 @@ class QRCode {
 	}
 
 	/**
-	 * Get the profile URL for QR codes.
+	 * Get the redirect URL for QR codes.
 	 *
-	 * Always uses the public marketing site URL for consistency.
-	 * QR codes should direct users to the public profile page.
+	 * Uses /qr/{slug}/ URLs which redirect to the actual profile.
+	 * This makes QR codes "dynamic" - we can change where profiles live
+	 * without regenerating QR codes.
 	 *
 	 * @param string $slug Profile slug.
-	 * @return string Profile URL.
+	 * @return string QR redirect URL.
 	 */
 	public static function get_qr_landing_url( $slug ) {
-		// Always use the public marketing site URL for QR codes
+		// Use the public marketing site with /qr/ redirect endpoint
 		$public_site_url = get_option( 'frs_public_site_url', 'https://21stcenturylending.com' );
-		return rtrim( $public_site_url, '/' ) . '/lo/' . $slug . '/';
+		return rtrim( $public_site_url, '/' ) . '/qr/' . $slug . '/';
 	}
 
 	/**

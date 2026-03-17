@@ -41,17 +41,28 @@ class Template {
 
 		// Handle legacy URLs - redirect to role-based URLs
 		add_action( 'template_redirect', array( $this, 'handle_legacy_redirect' ), 5 );
+
+		// Handle QR code redirects - dynamic QR codes
+		add_action( 'template_redirect', array( $this, 'handle_qr_redirect' ), 4 );
 	}
 
 	/**
-	 * Add rewrite rules for legacy profile URLs
+	 * Add rewrite rules for legacy profile URLs and QR redirects
 	 *
 	 * @return void
 	 */
 	public function add_rewrite_rules() {
+		// Legacy /profile/{slug} URLs
 		add_rewrite_rule(
 			'^profile/([^/]+)/?$',
 			'index.php?frs_profile_slug=$matches[1]',
+			'top'
+		);
+
+		// Dynamic QR code redirects: /qr/{slug}
+		add_rewrite_rule(
+			'^qr/([^/]+)/?$',
+			'index.php?frs_qr_slug=$matches[1]',
 			'top'
 		);
 	}
@@ -64,6 +75,7 @@ class Template {
 	 */
 	public function add_query_vars( $vars ) {
 		$vars[] = 'frs_profile_slug';
+		$vars[] = 'frs_qr_slug';
 		return $vars;
 	}
 
@@ -121,6 +133,79 @@ class Template {
 
 		// Redirect to role-based URL
 		wp_redirect( home_url( "/{$url_prefix}/{$profile_slug}" ), 301 );
+		exit;
+	}
+
+	/**
+	 * Handle /qr/{slug} URLs - dynamic QR code redirects
+	 *
+	 * QR codes encode /qr/{slug} URLs which redirect to the actual profile.
+	 * This allows changing profile URLs without regenerating QR codes.
+	 *
+	 * @return void
+	 */
+	public function handle_qr_redirect() {
+		$qr_slug = get_query_var( 'frs_qr_slug' );
+
+		if ( empty( $qr_slug ) ) {
+			return;
+		}
+
+		$qr_slug = sanitize_title( $qr_slug );
+
+		// Get profile by slug
+		$profile = Profile::get_by_slug( $qr_slug );
+
+		if ( ! $profile ) {
+			// Try finding user by nicename as fallback
+			$user = get_user_by( 'slug', $qr_slug );
+			if ( $user ) {
+				$profile = Profile::find( $user->ID );
+			}
+		}
+
+		if ( ! $profile ) {
+			global $wp_query;
+			$wp_query->set_404();
+			status_header( 404 );
+			return;
+		}
+
+		// Get user to determine role-based URL
+		$user = get_userdata( $profile->user_id );
+		if ( ! $user ) {
+			global $wp_query;
+			$wp_query->set_404();
+			status_header( 404 );
+			return;
+		}
+
+		// Role to URL prefix mapping
+		$role_urls = array(
+			'loan_officer'     => 'lo',
+			're_agent'         => 'agent',
+			'escrow_officer'   => 'escrow',
+			'property_manager' => 'pm',
+			'dual_license'     => 'lo',
+			'staff'            => 'staff',
+			'leadership'       => 'leader',
+			'assistant'        => 'staff',
+		);
+
+		// Find the user's FRS role
+		$url_prefix = 'lo'; // Default
+		foreach ( $role_urls as $role => $prefix ) {
+			if ( in_array( $role, $user->roles, true ) ) {
+				$url_prefix = $prefix;
+				break;
+			}
+		}
+
+		// Use profile_slug if set, otherwise user_nicename
+		$final_slug = $profile->profile_slug ?: $user->user_nicename;
+
+		// 302 redirect (temporary) so we can change destination later
+		wp_redirect( home_url( "/{$url_prefix}/{$final_slug}/" ), 302 );
 		exit;
 	}
 }

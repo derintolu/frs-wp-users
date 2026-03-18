@@ -52,6 +52,9 @@ class ProfilesAdminPage {
 		register_setting( 'frs_profiles_settings', 'frs_directory_video_url' );
 		register_setting( 'frs_profiles_settings', 'frs_directory_url' );
 		register_setting( 'frs_profiles_settings', 'frs_qr_redirect_url' );
+		register_setting( 'frs_profiles_settings', 'frs_qr_redirect_lending' );
+		register_setting( 'frs_profiles_settings', 'frs_qr_redirect_realestate' );
+		register_setting( 'frs_profiles_settings', 'frs_qr_redirect_hub' );
 
 		// Site Context Section.
 		add_settings_section(
@@ -107,16 +110,50 @@ class ProfilesAdminPage {
 			'frs_site_context_section'
 		);
 
-		add_settings_field(
-			'frs_qr_redirect_url',
-			__( 'QR Code Redirect URL', 'frs-users' ),
+		// QR Redirect Section.
+		add_settings_section(
+			'frs_qr_redirect_section',
+			__( 'QR Code Redirects', 'frs-users' ),
 			function() {
-				$value = get_option( 'frs_qr_redirect_url', '' );
-				echo '<input type="url" name="frs_qr_redirect_url" value="' . esc_attr( $value ) . '" class="regular-text" placeholder="https://21stcenturylending.com">';
-				echo '<p class="description">' . esc_html__( 'Base URL for QR code redirects. QR codes point to /qr/{slug}/ on this domain. Change this to update where ALL existing QR codes redirect - no regeneration needed.', 'frs-users' ) . '</p>';
+				echo '<p>' . esc_html__( 'Configure where QR codes redirect based on profile type. Change these URLs anytime - no need to regenerate QR codes.', 'frs-users' ) . '</p>';
+			},
+			'frs_profiles_settings'
+		);
+
+		add_settings_field(
+			'frs_qr_redirect_lending',
+			__( 'Loan Officers → ', 'frs-users' ),
+			function() {
+				$value = get_option( 'frs_qr_redirect_lending', '' );
+				echo '<input type="url" name="frs_qr_redirect_lending" value="' . esc_attr( $value ) . '" class="regular-text" placeholder="https://21stcenturylending.com">';
+				echo '<p class="description">' . esc_html__( 'Where loan originator QR codes redirect (e.g., 21stcenturylending.com).', 'frs-users' ) . '</p>';
 			},
 			'frs_profiles_settings',
-			'frs_site_context_section'
+			'frs_qr_redirect_section'
+		);
+
+		add_settings_field(
+			'frs_qr_redirect_realestate',
+			__( 'Real Estate Agents → ', 'frs-users' ),
+			function() {
+				$value = get_option( 'frs_qr_redirect_realestate', '' );
+				echo '<input type="url" name="frs_qr_redirect_realestate" value="' . esc_attr( $value ) . '" class="regular-text" placeholder="https://c21masters.com">';
+				echo '<p class="description">' . esc_html__( 'Where broker/sales associate QR codes redirect (e.g., c21masters.com).', 'frs-users' ) . '</p>';
+			},
+			'frs_profiles_settings',
+			'frs_qr_redirect_section'
+		);
+
+		add_settings_field(
+			'frs_qr_redirect_hub',
+			__( 'Staff & Leadership → ', 'frs-users' ),
+			function() {
+				$value = get_option( 'frs_qr_redirect_hub', '' );
+				echo '<input type="url" name="frs_qr_redirect_hub" value="' . esc_attr( $value ) . '" class="regular-text" placeholder="https://myhub21.com">';
+				echo '<p class="description">' . esc_html__( 'Where staff, leadership, and other internal profiles redirect (e.g., myhub21.com).', 'frs-users' ) . '</p>';
+			},
+			'frs_profiles_settings',
+			'frs_qr_redirect_section'
 		);
 
 		// Directory Section.

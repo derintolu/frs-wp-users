@@ -306,9 +306,10 @@ class TemplateLoader {
             exit;
         }
 
-        // Determine role-based URL prefix
+        // Determine role-based URL prefix and redirect destination
         $url_prefix = 'lo'; // Default
         $final_slug = $slug;
+        $redirect_type = 'lending'; // lending, realestate, or hub
 
         if ($user) {
             // Check if active
@@ -322,10 +323,18 @@ class TemplateLoader {
                 exit;
             }
 
-            // Get role-based prefix
+            // Get role-based prefix and redirect type
             foreach ($this->role_urls as $role => $prefix) {
                 if ($prefix && in_array($role, (array) $user->roles, true)) {
                     $url_prefix = $prefix;
+                    // Determine redirect type based on role
+                    if (in_array($role, ['loan_officer', 'dual_license'], true)) {
+                        $redirect_type = 'lending';
+                    } elseif (in_array($role, ['re_agent'], true)) {
+                        $redirect_type = 'realestate';
+                    } else {
+                        $redirect_type = 'hub';
+                    }
                     break;
                 }
             }
@@ -347,22 +356,66 @@ class TemplateLoader {
             // Use profile slug from remote data
             $final_slug = $remote_profile['profile_slug'] ?? $slug;
 
-            // Determine role from remote profile's company_role
+            // Determine role and redirect type from remote profile's company_role
             $company_roles = $remote_profile['company_role'] ?? [];
             if (in_array('loan_originator', $company_roles, true)) {
                 $url_prefix = 'lo';
+                $redirect_type = 'lending';
             } elseif (in_array('broker_associate', $company_roles, true) || in_array('sales_associate', $company_roles, true)) {
                 $url_prefix = 'agent';
+                $redirect_type = 'realestate';
             } elseif (in_array('leadership', $company_roles, true)) {
                 $url_prefix = 'leader';
+                $redirect_type = 'hub';
             } elseif (in_array('staff', $company_roles, true)) {
                 $url_prefix = 'staff';
+                $redirect_type = 'hub';
             }
         }
 
+        // Get redirect base URL from settings
+        $redirect_base = $this->get_qr_redirect_url($redirect_type);
+
         // 302 redirect (temporary) so we can change destination later
-        wp_redirect(home_url("/{$url_prefix}/{$final_slug}/"), 302);
+        wp_redirect(rtrim($redirect_base, '/') . "/{$url_prefix}/{$final_slug}/", 302);
         exit;
+    }
+
+    /**
+     * Get QR redirect URL based on profile type.
+     *
+     * @param string $type One of: lending, realestate, hub
+     * @return string Base URL for redirect
+     */
+    private function get_qr_redirect_url($type) {
+        switch ($type) {
+            case 'lending':
+                $url = get_option('frs_qr_redirect_lending', '');
+                if (empty($url)) {
+                    $url = get_option('frs_lending_site_url', '');
+                }
+                break;
+            case 'realestate':
+                $url = get_option('frs_qr_redirect_realestate', '');
+                if (empty($url)) {
+                    $url = get_option('frs_realestate_site_url', '');
+                }
+                break;
+            case 'hub':
+            default:
+                $url = get_option('frs_qr_redirect_hub', '');
+                if (empty($url)) {
+                    $url = get_option('frs_hub_site_url', '');
+                }
+                break;
+        }
+
+        // Final fallback to current site
+        if (empty($url)) {
+            $url = home_url();
+        }
+
+        return $url;
     }
 
     /**

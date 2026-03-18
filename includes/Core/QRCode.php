@@ -245,9 +245,14 @@ class QRCode {
 	 * @return string QR redirect URL.
 	 */
 	public static function get_qr_landing_url( $slug ) {
-		// Use the public marketing site with /qr/ redirect endpoint
-		$public_site_url = get_option( 'frs_public_site_url', 'https://21stcenturylending.com' );
-		return rtrim( $public_site_url, '/' ) . '/qr/' . $slug . '/';
+		// Use configurable redirect URL - change this setting to redirect ALL QR codes
+		// without regenerating them (truly dynamic QR codes)
+		$redirect_url = get_option( 'frs_qr_redirect_url', '' );
+		if ( empty( $redirect_url ) ) {
+			// Fallback to legacy option or default
+			$redirect_url = get_option( 'frs_public_site_url', 'https://21stcenturylending.com' );
+		}
+		return rtrim( $redirect_url, '/' ) . '/qr/' . $slug . '/';
 	}
 
 	/**

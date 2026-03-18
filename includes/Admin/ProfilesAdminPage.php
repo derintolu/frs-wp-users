@@ -51,6 +51,7 @@ class ProfilesAdminPage {
 		register_setting( 'frs_profiles_settings', 'frs_directory_subheadline' );
 		register_setting( 'frs_profiles_settings', 'frs_directory_video_url' );
 		register_setting( 'frs_profiles_settings', 'frs_directory_url' );
+		register_setting( 'frs_profiles_settings', 'frs_qr_redirect_url' );
 
 		// Site Context Section.
 		add_settings_section(
@@ -101,6 +102,18 @@ class ProfilesAdminPage {
 				$value = get_option( 'frs_hub_site_url', '' );
 				echo '<input type="url" name="frs_hub_site_url" value="' . esc_attr( $value ) . '" class="regular-text" placeholder="https://myhub21.com">';
 				echo '<p class="description">' . esc_html__( 'URL for internal hub site (myhub21.com). Used for "View on Hub" links.', 'frs-users' ) . '</p>';
+			},
+			'frs_profiles_settings',
+			'frs_site_context_section'
+		);
+
+		add_settings_field(
+			'frs_qr_redirect_url',
+			__( 'QR Code Redirect URL', 'frs-users' ),
+			function() {
+				$value = get_option( 'frs_qr_redirect_url', '' );
+				echo '<input type="url" name="frs_qr_redirect_url" value="' . esc_attr( $value ) . '" class="regular-text" placeholder="https://21stcenturylending.com">';
+				echo '<p class="description">' . esc_html__( 'Base URL for QR code redirects. QR codes point to /qr/{slug}/ on this domain. Change this to update where ALL existing QR codes redirect - no regeneration needed.', 'frs-users' ) . '</p>';
 			},
 			'frs_profiles_settings',
 			'frs_site_context_section'

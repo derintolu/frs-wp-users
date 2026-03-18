@@ -258,9 +258,11 @@ class TemplateLoader {
     }
 
     /**
-     * Handle QR landing page route
+     * Handle QR landing page route - Dynamic QR code redirect
      *
-     * Displays mobile-friendly landing page when QR code is scanned.
+     * Redirects /qr/{slug} to the actual profile URL.
+     * This makes QR codes "dynamic" - we can change profile URLs
+     * without regenerating QR codes.
      *
      * @return void
      */
@@ -271,6 +273,8 @@ class TemplateLoader {
             return;
         }
 
+        $slug = sanitize_title($slug);
+
         // Find user by slug (nicename or custom profile slug)
         $user = get_user_by('slug', $slug);
 
@@ -278,7 +282,7 @@ class TemplateLoader {
             // Try custom profile slug
             $users = get_users([
                 'meta_key'   => 'frs_profile_slug',
-                'meta_value' => sanitize_title($slug),
+                'meta_value' => $slug,
                 'number'     => 1,
             ]);
             $user = $users ? $users[0] : null;
@@ -302,8 +306,12 @@ class TemplateLoader {
             exit;
         }
 
-        // Check if active.
+        // Determine role-based URL prefix
+        $url_prefix = 'lo'; // Default
+        $final_slug = $slug;
+
         if ($user) {
+            // Check if active
             $is_active = get_user_meta($user->ID, 'frs_is_active', true);
             if (!$is_active) {
                 global $wp_query;
@@ -313,9 +321,20 @@ class TemplateLoader {
                 include get_404_template();
                 exit;
             }
-            $first_name = get_user_meta($user->ID, 'first_name', true);
-            $last_name = get_user_meta($user->ID, 'last_name', true);
+
+            // Get role-based prefix
+            foreach ($this->role_urls as $role => $prefix) {
+                if ($prefix && in_array($role, (array) $user->roles, true)) {
+                    $url_prefix = $prefix;
+                    break;
+                }
+            }
+
+            // Use profile_slug if set, otherwise user_nicename
+            $profile_slug = get_user_meta($user->ID, 'frs_profile_slug', true);
+            $final_slug = $profile_slug ?: $user->user_nicename;
         } else {
+            // Remote profile
             if (empty($remote_profile['is_active'])) {
                 global $wp_query;
                 $wp_query->set_404();
@@ -324,52 +343,25 @@ class TemplateLoader {
                 include get_404_template();
                 exit;
             }
-            $first_name = $remote_profile['first_name'] ?? '';
-            $last_name = $remote_profile['last_name'] ?? '';
-        }
 
-        $full_name = trim($first_name . ' ' . $last_name);
+            // Use profile slug from remote data
+            $final_slug = $remote_profile['profile_slug'] ?? $slug;
 
-        // Set up fake post for template
-        global $wp_query, $post;
-
-        $post = new \WP_Post((object) [
-            'ID'          => 0,
-            'post_type'   => 'frs_qr_landing',
-            'post_title'  => $full_name ?: 'Contact',
-            'post_status' => 'publish',
-            'post_name'   => $slug,
-        ]);
-        $wp_query->post = $post;
-        $wp_query->posts = [$post];
-        $wp_query->is_singular = true;
-        $wp_query->is_single = true;
-
-        // Prevent caching
-        if (!defined('DONOTCACHEPAGE')) {
-            define('DONOTCACHEPAGE', true);
-        }
-        nocache_headers();
-
-        // Load the QR landing template
-        $template = FRS_USERS_DIR . 'templates/profile/qr-landing.php';
-
-        if (file_exists($template)) {
-            // Pass data to template — user object or remote profile.
-            if ($user) {
-                set_query_var('frs_qr_user', $user);
-            } else {
-                set_query_var('frs_remote_profile', $remote_profile);
+            // Determine role from remote profile's company_role
+            $company_roles = $remote_profile['company_role'] ?? [];
+            if (in_array('loan_originator', $company_roles, true)) {
+                $url_prefix = 'lo';
+            } elseif (in_array('broker_associate', $company_roles, true) || in_array('sales_associate', $company_roles, true)) {
+                $url_prefix = 'agent';
+            } elseif (in_array('leadership', $company_roles, true)) {
+                $url_prefix = 'leader';
+            } elseif (in_array('staff', $company_roles, true)) {
+                $url_prefix = 'staff';
             }
-            include $template;
-            exit;
         }
 
-        // Fallback to 404 if template missing
-        global $wp_query;
-        $wp_query->set_404();
-        status_header(404);
-        include get_404_template();
+        // 302 redirect (temporary) so we can change destination later
+        wp_redirect(home_url("/{$url_prefix}/{$final_slug}/"), 302);
         exit;
     }
 

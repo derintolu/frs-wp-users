@@ -260,6 +260,37 @@ class UserProfileFields {
 				<p class="description"><?php esc_html_e( 'URL for loan application', 'frs-users' ); ?></p>
 			</td>
 		</tr>
+		<tr>
+			<th><label for="frs_qr_redirect_override"><?php esc_html_e( 'QR Code Redirect URL', 'frs-users' ); ?></label></th>
+			<td>
+				<input type="url" name="frs_qr_redirect_override" id="frs_qr_redirect_override" value="<?php echo esc_attr( get_user_meta( $user->ID, 'frs_qr_redirect_override', true ) ); ?>" class="regular-text" placeholder="<?php esc_attr_e( 'Leave blank to use role-based default', 'frs-users' ); ?>" />
+				<p class="description">
+					<?php esc_html_e( 'Override the QR code redirect destination for this user. Useful for dual-licensed users or special cases.', 'frs-users' ); ?>
+					<?php
+					// Show current role-based default
+					$roles = $user->roles ?? array();
+					$default_url = '';
+					if ( in_array( 'loan_officer', $roles, true ) || in_array( 'dual_license', $roles, true ) ) {
+						$default_url = get_option( 'frs_qr_redirect_lending', '' );
+						$role_label  = 'lending';
+					} elseif ( in_array( 're_agent', $roles, true ) ) {
+						$default_url = get_option( 'frs_qr_redirect_realestate', '' );
+						$role_label  = 'real estate';
+					} else {
+						$default_url = get_option( 'frs_qr_redirect_hub', '' );
+						$role_label  = 'hub';
+					}
+					if ( $default_url ) {
+						printf(
+							'<br />' . esc_html__( 'Current default (%1$s): %2$s', 'frs-users' ),
+							esc_html( $role_label ),
+							esc_html( $default_url )
+						);
+					}
+					?>
+				</p>
+			</td>
+		</tr>
 		<?php
 	}
 
@@ -306,6 +337,7 @@ class UserProfileFields {
 
 		// Profile settings
 		$this->update_user_meta( $user_id, 'frs_arrive', 'url' );
+		$this->update_user_meta( $user_id, 'frs_qr_redirect_override', 'url' );
 
 		// Checkbox
 		update_user_meta( $user_id, 'frs_is_active', isset( $_POST['frs_is_active'] ) ? '1' : '0' );

@@ -373,6 +373,16 @@ class TemplateLoader {
             }
         }
 
+        // Check for per-user override first
+        $user_id = $user ? $user->ID : null;
+        $override_url = $user_id ? get_user_meta($user_id, 'frs_qr_redirect_override', true) : '';
+
+        if (!empty($override_url)) {
+            // User has a custom redirect URL - use it directly
+            wp_redirect(rtrim($override_url, '/') . "/{$url_prefix}/{$final_slug}/", 302);
+            exit;
+        }
+
         // Get redirect base URL from settings
         $redirect_base = $this->get_qr_redirect_url($redirect_type);
 

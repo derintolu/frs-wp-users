@@ -145,6 +145,10 @@ final class FRSUsers {
 		// Initialize FRS Sync integration
 		FRSSync::init();
 
+		// Ensure every new user is a member of both main site (hub) and /lending.
+		// Without main-site membership, ms_site_check blocks the post-SSO redirect.
+		\FRSUsers\Integrations\MultisiteProvisioning::init();
+
 		// Initialize FluentCRM real-time sync integration
 		FluentCRMSync::get_instance()->init();
 

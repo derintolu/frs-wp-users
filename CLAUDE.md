@@ -209,6 +209,28 @@ Uses WordPress Interactivity API (`view.js`).
 - **FluentCRM:** Real-time sync on user create/update/role change
 - **Simple Local Avatars:** Avatar system for headshots
 - **Arrive:** Auto-populate loan application URLs
+- **MultisiteProvisioning:** On `user_register`, adds user to blog 1 (`subscriber`) and blog 2 (`loan_officer`). See below for why.
+
+## Multisite User Provisioning
+
+**File:** `includes/Integrations/MultisiteProvisioning.php`
+
+### Why it exists
+
+Post-SSO, WPO365 lands users on the `redirect_url` (main site, `https://myhub21.com/`). The fluent snippet `6-login-redirect.php` would redirect them to `/lending/`, but `ms_site_check()` runs **before** the snippet's `init` hook and kills the request with *"your admin needs to add you to the site"* when the user has no main-site membership.
+
+`MultisiteProvisioning` hooks `user_register` (priority 20, after WPO365) and ensures every new user is a member of both:
+
+| Blog | Path | Default role |
+|------|------|--------------|
+| 1 | `/` | `subscriber` |
+| 2 | `/lending/` | `loan_officer` |
+
+Main-site membership lets `ms_site_check` pass, so the fluent snippet can then redirect to `/lending`, where `loan_officer` membership lets the onboarding wizard fire.
+
+### Future — company directory
+
+The main site is planned to become a BuddyPress-backed company directory. `subscriber` is the placeholder role; revisit once BuddyPress is installed and a directory role exists.
 
 ## DO NOT MODIFY (myhub21.com)
 

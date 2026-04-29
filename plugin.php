@@ -155,8 +155,9 @@ final class FRSUsers {
 		// Initialize FluentCRM event-based notifications (tags, lists, admin alerts)
 		FluentCRMNotifications::init();
 
-		// Initialize Twenty CRM integration
-		TwentyCRMSync::init();
+		// Twenty CRM disabled (2026-04-29): direct hub→marketing pipeline only.
+		// Re-enable by uncommenting the line below if Twenty CRM is needed again.
+		// TwentyCRMSync::init();
 
 		// Initialize FluentBooking Outlook OAuth proxy (bypasses fluentbooking.com)
 		FluentBookingSync::init();

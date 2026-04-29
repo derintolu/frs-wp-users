@@ -97,7 +97,12 @@ class ProfileSync {
 	 * @return void
 	 */
 	private static function send_profile_webhook( $user_id ) {
-		$endpoints = get_option( 'frs_webhook_endpoints', array() );
+		// Use network-wide site option so blog 1 + blog 2 + any future subsite
+		// all share the same endpoint config. Falls back to per-blog option for
+		// pre-migration compatibility.
+		$endpoints = is_multisite()
+			? get_site_option( 'frs_webhook_endpoints', get_option( 'frs_webhook_endpoints', array() ) )
+			: get_option( 'frs_webhook_endpoints', array() );
 
 		if ( empty( $endpoints ) ) {
 			return;
@@ -116,7 +121,9 @@ class ProfileSync {
 			'profile'   => $profile->toArray(),
 		);
 
-		$secret = get_option( 'frs_webhook_secret', '' );
+		$secret = is_multisite()
+			? get_site_option( 'frs_webhook_secret', get_option( 'frs_webhook_secret', '' ) )
+			: get_option( 'frs_webhook_secret', '' );
 
 		foreach ( $endpoints as $endpoint ) {
 			self::send_webhook( $endpoint, $payload, $secret );
@@ -179,7 +186,9 @@ class ProfileSync {
 	 * @return bool|\WP_Error True if valid, WP_Error if not.
 	 */
 	public static function verify_webhook_signature( $request ) {
-		$secret = get_option( 'frs_webhook_secret', '' );
+		$secret = is_multisite()
+			? get_site_option( 'frs_webhook_secret', get_option( 'frs_webhook_secret', '' ) )
+			: get_option( 'frs_webhook_secret', '' );
 
 		// If no secret configured, reject all webhooks
 		if ( empty( $secret ) ) {
@@ -263,7 +272,8 @@ class ProfileSync {
 		}
 
 		$profile_data = $payload['profile'];
-		$email = $profile_data['email'];
+		$email = trim( (string) ( $profile_data['email'] ?? '' ) );
+		$nmls  = trim( (string) ( $profile_data['nmls'] ?? '' ) );
 
 		// Check if this profile's company role is active for this site
 		$company_role = $profile_data['select_person_type'] ?? '';
@@ -278,35 +288,69 @@ class ProfileSync {
 			);
 		}
 
-		// Find existing user - do NOT create new users on marketing sites
-		$user = get_user_by( 'email', $email );
+		// Marketing-site eligibility gate (2026-04-29):
+		// To appear on a non-editing (marketing) site a profile MUST have
+		// both an NMLS number and an Arrive link. If missing either, skip.
+		// If a local user already matches by NMLS, deactivate them.
+		if ( ! Roles::is_profile_editing_enabled() ) {
+			$arrive = trim( (string) ( $profile_data['arrive'] ?? '' ) );
 
-		if ( $user ) {
-			$user_id = $user->ID;
-
-			// Update user data
-			wp_update_user( array(
-				'ID'           => $user_id,
-				'first_name'   => $profile_data['first_name'] ?? '',
-				'last_name'    => $profile_data['last_name'] ?? '',
-				'display_name' => $profile_data['display_name'] ?? '',
-			) );
-
-			$action = 'updated';
-		} else {
-			// On marketing sites (non-editing contexts), don't create users.
-			// Profiles are fetched remotely from Twenty CRM instead.
-			if ( ! Roles::is_profile_editing_enabled() ) {
+			if ( $nmls === '' || $arrive === '' ) {
+				$existing_id = self::find_user_id_by_nmls( $nmls );
+				if ( ! $existing_id && $email ) {
+					$by_email   = get_user_by( 'email', $email );
+					$existing_id = $by_email ? (int) $by_email->ID : 0;
+				}
+				if ( $existing_id ) {
+					update_user_meta( $existing_id, 'frs_is_active', 0 );
+					return new \WP_REST_Response(
+						array(
+							'success' => true,
+							'action'  => 'deactivated',
+							'user_id' => $existing_id,
+							'message' => 'Profile deactivated — missing NMLS and/or Arrive link.',
+						),
+						200
+					);
+				}
 				return new \WP_REST_Response(
 					array(
 						'success' => true,
-						'message' => 'Profile skipped (marketing site does not create local users).',
+						'action'  => 'skipped',
+						'message' => 'Profile not synced — requires both NMLS and Arrive link.',
 					),
 					200
 				);
 			}
+		}
 
-			// Create new user (hub/development only)
+		// Match-by-NMLS first (canonical key — never duplicate on marketing).
+		// Fall back to email match for legacy / pre-NMLS profiles on the hub.
+		$user_id = $nmls ? self::find_user_id_by_nmls( $nmls ) : 0;
+		if ( ! $user_id && $email ) {
+			$by_email = get_user_by( 'email', $email );
+			$user_id  = $by_email ? (int) $by_email->ID : 0;
+		}
+
+		if ( $user_id ) {
+			// Update existing user — including email so renames carry over.
+			$update_args = array(
+				'ID'           => $user_id,
+				'first_name'   => $profile_data['first_name'] ?? '',
+				'last_name'    => $profile_data['last_name'] ?? '',
+				'display_name' => $profile_data['display_name'] ?? '',
+			);
+			if ( $email ) {
+				$existing_for_email = get_user_by( 'email', $email );
+				// Only update email if it's free or already this user's.
+				if ( ! $existing_for_email || (int) $existing_for_email->ID === $user_id ) {
+					$update_args['user_email'] = $email;
+				}
+			}
+			wp_update_user( $update_args );
+			$action = 'updated';
+		} else {
+			// Create new user (allowed on every site context now).
 			$first_name = $profile_data['first_name'] ?? '';
 			$last_name  = $profile_data['last_name'] ?? '';
 			$username   = sanitize_user( strtolower( $first_name . '.' . $last_name ) );
@@ -469,6 +513,29 @@ class ProfileSync {
 			),
 			200
 		);
+	}
+
+	/**
+	 * Look up a user by their FRS NMLS meta value.
+	 *
+	 * NMLS is the canonical key for loan-officer profiles — match-by-NMLS
+	 * prevents duplicates on the marketing site even when email changes.
+	 *
+	 * @param string $nmls NMLS number.
+	 * @return int User ID, or 0 if no match.
+	 */
+	private static function find_user_id_by_nmls( $nmls ) {
+		$nmls = trim( (string) $nmls );
+		if ( $nmls === '' ) {
+			return 0;
+		}
+		$matches = get_users( array(
+			'meta_key'   => 'frs_nmls',
+			'meta_value' => $nmls,
+			'number'     => 1,
+			'fields'     => 'ID',
+		) );
+		return $matches ? (int) $matches[0] : 0;
 	}
 
 	/**

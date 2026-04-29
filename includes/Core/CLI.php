@@ -45,6 +45,149 @@ class CLI {
 		\WP_CLI::add_command( 'frs-users set-cdn-headshots', array( __CLASS__, 'set_cdn_headshots' ) );
 		\WP_CLI::add_command( 'frs-users migrate-avatars', array( __CLASS__, 'migrate_avatars' ) );
 		\WP_CLI::add_command( 'frs-users sync-fluentbooking-avatars', array( __CLASS__, 'sync_fluentbooking_avatars' ) );
+		\WP_CLI::add_command( 'frs-users backfill-marketing', array( __CLASS__, 'backfill_marketing' ) );
+	}
+
+	/**
+	 * Backfill the marketing site with every hub loan_officer that has both
+	 * an NMLS number AND an Arrive link. Runs from the hub side and POSTs the
+	 * same webhook payload ProfileSync would normally fire.
+	 *
+	 * Idempotent: the receiver matches by NMLS, so re-running is safe.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--dry-run]
+	 * : Print what would be sent without sending.
+	 *
+	 * [--limit=<n>]
+	 * : Cap the number of users processed (handy for first-time validation).
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp frs-users backfill-marketing --dry-run
+	 *     wp frs-users backfill-marketing --limit=5
+	 *     wp frs-users backfill-marketing
+	 *
+	 * @when after_wp_load
+	 *
+	 * @param array $args       Positional args (unused).
+	 * @param array $assoc_args Flag args.
+	 * @return void
+	 */
+	public static function backfill_marketing( $args, $assoc_args ) {
+		$dry_run = isset( $assoc_args['dry-run'] );
+		$limit   = isset( $assoc_args['limit'] ) ? (int) $assoc_args['limit'] : 0;
+
+		$endpoints = is_multisite()
+			? get_site_option( 'frs_webhook_endpoints', get_option( 'frs_webhook_endpoints', array() ) )
+			: get_option( 'frs_webhook_endpoints', array() );
+
+		if ( empty( $endpoints ) ) {
+			\WP_CLI::error( 'No frs_webhook_endpoints configured. Set the marketing receiver URL via site option first.' );
+		}
+
+		$secret = is_multisite()
+			? get_site_option( 'frs_webhook_secret', get_option( 'frs_webhook_secret', '' ) )
+			: get_option( 'frs_webhook_secret', '' );
+
+		if ( empty( $secret ) ) {
+			\WP_CLI::error( 'No frs_webhook_secret configured.' );
+		}
+
+		// Pull every user with the loan_officer WP role on any blog.
+		$users = get_users( array(
+			'role'    => 'loan_officer',
+			'fields'  => array( 'ID', 'user_email' ),
+			'number'  => -1,
+		) );
+
+		$total       = count( $users );
+		$skipped_nmls   = 0;
+		$skipped_arrive = 0;
+		$sent_ok     = 0;
+		$sent_fail   = 0;
+		$processed   = 0;
+
+		\WP_CLI::log( sprintf( 'Hub loan_officer cohort: %d users.', $total ) );
+		\WP_CLI::log( sprintf( 'Endpoints: %s', implode( ', ', $endpoints ) ) );
+		if ( $dry_run ) {
+			\WP_CLI::log( '— DRY RUN — no requests will be made.' );
+		}
+
+		foreach ( $users as $user_stub ) {
+			if ( $limit && $processed >= $limit ) {
+				break;
+			}
+			$processed++;
+
+			$user = get_userdata( $user_stub->ID );
+			if ( ! $user ) {
+				continue;
+			}
+
+			$nmls   = trim( (string) get_user_meta( $user->ID, 'frs_nmls', true ) );
+			$arrive = trim( (string) get_user_meta( $user->ID, 'frs_arrive', true ) );
+
+			if ( $nmls === '' ) {
+				$skipped_nmls++;
+				continue;
+			}
+			if ( $arrive === '' ) {
+				$skipped_arrive++;
+				continue;
+			}
+
+			$profile = Profile::hydrate_from_user( $user );
+			$payload = array(
+				'event'     => 'profile_updated',
+				'timestamp' => time(),
+				'profile'   => $profile->toArray(),
+			);
+
+			if ( $dry_run ) {
+				\WP_CLI::log( sprintf( '  [%d] %s — would send (NMLS %s)', $user->ID, $user->user_email, $nmls ) );
+				continue;
+			}
+
+			$body = wp_json_encode( $payload );
+			$signature = hash_hmac( 'sha256', $body, $secret );
+
+			foreach ( $endpoints as $endpoint ) {
+				$resp = wp_remote_post( $endpoint, array(
+					'timeout' => 30,
+					'headers' => array(
+						'Content-Type'    => 'application/json',
+						'X-FRS-Signature' => $signature,
+					),
+					'body'    => $body,
+				) );
+
+				if ( is_wp_error( $resp ) ) {
+					$sent_fail++;
+					\WP_CLI::warning( sprintf( '[%d] %s — error: %s', $user->ID, $user->user_email, $resp->get_error_message() ) );
+					continue;
+				}
+				$code = wp_remote_retrieve_response_code( $resp );
+				if ( $code >= 200 && $code < 300 ) {
+					$sent_ok++;
+					\WP_CLI::log( sprintf( '  [%d] %s — OK (%d)', $user->ID, $user->user_email, $code ) );
+				} else {
+					$sent_fail++;
+					\WP_CLI::warning( sprintf( '[%d] %s — HTTP %d: %s', $user->ID, $user->user_email, $code, wp_remote_retrieve_body( $resp ) ) );
+				}
+			}
+		}
+
+		\WP_CLI::log( '' );
+		\WP_CLI::log( sprintf( 'Processed: %d / %d', $processed, $total ) );
+		\WP_CLI::log( sprintf( 'Skipped (no NMLS):   %d', $skipped_nmls ) );
+		\WP_CLI::log( sprintf( 'Skipped (no Arrive): %d', $skipped_arrive ) );
+		if ( ! $dry_run ) {
+			\WP_CLI::log( sprintf( 'Webhook OK:   %d', $sent_ok ) );
+			\WP_CLI::log( sprintf( 'Webhook FAIL: %d', $sent_fail ) );
+		}
+		\WP_CLI::success( $dry_run ? 'Dry run complete.' : 'Backfill complete.' );
 	}
 
 	/**

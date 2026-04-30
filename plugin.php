@@ -111,6 +111,7 @@ final class FRSUsers {
 		// Initialize REST API routes (hook-based, less likely to fail)
 		add_action( 'rest_api_init', array( '\FRSUsers\Routes\TwentyCRMApi', 'register_routes' ) );
 		add_action( 'rest_api_init', array( '\FRSUsers\Routes\NetworkSyncApi', 'register_routes' ) );
+		\FRSUsers\Routes\SyncRoutes::init();
 
 		// Initialize template handler for public profiles (legacy /profile/{slug})
 		Template::get_instance()->init();

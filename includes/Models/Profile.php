@@ -113,6 +113,16 @@ class Profile {
 	public $headshot_id;
 
 	/**
+	 * Headshot focal point (CSS object-position, e.g. "50% 30%").
+	 *
+	 * Used by templates to keep the face centered when the headshot is
+	 * cropped at different aspect ratios. Free-form string.
+	 *
+	 * @var string
+	 */
+	public $headshot_focal_point;
+
+	/**
 	 * Job title.
 	 *
 	 * @var string
@@ -874,6 +884,7 @@ class Profile {
 			'company_logo_id'         => $this->company_logo_id,
 			'company_website'         => $this->company_website,
 			'headshot_id'             => $this->headshot_id,
+			'headshot_focal_point'    => $this->headshot_focal_point,
 			'job_title'               => $this->job_title,
 			'biography'               => $this->biography,
 			'date_of_birth'           => $this->date_of_birth,
@@ -1056,7 +1067,8 @@ class Profile {
 		$profile->company_name    = static::get_meta_with_fallback( $user->ID, 'frs_company_name', 'company_name' );
 		$profile->company_logo_id = (int) static::get_meta_with_fallback( $user->ID, 'frs_company_logo_id', 'company_logo_id' );
 		$profile->company_website = static::get_meta_with_fallback( $user->ID, 'frs_company_website', 'company_website' );
-		$profile->headshot_id     = (int) static::get_meta_with_fallback( $user->ID, 'frs_headshot_id', 'headshot_id' );
+		$profile->headshot_id          = (int) static::get_meta_with_fallback( $user->ID, 'frs_headshot_id', 'headshot_id' );
+		$profile->headshot_focal_point = (string) get_user_meta( $user->ID, 'frs_headshot_focal_point', true );
 		$profile->job_title       = static::get_meta_with_fallback( $user->ID, 'frs_job_title', 'job_title' );
 		$profile->biography       = static::get_meta_with_fallback( $user->ID, 'frs_biography', 'biography' );
 		$profile->date_of_birth   = static::get_meta_with_fallback( $user->ID, 'frs_date_of_birth', 'date_of_birth' ) ?: null;

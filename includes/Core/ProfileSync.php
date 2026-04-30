@@ -381,41 +381,26 @@ class ProfileSync {
 			$action = 'created';
 		}
 
-		// Sync FRS meta fields
-		$meta_fields = array(
-			'phone_number',
-			'mobile_number',
-			'job_title',
-			'nmls',
-			'dre_license',
-			'biography',
-			'city_state',
-			'region',
-			'office',
-			'linkedin_url',
-			'facebook_url',
-			'instagram_url',
-			'twitter_url',
-			'youtube_url',
-			'tiktok_url',
-			'century21_url',
-			'zillow_url',
-			'is_active',
-			'select_person_type',
-			'profile_slug',
-			'arrive',
-			'service_areas',
-			'specialties',
-			'languages',
-			'company_roles',
-			'booking_url',
-			'qr_code_data', // CDN URL for QR code image
+		// Sync ALL profile fields as frs_* user meta. The Profile model's
+		// toArray() output is the canonical hub→marketing payload — every
+		// scalar/array key written here as frs_<key> meta. Removes the
+		// previous curated allowlist that silently dropped fields like
+		// `specialties_lo`, `custom_links`, `namb_certifications`, etc.
+		$skip_keys = array(
+			'id', 'user_id', 'email',
+			'first_name', 'last_name', 'display_name',
+			'headshot_url', // handled separately by sync_remote_image()
+			'avatar', 'avatar_url',
 		);
-
-		foreach ( $meta_fields as $field ) {
-			if ( isset( $profile_data[ $field ] ) ) {
-				update_user_meta( $user_id, 'frs_' . $field, $profile_data[ $field ] );
+		foreach ( $profile_data as $key => $value ) {
+			if ( ! is_string( $key ) || in_array( $key, $skip_keys, true ) ) {
+				continue;
 			}
+			if ( ! is_scalar( $value ) && ! is_array( $value ) && $value !== null ) {
+				continue;
+			}
+			$meta_key = 'frs_' . $key;
+			update_user_meta( $user_id, $meta_key, $value );
 		}
 
 		// Set frs_company_role (singular, multi-value meta) from company_roles or select_person_type.

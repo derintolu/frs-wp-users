@@ -69,6 +69,19 @@ class SyncRoutes {
 				),
 			)
 		);
+
+		register_rest_route(
+			self::NAMESPACE_V1,
+			'/sync/reconcile',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'handle_reconcile' ),
+				'permission_callback' => array( __CLASS__, 'check_permission' ),
+				'args'                => array(
+					'dry_run' => array( 'type' => 'boolean', 'default' => false ),
+				),
+			)
+		);
 	}
 
 	/**
@@ -211,6 +224,89 @@ class SyncRoutes {
 				'failed'         => $failed,
 				'dry_run'        => $dry_run,
 				'detail'         => $dry_run ? $detail : null,
+			),
+			200
+		);
+	}
+
+	/**
+	 * Local-only reconcile: enforce LO eligibility rules against THIS site's
+	 * own data (no hub iteration). For each WP user with an FRS role:
+	 *   - email must end with @21stcenturylending.com
+	 *   - frs_nmls must be non-empty
+	 *   - frs_arrive must be non-empty
+	 * Failing any → set frs_is_active=0.  Passing all → ensure frs_is_active=1.
+	 *
+	 * Designed to run on the marketing site so legacy / never-logged-in
+	 * profiles get their flag set correctly without being affected by the
+	 * hub's user list.
+	 */
+	public static function handle_reconcile( \WP_REST_Request $request ) {
+		$dry_run = (bool) $request->get_param( 'dry_run' );
+
+		$frs_roles = \FRSUsers\Core\Roles::get_wp_role_slugs();
+		$users = get_users( array(
+			'role__in' => $frs_roles,
+			'fields'   => 'ID',
+			'number'   => -1,
+		) );
+
+		$activated   = array();
+		$deactivated = array();
+		$unchanged   = 0;
+
+		foreach ( $users as $user_id ) {
+			$user_id = (int) $user_id;
+			$user    = get_userdata( $user_id );
+			if ( ! $user ) {
+				continue;
+			}
+
+			$email_ok = str_ends_with( strtolower( (string) $user->user_email ), '@21stcenturylending.com' );
+			$nmls     = trim( (string) get_user_meta( $user_id, 'frs_nmls', true ) );
+			$arrive   = trim( (string) get_user_meta( $user_id, 'frs_arrive', true ) );
+			$eligible = $email_ok && $nmls !== '' && $arrive !== '';
+
+			$current_active = (int) get_user_meta( $user_id, 'frs_is_active', true );
+			$desired_active = $eligible ? 1 : 0;
+
+			if ( $current_active === $desired_active ) {
+				$unchanged++;
+				continue;
+			}
+
+			$reason = $eligible
+				? 'now eligible'
+				: ( ! $email_ok ? 'email not @21stcenturylending.com' : ( $nmls === '' ? 'no NMLS' : 'no Arrive link' ) );
+
+			$entry = array(
+				'user_id' => $user_id,
+				'email'   => $user->user_email,
+				'reason'  => $reason,
+			);
+
+			if ( ! $dry_run ) {
+				update_user_meta( $user_id, 'frs_is_active', $desired_active );
+			}
+
+			if ( $desired_active === 1 ) {
+				$activated[] = $entry;
+			} else {
+				$deactivated[] = $entry;
+			}
+		}
+
+		return new \WP_REST_Response(
+			array(
+				'cohort'      => count( $users ),
+				'unchanged'   => $unchanged,
+				'activated'   => count( $activated ),
+				'deactivated' => count( $deactivated ),
+				'dry_run'     => $dry_run,
+				'detail'      => array(
+					'activated'   => $activated,
+					'deactivated' => $deactivated,
+				),
 			),
 			200
 		);
